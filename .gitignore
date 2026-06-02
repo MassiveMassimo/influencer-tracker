@@ -11,3 +11,8 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
+
+# pipeline runtime artifacts
+data/creators
+.chrome-profile
+playwright-report
