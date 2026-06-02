@@ -10,3 +10,4 @@ export function framesDir(handle: string) { return join(creatorDir(handle), "fra
 export function pricesDir(handle: string) { return join(creatorDir(handle), "prices"); }
 
 export const GROQ_KEY = process.env.GROQ_API_KEY ?? "";
+export const RETTIWT_KEY = process.env.RETTIWT_API_KEY ?? "";
