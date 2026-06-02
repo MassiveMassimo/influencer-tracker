@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
 
 const AboutRoute = AboutRouteImport.update({
@@ -23,40 +24,48 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
-  id: '/c/$handle/ticker/$symbol',
-  path: '/c/$handle/ticker/$symbol',
+const CHandleRoute = CHandleRouteImport.update({
+  id: '/c/$handle',
+  path: '/c/$handle',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
+  id: '/ticker/$symbol',
+  path: '/ticker/$symbol',
+  getParentRoute: () => CHandleRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/c/$handle': typeof CHandleRouteWithChildren
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/c/$handle': typeof CHandleRouteWithChildren
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/c/$handle': typeof CHandleRouteWithChildren
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/c/$handle/ticker/$symbol'
+  fullPaths: '/' | '/about' | '/c/$handle' | '/c/$handle/ticker/$symbol'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/c/$handle/ticker/$symbol'
-  id: '__root__' | '/' | '/about' | '/c/$handle/ticker/$symbol'
+  to: '/' | '/about' | '/c/$handle' | '/c/$handle/ticker/$symbol'
+  id: '__root__' | '/' | '/about' | '/c/$handle' | '/c/$handle/ticker/$symbol'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  CHandleTickerSymbolRoute: typeof CHandleTickerSymbolRoute
+  CHandleRoute: typeof CHandleRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -75,20 +84,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/c/$handle': {
+      id: '/c/$handle'
+      path: '/c/$handle'
+      fullPath: '/c/$handle'
+      preLoaderRoute: typeof CHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/c/$handle/ticker/$symbol': {
       id: '/c/$handle/ticker/$symbol'
-      path: '/c/$handle/ticker/$symbol'
+      path: '/ticker/$symbol'
       fullPath: '/c/$handle/ticker/$symbol'
       preLoaderRoute: typeof CHandleTickerSymbolRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CHandleRoute
     }
   }
 }
 
+interface CHandleRouteChildren {
+  CHandleTickerSymbolRoute: typeof CHandleTickerSymbolRoute
+}
+
+const CHandleRouteChildren: CHandleRouteChildren = {
+  CHandleTickerSymbolRoute: CHandleTickerSymbolRoute,
+}
+
+const CHandleRouteWithChildren =
+  CHandleRoute._addFileChildren(CHandleRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  CHandleTickerSymbolRoute: CHandleTickerSymbolRoute,
+  CHandleRoute: CHandleRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
