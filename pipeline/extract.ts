@@ -40,7 +40,9 @@ export async function extract(handle: string) {
         response_format: { type: "json_object" },
         messages: [{ role: "system", content: SYS }, { role: "user", content: user }] }),
     })).json();
-    const parsed = JSON.parse(r.choices[0].message.content);
+    let parsed: any;
+    try { parsed = JSON.parse(r.choices[0].message.content); }
+    catch { console.warn(`skip ${code}: malformed extract response`); continue; }
     if (!parsed.ticker) continue;
     out.push({ shortcode: code, postDate: await postDateOf(handle, code),
       ticker: String(parsed.ticker).toUpperCase(), company: parsed.company ?? "",

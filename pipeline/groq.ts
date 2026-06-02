@@ -3,6 +3,7 @@ import { GROQ_KEY } from "./config";
 const BASE = "https://api.groq.com/openai/v1";
 
 async function groq(path: string, init: RequestInit = {}) {
+  if (!GROQ_KEY) throw new Error("GROQ_API_KEY not set (see .env.example)");
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: { Authorization: `Bearer ${GROQ_KEY}`, ...(init.headers ?? {}) },

@@ -38,8 +38,8 @@ export function buildScorecard(calls: Call[]): Scorecard {
     hitRate: { "1m": hit("1m"), "3m": hit("3m") },
     avgExcess,
     callsPerWeek: first.length / weeks,
-    best: ranked.slice(0, 5),
-    worst: ranked.slice(-5).reverse(),
+    best: ranked.slice(0, Math.floor(ranked.length / 2)).slice(0, 5),
+    worst: ranked.slice(Math.ceil(ranked.length / 2)).reverse().slice(0, 5),
   };
 }
 
