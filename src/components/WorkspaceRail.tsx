@@ -74,17 +74,11 @@ export function WorkspaceRail({ creators }: { creators: CreatorRef[] }) {
         </ul>
       </nav>
 
-      <div className="flex items-center gap-2 border-t border-border/60 px-3 py-2.5">
-        <div className="flex size-7 items-center justify-center rounded-full bg-foreground font-medium text-[11px] text-background">
-          S
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-medium text-sm">Signal Tracker</div>
-          <div className="flex items-center gap-1.5 truncate text-muted-foreground text-xs">
-            <span className="size-1.5 rounded-full bg-emerald-500" />
-            Influencer accuracy
-          </div>
-        </div>
+      <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
+        <span className="flex items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+          <span className="size-1.5 rounded-full bg-emerald-500" />
+          Paper mode
+        </span>
         <ThemeToggle />
       </div>
     </aside>
