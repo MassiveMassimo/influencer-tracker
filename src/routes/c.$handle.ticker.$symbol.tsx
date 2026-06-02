@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table.tsx";
+import { ChartBoundary } from "../components/ChartBoundary";
 
 export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   loader: ({ params }) => getDataset({ data: params.handle }),
@@ -61,26 +62,30 @@ function TickerPage() {
 
       <section>
         <h2 className="font-semibold mb-2">Price</h2>
-        <CandlestickChart data={candles} style={{ height: 320 }}>
-          <Grid horizontal />
-          <Candlestick fadedOpacity={0.25} />
-          <XAxis />
-          <ChartTooltip />
-        </CandlestickChart>
+        <ChartBoundary>
+          <CandlestickChart data={candles} style={{ height: 320 }}>
+            <Grid horizontal />
+            <Candlestick fadedOpacity={0.25} />
+            <XAxis />
+            <ChartTooltip />
+          </CandlestickChart>
+        </ChartBoundary>
       </section>
 
       <section>
         <h2 className="font-semibold mb-2">
           Stock vs SPY, rebased to 100 — markers are his call dates
         </h2>
-        <LineChart data={norm}>
-          <Grid horizontal highlightRowValues={[100]} />
-          <Line dataKey="stock" />
-          <Line dataKey="spy" stroke="var(--chart-3)" />
-          <Line dataKey="call" showMarkers stroke="transparent" />
-          <XAxis />
-          <ChartTooltip />
-        </LineChart>
+        <ChartBoundary>
+          <LineChart data={norm}>
+            <Grid horizontal highlightRowValues={[100]} />
+            <Line dataKey="stock" />
+            <Line dataKey="spy" stroke="var(--chart-3)" />
+            <Line dataKey="call" showMarkers stroke="transparent" />
+            <XAxis />
+            <ChartTooltip />
+          </LineChart>
+        </ChartBoundary>
       </section>
 
       <section>

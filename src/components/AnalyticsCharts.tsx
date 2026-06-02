@@ -1,55 +1,104 @@
-import { Gauge } from "#/components/charts/gauge.tsx";
-import { BarChart } from "#/components/charts/bar-chart.tsx";
-import { Bar } from "#/components/charts/bar.tsx";
-import { ScatterChart } from "#/components/charts/scatter-chart.tsx";
-import { Scatter } from "#/components/charts/scatter.tsx";
-import { FunnelChart } from "#/components/charts/funnel-chart.tsx";
-import { Grid } from "#/components/charts/grid.tsx";
-import { XAxis } from "#/components/charts/x-axis.tsx";
-import { ChartTooltip } from "#/components/charts/tooltip/chart-tooltip.tsx";
+// bklit's Bar/Scatter/Line/Candlestick are time-series charts (x must be a Date).
+// Only Gauge and Funnel suit non-time analytics, so the categorical "excess by
+// horizon" and the conviction-vs-return scatter are rendered natively here.
+import { Gauge } from "#/components/charts/gauge";
+import { FunnelChart } from "#/components/charts/funnel-chart";
+import { ChartBoundary } from "./ChartBoundary";
 import type { Dataset, Horizon } from "../lib/types";
-import { Card } from "#/components/ui/card.tsx";
+import { Card } from "#/components/ui/card";
 
 const HORIZONS: Horizon[] = ["1w", "1m", "3m", "toDate"];
+const HLABEL: Record<Horizon, string> = { "1w": "1w", "1m": "1m", "3m": "3m", toDate: "to date" };
 
 export function AnalyticsCharts({ ds }: { ds: Dataset }) {
   const sc = ds.scorecard;
-  const excessByHorizon = HORIZONS.map(h => ({ horizon: h, excess: +(sc.avgExcess[h] * 100).toFixed(1) }));
+  const excessByHorizon = HORIZONS.map((h) => ({ label: HLABEL[h], pct: +(sc.avgExcess[h] * 100).toFixed(1) }));
   const convVsReturn = ds.calls
-    .filter(c => c.returns.toDate.excess != null)
-    .map(c => ({ conviction: c.conviction, excess: +(c.returns.toDate.excess! * 100).toFixed(1) }));
+    .filter((c) => c.returns.toDate.excess != null)
+    .map((c) => ({ conviction: c.conviction, excess: +(c.returns.toDate.excess! * 100).toFixed(1) }));
+
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Card className="p-4">
         <div className="text-sm font-medium mb-2">Hit rate (calls beating SPY, 3m)</div>
-        <Gauge value={Math.round(sc.hitRate["3m"] * 100)} centerValue={sc.hitRate["3m"]}
-          defaultLabel="beat SPY" inactiveFillOpacity={0.4}
-          formatOptions={{ style: "percent", maximumFractionDigits: 0 }} />
+        <ChartBoundary>
+          <Gauge
+            value={Math.round(sc.hitRate["3m"] * 100)}
+            centerValue={sc.hitRate["3m"]}
+            defaultLabel="beat SPY"
+            inactiveFillOpacity={0.4}
+            formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
+          />
+        </ChartBoundary>
       </Card>
+
       <Card className="p-4">
-        <div className="text-sm font-medium mb-2">Avg excess return by horizon (%)</div>
-        <BarChart data={excessByHorizon} xDataKey="horizon">
-          <Grid horizontal highlightRowValues={[0]} />
-          <Bar dataKey="excess" />
-          <XAxis />
-          <ChartTooltip />
-        </BarChart>
+        <div className="text-sm font-medium mb-2">Avg excess return vs SPY, by horizon</div>
+        <HorizonBars rows={excessByHorizon} />
       </Card>
+
       <Card className="p-4">
         <div className="text-sm font-medium mb-2">Conviction vs return (does confidence predict accuracy?)</div>
-        <ScatterChart data={convVsReturn} xDataKey="conviction">
-          <Grid horizontal highlightRowValues={[0]} />
-          <Scatter dataKey="excess" strokeWidth={0} yGradient />
-          <XAxis />
-          <ChartTooltip />
-        </ScatterChart>
+        <ConvictionScatter points={convVsReturn} />
       </Card>
+
       <Card className="p-4">
         <div className="text-sm font-medium mb-2">Call funnel</div>
-        {sc.funnel
-          ? <FunnelChart data={sc.funnel} color="var(--chart-1)" layers={3} />
-          : <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>}
+        <ChartBoundary>
+          {sc.funnel && sc.funnel.length > 0 ? (
+            <FunnelChart data={sc.funnel} color="var(--chart-1)" layers={3} />
+          ) : (
+            <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>
+          )}
+        </ChartBoundary>
       </Card>
     </div>
+  );
+}
+
+// Native horizontal bars — width proportional to |excess|, colored by sign.
+function HorizonBars({ rows }: { rows: { label: string; pct: number }[] }) {
+  const max = Math.max(1, ...rows.map((r) => Math.abs(r.pct)));
+  return (
+    <div className="space-y-2 py-2">
+      {rows.map((r) => (
+        <div key={r.label} className="flex items-center gap-3 text-sm">
+          <div className="w-16 shrink-0 text-muted-foreground">{r.label}</div>
+          <div className="relative h-5 flex-1 rounded bg-muted/50">
+            <div
+              className={`absolute inset-y-0 rounded ${r.pct >= 0 ? "left-1/2 bg-green-500" : "right-1/2 bg-red-500"}`}
+              style={{ width: `${(Math.abs(r.pct) / max) * 50}%` }}
+            />
+            <div className="absolute inset-y-0 left-1/2 w-px bg-border" />
+          </div>
+          <div className={`w-14 shrink-0 text-right tabular-nums ${r.pct >= 0 ? "text-green-600" : "text-red-600"}`}>
+            {r.pct > 0 ? "+" : ""}{r.pct}%
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Native SVG scatter: x = conviction (0..1), y = excess return (%).
+function ConvictionScatter({ points }: { points: { conviction: number; excess: number }[] }) {
+  if (points.length === 0) {
+    return <p className="text-sm text-muted-foreground py-6">No elapsed calls yet.</p>;
+  }
+  const W = 320, H = 160, P = 28;
+  const maxAbs = Math.max(5, ...points.map((p) => Math.abs(p.excess)));
+  const x = (c: number) => P + c * (W - 2 * P);
+  const y = (e: number) => H / 2 - (e / maxAbs) * (H / 2 - P);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="conviction vs excess return">
+      <line x1={P} y1={H / 2} x2={W - P} y2={H / 2} className="stroke-border" strokeDasharray="3 3" />
+      <text x={4} y={H / 2 + 3} className="fill-muted-foreground" fontSize="9">0%</text>
+      <text x={P} y={H - 6} className="fill-muted-foreground" fontSize="9">low conviction</text>
+      <text x={W - P} y={H - 6} textAnchor="end" className="fill-muted-foreground" fontSize="9">high</text>
+      {points.map((p, i) => (
+        <circle key={i} cx={x(p.conviction)} cy={y(p.excess)} r={4}
+          className={p.excess >= 0 ? "fill-green-500" : "fill-red-500"} fillOpacity={0.8} />
+      ))}
+    </svg>
   );
 }
