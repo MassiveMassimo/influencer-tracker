@@ -8,6 +8,8 @@ import { groq, discoverModels } from "./groq";
 async function transcribeOne(stt: string, videoPath: string): Promise<any> {
   const mp3 = videoPath.replace(/\.[^.]+$/, ".mp3");
   spawnSync("ffmpeg", ["-y", "-i", videoPath, "-vn", "-acodec", "libmp3lame", "-q:a", "4", mp3], { stdio: "ignore" });
+  // ffmpeg emits nothing for video with no audio track; skip rather than crash.
+  if (!existsSync(mp3)) return null;
   const fd = new FormData();
   fd.append("file", new Blob([await readFile(mp3)]), "audio.mp3");
   fd.append("model", stt);
@@ -28,8 +30,13 @@ export async function transcribe(handle: string) {
     const files = await readdir(dir);
     const video = files.find(f => /\.(mp4|webm|mkv)$/.test(f));
     if (!video) { console.warn(`skip ${code}: no video`); continue; }
-    const t = await transcribeOne(stt, join(dir, video));
-    await writeFile(outPath, JSON.stringify({ shortcode: code, text: t.text, segments: t.segments }, null, 2));
-    console.log(`transcribed ${code}`);
+    try {
+      const t = await transcribeOne(stt, join(dir, video));
+      if (!t) { console.warn(`skip ${code}: no audio track`); continue; }
+      await writeFile(outPath, JSON.stringify({ shortcode: code, text: t.text, segments: t.segments }, null, 2));
+      console.log(`transcribed ${code}`);
+    } catch (e) {
+      console.warn(`skip ${code}: ${(e as Error).message}`);
+    }
   }
 }

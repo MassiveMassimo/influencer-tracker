@@ -4,14 +4,41 @@
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
 import { mkdir, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { rawDir } from "./config";
+import { rawDir, creatorDir } from "./config";
 
 (chromium as any).use(stealth());
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 const jitter = (min: number, max: number) => min + Math.random() * (max - min);
+
+// yt-dlp reads this Netscape cookie jar so downloads reuse the harvest login.
+function cookiesPath(handle: string) { return join(creatorDir(handle), "cookies.txt"); }
+
+// Block until the IG session cookie appears, so a fresh profile gets a manual
+// login instead of silently hitting the logged-out wall and harvesting nothing.
+async function waitForLogin(ctx: any, timeoutMs = 6 * 60_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const cookies = await ctx.cookies("https://www.instagram.com");
+    if (cookies.some((c: any) => c.name === "ds_user_id" && c.value)) return true;
+    await sleep(2000);
+  }
+  return false;
+}
+
+// Playwright cookies -> Netscape format (domain, includeSub, path, secure, expiry, name, value).
+function toNetscape(cookies: any[]): string {
+  const lines = ["# Netscape HTTP Cookie File"];
+  for (const c of cookies) {
+    const domain = c.domain.startsWith(".") ? c.domain : `.${c.domain}`;
+    const expiry = Math.floor(c.expires && c.expires > 0 ? c.expires : Date.now() / 1000 + 31536000);
+    lines.push([domain, "TRUE", c.path || "/", c.secure ? "TRUE" : "FALSE", expiry, c.name, c.value].join("\t"));
+  }
+  return lines.join("\n") + "\n";
+}
 
 export async function scrape(handle: string, months = 12, userDataDir = ".chrome-profile") {
   const cutoff = Date.now() - months * 30 * 86400_000;
@@ -30,6 +57,15 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
     } catch { /* non-JSON response */ }
   });
 
+  // Gate on login before scrolling. Fresh profile -> user logs in manually.
+  await page.goto("https://www.instagram.com/", { waitUntil: "domcontentloaded" });
+  console.log("\n>>> Log into Instagram in the open browser window. Waiting for session...");
+  if (!(await waitForLogin(ctx))) {
+    await ctx.close();
+    throw new Error("login not detected within timeout — re-run after logging in");
+  }
+  console.log(">>> Login detected. Harvesting reels...");
+
   await page.goto(`https://www.instagram.com/${handle}/reels/`, { waitUntil: "domcontentloaded" });
   // Human-like scroll until we pass the cutoff date or stop finding new reels.
   let stagnant = 0;
@@ -41,6 +77,10 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
     if (oldest < cutoff) break;
     stagnant = seen.size === before ? stagnant + 1 : 0;
   }
+
+  // Persist session cookies for yt-dlp before tearing down the context.
+  await mkdir(creatorDir(handle), { recursive: true });
+  await writeFile(cookiesPath(handle), toNetscape(await ctx.cookies()));
   await ctx.close();
 
   const recent = [...seen.entries()].filter(([, t]) => !t || t >= cutoff).map(([code]) => code);
@@ -59,8 +99,10 @@ function* findReels(obj: any): Generator<any> {
 export function downloadReel(handle: string, shortcode: string): boolean {
   const out = join(rawDir(handle), shortcode);
   const url = `https://www.instagram.com/reel/${shortcode}/`;
+  const jar = cookiesPath(handle);
+  const cookieArgs = existsSync(jar) ? ["--cookies", jar] : ["--cookies-from-browser", "chrome"];
   const r = spawnSync("yt-dlp", [
-    "--cookies-from-browser", "chrome",
+    ...cookieArgs,
     "-o", join(out, "reel.%(ext)s"),
     "--write-info-json", url,
   ], { stdio: "inherit" });
