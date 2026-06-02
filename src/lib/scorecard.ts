@@ -1,0 +1,47 @@
+import type { Call, Horizon, Scorecard } from "./types";
+
+const HORIZONS: Horizon[] = ["1w", "1m", "3m", "toDate"];
+
+export function dedupeFirstCall(calls: Call[]): Call[] {
+  const earliest = new Map<string, string>();
+  for (const c of calls) {
+    const prev = earliest.get(c.ticker);
+    if (!prev || c.postDate < prev) earliest.set(c.ticker, c.postDate);
+  }
+  return calls.map(c => ({ ...c, isFirstCall: earliest.get(c.ticker) === c.postDate }));
+}
+
+function mean(xs: number[]): number {
+  return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
+}
+
+export function buildScorecard(calls: Call[]): Scorecard {
+  const first = calls.filter(c => c.isFirstCall);
+  const avgExcess = {} as Record<Horizon, number>;
+  for (const h of HORIZONS) {
+    avgExcess[h] = mean(first.map(c => c.returns[h].excess).filter((x): x is number => x != null));
+  }
+  const hit = (h: "1m" | "3m") => {
+    const elapsed = first.map(c => c.returns[h].excess).filter((x): x is number => x != null);
+    return elapsed.length ? elapsed.filter(x => x > 0).length / elapsed.length : 0;
+  };
+  const ranked = [...first]
+    .filter(c => c.returns.toDate.excess != null)
+    .sort((a, b) => (b.returns.toDate.excess! - a.returns.toDate.excess!));
+  const spanDays = first.length
+    ? (new Date(maxDate(first)).getTime() - new Date(minDate(first)).getTime()) / 86400000
+    : 0;
+  const weeks = Math.max(spanDays / 7, 1);
+  return {
+    totalCalls: calls.length,
+    uniqueTickers: new Set(calls.map(c => c.ticker)).size,
+    hitRate: { "1m": hit("1m"), "3m": hit("3m") },
+    avgExcess,
+    callsPerWeek: first.length / weeks,
+    best: ranked.slice(0, 5),
+    worst: ranked.slice(-5).reverse(),
+  };
+}
+
+function minDate(cs: Call[]): string { return cs.reduce((m, c) => c.postDate < m ? c.postDate : m, cs[0].postDate); }
+function maxDate(cs: Call[]): string { return cs.reduce((m, c) => c.postDate > m ? c.postDate : m, cs[0].postDate); }
