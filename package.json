@@ -9,7 +9,8 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pipeline": "bun run pipeline/run.ts"
   },
   "dependencies": {
     "@number-flow/react": "^0.6.0",
