@@ -3,61 +3,48 @@
 // horizon" and the conviction-vs-return scatter are rendered natively here.
 import { Gauge } from "#/components/charts/gauge";
 import { FunnelChart } from "#/components/charts/funnel-chart";
-import { ChartBoundary } from "./ChartBoundary";
 import type { Dataset, Horizon } from "../lib/types";
-import { Card } from "#/components/ui/card";
 
 const HORIZONS: Horizon[] = ["1w", "1m", "3m", "toDate"];
 const HLABEL: Record<Horizon, string> = { "1w": "1w", "1m": "1m", "3m": "3m", toDate: "to date" };
 
-export function AnalyticsCharts({ ds }: { ds: Dataset }) {
+function excessRows(ds: Dataset) {
   const sc = ds.scorecard;
-  const excessByHorizon = HORIZONS.map((h) => ({ label: HLABEL[h], pct: +(sc.avgExcess[h] * 100).toFixed(1) }));
-  const convVsReturn = ds.calls
+  return HORIZONS.map((h) => ({ label: HLABEL[h], pct: +(sc.avgExcess[h] * 100).toFixed(1) }));
+}
+
+function convictionPoints(ds: Dataset) {
+  return ds.calls
     .filter((c) => c.returns.toDate.excess != null)
     .map((c) => ({ conviction: c.conviction, excess: +(c.returns.toDate.excess! * 100).toFixed(1) }));
+}
 
+// Hit-rate gauge — used in the overview featured pane. Wrap in ChartBoundary at call site.
+export function HitRateGauge({ ds }: { ds: Dataset }) {
+  const sc = ds.scorecard;
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card className="p-4">
-        <div className="text-sm font-medium mb-2">Hit rate (calls beating SPY, 3m)</div>
-        <ChartBoundary>
-          <Gauge
-            value={Math.round(sc.hitRate["3m"] * 100)}
-            centerValue={sc.hitRate["3m"]}
-            defaultLabel="beat SPY"
-            inactiveFillOpacity={0.4}
-            formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
-          />
-        </ChartBoundary>
-      </Card>
-
-      <Card className="p-4">
-        <div className="text-sm font-medium mb-2">Avg excess return vs SPY, by horizon</div>
-        <HorizonBars rows={excessByHorizon} />
-      </Card>
-
-      <Card className="p-4">
-        <div className="text-sm font-medium mb-2">Conviction vs return (does confidence predict accuracy?)</div>
-        <ConvictionScatter points={convVsReturn} />
-      </Card>
-
-      <Card className="p-4">
-        <div className="text-sm font-medium mb-2">Call funnel</div>
-        <ChartBoundary>
-          {sc.funnel && sc.funnel.length > 0 ? (
-            <FunnelChart data={sc.funnel} color="var(--chart-1)" layers={3} />
-          ) : (
-            <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>
-          )}
-        </ChartBoundary>
-      </Card>
-    </div>
+    <Gauge
+      value={Math.round(sc.hitRate["3m"] * 100)}
+      centerValue={sc.hitRate["3m"]}
+      defaultLabel="beat SPY"
+      inactiveFillOpacity={0.4}
+      formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
+    />
   );
 }
 
+// Call funnel — used in the overview side pane. Wrap in ChartBoundary at call site.
+export function CallFunnel({ ds }: { ds: Dataset }) {
+  const sc = ds.scorecard;
+  if (!sc.funnel || sc.funnel.length === 0) {
+    return <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>;
+  }
+  return <FunnelChart data={sc.funnel} color="var(--chart-1)" layers={3} />;
+}
+
 // Native horizontal bars — width proportional to |excess|, colored by sign.
-function HorizonBars({ rows }: { rows: { label: string; pct: number }[] }) {
+export function HorizonBars({ ds }: { ds: Dataset }) {
+  const rows = excessRows(ds);
   const max = Math.max(1, ...rows.map((r) => Math.abs(r.pct)));
   return (
     <div className="space-y-2 py-2">
@@ -66,12 +53,12 @@ function HorizonBars({ rows }: { rows: { label: string; pct: number }[] }) {
           <div className="w-16 shrink-0 text-muted-foreground">{r.label}</div>
           <div className="relative h-5 flex-1 rounded bg-muted/50">
             <div
-              className={`absolute inset-y-0 rounded ${r.pct >= 0 ? "left-1/2 bg-green-500" : "right-1/2 bg-red-500"}`}
+              className={`absolute inset-y-0 rounded ${r.pct >= 0 ? "left-1/2 bg-emerald-500" : "right-1/2 bg-rose-500"}`}
               style={{ width: `${(Math.abs(r.pct) / max) * 50}%` }}
             />
             <div className="absolute inset-y-0 left-1/2 w-px bg-border" />
           </div>
-          <div className={`w-14 shrink-0 text-right tabular-nums ${r.pct >= 0 ? "text-green-600" : "text-red-600"}`}>
+          <div className={`w-14 shrink-0 text-right tabular-nums ${r.pct >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
             {r.pct > 0 ? "+" : ""}{r.pct}%
           </div>
         </div>
@@ -81,7 +68,8 @@ function HorizonBars({ rows }: { rows: { label: string; pct: number }[] }) {
 }
 
 // Native SVG scatter: x = conviction (0..1), y = excess return (%).
-function ConvictionScatter({ points }: { points: { conviction: number; excess: number }[] }) {
+export function ConvictionScatter({ ds }: { ds: Dataset }) {
+  const points = convictionPoints(ds);
   if (points.length === 0) {
     return <p className="text-sm text-muted-foreground py-6">No elapsed calls yet.</p>;
   }
@@ -97,7 +85,7 @@ function ConvictionScatter({ points }: { points: { conviction: number; excess: n
       <text x={W - P} y={H - 6} textAnchor="end" className="fill-muted-foreground" fontSize="9">high</text>
       {points.map((p, i) => (
         <circle key={i} cx={x(p.conviction)} cy={y(p.excess)} r={4}
-          className={p.excess >= 0 ? "fill-green-500" : "fill-red-500"} fillOpacity={0.8} />
+          className={p.excess >= 0 ? "fill-emerald-500" : "fill-rose-500"} fillOpacity={0.8} />
       ))}
     </svg>
   );

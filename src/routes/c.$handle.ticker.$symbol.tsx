@@ -25,6 +25,15 @@ function pct(x: number | null) {
   return x == null ? "—" : `${(x * 100).toFixed(1)}%`;
 }
 
+function toneClass(x: number | null) {
+  if (x == null) return "text-muted-foreground";
+  return x > 0
+    ? "text-emerald-600 dark:text-emerald-400"
+    : x < 0
+      ? "text-rose-600 dark:text-rose-400"
+      : "text-muted-foreground";
+}
+
 function TickerPage() {
   const ds = Route.useLoaderData();
   const { symbol } = Route.useParams();
@@ -52,16 +61,21 @@ function TickerPage() {
   }));
 
   return (
-    <main className="mx-auto max-w-5xl p-8 space-y-6">
-      <h1 className="text-2xl font-bold">
-        {symbol}{" "}
-        <span className="text-muted-foreground text-base">
-          {calls[0]?.company}
-        </span>
-      </h1>
+    <main className="mx-auto max-w-6xl space-y-6 px-6 py-8 md:px-10 md:py-10">
+      <header>
+        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          Ticker · @{ds.creator.handle}
+        </div>
+        <h1 className="mt-1 flex items-baseline gap-2 font-heading text-2xl">
+          {symbol}
+          <span className="text-base text-muted-foreground">{calls[0]?.company}</span>
+        </h1>
+      </header>
 
-      <section>
-        <h2 className="font-semibold mb-2">Price</h2>
+      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
+        <div className="mb-4 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          Price
+        </div>
         <ChartBoundary>
           <CandlestickChart data={candles} style={{ height: 320 }}>
             <Grid horizontal />
@@ -72,10 +86,10 @@ function TickerPage() {
         </ChartBoundary>
       </section>
 
-      <section>
-        <h2 className="font-semibold mb-2">
-          Stock vs SPY, rebased to 100 — markers are his call dates
-        </h2>
+      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
+        <div className="mb-4 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          Stock vs SPY · rebased to 100 · markers are call dates
+        </div>
         <ChartBoundary>
           <LineChart data={norm}>
             <Grid horizontal highlightRowValues={[100]} />
@@ -88,31 +102,41 @@ function TickerPage() {
         </ChartBoundary>
       </section>
 
-      <section>
-        <h2 className="font-semibold mb-2">Calls & forward return vs SPY</h2>
+      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+        <div className="border-border/40 border-b px-5 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          Calls & forward return vs SPY
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>1w</TableHead>
-              <TableHead>1m</TableHead>
-              <TableHead>3m</TableHead>
-              <TableHead>To date</TableHead>
+              <TableHead className="text-right">1w</TableHead>
+              <TableHead className="text-right">1m</TableHead>
+              <TableHead className="text-right">3m</TableHead>
+              <TableHead className="text-right">To date</TableHead>
               <TableHead>Quote</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {calls.map((c) => (
               <TableRow key={c.shortcode}>
-                <TableCell>
+                <TableCell className="font-mono tabular-nums">
                   {c.postDate}
-                  {c.isFirstCall ? " ⭐" : ""}
+                  {c.isFirstCall ? " ★" : ""}
                 </TableCell>
-                <TableCell>{pct(c.returns["1w"].excess)}</TableCell>
-                <TableCell>{pct(c.returns["1m"].excess)}</TableCell>
-                <TableCell>{pct(c.returns["3m"].excess)}</TableCell>
-                <TableCell>{pct(c.returns["toDate"].excess)}</TableCell>
-                <TableCell className="max-w-xs truncate">{c.quote}</TableCell>
+                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["1w"].excess)}`}>
+                  {pct(c.returns["1w"].excess)}
+                </TableCell>
+                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["1m"].excess)}`}>
+                  {pct(c.returns["1m"].excess)}
+                </TableCell>
+                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["3m"].excess)}`}>
+                  {pct(c.returns["3m"].excess)}
+                </TableCell>
+                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["toDate"].excess)}`}>
+                  {pct(c.returns["toDate"].excess)}
+                </TableCell>
+                <TableCell className="max-w-xs truncate text-muted-foreground">{c.quote}</TableCell>
               </TableRow>
             ))}
           </TableBody>
