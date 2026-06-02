@@ -9,8 +9,9 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run",
-    "pipeline": "bun run pipeline/run.ts"
+    "test": "bun test",
+    "pipeline": "bun run pipeline/run.ts",
+    "pipeline:x": "bun run pipeline/run-x.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.2.8",
