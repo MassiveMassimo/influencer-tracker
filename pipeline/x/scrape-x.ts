@@ -1,6 +1,6 @@
 import { Rettiwt } from "rettiwt-api";
 import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { rawDir, RETTIWT_KEY } from "../config";
 import { withRetry } from "../retry";
 
@@ -11,7 +11,10 @@ export interface TweetRecord {
   imageUrls: string[];
 }
 
-const PHOTO = (m: any) => m?.type === "photo" || m?.type === "image" || /\.(jpe?g|png)/i.test(m?.url ?? "");
+// Rettiwt's MediaType enum uses uppercase ("PHOTO"); match case-insensitively
+// and keep a URL-extension fallback for safety.
+const PHOTO = (m: any) =>
+  String(m?.type).toUpperCase() === "PHOTO" || /\.(jpe?g|png)/i.test(m?.url ?? "");
 
 // Pure: map a Rettiwt tweet to our record, keeping only image media.
 export function toRecord(t: any): TweetRecord {
@@ -29,9 +32,11 @@ export function isRateLimit(e: unknown): boolean {
 }
 
 async function downloadImage(url: string, dest: string): Promise<void> {
+  // Only fetch https URLs; this runs unattended against API-supplied URLs.
+  if (new URL(url).protocol !== "https:") return;
   const res = await withRetry(() => fetch(url), { label: "img", isRetryable: isRateLimit, delayMs: () => 2000 });
   if (!res.ok) return;
-  await mkdir(join(dest, ".."), { recursive: true });
+  await mkdir(dirname(dest), { recursive: true });
   await writeFile(dest, Buffer.from(await res.arrayBuffer()));
 }
 
@@ -55,6 +60,7 @@ export async function scrapeX(handle: string, months = 12): Promise<TweetRecord[
     records.push(...(data.list ?? []).map(toRecord));
     if (!data.next || !data.list?.length) break;
     cursor = data.next;
+    // Search returns newest-first (LATEST), so the cap drops the OLDEST tweets.
     if (records.length >= 3200) { truncated = true; break; }
   }
 
