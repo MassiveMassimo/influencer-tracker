@@ -35,6 +35,7 @@ export const DatasetSchema = z.object({
     hitRate: z.object({ "1m": z.number(), "3m": z.number() }),
     avgExcess: z.object({ "1w": z.number(), "1m": z.number(), "3m": z.number(), "toDate": z.number() }),
     callsPerWeek: z.number(), best: z.array(CallSchema), worst: z.array(CallSchema),
+    funnel: z.array(z.object({ label: z.string(), value: z.number() })).optional(),
   }),
   caveats: z.array(z.string()),
 });

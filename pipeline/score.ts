@@ -14,6 +14,7 @@ export function assembleDataset(
   reelCalls: ReelCall[],
   ohlc: Record<string, OhlcBar[]>,
   generatedAt: string,
+  counts?: { reelsScraped: number; reelsWithTicker: number },
 ): Dataset {
   const spy = ohlc["SPY"] ?? [];
   const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
@@ -23,11 +24,19 @@ export function assembleDataset(
     returns: computeReturns(ohlc[c.ticker] ?? [], spy, c.postDate),
   }));
   calls = dedupeFirstCall(calls);
+  const firstCalls = calls.filter(c => c.isFirstCall);
+  const beatSpy = firstCalls.filter(c => (c.returns.toDate.excess ?? -1) > 0).length;
+  const funnel = counts ? [
+    { label: "Reels (12mo)", value: counts.reelsScraped },
+    { label: "Named a stock", value: counts.reelsWithTicker },
+    { label: "Explicit buy call", value: calls.length },
+    { label: "Beat SPY (to date)", value: beatSpy },
+  ] : undefined;
   const tickers: Record<string, { ohlc: OhlcBar[] }> = {};
   for (const t of [...new Set(calls.map(c => c.ticker)), "SPY"]) tickers[t] = { ohlc: ohlc[t] ?? [] };
   const ds: Dataset = {
     creator, generatedAt, spyAnchor: "SPY", calls, tickers,
-    scorecard: buildScorecard(calls), caveats: CAVEATS,
+    scorecard: { ...buildScorecard(calls), funnel }, caveats: CAVEATS,
   };
   DatasetSchema.parse(ds); // fail-closed on a malformed dataset
   return ds;
@@ -39,7 +48,10 @@ export async function score(handle: string, name: string, today = new Date().toI
   for (const f of await readdir(pricesDir(handle))) {
     if (f.endsWith(".json")) ohlc[f.replace(".json","")] = JSON.parse(await readFile(join(pricesDir(handle), f), "utf8"));
   }
-  const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today);
+  let reelsScraped = reelCalls.length;
+  try { reelsScraped = JSON.parse(await readFile(join(creatorDir(handle), "raw", "shortcodes.json"), "utf8")).length; } catch {}
+  const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today,
+    { reelsScraped, reelsWithTicker: reelCalls.length });
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
   await updateIndex(handle, name, ds);
   return ds;

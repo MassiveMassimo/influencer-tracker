@@ -16,6 +16,8 @@ export interface Call {
   returns: Record<Horizon, ReturnTriple>;
 }
 
+export interface FunnelStage { label: string; value: number }
+
 export interface Scorecard {
   totalCalls: number;
   uniqueTickers: number;
@@ -24,6 +26,7 @@ export interface Scorecard {
   callsPerWeek: number;
   best: Call[];
   worst: Call[];
+  funnel?: FunnelStage[];
 }
 
 export interface Dataset {

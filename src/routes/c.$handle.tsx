@@ -3,6 +3,7 @@ import { getDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { Scorecard } from "../components/Scorecard";
 import { Timeline } from "../components/Timeline";
+import { AnalyticsCharts } from "../components/AnalyticsCharts";
 
 export const Route = createFileRoute("/c/$handle")({
   loader: ({ params }) => getDataset({ data: params.handle }),
@@ -20,6 +21,8 @@ function Overview() {
       <Scorecard sc={ds.scorecard} />
       <section><h2 className="font-semibold mb-2">Calls timeline</h2>
         <Timeline handle={handle} calls={ds.calls} /></section>
+      <section><h2 className="font-semibold mb-2">Analytics</h2>
+        <AnalyticsCharts ds={ds} /></section>
     </main>
   );
 }
