@@ -67,8 +67,8 @@ function Landing() {
         <p className="text-sm text-muted-foreground">No creators yet. Run the pipeline.</p>
       ) : (
         <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-          <div className="grid grid-cols-[1.25rem_minmax(0,1fr)_auto_auto_auto] items-center gap-2.5 border-border/40 border-b px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5">
-            <span>#</span>
+          <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 border-border/40 border-b px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5 md:tracking-[0.2em]">
+            <span className="hidden md:block">#</span>
             <span>Creator</span>
             <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("hitRate3m")}>Hit 3m</button>
             <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("avgExcess3m")}>Excess 3m</button>
@@ -81,9 +81,9 @@ function Landing() {
                 <Link
                   to="/c/$handle"
                   params={{ handle: c.handle }}
-                  className="grid grid-cols-[1.25rem_minmax(0,1fr)_auto_auto_auto] items-center gap-2.5 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5"
+                  className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5"
                 >
-                  <span className="font-mono text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                  <span className="hidden font-mono text-xs text-muted-foreground tabular-nums md:block">{i + 1}</span>
                   <div className="flex min-w-0 items-center gap-3">
                     {c.avatar ? (
                       <img src={c.avatar} alt="" className="size-9 shrink-0 rounded-full object-cover ring-1 ring-border/60" />

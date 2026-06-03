@@ -369,6 +369,13 @@ a {
   padding: 3px;
   border-radius: 48px;
   background: var(--muted);
+  /* Never overflow the card; scroll horizontally on very narrow screens. */
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.t-tabs::-webkit-scrollbar {
+  display: none;
 }
 .t-tab {
   position: relative;
@@ -376,13 +383,21 @@ a {
   border: 0;
   background: transparent;
   height: 30px;
-  padding: 4px 12px;
+  /* nowrap stops "1D" wrapping to "1"/"D"; flex-none keeps tabs from squishing. */
+  white-space: nowrap;
+  flex: 0 0 auto;
+  padding: 4px 9px;
   color: var(--muted-foreground);
   cursor: pointer;
   border-radius: 48px;
   z-index: 1;
   font-size: 12px;
   transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (min-width: 768px) {
+  .t-tab {
+    padding: 4px 12px;
+  }
 }
 .t-tab:not([aria-selected="true"]):hover,
 .t-tab[aria-selected="true"] {

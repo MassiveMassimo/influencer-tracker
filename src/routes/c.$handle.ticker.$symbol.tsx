@@ -145,7 +145,7 @@ function TickerPage() {
   const isUpdating = query.isFetching && !showSkeleton;
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-6 py-8 md:px-10 md:py-10">
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header>
         <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
           Ticker · @{ds.creator.handle}
@@ -157,8 +157,8 @@ function TickerPage() {
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="whitespace-nowrap font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
             Price
             {usingFallback ? (
               <span className="ml-2 text-amber-600 dark:text-amber-400">· cached daily data</span>

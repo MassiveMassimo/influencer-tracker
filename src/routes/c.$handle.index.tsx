@@ -145,7 +145,7 @@ function Overview() {
   const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-6 py-8 md:px-10 md:py-10">
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
