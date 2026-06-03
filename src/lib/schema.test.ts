@@ -16,6 +16,7 @@ const valid = {
   }],
   tickers: { NBIS: { ohlc: [{ date: "2026-06-01", o: 1, h: 2, l: 1, c: 2 }] } },
   scorecard: { totalCalls: 1, uniqueTickers: 1, hitRate: { "1m": 0, "3m": 0 },
+    hitRateN: { "1m": 0, "3m": 0 },
     avgExcess: { "1w": 0, "1m": 0, "3m": 0, "toDate": 0.05 },
     callsPerWeek: 0.5, best: [], worst: [] },
   caveats: ["survivorship"],
