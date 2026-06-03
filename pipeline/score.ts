@@ -15,6 +15,7 @@ export function assembleDataset(
   ohlc: Record<string, OhlcBar[]>,
   generatedAt: string,
   counts?: { reelsScraped: number; reelsWithTicker: number },
+  postNoun = "Reels",
 ): Dataset {
   const spy = ohlc["SPY"] ?? [];
   const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
@@ -27,7 +28,7 @@ export function assembleDataset(
   const firstCalls = calls.filter(c => c.isFirstCall);
   const beatSpy = firstCalls.filter(c => (c.returns.toDate.excess ?? -1) > 0).length;
   const funnel = counts
-    ? buildFunnel(counts, calls.length, firstCalls.length, beatSpy)
+    ? buildFunnel(counts, calls.length, firstCalls.length, beatSpy, postNoun)
     : undefined;
   const tickers: Record<string, { ohlc: OhlcBar[] }> = {};
   for (const t of [...new Set(calls.map(c => c.ticker)), "SPY"]) tickers[t] = { ohlc: ohlc[t] ?? [] };
@@ -39,7 +40,7 @@ export function assembleDataset(
   return ds;
 }
 
-export async function score(handle: string, name: string, today = new Date().toISOString().slice(0,10)) {
+export async function score(handle: string, name: string, today = new Date().toISOString().slice(0,10), postNoun = "Reels") {
   const reelCalls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
   const ohlc: Record<string, OhlcBar[]> = {};
   for (const f of await readdir(pricesDir(handle))) {
@@ -48,7 +49,7 @@ export async function score(handle: string, name: string, today = new Date().toI
   let reelsScraped = reelCalls.length;
   try { reelsScraped = JSON.parse(await readFile(join(creatorDir(handle), "raw", "shortcodes.json"), "utf8")).length; } catch {}
   const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today,
-    { reelsScraped, reelsWithTicker: reelCalls.length });
+    { reelsScraped, reelsWithTicker: reelCalls.length }, postNoun);
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
   await updateIndex(handle, name, ds);
   return ds;

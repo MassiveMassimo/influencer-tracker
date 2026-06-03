@@ -9,9 +9,10 @@ export function buildFunnel(
   buyCalls: number,
   firstCalls: number,
   beatSpy: number,
+  postNoun = "Reels", // platform's post word: "Reels" (IG), "Tweets" (X), "TikToks"
 ): FunnelStage[] {
   return [
-    { label: "Reels (12mo)", value: counts.reelsScraped },
+    { label: `${postNoun} (12mo)`, value: counts.reelsScraped },
     { label: "Named a stock", value: counts.reelsWithTicker },
     { label: "Bullish buy call", value: buyCalls },
     { label: "First call (unique ticker)", value: firstCalls },

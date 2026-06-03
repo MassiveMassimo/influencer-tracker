@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { getDataset } from "../lib/data";
@@ -9,9 +10,20 @@ import {
   HitRateGauge,
   HorizonBars,
 } from "../components/AnalyticsCharts";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../components/ui/pagination";
 import type { Call, Dataset, OhlcBar } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { siteUrl } from "#/og/site.ts";
+
+const CALLS_PER_PAGE = 25;
 
 export const Route = createFileRoute("/c/$handle/")({
   loader: ({ params }) => getDataset({ data: params.handle }),
@@ -116,8 +128,6 @@ function Overview() {
         </div>
       </section>
 
-      <CallsList handle={handle} calls={calls} ds={ds} />
-
       <section className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2">
         <div className="bg-background p-6">
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
@@ -137,6 +147,8 @@ function Overview() {
           </div>
         </div>
       </section>
+
+      <CallsList handle={handle} calls={calls} ds={ds} />
 
       <CaveatsBanner caveats={ds.caveats} />
     </main>
@@ -167,6 +179,12 @@ function CallsList({
   calls: Call[];
   ds: Dataset;
 }) {
+  const [page, setPage] = useState(1);
+  const pageCount = Math.max(1, Math.ceil(calls.length / CALLS_PER_PAGE));
+  const current = Math.min(page, pageCount);
+  const start = (current - 1) * CALLS_PER_PAGE;
+  const visible = calls.slice(start, start + CALLS_PER_PAGE);
+
   return (
     <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
       <div className="flex items-center justify-between border-border/40 border-b px-5 py-3">
@@ -178,7 +196,7 @@ function CallsList({
         </span>
       </div>
       <ul className="divide-border/40 divide-y">
-        {calls.map((c) => (
+        {visible.map((c) => (
           <CallRow
             key={c.shortcode}
             handle={handle}
@@ -190,8 +208,88 @@ function CallsList({
           <li className="px-5 py-6 text-sm text-muted-foreground">No calls yet.</li>
         )}
       </ul>
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between gap-3 border-border/40 border-t px-3 py-3">
+          <span className="hidden pl-2 font-mono text-[10px] text-muted-foreground tabular-nums sm:block">
+            {start + 1}–{start + visible.length} of {calls.length}
+          </span>
+          <CallsPagination current={current} pageCount={pageCount} onSelect={setPage} />
+        </div>
+      )}
       <span className="sr-only">{ds.creator.handle} calls list</span>
     </section>
+  );
+}
+
+// Windowed page list: first, last, and a span around the current page, with
+// ellipses bridging any gaps (e.g. 1 … 6 7 8 … 36).
+function pageWindow(current: number, total: number): (number | "ellipsis")[] {
+  const keep = new Set([1, total, current - 1, current, current + 1]);
+  const pages = [...keep].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const out: (number | "ellipsis")[] = [];
+  let prev = 0;
+  for (const n of pages) {
+    if (n - prev > 1) out.push("ellipsis");
+    out.push(n);
+    prev = n;
+  }
+  return out;
+}
+
+function CallsPagination({
+  current,
+  pageCount,
+  onSelect,
+}: {
+  current: number;
+  pageCount: number;
+  onSelect: (page: number) => void;
+}) {
+  return (
+    <Pagination className="mx-0 w-auto justify-end">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            aria-disabled={current === 1}
+            onClick={(e) => {
+              e.preventDefault();
+              if (current > 1) onSelect(current - 1);
+            }}
+          />
+        </PaginationItem>
+        {pageWindow(current, pageCount).map((p, i) =>
+          p === "ellipsis" ? (
+            <PaginationItem key={`gap-${i}`}>
+              <PaginationEllipsis />
+            </PaginationItem>
+          ) : (
+            <PaginationItem key={p}>
+              <PaginationLink
+                href="#"
+                isActive={p === current}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onSelect(p);
+                }}
+              >
+                {p}
+              </PaginationLink>
+            </PaginationItem>
+          ),
+        )}
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            aria-disabled={current === pageCount}
+            onClick={(e) => {
+              e.preventDefault();
+              if (current < pageCount) onSelect(current + 1);
+            }}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 }
 

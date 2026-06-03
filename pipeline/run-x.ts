@@ -26,6 +26,6 @@ for (const stage of stages.slice(start)) {
   } else if (stage === "prices") {
     await prices(handle);
   } else if (stage === "score") {
-    await score(handle, name);
+    await score(handle, name, undefined, "Tweets"); // X posts are tweets, not reels
   }
 }

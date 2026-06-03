@@ -54,10 +54,16 @@ scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date.
 
 **LLM providers.** `classify(model, body, client)` takes the OpenAI-compatible POST
 fn as `client`. IG extract uses Groq (`pipeline/groq.ts`, default). The X path
-processes thousands of tweets, so `extract-x` routes text classification to
-**Fireworks `gpt-oss-120b`** (`pipeline/fireworks.ts`, `FIREWORKS_MODEL`), which
-isn't throttled like Groq's free tier. Image-vision hints still use Groq
-(gpt-oss-120b is text-only). Both providers reuse the same `CLASSIFY_SYS` + parse.
+processes thousands of posts, so `extract-x` routes everything to **Fireworks**
+(`pipeline/fireworks.ts`), which isn't throttled like Groq's free tier:
+text classification → `FIREWORKS_MODEL` (`deepseek-v4-flash`), image-vision hints →
+`FIREWORKS_VISION_MODEL` (`kimi-k2p5`). Both were picked by a bake-off on real
+TheProfInvestor data — deepseek-v4-flash beat gpt-oss-120b on call-detection
+(it under-flagged implicit "going higher"-style calls); kimi-k2p5 matched
+qwen3p6-plus's OCR accuracy at ~8x the speed (qwen's latency was timing out the
+extract). Note the cheap small VLMs (qwen3-vl-8b, gemma-4, llama-vision) are
+**on-demand-GPU only** on Fireworks — they 404 on serverless. All paths reuse the
+same `CLASSIFY_SYS` + parse.
 
 ## Proof embeds
 

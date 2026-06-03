@@ -21,12 +21,11 @@ export function tweetDate(createdAt: string): string {
 }
 
 export async function tweetToReelCall(t: TweetRecord, handle: string, deps: ExtractDeps): Promise<ReelCall | null> {
-  const hints: FrameHint[] = [];
   const dir = join(rawDir(handle), t.id);
+  let hints: FrameHint[] = [];
   if (existsSync(dir)) {
-    for (const f of await readdir(dir)) {
-      if (/\.(jpe?g|png)$/i.test(f)) hints.push(await deps.readImageFn(deps.vision, join(dir, f)));
-    }
+    const files = (await readdir(dir)).filter((f) => /\.(jpe?g|png)$/i.test(f));
+    hints = await Promise.all(files.map((f) => deps.readImageFn(deps.vision, join(dir, f))));
   }
   const body = `TWEET:\n${t.text}\n\nIMAGE HINTS:\n${JSON.stringify(hints)}`;
   const c = await deps.classifyFn(deps.text, body);
@@ -53,22 +52,60 @@ export async function extractX(handle: string) {
   const out: ReelCall[] = existsSync(join(creatorDir(handle), "reel-calls.json"))
     ? JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"))
     : [];
-  const pending = tweets.filter((t) => !done.has(t.id));
-  if (done.size) console.log(`resuming: ${done.size} done, ${pending.length} pending, ${out.length} calls so far`);
+  if (done.size) console.log(`resuming: ${done.size} done, ${tweets.length - done.size} pending, ${out.length} calls so far`);
 
-  // Vision is ~15s/image, so run tweets concurrently; Fireworks isn't rate-capped.
-  const LIMIT = 10;
-  for (let i = 0; i < pending.length; i += LIMIT) {
-    const batch = pending.slice(i, i + LIMIT);
-    const results = await Promise.all(batch.map(async (t) => {
-      try { return await tweetToReelCall(t, handle, deps); }
-      catch (e) { console.warn(`skip ${t.id}: ${(e as Error).message}`); return null; }
-    }));
-    results.forEach((rc) => { if (rc) out.push(rc); });
-    batch.forEach((t) => done.add(t.id));
-    await writeCalls(handle, out);                                  // durable results
-    await writeFile(donePath, JSON.stringify([...done]));           // durable progress
-    console.log(`extracted ${done.size}/${tweets.length} tweets -> ${out.length} calls`);
+  // Continuous worker pool. Fireworks isn't request-capped (adaptive per-model TPM
+  // limits, and fireworks() backs off on 429/503), so keep CONCURRENCY tweets in
+  // flight rather than fixed batches that stall on their single slowest member.
+  // Vision latency is ~9s, so saturating the per-model generated-TPM wall takes a
+  // high worker count; backoff caps any overshoot. Tune via X_EXTRACT_CONCURRENCY.
+  const CONCURRENCY = Number(process.env.X_EXTRACT_CONCURRENCY) || 96;
+  let completed = 0;
+
+  // Serialize checkpoint writes so overlapping workers never clobber the files.
+  let writeChain: Promise<void> = Promise.resolve();
+  const persist = () => {
+    writeChain = writeChain.then(async () => {
+      await writeCalls(handle, out);                                // durable results
+      await writeFile(donePath, JSON.stringify([...done]));         // durable progress
+    });
+    return writeChain;
+  };
+
+  // Heal-loop: a tweet that throws (e.g. a 429 that outlives backoff) is NOT
+  // marked done, so the next pass retries it. As the leftover set shrinks below
+  // CONCURRENCY the effective parallelism drops, clearing the rate-limit wall.
+  for (let pass = 1; ; pass++) {
+    const pending = tweets.filter((t) => !done.has(t.id));
+    if (!pending.length) break;
+    const before = done.size;
+    if (pass > 1) console.log(`heal pass ${pass}: ${pending.length} left`);
+    let next = 0;
+
+    const worker = async () => {
+      while (next < pending.length) {
+        const t = pending[next++];
+        try {
+          const rc = await tweetToReelCall(t, handle, deps);
+          if (rc) out.push(rc);
+          done.add(t.id);                                           // mark done only on success
+        } catch (e) {
+          console.warn(`skip ${t.id}: ${(e as Error).message}`);   // left un-done; retried next pass
+        }
+        if (++completed % 20 === 0) {
+          await persist();
+          console.log(`extracted ${done.size}/${tweets.length} tweets -> ${out.length} calls`);
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, pending.length) }, worker));
+    await persist();
+    if (done.size === before) {                                    // a pass that helped nobody
+      console.warn(`no progress on ${pending.length} tweets; giving up`);
+      break;
+    }
   }
+  console.log(`extracted ${done.size}/${tweets.length} tweets -> ${out.length} calls`);
   return out;
 }

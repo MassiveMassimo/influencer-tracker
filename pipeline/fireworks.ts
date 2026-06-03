@@ -5,10 +5,15 @@ import { FIREWORKS_KEY } from "./config";
 // tweet classification (gpt-oss-120b) where Groq's free tier is too rate-limited.
 const BASE = "https://api.fireworks.ai/inference/v1";
 
-// Default text model for classification.
-export const FIREWORKS_MODEL = "accounts/fireworks/models/gpt-oss-120b";
-// Cheapest serverless image-capable model — reads ticker/price off chart images.
-export const FIREWORKS_VISION_MODEL = "accounts/fireworks/models/qwen3p6-plus";
+// Text classifier. Bake-off on real TheProfInvestor tweets: deepseek-v4-flash
+// scored 11/11 vs gpt-oss-120b's 8/11 (the latter under-flagged implicit calls
+// like "going higher"/"your cue" as non-buys), runs ~3s, and is cheapest on output.
+export const FIREWORKS_MODEL = "accounts/fireworks/models/deepseek-v4-flash";
+// Vision OCR for ticker/price. kimi-k2p5 matched qwen3p6-plus accuracy (3/3) but
+// at ~7s/image vs ~57s (qwen's latency was timing out the extract). The cheaper
+// small VLMs (qwen3-vl-8b, gemma-4, llama-vision) are on-demand-GPU only — 404 on
+// serverless — so kimi-k2p5 is the best serverless balance.
+export const FIREWORKS_VISION_MODEL = "accounts/fireworks/models/kimi-k2p5";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
