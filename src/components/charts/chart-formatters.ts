@@ -9,6 +9,14 @@ export const weekdayDateFmt = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
+// Crosshair pill label for intraday bars (sub-daily intervals): "09:30".
+// Splits cleanly on ":" into hour/minute for the roll animation.
+export const intradayTimeFmt = new Intl.DateTimeFormat("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
 export const hmsTimeFmt = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
   minute: "2-digit",

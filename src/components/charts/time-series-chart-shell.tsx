@@ -18,7 +18,7 @@ import {
 import { DEFAULT_ANIMATION_EASING } from "./animation";
 import { ChartProvider, type LineConfig, type Margin } from "./chart-context";
 import { isGradientDefComponent, isPatternDefComponent } from "./chart-defs";
-import { shortDateFmt } from "./chart-formatters";
+import { intradayTimeFmt, shortDateFmt } from "./chart-formatters";
 import { ChartRevealClip } from "./chart-reveal-clip";
 import {
   decimateTimeSeries,
@@ -224,10 +224,13 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     });
   }, [innerHeight, data, lines, yScaleDomainMax]);
 
-  const dateLabels = useMemo(
-    () => data.map((d) => shortDateFmt.format(xAccessor(d))),
-    [data, xAccessor]
-  );
+  // Sub-daily bars repeat the same calendar day, so label the crosshair pill
+  // with the time ("09:30") instead of a date that would never change.
+  const dateLabels = useMemo(() => {
+    const days = new Set(data.map((d) => xAccessor(d).toDateString()));
+    const fmt = days.size < data.length ? intradayTimeFmt : shortDateFmt;
+    return data.map((d) => fmt.format(xAccessor(d)));
+  }, [data, xAccessor]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature
   useEffect(() => {
