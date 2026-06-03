@@ -24,6 +24,8 @@ import {
   TableRow,
 } from "#/components/ui/table.tsx";
 import { ChartBoundary } from "../components/ChartBoundary";
+import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
+import { windowSeries, type Timeframe } from "#/lib/window-series.ts";
 
 export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   loader: ({ params }) => getDataset({ data: params.handle }),
@@ -69,7 +71,11 @@ function TickerPage() {
     description: `${c.returns.toDate.excess != null ? signed(c.returns.toDate.excess) + " vs SPY · " : ""}${c.quote}`,
   }));
 
-  const candles = ohlc.map((b) => ({
+  const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
+  const ohlcW = windowSeries(ohlc, timeframe);
+  const spyW = windowSeries(spy, timeframe);
+
+  const candles = ohlcW.map((b) => ({
     date: new Date(b.date),
     open: b.o,
     high: b.h,
@@ -77,10 +83,10 @@ function TickerPage() {
     close: b.c,
   }));
 
-  const base = ohlc[0]?.c ?? 1;
-  const spyBase = spy[0]?.c ?? 1;
-  const spyByDate = new Map(spy.map((b) => [b.date, b.c]));
-  const norm = ohlc.map((b) => ({
+  const base = ohlcW[0]?.c ?? 1;          // rebase to first in-window bar
+  const spyBase = spyW[0]?.c ?? 1;
+  const spyByDate = new Map(spyW.map((b) => [b.date, b.c]));
+  const norm = ohlcW.map((b) => ({
     date: new Date(b.date),
     stock: (b.c / base) * 100,
     spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
@@ -99,11 +105,14 @@ function TickerPage() {
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="mb-4 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-          Price
+        <div className="mb-4 flex items-center justify-between">
+          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+            Price
+          </div>
+          <TimeframeTabs value={timeframe} onChange={setTimeframe} />
         </div>
         <ChartBoundary>
-          <CandlestickChart data={candles} style={{ height: 320 }}>
+          <CandlestickChart data={candles} style={{ height: 320 }} revealSignature={timeframe}>
             <Grid horizontal />
             <Candlestick fadedOpacity={0.25} />
             <ChartMarkers items={callMarkers} />
@@ -120,7 +129,7 @@ function TickerPage() {
           Stock vs SPY · rebased to 100 · markers are call dates
         </div>
         <ChartBoundary>
-          <LineChart data={norm}>
+          <LineChart data={norm} revealSignature={timeframe}>
             <Grid horizontal highlightRowValues={[100]} />
             <Line dataKey="stock" />
             <Line dataKey="spy" stroke="var(--chart-3)" />
