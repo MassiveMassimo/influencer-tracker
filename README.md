@@ -50,4 +50,4 @@ Forward return from each reel's **post date** at 1w / 1m / 3m / since-call, repo
 **excess return vs SPY** so a rising market doesn't flatter a creator. Caveats (survivorship
 bias, repost deduping, forward-from-post-date) are shown in-product.
 
-See the design and plan in `../docs/superpowers/`.
+See the design and plans in `docs/superpowers/`.
