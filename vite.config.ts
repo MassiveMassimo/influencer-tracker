@@ -11,19 +11,12 @@ const config = defineConfig({
   resolve: { tsconfigPaths: true },
   // @visx ESM builds use extensionless internal imports that Node's SSR resolver
   // rejects; force Vite to bundle them for SSR so its resolver handles them.
-  // @resvg/resvg-js ships a native .node addon the bundler can't load — keep it
-  // external so it's required at runtime (used by the OG image routes).
-  ssr: { noExternal: [/^@visx\//], external: ["@resvg/resvg-js"] },
-  // Keep the native addon out of the dep-optimizer scan too (it can't parse .node).
-  optimizeDeps: { exclude: ["@resvg/resvg-js"] },
+  ssr: { noExternal: [/^@visx\//] },
   // nitro() builds the deployable server output. On Vercel it auto-detects the
-  // platform (VERCEL env) and emits .vercel/output. resvg-js is externalized; the
-  // "@resvg/resvg-js*" prefix traces both the JS package and its platform-specific
-  // .node binary (e.g. @resvg/resvg-js-linux-x64-gnu) into the function so the OG
-  // routes can require the native addon at runtime.
-  nitro: {
-    traceDeps: ["@resvg/resvg-js*"],
-  },
+  // platform (VERCEL env) and emits .vercel/output. OG rendering (satori + the
+  // native @resvg/resvg-js addon) runs only in scripts/prebuild.ts at build time,
+  // so it's deliberately not part of the app/server graph here.
+  nitro: {},
   plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
 })
 

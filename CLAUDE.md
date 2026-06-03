@@ -146,31 +146,36 @@ Hosting is Vercel (framework preset: TanStack Start). The `nitro/vite` plugin
 (`vite.config.ts`) makes the build emit Vercel Build Output (`.vercel/output`);
 Nitro auto-detects the platform from the `VERCEL` env at build time.
 
-**Auto-deploy.** The GitHub repo (`MassiveMassimo/stonks`) is connected to the
-project with **Root Directory = `influencer-tracker`** (monorepo). Push to `main`
-→ production; PRs → preview. Production URL: `https://influencer-tracker-beta.vercel.app`.
-Builds run on Vercel's linux infra — do **not** `vercel deploy --prebuilt` from
-macOS (it would ship the darwin resvg binary; see below).
+**Auto-deploy.** The GitHub repo (`MassiveMassimo/influencer-tracker`, standalone)
+is connected to the Vercel project (root `.`). Push to `main` → production; PRs →
+preview. Production URL: `https://influencer-tracker-beta.vercel.app`.
 
-**Runtime data is bundled at build time, not read from disk.** `src/lib/dataset-source.ts`
-loads the datasets via `import.meta.glob`: `index.json` eager, each
-`<handle>/dataset.json` lazily as a `?raw` code-split chunk. Serverless has no
-reliable `process.cwd()`/fs access, so `data.ts` and the OG routes go through this
-module — never re-introduce `readFile(join(process.cwd(), "data", …))`. `data/creators`
-is gitignored **except** `index.json` + `*/dataset.json` (the two shapes the app
-reads); `.vercelignore` likewise keeps the ~1.7 GB of raw artifacts out of CLI
-uploads. **Updating data = re-run the pipeline, commit the changed JSON, push**
-(datasets are frozen-for-reproducibility, so co-versioning with code is correct).
+**Build = precompute then bundle** (`package.json`): `bun run scripts/prebuild.ts && vite build`.
+`scripts/prebuild.ts` writes into `public/` (which Vite copies to the static client
+output → served from the CDN), so the server function stays thin and request-time
+compute is minimal. Everything in `public/og/` + `public/datasets/` is generated —
+gitignored, regenerated each build.
 
-**OG image rendering** (`src/og/`, satori + `@resvg/resvg-js`):
+**Datasets are static CDN assets, not bundled** (#2). `prebuild.ts` copies each
+`data/creators/<h>/dataset.json` → `public/datasets/<h>.json`. `fetchDataset()`
+(`src/lib/data.ts`) is a plain fn (not a server fn) that fetches that asset —
+relative path on the client (browser-cached, gzipped, reused across navigations),
+absolute (`siteUrl`) during SSR. Keeps MBs out of the function. Only `index.json`
+stays bundled (tiny, every page) via `import.meta.glob` in `dataset-source.ts`.
+`data/creators` is gitignored **except** `index.json` + `*/dataset.json`.
+
+**OG images are pre-rendered to static PNGs at build** (#1). `prebuild.ts` renders
+home + every creator + every called ticker via `src/og/` (satori + `@resvg/resvg-js`)
+into `public/og/…png`; crawlers hit the CDN and **satori/resvg never run at request
+time** (and aren't in the function bundle — no route imports `src/og/render.tsx`).
+- Theme is **frozen** (`OG_THEME`, default `light`); the runtime day/night flip
+  (`ogTheme()`) is dropped since social platforms cache OG aggressively.
 - Fonts are base64-embedded in `src/og/fonts.data.ts` (regenerate with
-  `bun run scripts/gen-og-fonts.ts` from the vendored `src/og/fonts/*.woff`). A
-  runtime fs read / `new URL(import.meta.url)` asset does **not** survive the Nitro
-  SSR build, so the bytes must be inlined.
-- The native `@resvg/resvg-js` `.node` addon is traced into the function via
-  `nitro.traceDeps: ["@resvg/resvg-js*"]` (the `*` also grabs the platform binary,
-  e.g. `@resvg/resvg-js-linux-x64-gnu` on Vercel).
-- `og:image`/canonical absolute URLs come from `VITE_SITE_URL` (**build-time** env,
-  set in the Vercel project). Update it + redeploy if a custom domain is added.
-- OG cards flip day/night via `ogTheme()`, so the routes set a short cache TTL on
-  purpose — the image is time-dependent, not fully static.
+  `bun run scripts/gen-og-fonts.ts` from the vendored `src/og/fonts/*.woff`).
+- Meta `og:image` points at the static path (`/og/<h>.png`, `/og/<h>/<sym>.png`);
+  absolute URLs come from `VITE_SITE_URL` (**build-time** env in Vercel). New
+  creators/tickers get their card only on the next deploy.
+
+**Updating data = re-run the pipeline, commit the changed JSON, push.** The deploy
+re-copies datasets and re-renders all OG cards (datasets are frozen-for-reproducibility,
+so co-versioning with code is correct).

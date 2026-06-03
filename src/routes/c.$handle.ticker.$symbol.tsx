@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { getDataset } from "../lib/data";
+import { fetchDataset } from "../lib/data";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
 import type { Call } from "#/lib/types.ts";
 import { CandlestickChart } from "#/components/charts/candlestick-chart.tsx";
@@ -37,7 +37,7 @@ function firstDateOf(calls: { postDate: string }[]): string {
 
 export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   loader: async ({ params, context }) => {
-    const ds = await getDataset({ data: params.handle });
+    const ds = await fetchDataset(params.handle);
     const firstDate = firstDateOf(ds.calls);
     // Prefetch the default timeframe so the first paint is SSR'd, no spinner.
     await context.queryClient.ensureQueryData(
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   },
   head: ({ params, loaderData }) => {
     const name = loaderData?.creator.name ?? params.handle;
-    const img = siteUrl(`/og/${params.handle}/${params.symbol}`);
+    const img = siteUrl(`/og/${params.handle}/${params.symbol}.png`);
     return {
       meta: [
         { title: `${params.symbol} — ${name} · Signal Tracker` },

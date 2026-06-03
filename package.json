@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "prebuild": "bun run scripts/prebuild.ts",
+    "build": "bun run scripts/prebuild.ts && vite build",
     "preview": "vite preview",
     "test": "bun test",
     "pipeline": "bun run pipeline/run.ts",

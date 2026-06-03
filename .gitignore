@@ -26,3 +26,8 @@ playwright-report
 
 # og image previews (local)
 .og-preview/
+
+# build-time precompute (scripts/prebuild.ts) — regenerated on every build
+public/og/
+public/og.png
+public/datasets/

@@ -4,7 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
-import { getDataset } from "../lib/data";
+import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { ChartBoundary } from "../components/ChartBoundary";
 import {
@@ -29,10 +29,10 @@ import { siteUrl } from "#/og/site.ts";
 const CALLS_PER_PAGE = 25;
 
 export const Route = createFileRoute("/c/$handle/")({
-  loader: ({ params }) => getDataset({ data: params.handle }),
+  loader: ({ params }) => fetchDataset(params.handle),
   head: ({ params, loaderData }) => {
     const name = loaderData?.creator.name ?? params.handle;
-    const img = siteUrl(`/og/${params.handle}`);
+    const img = siteUrl(`/og/${params.handle}.png`);
     return {
       meta: [
         { title: `${name} · Signal Tracker` },
