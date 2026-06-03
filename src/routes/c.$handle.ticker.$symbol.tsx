@@ -1,19 +1,10 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDataset, fetchPrices } from "../lib/data";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
 import type { Call } from "#/lib/types.ts";
-import { CandlestickChart } from "#/components/charts/candlestick-chart.tsx";
-import { Candlestick } from "#/components/charts/candlestick.tsx";
-import { LineChart, Line } from "#/components/charts/line-chart.tsx";
-import { Grid } from "#/components/charts/grid.tsx";
-import { XAxis } from "#/components/charts/x-axis.tsx";
-import { ChartTooltip } from "#/components/charts/tooltip/chart-tooltip.tsx";
-import {
-  ChartMarkers,
-  type ChartMarker,
-} from "#/components/charts/markers/index.ts";
+import type { ChartMarker } from "#/components/charts/markers/index.ts";
 import {
   Table,
   TableBody,
@@ -28,6 +19,19 @@ import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
 import type { LiveBar } from "#/lib/chart-fetch.ts";
 import { siteUrl } from "#/og/site.ts";
+
+// Charts (motion/@visx/d3) are code-split into their own chunk and loaded on
+// mount, keeping them off the route's initial JS. Both share one chunk.
+const PriceCandles = lazy(() =>
+  import("#/components/charts/ticker-charts.tsx").then((m) => ({
+    default: m.PriceCandles,
+  })),
+);
+const StockVsSpyLine = lazy(() =>
+  import("#/components/charts/ticker-charts.tsx").then((m) => ({
+    default: m.StockVsSpyLine,
+  })),
+);
 
 // Earliest call date, used as the "All" window start and passed to fetchChart.
 function firstDateOf(calls: { postDate: string }[]): string {
@@ -167,13 +171,9 @@ function TickerPage() {
         ) : (
           <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <ChartBoundary>
-              <CandlestickChart data={candles} style={{ height: 320 }} revealSignature={timeframe}>
-                <Grid horizontal />
-                <Candlestick fadedOpacity={0.25} />
-                <ChartMarkers items={callMarkers} />
-                <XAxis />
-                <ChartTooltip />
-              </CandlestickChart>
+              <Suspense fallback={<ChartSkeleton />}>
+                <PriceCandles candles={candles} markers={callMarkers} timeframe={timeframe} />
+              </Suspense>
             </ChartBoundary>
           </div>
         )}
@@ -188,14 +188,9 @@ function TickerPage() {
         ) : (
           <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <ChartBoundary>
-              <LineChart data={norm} revealSignature={timeframe} className="h-[320px]">
-                <Grid horizontal highlightRowValues={[100]} />
-                <Line dataKey="stock" />
-                <Line dataKey="spy" stroke="var(--chart-3)" />
-                <ChartMarkers items={callMarkers} />
-                <XAxis />
-                <ChartTooltip />
-              </LineChart>
+              <Suspense fallback={<ChartSkeleton />}>
+                <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={timeframe} />
+              </Suspense>
             </ChartBoundary>
           </div>
         )}
