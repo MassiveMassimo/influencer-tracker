@@ -5,6 +5,8 @@ import { buildMotifSvg } from "./motif";
 import type { OgPalette } from "./theme";
 import type { OgTheme } from "./solar";
 
+// Hex-only (#rrggbb). Callers pass palette.lagoon / palette.down, never the
+// palette's rgba() tokens — those go straight into SVG fill attributes.
 function hexToRgba(hex: string, a: number): string {
   const h = hex.replace("#", "");
   const r = parseInt(h.slice(0, 2), 16);
@@ -25,7 +27,7 @@ export interface CardBgOpts {
 export function buildCardBackgroundSvg({ seed, up, theme, palette, width, height }: CardBgOpts): string {
   const motifInner = buildMotifSvg({ seed, up, palette, width, height, theme })
     .replace(/^<svg[^>]*>/, "")
-    .replace(/<\/svg>$/, "");
+    .replace(/<\/svg>\s*$/, "");
   const glowColor = up ? palette.lagoon : palette.down;
   const glowA = theme === "dark" ? 0.22 : 0.16;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">

@@ -29,6 +29,9 @@ export type OgCard =
       excess3m: number | null;
     };
 
+// NOTE: resvg runs twice per render (background here, final card in renderOgPng)
+// and the bg is inlined as a base64 data URI. Fine per-request; add caching if
+// this is ever called in a tight loop (e.g. static-generating every creator).
 function cardBgUri(seed: string, up: boolean, theme: OgTheme, pal: OgPalette): string {
   const svg = buildCardBackgroundSvg({ seed, up, theme, palette: pal, width: W, height: H });
   const png = new Resvg(svg, { fitTo: { mode: "width", value: W } }).render().asPng();
@@ -177,8 +180,9 @@ export async function renderOgPng(card: OgCard): Promise<Buffer> {
     card.kind === "home"
       ? "signal-tracker"
       : card.kind === "ticker"
-        ? card.handle + card.symbol
+        ? `${card.handle}:${card.symbol}` // separator avoids handle/symbol concat collisions
         : card.handle;
+  // No-data ticker (null excess) renders neutral-positive (teal); Stat still shows "—".
   const up =
     card.kind === "creator"
       ? card.excess3m >= 0
