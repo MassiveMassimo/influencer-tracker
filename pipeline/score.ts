@@ -20,7 +20,7 @@ export function assembleDataset(
   const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
   let calls: Call[] = bullish.map(c => ({
     shortcode: c.shortcode, postDate: c.postDate, ticker: c.ticker, company: c.company,
-    isFirstCall: false, conviction: c.conviction, quote: c.quote, onScreenPrice: c.onScreenPrice,
+    isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
     returns: computeReturns(ohlc[c.ticker] ?? [], spy, c.postDate),
   }));
   calls = dedupeFirstCall(calls);
@@ -60,8 +60,11 @@ export async function score(handle: string, name: string, today = new Date().toI
 async function updateIndex(handle: string, name: string, ds: Dataset) {
   const path = join(DATA, "index.json");
   const idx: any[] = existsSync(path) ? JSON.parse(await readFile(path, "utf8")) : [];
+  let avatar: string | undefined;
+  try { avatar = (await readFile(join(creatorDir(handle), "avatar.txt"), "utf8")).trim(); } catch {}
   const entry = { handle, name, totalCalls: ds.scorecard.totalCalls,
-    avgExcess3m: ds.scorecard.avgExcess["3m"], generatedAt: ds.generatedAt };
+    avgExcess3m: ds.scorecard.avgExcess["3m"], generatedAt: ds.generatedAt,
+    ...(avatar ? { avatar } : {}) };
   const i = idx.findIndex(e => e.handle === handle);
   if (i >= 0) idx[i] = entry; else idx.push(entry);
   await mkdir(DATA, { recursive: true });

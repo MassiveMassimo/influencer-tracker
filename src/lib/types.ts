@@ -12,6 +12,7 @@ export interface Call {
   isFirstCall: boolean;
   conviction: number;          // 0..1
   quote: string;
+  summary?: string;            // one-sentence context on what the post is about
   onScreenPrice?: number | null;
   returns: Record<Horizon, ReturnTriple>;
 }
@@ -50,4 +51,5 @@ export interface ReelCall {
   conviction: number;
   quote: string;
   onScreenPrice: number | null;
+  summary: string;
 }

@@ -8,6 +8,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { rawDir, creatorDir } from "./config";
+import { saveAvatar } from "./avatar";
 
 (chromium as any).use(stealth());
 
@@ -78,6 +79,9 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
     stagnant = seen.size === before ? stagnant + 1 : 0;
   }
 
+  // Capture the profile pic while the logged-in page context is still alive.
+  await saveAvatar(handle, await resolveAvatarUrl(page, handle));
+
   // Persist session cookies for yt-dlp before tearing down the context.
   await mkdir(creatorDir(handle), { recursive: true });
   await writeFile(cookiesPath(handle), toNetscape(await ctx.cookies()));
@@ -87,6 +91,21 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
   await mkdir(rawDir(handle), { recursive: true });
   await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(recent, null, 2));
   return recent;
+}
+
+// Resolve the IG profile pic URL via web_profile_info. Runs in the page context
+// (same-origin, so session cookies ride along) with the public web app id header.
+async function resolveAvatarUrl(page: any, handle: string): Promise<string | null> {
+  try {
+    return await page.evaluate(async (h: string) => {
+      const r = await fetch(`/api/v1/users/web_profile_info/?username=${h}`, {
+        headers: { "x-ig-app-id": "936619743392459" },
+      });
+      if (!r.ok) return null;
+      const j = await r.json();
+      return j?.data?.user?.profile_pic_url_hd ?? j?.data?.user?.profile_pic_url ?? null;
+    }, handle);
+  } catch { return null; }
 }
 
 // Recursively find objects that look like reel media nodes.

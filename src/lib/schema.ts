@@ -14,6 +14,7 @@ const CallSchema = z.object({
   isFirstCall: z.boolean(),
   conviction: z.number().min(0).max(1),
   quote: z.string(),
+  summary: z.string().optional(),
   onScreenPrice: z.number().nullable().optional(),
   returns: z.object({
     "1w": ReturnTriple, "1m": ReturnTriple, "3m": ReturnTriple, "toDate": ReturnTriple,

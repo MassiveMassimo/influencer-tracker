@@ -19,7 +19,7 @@ describe("tweetToReelCall", () => {
     const rc = await tweetToReelCall(
       { id: "t1", createdAt: "2026-01-15T10:00:00.000Z", text: "buy NBIS", imageUrls: [] },
       "profinv",
-      deps({ ticker: "nbis", company: "Nebius", direction: "bullish", isExplicitBuy: true, conviction: 0.7, quote: "buy NBIS", onScreenPrice: null }),
+      deps({ ticker: "nbis", company: "Nebius", direction: "bullish", isExplicitBuy: true, conviction: 0.7, quote: "buy NBIS", onScreenPrice: null, summary: "Bullish on NBIS." }),
     );
     expect(rc).toMatchObject({ shortcode: "t1", postDate: "2026-01-15", ticker: "NBIS", isExplicitBuy: true });
   });

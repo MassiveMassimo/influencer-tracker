@@ -4,6 +4,7 @@ import { toReelCall, buildReview, type Classification } from "./calls";
 const base: Classification = {
   ticker: "nbis", company: "Nebius", direction: "bullish",
   isExplicitBuy: true, conviction: 0.8, quote: "load up on NBIS", onScreenPrice: 65.1,
+  summary: "Bullish on NBIS.",
 };
 
 describe("toReelCall", () => {

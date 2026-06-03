@@ -5,6 +5,7 @@ import ThemeToggle from "./ThemeToggle";
 export interface CreatorRef {
   handle: string;
   name: string;
+  avatar?: string;
 }
 
 // Left workspace rail (devl workspace-rail aesthetic): app mark + name, primary
@@ -84,7 +85,15 @@ export function RailContent({
                       "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
                   }}
                 >
-                  <UsersIcon className="size-3.5 opacity-60" />
+                  {c.avatar ? (
+                    <img
+                      src={c.avatar}
+                      alt=""
+                      className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                    />
+                  ) : (
+                    <UsersIcon className="size-3.5 opacity-60" />
+                  )}
                   <span className="truncate">@{c.handle}</span>
                 </Link>
               </li>

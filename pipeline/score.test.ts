@@ -6,7 +6,7 @@ test("assembleDataset scores calls and validates against schema", () => {
   const reelCalls: ReelCall[] = [{
     shortcode: "DZDmQutB0Ep", postDate: "2026-06-01", ticker: "NBIS",
     company: "Nebius Group N.V.", direction: "bullish", isExplicitBuy: true,
-    conviction: 0.9, quote: "buy right here", onScreenPrice: 273.01,
+    conviction: 0.9, quote: "buy right here", onScreenPrice: 273.01, summary: "Bullish on Nebius.",
   }];
   const nbis: OhlcBar[] = [
     { date: "2026-06-01", o: 100, h: 100, l: 100, c: 100 },

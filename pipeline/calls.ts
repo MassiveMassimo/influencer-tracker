@@ -10,8 +10,9 @@ export const CLASSIFY_SYS =
   "the provided text and on-screen/image hints (the hints are authoritative for the exact " +
   "ticker symbol). " +
   'Reply ONLY JSON: {"ticker":string|null,"company":string|null,"direction":"bullish"|"bearish"|"neutral",' +
-  '"isExplicitBuy":boolean,"conviction":number,"quote":string,"onScreenPrice":number|null}. ' +
-  "ticker null if no specific stock. conviction 0..1.";
+  '"isExplicitBuy":boolean,"conviction":number,"quote":string,"onScreenPrice":number|null,"summary":string}. ' +
+  "ticker null if no specific stock. conviction 0..1. summary is one neutral sentence (<160 chars) on what " +
+  "the post is about and the thesis for the stock.";
 
 export interface Classification {
   ticker: string | null;
@@ -21,6 +22,7 @@ export interface Classification {
   conviction: number;
   quote: string;
   onScreenPrice: number | null;
+  summary: string;
 }
 
 // One LLM classification call. Returns null on malformed JSON (caller skips).
@@ -52,6 +54,7 @@ export function toReelCall(c: Classification, shortcode: string, postDate: strin
     conviction: Number(c.conviction ?? 0),
     quote: c.quote ?? "",
     onScreenPrice: c.onScreenPrice ?? null,
+    summary: c.summary ?? "",
   };
 }
 

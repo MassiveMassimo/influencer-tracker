@@ -17,6 +17,7 @@ export const listCreators = createServerFn({ method: "GET" }).handler(
         totalCalls: number;
         avgExcess3m: number;
         generatedAt: string;
+        avatar?: string;
       }[];
     } catch {
       return [];
