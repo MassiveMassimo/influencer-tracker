@@ -33,8 +33,10 @@ const LIGHT: OgPalette = {
 const DARK: OgPalette = {
   bg: "#0a1418",
   bgAccent: "rgba(96,215,207,0.18)",
-  fg: "#d7ece8",
-  fgMuted: "#afcdc8",
+  // Neutral near-white to match the app's --foreground (oklch 0.985 0 0); the old
+  // mint (--sea-ink) read as greenish text. Brand accent stays on lagoon/lagoonDeep.
+  fg: "#fafafa",
+  fgMuted: "#a6adad",
   lagoon: "#60d7cf",
   lagoonDeep: "#8de5db",
   palm: "#6ec89a",

@@ -45,28 +45,38 @@ function signed(x: number): string {
 // lucide LineChart glyph path data (24x24 viewBox), stroked.
 const LINE_CHART_D = "M3 3v16a2 2 0 0 0 2 2h16 M7 16l4-4 3 3 5-6";
 
-function BrandFooter({ pal }: { pal: OgPalette }) {
+function BrandLockup({ pal }: { pal: OgPalette }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: 44,
-          height: 44,
-          borderRadius: 12,
+          width: 36,
+          height: 36,
+          borderRadius: 10,
           background: `linear-gradient(135deg, ${pal.fg}, ${pal.fgMuted})`,
           border: `1px solid ${pal.line}`,
         }}
       >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={pal.bg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke={pal.bg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d={LINE_CHART_D} />
         </svg>
       </div>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 26, fontWeight: 600, color: pal.fg }}>
+      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 22, fontWeight: 600, color: pal.fg }}>
         Signal Tracker
       </div>
+    </div>
+  );
+}
+
+// Header row: kicker on the left, brand lockup on the right.
+function TopBar({ pal, kicker }: { pal: OgPalette; kicker: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <Kicker pal={pal} text={kicker} />
+      <BrandLockup pal={pal} />
     </div>
   );
 }
@@ -105,11 +115,12 @@ function Stat({ pal, value }: { pal: OgPalette; value: number | null }) {
   const ok = value != null && value >= 0;
   const color = value == null ? pal.fgMuted : ok ? pal.up : pal.down;
   return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 28 }}>
       <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 96, fontWeight: 700, lineHeight: 1, color }}>
         {value == null ? "—" : signed(value)}
       </div>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, lineHeight: 1, color: pal.fgMuted }}>vs SPY · 3m</div>
+      {/* flex-end + paddingBottom lands the small label on the big number's baseline */}
+      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, lineHeight: 1, paddingBottom: 16, color: pal.fgMuted }}>vs SPY · 3m</div>
     </div>
   );
 }
@@ -118,7 +129,7 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
   if (card.kind === "home") {
     return (
       <Frame pal={pal} bg={bg}>
-        <Kicker pal={pal} text="Signal Tracker · vs SPY" />
+        <TopBar pal={pal} kicker="Influencer accuracy · vs SPY" />
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.fg }}>
             Influencer accuracy,
@@ -130,14 +141,14 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
             Forward returns of stock calls, net of SPY.
           </div>
         </div>
-        <BrandFooter pal={pal} />
+        <div style={{ display: "flex" }} />
       </Frame>
     );
   }
   if (card.kind === "creator") {
     return (
       <Frame pal={pal} bg={bg}>
-        <Kicker pal={pal} text="Signal accuracy" />
+        <TopBar pal={pal} kicker="Signal accuracy" />
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           {card.avatar ? (
             <img src={card.avatar} width={120} height={120} style={{ borderRadius: 999, border: `2px solid ${pal.line}` }} />
@@ -147,29 +158,23 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
             <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, color: pal.fgMuted }}>@{card.handle} · {card.totalCalls} calls</div>
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <Stat pal={pal} value={card.excess3m} />
-          <BrandFooter pal={pal} />
-        </div>
+        <Stat pal={pal} value={card.excess3m} />
       </Frame>
     );
   }
   return (
     <Frame pal={pal} bg={bg}>
-      <Kicker pal={pal} text={`@${card.handle}`} />
+      <TopBar pal={pal} kicker={`@${card.handle}`} />
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 20 }}>
           <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 96, lineHeight: 1, color: pal.fg }}>{card.symbol}</div>
           {card.company ? (
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, lineHeight: 1, color: pal.fgMuted }}>{card.company}</div>
+            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, lineHeight: 1, paddingBottom: 14, color: pal.fgMuted }}>{card.company}</div>
           ) : null}
         </div>
         <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 600, fontSize: 32, color: pal.fgMuted }}>called by {card.name}</div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <Stat pal={pal} value={card.excess3m} />
-        <BrandFooter pal={pal} />
-      </div>
+      <Stat pal={pal} value={card.excess3m} />
     </Frame>
   );
 }
