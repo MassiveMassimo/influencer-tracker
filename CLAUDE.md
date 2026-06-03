@@ -138,7 +138,7 @@ reimplemented on local primitives.
 | `src/components/ThemeToggle.tsx` | transitions.dev icon-swap pattern (3-state) |
 | `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
 | `src/components/ui/*` (badge/card/drawer/separator/table) | shadcn/ui-style primitives (radix-ui + vaul + cva) |
-| `Timeline`, `Scorecard`, `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
+| `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
 
 To grab a fresh devl.dev snippet: open the component page and press `c` for code
 (client-rendered — not in the page HTML).

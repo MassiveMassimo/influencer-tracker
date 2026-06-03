@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test": "bun test",
     "pipeline": "bun run pipeline/run.ts",
-    "pipeline:x": "bun run pipeline/run-x.ts"
+    "pipeline:x": "bun run pipeline/run-x.ts",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.2.8",
@@ -29,16 +30,13 @@
     "@tanstack/router-plugin": "^1.132.0",
     "@visx/curve": "4.0.1-alpha.0",
     "@visx/event": "4.0.1-alpha.0",
-    "@visx/gradient": "4.0.1-alpha.0",
     "@visx/grid": "4.0.1-alpha.0",
-    "@visx/pattern": "4.0.1-alpha.0",
     "@visx/responsive": "4.0.1-alpha.0",
     "@visx/scale": "4.0.1-alpha.0",
     "@visx/shape": "4.0.1-alpha.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3-array": "^3.2.4",
-    "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
     "lucide-react": "^1.17.0",
     "motion": "^12.40.0",
@@ -46,7 +44,6 @@
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-use-measure": "^2.1.7",
     "rettiwt-api": "^7.0.3",
     "satori": "^0.26.0",
     "shadcn": "^4.10.0",
@@ -71,6 +68,7 @@
     "playwright": "^1.60.0",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "react-doctor": "^0.2.16",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
     "vitest": "^4.1.5"
