@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { fetchDataset } from "../lib/data";
+import { fetchDataset, fetchPrices } from "../lib/data";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
 import type { Call } from "#/lib/types.ts";
 import { CandlestickChart } from "#/components/charts/candlestick-chart.tsx";
@@ -39,11 +39,15 @@ export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   loader: async ({ params, context }) => {
     const ds = await fetchDataset(params.handle);
     const firstDate = firstDateOf(ds.calls);
-    // Prefetch the default timeframe so the first paint is SSR'd, no spinner.
-    await context.queryClient.ensureQueryData(
-      chartQuery(params.symbol, "1Y", firstDate),
-    );
-    return ds;
+    // Prefetch the default timeframe (SSR first paint) and the baked fallback prices
+    // for this symbol + SPY in parallel — no request waterfall. The shared price
+    // store replaces the old per-dataset tickers map (which dehydrated ~5 MB into HTML).
+    const [, bakedOhlc, bakedSpy] = await Promise.all([
+      context.queryClient.ensureQueryData(chartQuery(params.symbol, "1Y", firstDate)),
+      fetchPrices(params.symbol),
+      fetchPrices("SPY"),
+    ]);
+    return { ...ds, bakedOhlc, bakedSpy };
   },
   head: ({ params, loaderData }) => {
     const name = loaderData?.creator.name ?? params.handle;
@@ -97,22 +101,9 @@ function TickerPage() {
   const firstDate = firstDateOf(ds.calls);
   const query = useQuery(chartQuery(symbol, timeframe, firstDate));
 
-  // Baked daily OHLC from the frozen dataset — used as the fallback when the
-  // live Yahoo fetch errors or returns nothing.
-  const bakedOhlc: LiveBar[] = (ds.tickers[symbol]?.ohlc ?? []).map((b) => ({
-    date: b.date,
-    o: b.o,
-    h: b.h,
-    l: b.l,
-    c: b.c,
-  }));
-  const bakedSpy: LiveBar[] = (ds.tickers["SPY"]?.ohlc ?? []).map((b) => ({
-    date: b.date,
-    o: b.o,
-    h: b.h,
-    l: b.l,
-    c: b.c,
-  }));
+  // Baked daily OHLC from the shared price store — the fallback when the live Yahoo
+  // fetch errors or returns nothing. OhlcBar and LiveBar share a shape.
+  const { bakedOhlc, bakedSpy } = Route.useLoaderData();
 
   const usingFallback = query.isError || (query.data != null && query.data.ohlc.length === 0);
   const ohlc: LiveBar[] = usingFallback ? bakedOhlc : (query.data?.ohlc ?? []);
