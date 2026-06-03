@@ -73,6 +73,27 @@ opens `ProofViewer` (`src/components/proof-viewer.tsx`) — a Radix dialog on
 desktop and a vaul drawer on mobile (switched via `useMediaQuery`, 768px) — that
 shows the embed + summary + quote. No local media is needed for display.
 
+## Chart data: baked for scoring, live for display
+
+Two price paths, deliberately split:
+
+- **Scoring** reads OHLC baked into `dataset.json` at pipeline `score` time
+  (`pipeline/prices.ts`, Yahoo daily). Frozen so forward-return accuracy is
+  reproducible — never recompute it live.
+- **Ticker charts** fetch OHLC live from Yahoo per timeframe via a server
+  function (`src/lib/chart-fetch.ts` → `fetchChart`), keyed through TanStack
+  Query (`src/lib/chart-query.ts`, `chartQuery`). `src/lib/chart-window.ts`
+  maps the timeframe to a Yahoo interval the retail-app way: intraday for
+  1D/1W/1M (within Yahoo's ~60-day sub-daily cap), daily for 3M+. The server
+  fn caches per `symbol:timeframe` (~5 min) and runs server-side so
+  `yahoo-finance2` and the no-key fetch stay out of the client bundle. On a
+  Yahoo error the ticker route falls back to the baked daily OHLC.
+
+`QueryClient` is wired in `src/router.tsx` via `setupRouterSsrQueryIntegration`;
+the root route is `createRootRouteWithContext<{ queryClient }>`. The ticker
+loader prefetches the default timeframe with `ensureQueryData` for an SSR first
+paint.
+
 ## Profile pics
 
 Platform-agnostic, like the `ReelCall` contract. Each scraper resolves its own
