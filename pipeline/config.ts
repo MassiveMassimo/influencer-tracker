@@ -11,3 +11,4 @@ export function pricesDir(handle: string) { return join(creatorDir(handle), "pri
 
 export const GROQ_KEY = process.env.GROQ_API_KEY ?? "";
 export const RETTIWT_KEY = process.env.RETTIWT_API_KEY ?? "";
+export const FIREWORKS_KEY = process.env.FIREWORKS_API_KEY ?? "";

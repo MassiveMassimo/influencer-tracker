@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { rawDir } from "../config";
 import { discoverModels } from "../groq";
+import { fireworks, FIREWORKS_MODEL } from "../fireworks";
 import { classify, toReelCall, writeCalls, type Classification } from "../calls";
 import { readImage, type FrameHint } from "../vision";
 import type { TweetRecord } from "./scrape-x";
@@ -35,8 +36,15 @@ export async function tweetToReelCall(t: TweetRecord, handle: string, deps: Extr
 }
 
 export async function extractX(handle: string) {
-  const { text, vision } = await discoverModels();
-  const deps: ExtractDeps = { text, vision, classifyFn: classify, readImageFn: readImage };
+  // Vision (image hints) stays on Groq; the high-volume text classification runs
+  // on Fireworks gpt-oss-120b, which isn't throttled like Groq's free tier.
+  const { vision } = await discoverModels();
+  const deps: ExtractDeps = {
+    text: FIREWORKS_MODEL,
+    vision,
+    classifyFn: (m, b) => classify(m, b, fireworks),
+    readImageFn: readImage,
+  };
   const tweets: TweetRecord[] = JSON.parse(await readFile(join(rawDir(handle), "tweets.json"), "utf8"));
   const out: ReelCall[] = [];
   for (const t of tweets) {

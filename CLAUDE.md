@@ -52,6 +52,13 @@ The shared classifier (`pipeline/calls.ts`, `CLASSIFY_SYS`) returns, per post:
 **Only explicit bullish calls** (`isExplicitBuy && direction === "bullish"`) are
 scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date.
 
+**LLM providers.** `classify(model, body, client)` takes the OpenAI-compatible POST
+fn as `client`. IG extract uses Groq (`pipeline/groq.ts`, default). The X path
+processes thousands of tweets, so `extract-x` routes text classification to
+**Fireworks `gpt-oss-120b`** (`pipeline/fireworks.ts`, `FIREWORKS_MODEL`), which
+isn't throttled like Groq's free tier. Image-vision hints still use Groq
+(gpt-oss-120b is text-only). Both providers reuse the same `CLASSIFY_SYS` + parse.
+
 ## Proof embeds
 
 Each call links to its source via `shortcode`: numeric ⇒ X tweet embed, otherwise
@@ -96,7 +103,8 @@ To grab a fresh devl.dev snippet: open the component page and press `c` for code
   with `bunx tsc --noEmit`. The `#/` alias maps to `src/`.
 - The X path reuses `pipeline/prices.ts`/`pipeline/score.ts`/`src/lib/scorecard.ts`/
   the dashboard unchanged — keep new platforms emitting the `ReelCall` shape, don't fork them.
-- Secrets in `.env` (gitignored): `GROQ_API_KEY`, `RETTIWT_API_KEY`. Groq
+- Secrets in `.env` (gitignored): `GROQ_API_KEY`, `RETTIWT_API_KEY`,
+  `FIREWORKS_API_KEY` (X text classification). Groq
   free-tier is rate-limited; `pipeline/groq.ts` backs off on 429 — expect slow
   vision/extract stages, not failures.
 - Charts: bklit-ui components (github.com/bklit/bklit-ui), vendored copy-in

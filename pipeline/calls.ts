@@ -26,8 +26,16 @@ export interface Classification {
 }
 
 // One LLM classification call. Returns null on malformed JSON (caller skips).
-export async function classify(textModel: string, body: string): Promise<Classification | null> {
-  const r = await (await groq("/chat/completions", {
+// `client` is the OpenAI-compatible POST fn (groq by default, fireworks for the
+// high-volume X path). Both share this prompt/parse so platforms never diverge.
+type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
+
+export async function classify(
+  textModel: string,
+  body: string,
+  client: ChatClient = groq,
+): Promise<Classification | null> {
+  const r = await (await client("/chat/completions", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: textModel, temperature: 0,
