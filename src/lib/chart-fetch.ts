@@ -103,9 +103,14 @@ export const fetchChart = createServerFn({ method: "GET" })
       now: new Date(),
       firstDate: new Date(data.firstDate),
     });
+    // Non-"All" windows are creator-independent (e.g. every "1Y" is the same
+    // range), so key by symbol:timeframe and share across creators. "All" starts
+    // at the creator's firstDate, so it must be in the key or two creators
+    // sharing a ticker would collide.
+    const keySuffix = tf === "All" ? `:All:${data.firstDate}` : `:${data.timeframe}`;
     const [ohlc, spy] = await Promise.all([
-      fetchSymbol(`${data.symbol}:${data.timeframe}`, data.symbol, interval, period1),
-      fetchSymbol(`SPY:${data.timeframe}`, "SPY", interval, period1),
+      fetchSymbol(`${data.symbol}${keySuffix}`, data.symbol, interval, period1),
+      fetchSymbol(`SPY${keySuffix}`, "SPY", interval, period1),
     ]);
     return { ohlc, spy, interval, asOf: new Date().toISOString() };
   });
