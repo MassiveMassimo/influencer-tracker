@@ -77,9 +77,9 @@ shows the embed + summary + quote. No local media is needed for display.
 
 Two price paths, deliberately split:
 
-- **Scoring** reads OHLC baked into `dataset.json` at pipeline `score` time
-  (`pipeline/prices.ts`, Yahoo daily). Frozen so forward-return accuracy is
-  reproducible — never recompute it live.
+- **Scoring** reads per-creator OHLC at pipeline `score` time
+  (`pipeline/prices.ts`, Yahoo daily, cached under `data/creators/<h>/prices/`).
+  Frozen so forward-return accuracy is reproducible — never recompute it live.
 - **Ticker charts** fetch OHLC live from Yahoo per timeframe via a server
   function (`src/lib/chart-fetch.ts` → `fetchChart`), keyed through TanStack
   Query (`src/lib/chart-query.ts`, `chartQuery`). `src/lib/chart-window.ts`
@@ -87,7 +87,26 @@ Two price paths, deliberately split:
   1D/1W/1M (within Yahoo's ~60-day sub-daily cap), daily for 3M+. The server
   fn caches per `symbol:timeframe` (~5 min) and runs server-side so
   `yahoo-finance2` and the no-key fetch stay out of the client bundle. On a
-  Yahoo error the ticker route falls back to the baked daily OHLC.
+  Yahoo error the ticker route falls back to baked daily OHLC fetched lazily
+  via `fetchPrices(symbol)` (`src/lib/data.ts`) for the symbol + SPY only.
+
+### Dataset is slim — OHLC does not ship with it
+
+`dataset.json` does **not** contain a `tickers`/OHLC map (it used to — that
+dehydrated ~5 MB of baked prices into the SSR HTML and pushed pages past crawler
+caps). The split, by granularity:
+
+- **Display** — `dataset.json` carries `calls` + `scorecard` + `creator` +
+  `caveats`. Each `Call` has a baked `spark: number[]` (downsampled closes from
+  `postDate` forward, `src/lib/spark.ts`) so the creator-page sparklines
+  (`Sparkline` takes `closes: number[]`) need no OHLC.
+- **Prices** — baked daily OHLC lives in a shared, deduped per-ticker store
+  `data/prices/<symbol>.json` (one file per symbol across **all** creators;
+  `score.ts` merges via `src/lib/prices-merge.ts` so a shorter history never
+  truncates another's). `prebuild.ts` copies it to `public/prices/`; only the
+  ticker-page fallback fetches it, lazily.
+
+`data/prices/` is committed (it's the build-time source for `public/prices/`).
 
 `QueryClient` is wired in `src/router.tsx` via `setupRouterSsrQueryIntegration`;
 the root route is `createRootRouteWithContext<{ queryClient }>`. The ticker
@@ -153,16 +172,21 @@ preview. Production URL: `https://influencer-tracker-beta.vercel.app`.
 **Build = precompute then bundle** (`package.json`): `bun run scripts/prebuild.ts && vite build`.
 `scripts/prebuild.ts` writes into `public/` (which Vite copies to the static client
 output → served from the CDN), so the server function stays thin and request-time
-compute is minimal. Everything in `public/og/` + `public/datasets/` is generated —
-gitignored, regenerated each build.
+compute is minimal. Everything in `public/og/` + `public/datasets/` +
+`public/prices/` is generated — gitignored, regenerated each build.
 
-**Datasets are static CDN assets, not bundled** (#2). `prebuild.ts` copies each
-`data/creators/<h>/dataset.json` → `public/datasets/<h>.json`. `fetchDataset()`
-(`src/lib/data.ts`) is a plain fn (not a server fn) that fetches that asset —
+**Datasets + prices are static CDN assets, not bundled** (#2). `prebuild.ts`
+copies each `data/creators/<h>/dataset.json` → `public/datasets/<h>.json` and the
+shared `data/prices/` → `public/prices/`. `fetchDataset()` / `fetchPrices()`
+(`src/lib/data.ts`) are plain fns (not server fns) that fetch those assets —
 relative path on the client (browser-cached, gzipped, reused across navigations),
 absolute (`siteUrl`) during SSR. Keeps MBs out of the function. Only `index.json`
 stays bundled (tiny, every page) via `import.meta.glob` in `dataset-source.ts`.
-`data/creators` is gitignored **except** `index.json` + `*/dataset.json`.
+`data/creators` is gitignored **except** `index.json` + `*/dataset.json`;
+`data/prices` (shared per-ticker OHLC) is committed in full. A one-time
+`scripts/migrate-split-prices.ts` restructured the pre-split datasets (drop
+`tickers`, bake `spark`, emit `data/prices/`); future `score` runs emit the
+slim shape directly.
 
 **OG images are pre-rendered to static PNGs at build** (#1). `prebuild.ts` renders
 home + every creator + every called ticker via `src/og/` (satori + `@resvg/resvg-js`)
