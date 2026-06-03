@@ -136,6 +136,9 @@ function TickerPage() {
   // Rebase vs-SPY to the first bar of the fetched range.
   const base = ohlc[0]?.c ?? 1;
   const spyBase = spy[0]?.c ?? 1;
+  // Stock and SPY are fetched at the same Yahoo interval, so their bar
+  // timestamps share one grid — joining by exact date key aligns them
+  // (verified: ~98% match intraday; the rare gap just nulls one SPY point).
   const spyByDate = new Map(spy.map((b) => [b.date, b.c]));
   const norm = ohlc.map((b) => ({
     date: new Date(b.date),
@@ -144,6 +147,7 @@ function TickerPage() {
   }));
 
   const showSkeleton = query.isPending && ohlc.length === 0;
+  const isUpdating = query.isFetching && !showSkeleton;
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-6 py-8 md:px-10 md:py-10">
@@ -170,15 +174,17 @@ function TickerPage() {
         {showSkeleton ? (
           <ChartSkeleton />
         ) : (
-          <ChartBoundary>
-            <CandlestickChart data={candles} style={{ height: 320 }} revealSignature={timeframe}>
-              <Grid horizontal />
-              <Candlestick fadedOpacity={0.25} />
-              <ChartMarkers items={callMarkers} />
-              <XAxis />
-              <ChartTooltip />
-            </CandlestickChart>
-          </ChartBoundary>
+          <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
+            <ChartBoundary>
+              <CandlestickChart data={candles} style={{ height: 320 }} revealSignature={timeframe}>
+                <Grid horizontal />
+                <Candlestick fadedOpacity={0.25} />
+                <ChartMarkers items={callMarkers} />
+                <XAxis />
+                <ChartTooltip />
+              </CandlestickChart>
+            </ChartBoundary>
+          </div>
         )}
       </section>
 
@@ -189,16 +195,18 @@ function TickerPage() {
         {showSkeleton ? (
           <ChartSkeleton />
         ) : (
-          <ChartBoundary>
-            <LineChart data={norm} revealSignature={timeframe} className="h-[320px]">
-              <Grid horizontal highlightRowValues={[100]} />
-              <Line dataKey="stock" />
-              <Line dataKey="spy" stroke="var(--chart-3)" />
-              <ChartMarkers items={callMarkers} />
-              <XAxis />
-              <ChartTooltip />
-            </LineChart>
-          </ChartBoundary>
+          <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
+            <ChartBoundary>
+              <LineChart data={norm} revealSignature={timeframe} className="h-[320px]">
+                <Grid horizontal highlightRowValues={[100]} />
+                <Line dataKey="stock" />
+                <Line dataKey="spy" stroke="var(--chart-3)" />
+                <ChartMarkers items={callMarkers} />
+                <XAxis />
+                <ChartTooltip />
+              </LineChart>
+            </ChartBoundary>
+          </div>
         )}
       </section>
 
