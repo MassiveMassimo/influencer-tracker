@@ -157,7 +157,7 @@ function TickerPage() {
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="whitespace-nowrap font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
             Price
             {usingFallback ? (
