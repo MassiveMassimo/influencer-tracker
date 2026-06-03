@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { DatasetSchema } from "./schema";
-import type { Dataset } from "./types";
+import { DatasetSchema, PriceFileSchema } from "./schema";
+import type { Dataset, OhlcBar } from "./types";
 import { loadIndex } from "./dataset-source";
 import { siteUrl } from "../og/site";
 
@@ -22,4 +22,15 @@ export async function fetchDataset(handle: string): Promise<Dataset> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`dataset ${handle}: ${res.status}`);
   return DatasetSchema.parse(await res.json());
+}
+
+// Shared per-ticker baked OHLC, served as a static asset (public/prices/<symbol>.json).
+// Used only as the ticker-page fallback when the live Yahoo fetch errors. Returns []
+// when the file is absent so the caller degrades to "no fallback data" gracefully.
+export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
+  const path = `/prices/${symbol}.json`;
+  const url = typeof window === "undefined" ? siteUrl(path) : path;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  return PriceFileSchema.parse(await res.json());
 }
