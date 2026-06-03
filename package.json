@@ -15,7 +15,10 @@
   },
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.2.8",
+    "@fontsource/fraunces": "^5.2.9",
+    "@fontsource/geist-mono": "^5.2.8",
     "@number-flow/react": "^0.6.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-router": "latest",
@@ -43,6 +46,7 @@
     "react-dom": "^19.2.0",
     "react-use-measure": "^2.1.7",
     "rettiwt-api": "^7.0.3",
+    "satori": "^0.26.0",
     "shadcn": "^4.10.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.1.18",
