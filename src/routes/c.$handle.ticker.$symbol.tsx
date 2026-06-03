@@ -10,6 +10,12 @@ import { Grid } from "#/components/charts/grid.tsx";
 import { XAxis } from "#/components/charts/x-axis.tsx";
 import { ChartTooltip } from "#/components/charts/tooltip/chart-tooltip.tsx";
 import {
+  ChartMarkers,
+  MarkerTooltipContent,
+  useActiveMarkers,
+  type ChartMarker,
+} from "#/components/charts/markers/index.ts";
+import {
   Table,
   TableBody,
   TableCell,
@@ -28,6 +34,17 @@ function pct(x: number | null) {
   return x == null ? "—" : `${(x * 100).toFixed(1)}%`;
 }
 
+function signed(x: number | null) {
+  return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
+}
+
+// Tooltip content for the call marker the crosshair is currently over.
+function CallMarkerContent({ markers }: { markers: ChartMarker[] }) {
+  const active = useActiveMarkers(markers);
+  if (active.length === 0) return null;
+  return <MarkerTooltipContent markers={active} />;
+}
+
 function toneClass(x: number | null) {
   if (x == null) return "text-muted-foreground";
   return x > 0
@@ -43,8 +60,14 @@ function TickerPage() {
   const ohlc = ds.tickers[symbol]?.ohlc ?? [];
   const spy = ds.tickers["SPY"]?.ohlc ?? [];
   const calls = ds.calls.filter((c) => c.ticker === symbol);
-  const callDates = new Set(calls.map((c) => c.postDate));
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
+
+  const callMarkers: ChartMarker[] = calls.map((c) => ({
+    date: new Date(c.postDate),
+    icon: "▲",
+    title: `${symbol} · ${c.postDate}`,
+    description: `${c.returns.toDate.excess != null ? signed(c.returns.toDate.excess) + " vs SPY · " : ""}${c.quote}`,
+  }));
 
   const candles = ohlc.map((b) => ({
     date: new Date(b.date),
@@ -61,7 +84,6 @@ function TickerPage() {
     date: new Date(b.date),
     stock: (b.c / base) * 100,
     spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
-    call: callDates.has(b.date) ? (b.c / base) * 100 : null,
   }));
 
   return (
@@ -84,8 +106,11 @@ function TickerPage() {
           <CandlestickChart data={candles} style={{ height: 320 }}>
             <Grid horizontal />
             <Candlestick fadedOpacity={0.25} />
+            <ChartMarkers items={callMarkers} />
             <XAxis />
-            <ChartTooltip />
+            <ChartTooltip>
+              <CallMarkerContent markers={callMarkers} />
+            </ChartTooltip>
           </CandlestickChart>
         </ChartBoundary>
       </section>
@@ -99,9 +124,11 @@ function TickerPage() {
             <Grid horizontal highlightRowValues={[100]} />
             <Line dataKey="stock" />
             <Line dataKey="spy" stroke="var(--chart-3)" />
-            <Line dataKey="call" showMarkers stroke="transparent" />
+            <ChartMarkers items={callMarkers} />
             <XAxis />
-            <ChartTooltip />
+            <ChartTooltip>
+              <CallMarkerContent markers={callMarkers} />
+            </ChartTooltip>
           </LineChart>
         </ChartBoundary>
       </section>
