@@ -71,14 +71,36 @@ back to an icon. IG resolves via `web_profile_info`, X via Rettiwt
 `user.details().profileImage`. A new platform (e.g. TikTok) only needs to resolve
 its URL and call `saveAvatar` — downstream is already universal.
 
+## Component provenance
+
+Where the UI came from, so it can be re-synced from canonical sources. The `ui/*`
+primitives are shadcn/ui-style (radix-ui + vaul + cva) — **not** coss-ui (Base UI);
+devl.dev designs are built on coss-ui, but here only the *design* was borrowed and
+reimplemented on local primitives.
+
+| Local file(s) | Source |
+|---|---|
+| `src/components/WorkspaceRail.tsx` (and `MobileNav.tsx`, which reuses its `RailContent`) | devl.dev — https://www.devl.dev/c/layouts/workspace-rail (aesthetic reference) |
+| `src/routes/c.$handle.index.tsx` (`Overview`: `StatTile` strip + `CallsList`) | devl.dev — https://www.devl.dev/c/dashboards/metrics-overview (took the stat-tile strip + recent-activity list; bklit charts dropped into the chart slots) |
+| `src/components/ThemeToggle.tsx` | transitions.dev icon-swap pattern (3-state) |
+| `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
+| `src/components/ui/*` (badge/card/drawer/separator/table) | shadcn/ui-style primitives (radix-ui + vaul + cva) |
+| `Timeline`, `Scorecard`, `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
+
+To grab a fresh devl.dev snippet: open the component page and press `c` for code
+(client-rendered — not in the page HTML).
+
 ## Conventions
 
 - **Tests run on `bun test`** (files import `bun:test`, NOT vitest). Typecheck
   with `bunx tsc --noEmit`. The `#/` alias maps to `src/`.
-- The X path reuses `prices.ts`/`score.ts`/`scorecard.ts`/the dashboard
-  unchanged — keep new platforms emitting the `ReelCall` shape, don't fork them.
+- The X path reuses `pipeline/prices.ts`/`pipeline/score.ts`/`src/lib/scorecard.ts`/
+  the dashboard unchanged — keep new platforms emitting the `ReelCall` shape, don't fork them.
 - Secrets in `.env` (gitignored): `GROQ_API_KEY`, `RETTIWT_API_KEY`. Groq
   free-tier is rate-limited; `pipeline/groq.ts` backs off on 429 — expect slow
   vision/extract stages, not failures.
-- Charts: bklit Gauge/Funnel + candlestick/line are time-series (x must be a
-  Date); categorical analytics use native SVG. Wrap charts in `ChartBoundary`.
+- Charts: bklit-ui components (github.com/bklit/bklit-ui), vendored copy-in
+  (shadcn-style, so not in `package.json`) under `src/components/charts/`, built
+  on `@visx` + `d3`, rendered as SVG. Time-series charts (candlestick/line/area/
+  bar) need `x` as a `Date`; gauge/funnel/scatter are categorical. Wrap charts in
+  `ChartBoundary`.
