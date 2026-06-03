@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { creatorDir, pricesDir, DATA } from "./config";
 import { computeReturns } from "../src/lib/returns";
-import { dedupeFirstCall, buildScorecard } from "../src/lib/scorecard";
+import { dedupeFirstCall, buildScorecard, buildFunnel } from "../src/lib/scorecard";
 import { DatasetSchema } from "../src/lib/schema";
 import type { Dataset, ReelCall, OhlcBar, Call } from "../src/lib/types";
 
@@ -26,12 +26,9 @@ export function assembleDataset(
   calls = dedupeFirstCall(calls);
   const firstCalls = calls.filter(c => c.isFirstCall);
   const beatSpy = firstCalls.filter(c => (c.returns.toDate.excess ?? -1) > 0).length;
-  const funnel = counts ? [
-    { label: "Reels (12mo)", value: counts.reelsScraped },
-    { label: "Named a stock", value: counts.reelsWithTicker },
-    { label: "Explicit buy call", value: calls.length },
-    { label: "Beat SPY (to date)", value: beatSpy },
-  ] : undefined;
+  const funnel = counts
+    ? buildFunnel(counts, calls.length, firstCalls.length, beatSpy)
+    : undefined;
   const tickers: Record<string, { ohlc: OhlcBar[] }> = {};
   for (const t of [...new Set(calls.map(c => c.ticker)), "SPY"]) tickers[t] = { ohlc: ohlc[t] ?? [] };
   const ds: Dataset = {

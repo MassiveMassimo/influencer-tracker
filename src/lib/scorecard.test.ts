@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { dedupeFirstCall, buildScorecard } from "./scorecard";
+import { dedupeFirstCall, buildScorecard, buildFunnel, LOW_CONFIDENCE_N } from "./scorecard";
 import type { Call } from "./types";
 
 function call(over: Partial<Call>): Call {
@@ -60,4 +60,17 @@ test("hitRateN is 0 when all calls pending", () => {
   const sc = buildScorecard(dedupeFirstCall([call({ ticker: "AAA", postDate: "2025-01-01" })]));
   expect(sc.hitRateN["3m"]).toBe(0);
   expect(sc.hitRate["3m"]).toBe(0);
+});
+
+test("buildFunnel produces 5 monotonically-narrowing stages", () => {
+  const f = buildFunnel({ reelsScraped: 157, reelsWithTicker: 27 }, 13, 10, 4);
+  expect(f.map(s => s.value)).toEqual([157, 27, 13, 10, 4]);
+  expect(f.map(s => s.label)).toEqual([
+    "Reels (12mo)", "Named a stock", "Bullish buy call",
+    "First call (unique ticker)", "Beat SPY (to date)",
+  ]);
+});
+
+test("LOW_CONFIDENCE_N is 10", () => {
+  expect(LOW_CONFIDENCE_N).toBe(10);
 });

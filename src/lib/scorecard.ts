@@ -1,6 +1,23 @@
-import type { Call, Horizon, Scorecard } from "./types";
+import type { Call, Horizon, Scorecard, FunnelStage } from "./types";
 
 const HORIZONS: Horizon[] = ["1w", "1m", "3m", "toDate"];
+
+export const LOW_CONFIDENCE_N = 10;
+
+export function buildFunnel(
+  counts: { reelsScraped: number; reelsWithTicker: number },
+  buyCalls: number,
+  firstCalls: number,
+  beatSpy: number,
+): FunnelStage[] {
+  return [
+    { label: "Reels (12mo)", value: counts.reelsScraped },
+    { label: "Named a stock", value: counts.reelsWithTicker },
+    { label: "Bullish buy call", value: buyCalls },
+    { label: "First call (unique ticker)", value: firstCalls },
+    { label: "Beat SPY (to date)", value: beatSpy },
+  ];
+}
 
 export function dedupeFirstCall(calls: Call[]): Call[] {
   const earliest = new Map<string, string>();
