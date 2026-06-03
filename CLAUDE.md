@@ -192,8 +192,9 @@ slim shape directly.
 home + every creator + every called ticker via `src/og/` (satori + `@resvg/resvg-js`)
 into `public/og/…png`; crawlers hit the CDN and **satori/resvg never run at request
 time** (and aren't in the function bundle — no route imports `src/og/render.tsx`).
-- Theme is **frozen** (`OG_THEME`, default `light`); the runtime day/night flip
-  (`ogTheme()`) is dropped since social platforms cache OG aggressively.
+- Theme is **frozen to `dark`** (`scripts/prebuild.ts` `THEME`); the runtime
+  day/night flip (`ogTheme()`) is dropped since social platforms cache OG
+  aggressively. The renderer still supports `light` but it's never baked.
 - Fonts are base64-embedded in `src/og/fonts.data.ts` (regenerate with
   `bun run scripts/gen-og-fonts.ts` from the vendored `src/og/fonts/*.woff`).
 - Meta `og:image` points at the static path (`/og/<h>.png`, `/og/<h>/<sym>.png`);

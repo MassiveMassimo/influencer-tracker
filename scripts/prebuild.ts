@@ -6,9 +6,10 @@
 //  2. public/og/...png               — every OG card pre-rendered to a static PNG, so
 //     crawlers hit the CDN and satori/resvg never run at request time.
 //
-// OG theme is frozen here (default light; override with OG_THEME=dark). The runtime
-// day/night flip is dropped — social platforms cache OG images aggressively, so a
-// per-request theme has little real effect, and static-on-CDN is the perf ceiling.
+// OG theme is frozen to dark. The runtime day/night flip is dropped — social
+// platforms cache OG images aggressively, so a per-request theme has little real
+// effect, and static-on-CDN is the perf ceiling. The renderer still supports
+// "light" (see src/og), it's just never baked.
 import { mkdirSync, rmSync, writeFileSync, readFileSync, cpSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { renderOgPng, type OgCard } from "../src/og/render.tsx";
@@ -21,7 +22,7 @@ const OG_DIR = join(PUB, "og");
 const DS_DIR = join(PUB, "datasets");
 const PRICES_SRC = join(ROOT, "data", "prices");
 const PRICES_DST = join(PUB, "prices");
-const THEME: OgTheme = process.env.OG_THEME === "dark" ? "dark" : "light";
+const THEME: OgTheme = "dark";
 
 interface IndexEntry {
   handle: string;
