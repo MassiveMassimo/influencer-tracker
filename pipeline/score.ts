@@ -59,9 +59,16 @@ async function updateIndex(handle: string, name: string, ds: Dataset) {
   const idx: any[] = existsSync(path) ? JSON.parse(await readFile(path, "utf8")) : [];
   let avatar: string | undefined;
   try { avatar = (await readFile(join(creatorDir(handle), "avatar.txt"), "utf8")).trim(); } catch {}
-  const entry = { handle, name, totalCalls: ds.scorecard.totalCalls,
-    avgExcess3m: ds.scorecard.avgExcess["3m"], generatedAt: ds.generatedAt,
-    ...(avatar ? { avatar } : {}) };
+  const entry = {
+    handle, name,
+    totalCalls: ds.scorecard.totalCalls,
+    firstCalls: ds.scorecard.uniqueTickers,
+    hitRate3m: ds.scorecard.hitRate["3m"],
+    hitRate3mN: ds.scorecard.hitRateN["3m"],
+    avgExcess3m: ds.scorecard.avgExcess["3m"],
+    generatedAt: ds.generatedAt,
+    ...(avatar ? { avatar } : {}),
+  };
   const i = idx.findIndex(e => e.handle === handle);
   if (i >= 0) idx[i] = entry; else idx.push(entry);
   await mkdir(DATA, { recursive: true });

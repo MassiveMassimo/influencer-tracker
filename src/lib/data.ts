@@ -15,6 +15,9 @@ export const listCreators = createServerFn({ method: "GET" }).handler(
         handle: string;
         name: string;
         totalCalls: number;
+        firstCalls: number;
+        hitRate3m: number;
+        hitRate3mN: number;
         avgExcess3m: number;
         generatedAt: string;
         avatar?: string;
