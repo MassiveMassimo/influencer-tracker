@@ -139,3 +139,38 @@ To grab a fresh devl.dev snippet: open the component page and press `c` for code
   on `@visx` + `d3`, rendered as SVG. Time-series charts (candlestick/line/area/
   bar) need `x` as a `Date`; gauge/funnel/scatter are categorical. Wrap charts in
   `ChartBoundary`.
+
+## Deployment (Vercel)
+
+Hosting is Vercel (framework preset: TanStack Start). The `nitro/vite` plugin
+(`vite.config.ts`) makes the build emit Vercel Build Output (`.vercel/output`);
+Nitro auto-detects the platform from the `VERCEL` env at build time.
+
+**Auto-deploy.** The GitHub repo (`MassiveMassimo/stonks`) is connected to the
+project with **Root Directory = `influencer-tracker`** (monorepo). Push to `main`
+→ production; PRs → preview. Production URL: `https://influencer-tracker-beta.vercel.app`.
+Builds run on Vercel's linux infra — do **not** `vercel deploy --prebuilt` from
+macOS (it would ship the darwin resvg binary; see below).
+
+**Runtime data is bundled at build time, not read from disk.** `src/lib/dataset-source.ts`
+loads the datasets via `import.meta.glob`: `index.json` eager, each
+`<handle>/dataset.json` lazily as a `?raw` code-split chunk. Serverless has no
+reliable `process.cwd()`/fs access, so `data.ts` and the OG routes go through this
+module — never re-introduce `readFile(join(process.cwd(), "data", …))`. `data/creators`
+is gitignored **except** `index.json` + `*/dataset.json` (the two shapes the app
+reads); `.vercelignore` likewise keeps the ~1.7 GB of raw artifacts out of CLI
+uploads. **Updating data = re-run the pipeline, commit the changed JSON, push**
+(datasets are frozen-for-reproducibility, so co-versioning with code is correct).
+
+**OG image rendering** (`src/og/`, satori + `@resvg/resvg-js`):
+- Fonts are base64-embedded in `src/og/fonts.data.ts` (regenerate with
+  `bun run scripts/gen-og-fonts.ts` from the vendored `src/og/fonts/*.woff`). A
+  runtime fs read / `new URL(import.meta.url)` asset does **not** survive the Nitro
+  SSR build, so the bytes must be inlined.
+- The native `@resvg/resvg-js` `.node` addon is traced into the function via
+  `nitro.traceDeps: ["@resvg/resvg-js*"]` (the `*` also grabs the platform binary,
+  e.g. `@resvg/resvg-js-linux-x64-gnu` on Vercel).
+- `og:image`/canonical absolute URLs come from `VITE_SITE_URL` (**build-time** env,
+  set in the Vercel project). Update it + redeploy if a custom domain is added.
+- OG cards flip day/night via `ogTheme()`, so the routes set a short cache TTL on
+  purpose — the image is time-dependent, not fully static.
