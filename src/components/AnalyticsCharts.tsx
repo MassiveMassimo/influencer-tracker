@@ -50,7 +50,18 @@ export function CallFunnel({ ds }: { ds: Dataset }) {
   if (!sc.funnel || sc.funnel.length === 0) {
     return <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>;
   }
-  return <FunnelChart data={sc.funnel} color="var(--chart-1)" layers={3} />;
+  // Vertical: 5 longer stage labels get their own full-width row instead of
+  // colliding inside narrow horizontal cells.
+  return (
+    <FunnelChart
+      data={sc.funnel}
+      color="var(--chart-1)"
+      layers={3}
+      orientation="vertical"
+      labelLayout="grouped"
+      labelOrientation="horizontal"
+    />
+  );
 }
 
 // Native horizontal bars — width proportional to |excess|, colored by sign.
