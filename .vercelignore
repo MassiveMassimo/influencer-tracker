@@ -1,0 +1,24 @@
+# Vercel CLI does not honor .gitignore. Trim the upload to what the remote build
+# needs. The app reads only data/creators/index.json + data/creators/*/dataset.json
+# (via import.meta.glob at build time), so exclude the heavy pipeline artifacts by
+# name rather than allowlisting (nested negation in .vercelignore is unreliable, and
+# silently dropping dataset.json breaks every ticker/dataset lookup).
+.output
+.vercel/output
+.chrome-profile
+.tanstack
+playwright-report
+.og-preview
+*.local
+
+# heavy per-creator pipeline artifacts (raw media, sampled frames, transcripts,
+# baked price series) and intermediate text — none are read at runtime
+data/creators/*/raw
+data/creators/*/prices
+data/creators/*/frames
+data/creators/*/transcripts
+data/creators/*/reels
+data/creators/*/avatar.txt
+data/creators/*/cookies.txt
+data/creators/*/reel-calls.json
+data/creators/*/calls.review.md
