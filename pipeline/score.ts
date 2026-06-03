@@ -1,10 +1,12 @@
 import { readFile, writeFile, readdir, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { creatorDir, pricesDir, DATA } from "./config";
+import { creatorDir, pricesDir, DATA, ROOT } from "./config";
 import { computeReturns } from "../src/lib/returns";
 import { dedupeFirstCall, buildScorecard, buildFunnel } from "../src/lib/scorecard";
 import { DatasetSchema } from "../src/lib/schema";
+import { buildSpark } from "../src/lib/spark";
+import { mergePrices } from "../src/lib/prices-merge";
 import type { Dataset, ReelCall, OhlcBar, Call } from "../src/lib/types";
 
 const CAVEATS = ["survivorship", "reposts-deduped", "forward-from-post-date"];
@@ -22,6 +24,7 @@ export function assembleDataset(
   let calls: Call[] = bullish.map(c => ({
     shortcode: c.shortcode, postDate: c.postDate, ticker: c.ticker, company: c.company,
     isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
+    spark: buildSpark(ohlc[c.ticker] ?? [], c.postDate),
     returns: computeReturns(ohlc[c.ticker] ?? [], spy, c.postDate),
   }));
   calls = dedupeFirstCall(calls);
@@ -30,10 +33,8 @@ export function assembleDataset(
   const funnel = counts
     ? buildFunnel(counts, calls.length, firstCalls.length, beatSpy, postNoun)
     : undefined;
-  const tickers: Record<string, { ohlc: OhlcBar[] }> = {};
-  for (const t of [...new Set(calls.map(c => c.ticker)), "SPY"]) tickers[t] = { ohlc: ohlc[t] ?? [] };
   const ds: Dataset = {
-    creator, generatedAt, spyAnchor: "SPY", calls, tickers,
+    creator, generatedAt, spyAnchor: "SPY", calls,
     scorecard: { ...buildScorecard(calls), funnel }, caveats: CAVEATS,
   };
   DatasetSchema.parse(ds); // fail-closed on a malformed dataset
@@ -51,6 +52,18 @@ export async function score(handle: string, name: string, today = new Date().toI
   const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today,
     { reelsScraped, reelsWithTicker: reelCalls.length }, postNoun);
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
+  // Write deduped per-ticker prices to a shared store (one file per symbol across
+  // all creators) for the ticker-page fallback. Merge so a creator with a shorter
+  // history never truncates another's bars.
+  const sharedDir = join(ROOT, "data", "prices");
+  await mkdir(sharedDir, { recursive: true });
+  for (const sym of new Set([...ds.calls.map(c => c.ticker), "SPY"])) {
+    const bars = ohlc[sym] ?? [];
+    if (!bars.length) continue;
+    const f = join(sharedDir, `${sym}.json`);
+    const existing: OhlcBar[] = existsSync(f) ? JSON.parse(await readFile(f, "utf8")) : [];
+    await writeFile(f, JSON.stringify(mergePrices(existing, bars)));
+  }
   await updateIndex(handle, name, ds);
   return ds;
 }

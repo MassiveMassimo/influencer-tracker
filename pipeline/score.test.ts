@@ -21,4 +21,6 @@ test("assembleDataset scores calls and validates against schema", () => {
   expect(ds.calls[0].isFirstCall).toBe(true);
   expect(ds.calls[0].returns["1w"].excess).toBeCloseTo(0.10, 6);
   expect(ds.scorecard.totalCalls).toBe(1);
+  expect(ds.calls[0].spark).toEqual([100, 110]);
+  expect((ds as unknown as { tickers?: unknown }).tickers).toBeUndefined();
 });
