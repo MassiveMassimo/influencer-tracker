@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import type { Timeframe } from "#/lib/window-series.ts";
 
-const TABS: Timeframe[] = ["1M", "3M", "6M", "1Y", "All"];
+const TABS: Timeframe[] = ["1D", "1W", "1M", "3M", "6M", "1Y", "All"];
 
 export function TimeframeTabs({
   value,

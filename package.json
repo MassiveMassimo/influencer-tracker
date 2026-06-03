@@ -17,6 +17,7 @@
     "@fontsource-variable/geist-mono": "^5.2.8",
     "@fontsource/geist-mono": "^5.2.8",
     "@number-flow/react": "^0.6.0",
+    "@radix-ui/react-scroll-area": "^1.2.10",
     "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",

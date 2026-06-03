@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { getDataset } from "../lib/data";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
@@ -23,7 +23,8 @@ import {
 } from "#/components/ui/table.tsx";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
-import { windowSeries, type Timeframe } from "#/lib/window-series.ts";
+import { zoomMultiplier, type Timeframe } from "#/lib/window-series.ts";
+import { ScrollArea } from "#/components/ui/scroll-area.tsx";
 import { siteUrl } from "#/og/site.ts";
 
 export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
@@ -80,10 +81,53 @@ function TickerPage() {
   }));
 
   const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
-  const ohlcW = windowSeries(ohlc, timeframe);
-  const spyW = windowSeries(spy, timeframe);
 
-  const candles = ohlcW.map((b) => ({
+  // Timeframe sets the zoom: the full series is laid out `mult` viewport-widths
+  // wide so `timeframe` days fill the view and earlier months are reachable by
+  // scrolling. Both charts share one width and a synced horizontal scroll.
+  const mult = zoomMultiplier(ohlc, timeframe);
+  const priceRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
+  const [vw, setVw] = useState(0);
+  const trackWidth = mult > 1 && vw ? vw * mult : undefined;
+
+  // Measure the (shared) viewport width to size the wide inner track in px.
+  useLayoutEffect(() => {
+    const el = priceRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setVw(el.clientWidth));
+    ro.observe(el);
+    setVw(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  // Start at the latest data; keep the two charts' horizontal scroll in sync.
+  useLayoutEffect(() => {
+    const vp = (r: React.RefObject<HTMLDivElement | null>) =>
+      r.current?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]') ?? null;
+    const a = vp(priceRef);
+    const b = vp(lineRef);
+    if (!a || !b) return;
+    a.scrollLeft = a.scrollWidth;
+    b.scrollLeft = b.scrollWidth;
+    let lock = false;
+    const mirror = (src: HTMLElement, dst: HTMLElement) => () => {
+      if (lock) return;
+      lock = true;
+      dst.scrollLeft = src.scrollLeft;
+      lock = false;
+    };
+    const sa = mirror(a, b);
+    const sb = mirror(b, a);
+    a.addEventListener("scroll", sa, { passive: true });
+    b.addEventListener("scroll", sb, { passive: true });
+    return () => {
+      a.removeEventListener("scroll", sa);
+      b.removeEventListener("scroll", sb);
+    };
+  }, [timeframe, vw, symbol]);
+
+  const candles = ohlc.map((b) => ({
     date: new Date(b.date),
     open: b.o,
     high: b.h,
@@ -91,10 +135,10 @@ function TickerPage() {
     close: b.c,
   }));
 
-  const base = ohlcW[0]?.c ?? 1;          // rebase to first in-window bar
-  const spyBase = spyW[0]?.c ?? 1;
-  const spyByDate = new Map(spyW.map((b) => [b.date, b.c]));
-  const norm = ohlcW.map((b) => ({
+  const base = ohlc[0]?.c ?? 1;          // rebase to first bar of full history
+  const spyBase = spy[0]?.c ?? 1;
+  const spyByDate = new Map(spy.map((b) => [b.date, b.c]));
+  const norm = ohlc.map((b) => ({
     date: new Date(b.date),
     stock: (b.c / base) * 100,
     spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
@@ -119,31 +163,39 @@ function TickerPage() {
           </div>
           <TimeframeTabs value={timeframe} onChange={setTimeframe} />
         </div>
-        <ChartBoundary>
-          <CandlestickChart data={candles} style={{ height: 320 }} revealSignature={timeframe}>
-            <Grid horizontal />
-            <Candlestick fadedOpacity={0.25} />
-            <ChartMarkers items={callMarkers} />
-            <XAxis />
-            <ChartTooltip />
-          </CandlestickChart>
-        </ChartBoundary>
+        <ScrollArea ref={priceRef} className="w-full" maskHeight={28}>
+          <div style={{ width: trackWidth }}>
+            <ChartBoundary>
+              <CandlestickChart data={candles} style={{ height: 320 }} revealSignature={timeframe}>
+                <Grid horizontal />
+                <Candlestick fadedOpacity={0.25} />
+                <ChartMarkers items={callMarkers} />
+                <XAxis />
+                <ChartTooltip />
+              </CandlestickChart>
+            </ChartBoundary>
+          </div>
+        </ScrollArea>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
         <div className="mb-4 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
           Stock vs SPY · rebased to 100 · markers are call dates
         </div>
-        <ChartBoundary>
-          <LineChart data={norm} revealSignature={timeframe}>
-            <Grid horizontal highlightRowValues={[100]} />
-            <Line dataKey="stock" />
-            <Line dataKey="spy" stroke="var(--chart-3)" />
-            <ChartMarkers items={callMarkers} />
-            <XAxis />
-            <ChartTooltip />
-          </LineChart>
-        </ChartBoundary>
+        <ScrollArea ref={lineRef} className="w-full" maskHeight={28}>
+          <div style={{ width: trackWidth }}>
+            <ChartBoundary>
+              <LineChart data={norm} revealSignature={timeframe} className="h-[320px]">
+                <Grid horizontal highlightRowValues={[100]} />
+                <Line dataKey="stock" />
+                <Line dataKey="spy" stroke="var(--chart-3)" />
+                <ChartMarkers items={callMarkers} />
+                <XAxis />
+                <ChartTooltip />
+              </LineChart>
+            </ChartBoundary>
+          </div>
+        </ScrollArea>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
