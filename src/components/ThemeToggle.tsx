@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
+import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { cn } from '#/lib/utils.ts'
 
 type ThemeMode = 'light' | 'dark' | 'auto'
+
+// Stacked icons for the swap animation: active one fades in; the others fade
+// out with blur + scale-down (transitions.dev icon-swap pattern, 3-state).
+const MODE_ICONS = [
+  { mode: 'light', Icon: SunIcon },
+  { mode: 'dark', Icon: MoonIcon },
+  { mode: 'auto', Icon: MonitorIcon },
+] as const
 
 function getInitialMode(): ThemeMode {
   if (typeof window === 'undefined') {
@@ -73,9 +83,20 @@ export default function ThemeToggle() {
       onClick={toggleMode}
       aria-label={label}
       title={label}
-      className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] shadow-[0_8px_22px_rgba(30,90,72,0.08)] transition hover:-translate-y-0.5"
+      className="grid place-items-center rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] p-2 text-[var(--sea-ink)] shadow-[0_8px_22px_rgba(30,90,72,0.08)] transition hover:-translate-y-0.5"
     >
-      {mode === 'auto' ? 'Auto' : mode === 'dark' ? 'Dark' : 'Light'}
+      {MODE_ICONS.map(({ mode: m, Icon }) => (
+        <Icon
+          key={m}
+          aria-hidden
+          className={cn(
+            'col-start-1 row-start-1 size-4 transition-[opacity,filter,scale] duration-200 ease-in-out will-change-[opacity,filter,scale] motion-reduce:transition-none',
+            mode === m
+              ? 'scale-100 opacity-100 blur-0'
+              : 'scale-[0.25] opacity-0 blur-[2px]',
+          )}
+        />
+      ))}
     </button>
   )
 }

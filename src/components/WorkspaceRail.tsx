@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { HomeIcon, LineChartIcon, UsersIcon } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
-interface CreatorRef {
+export interface CreatorRef {
   handle: string;
   name: string;
 }
@@ -11,9 +11,26 @@ interface CreatorRef {
 // nav, and a creators section. Wraps all routes via __root.
 export function WorkspaceRail({ creators }: { creators: CreatorRef[] }) {
   return (
-    <aside className="flex h-svh flex-col border-r border-border/60 bg-foreground/[0.02]">
+    <aside className="h-svh border-r border-border/60">
+      <RailContent creators={creators} />
+    </aside>
+  );
+}
+
+// Shared rail body, rendered in the desktop aside and inside the mobile drawer.
+// onNavigate lets the drawer close itself when a link is followed.
+export function RailContent({
+  creators,
+  onNavigate,
+}: {
+  creators: CreatorRef[];
+  onNavigate?: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col bg-foreground/[0.02]">
       <Link
         to="/"
+        onClick={onNavigate}
         className="flex w-full items-center gap-2.5 border-b border-border/60 px-3.5 py-3 text-left no-underline transition-colors hover:bg-foreground/[0.03]"
       >
         <div className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-foreground/80 to-foreground/40 ring-1 ring-border/60">
@@ -34,6 +51,7 @@ export function WorkspaceRail({ creators }: { creators: CreatorRef[] }) {
           <li>
             <Link
               to="/"
+              onClick={onNavigate}
               activeOptions={{ exact: true }}
               className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
               activeProps={{
@@ -59,6 +77,7 @@ export function WorkspaceRail({ creators }: { creators: CreatorRef[] }) {
                 <Link
                   to="/c/$handle"
                   params={{ handle: c.handle }}
+                  onClick={onNavigate}
                   className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
                   activeProps={{
                     className:
@@ -81,7 +100,7 @@ export function WorkspaceRail({ creators }: { creators: CreatorRef[] }) {
         </span>
         <ThemeToggle />
       </div>
-    </aside>
+    </div>
   );
 }
 
