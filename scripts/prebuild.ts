@@ -9,7 +9,7 @@
 // OG theme is frozen here (default light; override with OG_THEME=dark). The runtime
 // day/night flip is dropped — social platforms cache OG images aggressively, so a
 // per-request theme has little real effect, and static-on-CDN is the perf ceiling.
-import { mkdirSync, rmSync, writeFileSync, readFileSync, cpSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync, readFileSync, cpSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { renderOgPng, type OgCard } from "../src/og/render.tsx";
 import type { OgTheme } from "../src/og/solar.ts";
@@ -19,6 +19,8 @@ const DATA = join(ROOT, "data", "creators");
 const PUB = join(ROOT, "public");
 const OG_DIR = join(PUB, "og");
 const DS_DIR = join(PUB, "datasets");
+const PRICES_SRC = join(ROOT, "data", "prices");
+const PRICES_DST = join(PUB, "prices");
 const THEME: OgTheme = process.env.OG_THEME === "dark" ? "dark" : "light";
 
 interface IndexEntry {
@@ -57,6 +59,8 @@ async function main() {
   rmSync(DS_DIR, { recursive: true, force: true });
   mkdirSync(OG_DIR, { recursive: true });
   mkdirSync(DS_DIR, { recursive: true });
+  rmSync(PRICES_DST, { recursive: true, force: true });
+  mkdirSync(PRICES_DST, { recursive: true });
 
   const index: IndexEntry[] = readJson(join(DATA, "index.json"));
 
@@ -101,6 +105,8 @@ async function main() {
   }
   console.log(`rendering ${tickerJobs.length} ticker cards (theme=${THEME})…`);
   await pool(tickerJobs, 8, (j) => emit(j.card, j.out));
+
+  if (existsSync(PRICES_SRC)) cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
 
   console.log(
     `prebuild done: ${index.length} creators, ${tickerJobs.length} tickers, datasets copied.`,
