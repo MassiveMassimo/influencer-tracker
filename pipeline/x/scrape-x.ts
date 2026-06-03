@@ -97,6 +97,9 @@ export async function scrapeX(handle: string, months = 12): Promise<TweetRecord[
     console.log(`resuming with ${records.length} tweets; continuing older than ${windowEnd.toISOString().slice(0, 10)}`);
   }
   let incomplete = false;
+  // A window can span hundreds of pages, so checkpoint per page (not per window)
+  // and emit a coarse MILESTONE line for the monitor every 200 tweets.
+  let nextMilestone = Math.ceil((records.length + 1) / 200) * 200;
   const WINDOW_CAP = 80;
   let w = 0;
   for (; w < WINDOW_CAP; w++) {
@@ -120,6 +123,12 @@ export async function scrapeX(handle: string, months = 12): Promise<TweetRecord[
         added++;
         const tm = new Date(rec.createdAt).getTime();
         if (tm < oldest) oldest = tm;
+      }
+      await persist(handle, records); // per-page durability — never lose more than one page
+      console.log(`  ...${records.length} tweets (w${w} p${page})`); // file heartbeat
+      if (records.length >= nextMilestone) {
+        console.log(`MILESTONE ${records.length} tweets scraped (oldest ${new Date(oldest).toISOString().slice(0, 10)})`);
+        nextMilestone += 200;
       }
       if (!data.next || !data.list?.length) break;
       cursor = data.next;
