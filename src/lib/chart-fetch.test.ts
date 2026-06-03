@@ -25,4 +25,12 @@ describe("cache", () => {
     expect(cacheGet("AAPL:5m", t0 + 6 * 60_000)).toBeNull(); // 6 min later: stale
     expect(cacheGet("MISS:5m", t0)).toBeNull();
   });
+
+  it("treats exactly TTL as still fresh, one ms past as stale", () => {
+    const bars = [{ date: "2026-06-03T13:30:00.000Z", o: 1, h: 1, l: 1, c: 1 }];
+    const t0 = 2_000_000;
+    cacheSet("X:1d", bars, t0);
+    expect(cacheGet("X:1d", t0 + 5 * 60_000)).toEqual(bars);     // exactly 5 min: fresh
+    expect(cacheGet("X:1d", t0 + 5 * 60_000 + 1)).toBeNull();    // 1 ms past: stale
+  });
 });

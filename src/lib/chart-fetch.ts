@@ -62,13 +62,17 @@ export function cacheSet(key: string, bars: LiveBar[], now: number): void {
 // --- Yahoo fetch ------------------------------------------------------------
 const yahoo = new YahooFinance();
 
+// `key` is keyed by timeframe (not interval): 3M/6M/1Y all share interval "1d",
+// so keying by interval would collide and return a too-short window. `period1`
+// can't be in the key — it's derived from `new Date()` and shifts every call.
 async function fetchSymbol(
+  key: string,
   symbol: string,
   interval: ReturnType<typeof chartWindow>["interval"],
   period1: Date,
 ): Promise<LiveBar[]> {
-  const key = `${symbol}:${interval}`;
-  const cached = cacheGet(key, Date.now());
+  const now = Date.now();
+  const cached = cacheGet(key, now);
   if (cached) return cached;
   // Cast needed: LiveInterval includes "1h" but yahoo-finance2's typed interval
   // enum uses "60m" as the canonical alias. Yahoo accepts "1h" at runtime; this
@@ -78,7 +82,10 @@ async function fetchSymbol(
     interval: interval as YfInterval,
   });
   const bars = toLiveBars(res.quotes as RawQuote[]);
-  if (bars.length) cacheSet(key, bars, Date.now());
+  // Cache empty results too: an empty window (market closed / thin symbol) is a
+  // valid response, and the route has a baked fallback. Not caching it would let
+  // every concurrent SSR render re-hit Yahoo's unofficial API for 5 minutes.
+  cacheSet(key, bars, now);
   return bars;
 }
 
@@ -89,7 +96,7 @@ const InputSchema = z.object({
 });
 
 export const fetchChart = createServerFn({ method: "GET" })
-  .inputValidator((data: z.infer<typeof InputSchema>) => InputSchema.parse(data))
+  .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }): Promise<ChartData> => {
     const tf = data.timeframe as Timeframe;
     const { interval, period1 } = chartWindow(tf, {
@@ -97,8 +104,8 @@ export const fetchChart = createServerFn({ method: "GET" })
       firstDate: new Date(data.firstDate),
     });
     const [ohlc, spy] = await Promise.all([
-      fetchSymbol(data.symbol, interval, period1),
-      fetchSymbol("SPY", interval, period1),
+      fetchSymbol(`${data.symbol}:${data.timeframe}`, data.symbol, interval, period1),
+      fetchSymbol(`SPY:${data.timeframe}`, "SPY", interval, period1),
     ]);
     return { ohlc, spy, interval, asOf: new Date().toISOString() };
   });
