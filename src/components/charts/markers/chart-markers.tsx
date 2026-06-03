@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { chartCssVars, useChart, useChartHover } from "../chart-context";
 import { type ChartMarker, MarkerGroup } from "./marker-group";
 
@@ -99,15 +100,20 @@ export function ChartMarkers({
     animationDuration,
   } = useChart();
 
-  // Hide the crosshair when hovering markers (matching original behavior)
+  // Markers under the cursor — drives the anchored hover card (quote etc.).
+  const [active, setActive] = useState<{ markers: ChartMarker[]; x: number } | null>(null);
+
+  // Hovering a marker hides the price crosshair and shows the marker's own card.
   const handleMarkerHover = useCallback(
     (markers: ChartMarker[] | null) => {
-      if (markers) {
-        // Hide crosshair when hovering a marker
+      if (markers && markers[0]) {
         setTooltipData(null);
+        setActive({ markers, x: xScale(markers[0].date) ?? 0 });
+      } else {
+        setActive(null);
       }
     },
-    [setTooltipData]
+    [setTooltipData, xScale]
   );
 
   // Group markers by date
@@ -170,6 +176,32 @@ export function ChartMarkers({
           );
         }
       )}
+
+      {/* Anchored hover card — the marker's own detail (title + description),
+          positioned at the marker instead of inside the chart tooltip. */}
+      {active &&
+        containerRef?.current &&
+        createPortal(
+          <div
+            className="pointer-events-none absolute z-[60] -translate-x-1/2 rounded-lg border border-border bg-background px-3 py-2 shadow-lg"
+            style={{
+              left: active.x + margin.left,
+              top: margin.top + markerY + size + 6,
+            }}
+          >
+            {active.markers.map((m) => (
+              <div key={m.title} className="not-first:mt-2">
+                <div className="font-medium text-foreground text-sm">{m.title}</div>
+                {m.description && (
+                  <div className="mt-0.5 max-w-[16rem] whitespace-normal break-words text-muted-foreground text-xs">
+                    {m.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>,
+          containerRef.current
+        )}
     </>
   );
 }

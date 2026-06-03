@@ -11,8 +11,6 @@ import { XAxis } from "#/components/charts/x-axis.tsx";
 import { ChartTooltip } from "#/components/charts/tooltip/chart-tooltip.tsx";
 import {
   ChartMarkers,
-  MarkerTooltipContent,
-  useActiveMarkers,
   type ChartMarker,
 } from "#/components/charts/markers/index.ts";
 import {
@@ -55,13 +53,6 @@ function pct(x: number | null) {
 
 function signed(x: number | null) {
   return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
-}
-
-// Tooltip content for the call marker the crosshair is currently over.
-function CallMarkerContent({ markers }: { markers: ChartMarker[] }) {
-  const active = useActiveMarkers(markers);
-  if (active.length === 0) return null;
-  return <MarkerTooltipContent markers={active} />;
 }
 
 function toneClass(x: number | null) {
@@ -134,9 +125,7 @@ function TickerPage() {
             <Candlestick fadedOpacity={0.25} />
             <ChartMarkers items={callMarkers} />
             <XAxis />
-            <ChartTooltip>
-              <CallMarkerContent markers={callMarkers} />
-            </ChartTooltip>
+            <ChartTooltip />
           </CandlestickChart>
         </ChartBoundary>
       </section>
@@ -152,9 +141,7 @@ function TickerPage() {
             <Line dataKey="spy" stroke="var(--chart-3)" />
             <ChartMarkers items={callMarkers} />
             <XAxis />
-            <ChartTooltip>
-              <CallMarkerContent markers={callMarkers} />
-            </ChartTooltip>
+            <ChartTooltip />
           </LineChart>
         </ChartBoundary>
       </section>
