@@ -10,9 +10,27 @@ import {
   HorizonBars,
 } from "../components/AnalyticsCharts";
 import type { Call, Dataset } from "../lib/types";
+import { siteUrl } from "#/og/site.ts";
 
 export const Route = createFileRoute("/c/$handle/")({
   loader: ({ params }) => getDataset({ data: params.handle }),
+  head: ({ params, loaderData }) => {
+    const name = loaderData?.creator.name ?? params.handle;
+    const img = siteUrl(`/og/${params.handle}`);
+    return {
+      meta: [
+        { title: `${name} · Signal Tracker` },
+        {
+          name: "description",
+          content: `${name}'s stock calls scored by forward return vs SPY.`,
+        },
+        { property: "og:title", content: `${name} · Signal Tracker` },
+        { property: "og:url", content: siteUrl(`/c/${params.handle}`) },
+        { property: "og:image", content: img },
+        { name: "twitter:image", content: img },
+      ],
+    };
+  },
   component: Overview,
 });
 

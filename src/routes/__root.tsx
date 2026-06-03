@@ -9,6 +9,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { WorkspaceRail } from '../components/WorkspaceRail'
 import { MobileNav } from '../components/MobileNav'
 import { listCreators } from '../lib/data'
+import { siteUrl } from '#/og/site.ts'
 
 import appCss from '../styles.css?url'
 
@@ -18,22 +19,34 @@ export const Route = createRootRoute({
   loader: () => listCreators(),
   head: () => ({
     meta: [
+      { charSet: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { title: 'Signal Tracker — influencer accuracy vs SPY' },
       {
-        charSet: 'utf-8',
+        name: 'description',
+        content:
+          'Forward returns of finfluencer stock calls, measured from post date and net of SPY.',
       },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'Signal Tracker',
-      },
+      { name: 'theme-color', content: '#173a40' },
+      { property: 'og:site_name', content: 'Signal Tracker' },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:title', content: 'Signal Tracker — influencer accuracy vs SPY' },
+      { property: 'og:description', content: 'Forward returns of stock calls, net of SPY.' },
+      { property: 'og:url', content: siteUrl('/') },
+      { property: 'og:image', content: siteUrl('/og.png') },
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: 'Signal Tracker' },
+      { name: 'twitter:description', content: 'Forward returns of stock calls, net of SPY.' },
+      { name: 'twitter:image', content: siteUrl('/og.png') },
     ],
     links: [
-      {
-        rel: 'stylesheet',
-        href: appCss,
-      },
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', href: '/icon.svg', type: 'image/svg+xml' },
+      { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+      { rel: 'manifest', href: '/manifest.json' },
     ],
   }),
   component: RootComponent,

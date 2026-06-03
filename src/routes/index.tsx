@@ -1,9 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { listCreators } from "../lib/data";
+import { siteUrl } from "#/og/site.ts";
 
 export const Route = createFileRoute("/")({
   loader: () => listCreators(),
+  head: () => ({
+    meta: [
+      { title: "Signal Tracker — influencer accuracy vs SPY" },
+      { property: "og:url", content: siteUrl("/") },
+      { property: "og:image", content: siteUrl("/og.png") },
+      { name: "twitter:image", content: siteUrl("/og.png") },
+    ],
+  }),
   component: Landing,
 });
 
