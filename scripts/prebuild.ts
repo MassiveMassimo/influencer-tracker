@@ -60,7 +60,6 @@ async function main() {
   mkdirSync(OG_DIR, { recursive: true });
   mkdirSync(DS_DIR, { recursive: true });
   rmSync(PRICES_DST, { recursive: true, force: true });
-  mkdirSync(PRICES_DST, { recursive: true });
 
   const index: IndexEntry[] = readJson(join(DATA, "index.json"));
 
@@ -106,7 +105,10 @@ async function main() {
   console.log(`rendering ${tickerJobs.length} ticker cards (theme=${THEME})…`);
   await pool(tickerJobs, 8, (j) => emit(j.card, j.out));
 
-  if (existsSync(PRICES_SRC)) cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
+  if (existsSync(PRICES_SRC)) {
+    mkdirSync(PRICES_DST, { recursive: true });
+    cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
+  }
 
   console.log(
     `prebuild done: ${index.length} creators, ${tickerJobs.length} tickers, datasets copied.`,

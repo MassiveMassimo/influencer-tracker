@@ -103,7 +103,7 @@ function TickerPage() {
 
   // Baked daily OHLC from the shared price store — the fallback when the live Yahoo
   // fetch errors or returns nothing. OhlcBar and LiveBar share a shape.
-  const { bakedOhlc, bakedSpy } = Route.useLoaderData();
+  const { bakedOhlc, bakedSpy } = ds;
 
   const usingFallback = query.isError || (query.data != null && query.data.ohlc.length === 0);
   const ohlc: LiveBar[] = usingFallback ? bakedOhlc : (query.data?.ohlc ?? []);

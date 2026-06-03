@@ -20,7 +20,7 @@ test("returns empty when no bars on/after fromDate", () => {
 
 test("downsamples to maxPoints, keeping first and last", () => {
   const ohlc = Array.from({ length: 100 }, (_, i) => bar(`2026-01-${i + 1}`, i));
-  const spark = buildSpark(ohlc, "2026-01-1", 24);
+  const spark = buildSpark(ohlc, "2026-01-01", 24);
   expect(spark.length).toBe(24);
   expect(spark[0]).toBe(0);
   expect(spark[spark.length - 1]).toBe(99);
@@ -29,4 +29,9 @@ test("downsamples to maxPoints, keeping first and last", () => {
 test("does not downsample when already at or under maxPoints", () => {
   const ohlc = [bar("2026-01-01", 1), bar("2026-01-02", 2), bar("2026-01-03", 3)];
   expect(buildSpark(ohlc, "2026-01-01", 24)).toEqual([1, 2, 3]);
+});
+
+test("maxPoints<=1 returns a single first element, not undefined", () => {
+  const ohlc = [bar("2026-01-01", 1), bar("2026-01-02", 2), bar("2026-01-03", 3)];
+  expect(buildSpark(ohlc, "2026-01-01", 1)).toEqual([1]);
 });

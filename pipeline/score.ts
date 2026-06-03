@@ -55,6 +55,8 @@ export async function score(handle: string, name: string, today = new Date().toI
   // Write deduped per-ticker prices to a shared store (one file per symbol across
   // all creators) for the ticker-page fallback. Merge so a creator with a shorter
   // history never truncates another's bars.
+  // `pricesDir(handle)` (read above) is the per-creator price input; this is the
+  // shared cross-creator output store.
   const sharedDir = join(ROOT, "data", "prices");
   await mkdir(sharedDir, { recursive: true });
   for (const sym of new Set([...ds.calls.map(c => c.ticker), "SPY"])) {

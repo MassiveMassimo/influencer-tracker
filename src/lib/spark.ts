@@ -6,6 +6,7 @@ import type { OhlcBar } from "./types";
 export function buildSpark(ohlc: OhlcBar[], fromDate: string, maxPoints = 24): number[] {
   const closes = ohlc.filter((b) => b.date >= fromDate).map((b) => b.c);
   if (closes.length <= maxPoints) return closes;
+  if (maxPoints <= 1) return closes.slice(0, 1);
   const step = (closes.length - 1) / (maxPoints - 1);
   return Array.from({ length: maxPoints }, (_, i) => closes[Math.round(i * step)]);
 }
