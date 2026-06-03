@@ -410,3 +410,36 @@ a {
     transition: none !important;
   }
 }
+
+/* Marker hover card open/close (transitions.dev tooltip feel). JS toggles
+   .is-open; transition-delay lives only in the open rule so leaving snaps
+   to 0 and the disappear plays immediately. */
+:root {
+  --tt-in-dur: 150ms;
+  --tt-out-dur: 50ms;
+  --tt-scale: 0.98;
+  --tt-delay: 80ms;
+  --tt-in-ease: ease-out;
+  --tt-out-ease: ease-out;
+}
+.t-marker-card {
+  transform: translate(-50%, 0) scale(var(--tt-scale));
+  transform-origin: 50% 0;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--tt-out-dur) var(--tt-out-ease),
+    transform var(--tt-out-dur) var(--tt-out-ease);
+}
+.t-marker-card.is-open {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  transition-duration: var(--tt-in-dur);
+  transition-timing-function: var(--tt-in-ease);
+  transition-delay: var(--tt-delay);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-marker-card {
+    transition: none !important;
+  }
+}

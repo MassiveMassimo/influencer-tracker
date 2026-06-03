@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { chartCssVars, useChart, useChartHover } from "../chart-context";
 import { type ChartMarker, MarkerGroup } from "./marker-group";
@@ -102,6 +102,11 @@ export function ChartMarkers({
 
   // Markers under the cursor — drives the anchored hover card (quote etc.).
   const [active, setActive] = useState<{ markers: ChartMarker[]; x: number } | null>(null);
+  // Freeze the last shown content so the card can animate out after `active`
+  // clears (unmounting would kill the close transition).
+  const lastActive = useRef<{ markers: ChartMarker[]; x: number } | null>(null);
+  if (active) lastActive.current = active;
+  const shown = active ?? lastActive.current;
 
   // Hovering a marker hides the price crosshair and shows the marker's own card.
   const handleMarkerHover = useCallback(
@@ -178,18 +183,20 @@ export function ChartMarkers({
       )}
 
       {/* Anchored hover card — the marker's own detail (title + description),
-          positioned at the marker instead of inside the chart tooltip. */}
-      {active &&
+          positioned at the marker instead of inside the chart tooltip. Kept
+          mounted (content frozen to lastActive while closing) so the open/close
+          transition can play on the way out. */}
+      {shown &&
         containerRef?.current &&
         createPortal(
           <div
-            className="pointer-events-none absolute z-[60] -translate-x-1/2 rounded-lg border border-border bg-background px-3 py-2 shadow-lg"
+            className={`t-marker-card absolute z-[60] rounded-lg border border-border bg-background px-3 py-2 shadow-lg${active ? " is-open" : ""}`}
             style={{
-              left: active.x + margin.left,
+              left: shown.x + margin.left,
               top: margin.top + markerY + size + 6,
             }}
           >
-            {active.markers.map((m) => (
+            {shown.markers.map((m) => (
               <div key={m.title} className="not-first:mt-2">
                 <div className="font-medium text-foreground text-sm">{m.title}</div>
                 {m.description && (
