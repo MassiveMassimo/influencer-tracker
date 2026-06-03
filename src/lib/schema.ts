@@ -6,6 +6,12 @@ const ReturnTriple = z.object({
   excess: z.number().nullable(),
 });
 
+const OhlcBarSchema = z.object({
+  date: z.string(), o: z.number(), h: z.number(), l: z.number(), c: z.number(),
+});
+
+export const PriceFileSchema = z.array(OhlcBarSchema);
+
 const CallSchema = z.object({
   shortcode: z.string(),
   postDate: z.string(),
@@ -16,6 +22,7 @@ const CallSchema = z.object({
   quote: z.string(),
   summary: z.string().optional(),
   onScreenPrice: z.number().nullable().optional(),
+  spark: z.array(z.number()).optional(),
   returns: z.object({
     "1w": ReturnTriple, "1m": ReturnTriple, "3m": ReturnTriple, "toDate": ReturnTriple,
   }),
@@ -26,11 +33,6 @@ export const DatasetSchema = z.object({
   generatedAt: z.string(),
   spyAnchor: z.string(),
   calls: z.array(CallSchema),
-  tickers: z.record(z.string(), z.object({
-    ohlc: z.array(z.object({
-      date: z.string(), o: z.number(), h: z.number(), l: z.number(), c: z.number(),
-    })),
-  })),
   scorecard: z.object({
     totalCalls: z.number(), uniqueTickers: z.number(),
     hitRate: z.object({ "1m": z.number(), "3m": z.number() }),

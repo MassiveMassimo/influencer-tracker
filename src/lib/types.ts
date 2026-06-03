@@ -14,6 +14,7 @@ export interface Call {
   quote: string;
   summary?: string;            // one-sentence context on what the post is about
   onScreenPrice?: number | null;
+  spark?: number[];            // downsampled closes from postDate forward, for the sparkline
   returns: Record<Horizon, ReturnTriple>;
 }
 
@@ -36,7 +37,6 @@ export interface Dataset {
   generatedAt: string;
   spyAnchor: string;
   calls: Call[];
-  tickers: Record<string, { ohlc: OhlcBar[] }>;
   scorecard: Scorecard;
   caveats: string[];
 }
