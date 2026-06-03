@@ -3,6 +3,7 @@ import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useState } from "react";
 import { listCreators } from "../lib/data";
 import { LOW_CONFIDENCE_N } from "../lib/scorecard";
+import { LandingFaq } from "../components/LandingFaq";
 import { siteUrl } from "#/og/site.ts";
 
 export const Route = createFileRoute("/")({
@@ -114,6 +115,8 @@ function Landing() {
           </ul>
         </section>
       )}
+
+      <LandingFaq />
     </main>
   );
 }
