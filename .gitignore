@@ -8,12 +8,19 @@ dist-ssr
 .tanstack
 .wrangler
 .output
+.vercel
 .vinxi
 __unconfig*
 todos.json
 
-# pipeline runtime artifacts
-data/creators
+# pipeline runtime artifacts — ship only the two runtime JSON shapes the app
+# reads (index.json + each creator's dataset.json, bundled via import.meta.glob);
+# keep raw media/transcripts/frames/cookies out of git.
+data/creators/*
+!data/creators/index.json
+!data/creators/*/
+data/creators/*/*
+!data/creators/*/dataset.json
 .chrome-profile
 playwright-report
 

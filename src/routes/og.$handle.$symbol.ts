@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { renderOgPng } from "#/og/render.tsx";
 import { ogTheme } from "#/og/solar.ts";
+import { loadDatasetRaw } from "#/lib/dataset-source.ts";
 import { pngResponse } from "./og[.]png";
 import type { Dataset } from "#/lib/types.ts";
 
@@ -12,17 +11,8 @@ export const Route = createFileRoute("/og/$handle/$symbol")({
     handlers: {
       GET: async ({ params }) => {
         const theme = ogTheme();
-        let ds: Dataset | null = null;
-        try {
-          ds = JSON.parse(
-            await readFile(
-              join(process.cwd(), "data", "creators", params.handle, "dataset.json"),
-              "utf8",
-            ),
-          );
-        } catch {
-          ds = null;
-        }
+        const raw = await loadDatasetRaw(params.handle);
+        const ds: Dataset | null = raw ? (JSON.parse(raw) as Dataset) : null;
         if (!ds) return pngResponse(await renderOgPng({ kind: "home", theme }));
         const calls = ds.calls.filter((c) => c.ticker === params.symbol);
         const excess3m = calls[0]?.returns["3m"]?.excess ?? null;

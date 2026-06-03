@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.2.8",
-    "@fontsource/geist-mono": "^5.2.8",
     "@number-flow/react": "^0.6.0",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@resvg/resvg-js": "^2.6.2",
@@ -42,6 +41,7 @@
     "d3-shape": "^3.2.0",
     "lucide-react": "^1.17.0",
     "motion": "^12.40.0",
+    "nitro": "^3.0.260522-beta",
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

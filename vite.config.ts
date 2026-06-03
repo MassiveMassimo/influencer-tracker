@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { nitro } from 'nitro/vite'
 
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -15,7 +16,15 @@ const config = defineConfig({
   ssr: { noExternal: [/^@visx\//], external: ["@resvg/resvg-js"] },
   // Keep the native addon out of the dep-optimizer scan too (it can't parse .node).
   optimizeDeps: { exclude: ["@resvg/resvg-js"] },
-  plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+  // nitro() builds the deployable server output. On Vercel it auto-detects the
+  // platform (VERCEL env) and emits .vercel/output. resvg-js is externalized; the
+  // "@resvg/resvg-js*" prefix traces both the JS package and its platform-specific
+  // .node binary (e.g. @resvg/resvg-js-linux-x64-gnu) into the function so the OG
+  // routes can require the native addon at runtime.
+  nitro: {
+    traceDeps: ["@resvg/resvg-js*"],
+  },
+  plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
 })
 
 export default config

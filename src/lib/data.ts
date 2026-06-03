@@ -1,38 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { DatasetSchema } from "./schema";
 import type { Dataset } from "./types";
-
-const DATA = join(process.cwd(), "data", "creators");
+import { loadIndex, loadDatasetRaw } from "./dataset-source";
 
 export const listCreators = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      return JSON.parse(
-        await readFile(join(DATA, "index.json"), "utf8"),
-      ) as {
-        handle: string;
-        name: string;
-        totalCalls: number;
-        firstCalls: number;
-        hitRate3m: number;
-        hitRate3mN: number;
-        avgExcess3m: number;
-        generatedAt: string;
-        avatar?: string;
-      }[];
-    } catch {
-      return [];
-    }
-  },
+  async () => loadIndex(),
 );
 
 export const getDataset = createServerFn({ method: "GET" })
   .inputValidator((handle: string) => handle)
   .handler(async ({ data: handle }): Promise<Dataset> => {
-    const raw = JSON.parse(
-      await readFile(join(DATA, handle, "dataset.json"), "utf8"),
-    );
-    return DatasetSchema.parse(raw);
+    const raw = await loadDatasetRaw(handle);
+    if (!raw) throw new Error(`Unknown creator: ${handle}`);
+    return DatasetSchema.parse(JSON.parse(raw));
   });
