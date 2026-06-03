@@ -20,8 +20,15 @@ export function parseHint(content: string): FrameHint {
   }
 }
 
+// OpenAI-compatible POST fn (groq default; fireworks for the X path).
+type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
+
 // Run the vision model on a single image, returning the ticker/price hint.
-export async function readImage(vision: string, imgPath: string): Promise<FrameHint> {
+export async function readImage(
+  vision: string,
+  imgPath: string,
+  client: ChatClient = groq,
+): Promise<FrameHint> {
   const b64 = (await readFile(imgPath)).toString("base64");
   const body = {
     model: vision,
@@ -31,7 +38,7 @@ export async function readImage(vision: string, imgPath: string): Promise<FrameH
     ] }],
     temperature: 0,
   };
-  const r = await (await groq("/chat/completions", {
+  const r = await (await client("/chat/completions", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   })).json() as { choices: { message: { content: string } }[] };
   return parseHint(r.choices[0].message.content);

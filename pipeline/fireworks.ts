@@ -7,6 +7,8 @@ const BASE = "https://api.fireworks.ai/inference/v1";
 
 // Default text model for classification.
 export const FIREWORKS_MODEL = "accounts/fireworks/models/gpt-oss-120b";
+// Cheapest serverless image-capable model — reads ticker/price off chart images.
+export const FIREWORKS_VISION_MODEL = "accounts/fireworks/models/qwen3p6-plus";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
