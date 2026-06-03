@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { Dialog, VisuallyHidden } from "radix-ui";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
@@ -89,15 +90,21 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
       <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-150 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-200" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-150 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
+          <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-150 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
             {call && (
               <>
-                <div className="mb-4 flex items-baseline">
+                <div className="mb-4 flex items-baseline justify-between gap-3">
                   <Dialog.Title asChild>
                     <h2 className="flex items-baseline">
                       <Heading call={call} />
                     </h2>
                   </Dialog.Title>
+                  <Dialog.Close
+                    aria-label="Close"
+                    className="-mr-1 -mt-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+                  >
+                    <X className="size-4" />
+                  </Dialog.Close>
                 </div>
                 <VisuallyHidden.Root>
                   <Dialog.Description>
