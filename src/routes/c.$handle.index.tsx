@@ -9,7 +9,8 @@ import {
   HitRateGauge,
   HorizonBars,
 } from "../components/AnalyticsCharts";
-import type { Call, Dataset } from "../lib/types";
+import type { Call, Dataset, OhlcBar } from "../lib/types";
+import { Sparkline } from "#/components/Sparkline.tsx";
 
 export const Route = createFileRoute("/c/$handle/")({
   loader: ({ params }) => getDataset({ data: params.handle }),
@@ -160,7 +161,12 @@ function CallsList({
       </div>
       <ul className="divide-border/40 divide-y">
         {calls.map((c) => (
-          <CallRow key={c.shortcode} handle={handle} call={c} />
+          <CallRow
+            key={c.shortcode}
+            handle={handle}
+            call={c}
+            bars={(ds.tickers[c.ticker]?.ohlc ?? []).filter((b) => b.date >= c.postDate)}
+          />
         ))}
         {calls.length === 0 && (
           <li className="px-5 py-6 text-sm text-muted-foreground">No calls yet.</li>
@@ -171,7 +177,7 @@ function CallsList({
   );
 }
 
-function CallRow({ handle, call }: { handle: string; call: Call }) {
+function CallRow({ handle, call, bars }: { handle: string; call: Call; bars: OhlcBar[] }) {
   const excess = call.returns.toDate.excess;
   // Status dot: pending when no elapsed return, else beat/lag vs SPY.
   const dot =
@@ -202,6 +208,9 @@ function CallRow({ handle, call }: { handle: string; call: Call }) {
             )}
           </div>
           <div className="truncate text-xs text-muted-foreground">{call.company}</div>
+        </div>
+        <div className="hidden shrink-0 sm:block">
+          <Sparkline bars={bars} excess={call.returns.toDate.excess} />
         </div>
         <div className="font-mono text-[11px] text-muted-foreground tabular-nums">
           {call.postDate}
