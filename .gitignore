@@ -16,3 +16,6 @@ todos.json
 data/creators
 .chrome-profile
 playwright-report
+
+# og image previews (local)
+.og-preview/

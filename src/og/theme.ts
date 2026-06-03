@@ -17,7 +17,7 @@ export interface OgPalette {
 }
 
 const LIGHT: OgPalette = {
-  bg: "#e7f3ec",
+  bg: "#ffffff",
   bgAccent: "rgba(79,184,178,0.30)",
   fg: "#173a40",
   fgMuted: "#416166",

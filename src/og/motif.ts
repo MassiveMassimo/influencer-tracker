@@ -2,6 +2,7 @@
 // trend biased by the creator's excess sign. Rendered as a standalone SVG (full
 // mask/gradient fidelity via resvg), then embedded as an <img> in the satori card.
 import type { OgPalette } from "./theme";
+import type { OgTheme } from "./solar";
 
 export interface MotifPoint {
   x: number; // 0..1 across width
@@ -79,11 +80,13 @@ export interface MotifOpts {
   palette: OgPalette;
   width: number;
   height: number;
+  theme?: OgTheme; // light renders the motif fainter to sit quietly on white
 }
 
-/** Self-contained SVG: lagoon→palm vertical gradient area + stroke, with a
- *  horizontal edge-fade mask matching the chart fade (0/15/85/100). */
-export function buildMotifSvg({ seed, up, palette, width, height }: MotifOpts): string {
+/** Self-contained SVG. Trend color is lagoon→palm when up, red when down. Two
+ *  stacked masks: a symmetric edge fade (0/15/85/100) plus a left-weighted fade
+ *  that clears the left third for headline text. */
+export function buildMotifSvg({ seed, up, palette, width, height, theme }: MotifOpts): string {
   // Place the motif in the lower ~62% of the card so text sits above it.
   const top = height * 0.38;
   const h = height - top;
@@ -93,12 +96,22 @@ export function buildMotifSvg({ seed, up, palette, width, height }: MotifOpts): 
   }));
   const line = smoothPath(px);
   const area = `${line} L ${width} ${height} L 0 ${height} Z`;
+  const stroke = up ? palette.lagoon : palette.down;
+  const fillTop = up ? palette.lagoon : palette.down;
+  const fillMid = up ? palette.lagoonDeep : palette.down;
+  const fillTail = up ? palette.palm : palette.down;
+  // Light sits quietly on white; dark can carry more weight on the ink background.
+  const light = theme === "light";
+  const fillA = light ? 0.32 : 0.42;
+  const fillB = light ? 0.12 : 0.16;
+  const strokeOpacity = light ? 0.7 : 0.85;
+  const strokeWidth = light ? 2.5 : 3;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
     <linearGradient id="fill" x1="0" y1="${top}" x2="0" y2="${height}" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="${palette.lagoon}" stop-opacity="0.42"/>
-      <stop offset="55%" stop-color="${palette.lagoonDeep}" stop-opacity="0.16"/>
-      <stop offset="100%" stop-color="${palette.palm}" stop-opacity="0"/>
+      <stop offset="0%" stop-color="${fillTop}" stop-opacity="${fillA}"/>
+      <stop offset="55%" stop-color="${fillMid}" stop-opacity="${fillB}"/>
+      <stop offset="100%" stop-color="${fillTail}" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="edge" x1="0" y1="0" x2="${width}" y2="0" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#fff" stop-opacity="0"/>
@@ -106,11 +119,20 @@ export function buildMotifSvg({ seed, up, palette, width, height }: MotifOpts): 
       <stop offset="85%" stop-color="#fff" stop-opacity="1"/>
       <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="${width}" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#fff" stop-opacity="0.55"/>
+      <stop offset="78%" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
     <mask id="fade"><rect x="0" y="0" width="${width}" height="${height}" fill="url(#edge)"/></mask>
+    <mask id="leftfade"><rect x="0" y="0" width="${width}" height="${height}" fill="url(#left)"/></mask>
   </defs>
   <g mask="url(#fade)">
-    <path d="${area}" fill="url(#fill)"/>
-    <path d="${line}" fill="none" stroke="${palette.lagoon}" stroke-width="3" stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round"/>
+    <g mask="url(#leftfade)">
+      <path d="${area}" fill="url(#fill)"/>
+      <path d="${line}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
   </g>
 </svg>`;
 }
