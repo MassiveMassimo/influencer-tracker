@@ -443,3 +443,10 @@ a {
     transition: none !important;
   }
 }
+
+/* NumberFlowGroup wraps its flows in a <number-flow-group> element with no
+   style passthrough; keep it transparent to layout so grouped flows still
+   participate in the parent grid/flex. */
+number-flow-group {
+  display: contents;
+}

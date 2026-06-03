@@ -1,6 +1,9 @@
+import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
+import { useInView } from "#/lib/use-in-view.ts";
+import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { getDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { ChartBoundary } from "../components/ChartBoundary";
@@ -47,12 +50,33 @@ export const Route = createFileRoute("/c/$handle/")({
   component: Overview,
 });
 
-function pct(x: number) {
-  return `${(x * 100).toFixed(1)}%`;
+const INT_FMT: Format = { maximumFractionDigits: 0 };
+const DEC1_FMT: Format = { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+const PCT_FMT: Format = {
+  style: "percent",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+};
+const SIGNED_PCT_FMT: Format = { ...PCT_FMT, signDisplay: "exceptZero" };
+
+// Cascade offset between adjacent stat tiles; per-flow count duration.
+const STAGGER_MS = 90;
+const FLOW_DURATION_MS = 700;
+
+type StatSegment =
+  | { kind: "num"; key: string; value: number; format: Format }
+  | { kind: "text"; key: string; text: string };
+
+interface StatTileData {
+  label: string;
+  segments: StatSegment[];
+  tone?: number;
 }
 
-function signed(x: number) {
-  return `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
+// Static formatting that matches NumberFlow's output, for the pre-hydration
+// fallback (before the custom element is registered).
+function formatNum(value: number, format: Format): string {
+  return new Intl.NumberFormat(undefined, format).format(value);
 }
 
 function toneClass(x: number) {
@@ -72,13 +96,51 @@ function Overview() {
   const { handle } = Route.useParams();
   const sc = ds.scorecard;
 
-  const tiles: { label: string; value: string; tone?: number }[] = [
-    { label: "Total calls", value: String(sc.totalCalls) },
-    { label: "Unique tickers", value: String(sc.uniqueTickers) },
-    { label: "Calls / week", value: sc.callsPerWeek.toFixed(1) },
-    { label: "Hit rate 3m", value: `${pct(sc.hitRate["3m"])} · ${Math.round(sc.hitRate["3m"] * sc.hitRateN["3m"])}/${sc.hitRateN["3m"]}`, tone: sc.hitRate["3m"] - 0.5 },
-    { label: "Avg excess 3m", value: signed(sc.avgExcess["3m"]), tone: sc.avgExcess["3m"] },
+  const total3m = sc.hitRateN["3m"];
+  const made3m = Math.round(sc.hitRate["3m"] * total3m);
+  const tiles: StatTileData[] = [
+    {
+      label: "Total calls",
+      segments: [{ kind: "num", key: "v", value: sc.totalCalls, format: INT_FMT }],
+    },
+    {
+      label: "Unique tickers",
+      segments: [
+        { kind: "num", key: "v", value: sc.uniqueTickers, format: INT_FMT },
+      ],
+    },
+    {
+      label: "Calls / week",
+      segments: [
+        { kind: "num", key: "v", value: sc.callsPerWeek, format: DEC1_FMT },
+      ],
+    },
+    {
+      label: "Hit rate 3m",
+      tone: sc.hitRate["3m"] - 0.5,
+      segments: [
+        { kind: "num", key: "rate", value: sc.hitRate["3m"], format: PCT_FMT },
+        { kind: "text", key: "dot", text: " · " },
+        { kind: "num", key: "made", value: made3m, format: INT_FMT },
+        { kind: "text", key: "slash", text: "/" },
+        { kind: "num", key: "total", value: total3m, format: INT_FMT },
+      ],
+    },
+    {
+      label: "Avg excess 3m",
+      tone: sc.avgExcess["3m"],
+      segments: [
+        {
+          kind: "num",
+          key: "v",
+          value: sc.avgExcess["3m"],
+          format: SIGNED_PCT_FMT,
+        },
+      ],
+    },
   ];
+
+  const [statsRef, statsInView] = useInView<HTMLElement>();
 
   const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
 
@@ -99,10 +161,15 @@ function Overview() {
         </div>
       </header>
 
-      <section className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 sm:grid-cols-3 lg:grid-cols-5">
-        {tiles.map((t) => (
-          <StatTile key={t.label} {...t} />
-        ))}
+      <section
+        className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 sm:grid-cols-3 lg:grid-cols-5"
+        ref={statsRef}
+      >
+        <NumberFlowGroup>
+          {tiles.map((t, i) => (
+            <StatTile index={i} key={t.label} revealed={statsInView} tile={t} />
+          ))}
+        </NumberFlowGroup>
       </section>
 
       <section className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-[1fr_320px]">
@@ -155,16 +222,48 @@ function Overview() {
   );
 }
 
-function StatTile({ label, value, tone }: { label: string; value: string; tone?: number }) {
+function StatTile({
+  tile,
+  index,
+  revealed,
+}: {
+  tile: StatTileData;
+  index: number;
+  revealed: boolean;
+}) {
+  const ready = useNumberFlowReady();
+  // Stagger the cascade by tile position; all segments of one tile share its slot.
+  const delay = index * STAGGER_MS;
+  const toneCls =
+    tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
+
   return (
     <div className="bg-background p-4">
       <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
-        {label}
+        {tile.label}
       </div>
-      <div
-        className={`mt-1.5 font-heading text-xl tabular-nums ${tone !== undefined ? toneClass(tone) : "text-foreground"}`}
-      >
-        {value}
+      <div className={`mt-1.5 font-heading text-xl tabular-nums ${toneCls}`}>
+        {tile.segments.map((seg) =>
+          seg.kind === "text" ? (
+            <span key={seg.key}>{seg.text}</span>
+          ) : ready ? (
+            <NumberFlow
+              format={seg.format}
+              isolate
+              key={seg.key}
+              opacityTiming={{ duration: 350, delay, easing: "ease-out" }}
+              transformTiming={{
+                duration: FLOW_DURATION_MS,
+                delay,
+                easing: "ease-out",
+              }}
+              value={revealed ? seg.value : 0}
+              willChange
+            />
+          ) : (
+            <span key={seg.key}>{formatNum(seg.value, seg.format)}</span>
+          )
+        )}
       </div>
     </div>
   );
@@ -303,6 +402,8 @@ function CallRow({ handle, call, bars }: { handle: string; call: Call; bars: Ohl
         ? "bg-emerald-500"
         : "bg-rose-500";
   const up = (excess ?? 0) >= 0;
+  const [valueRef, valueInView] = useInView<HTMLDivElement>();
+  const ready = useNumberFlowReady();
   return (
     <li>
       <Link
@@ -333,6 +434,7 @@ function CallRow({ handle, call, bars }: { handle: string; call: Call; bars: Ohl
         </div>
         <div
           className={`flex w-24 shrink-0 items-center justify-end gap-1 font-mono text-sm tabular-nums ${toneClass(excess ?? 0)}`}
+          ref={valueRef}
         >
           {excess == null ? (
             <span className="text-muted-foreground">pending</span>
@@ -343,7 +445,17 @@ function CallRow({ handle, call, bars }: { handle: string; call: Call; bars: Ohl
               ) : (
                 <ArrowDownRightIcon className="size-3.5" />
               )}
-              {signed(excess)}
+              {ready ? (
+                <NumberFlow
+                  format={SIGNED_PCT_FMT}
+                  isolate
+                  trend={up ? 1 : -1}
+                  value={valueInView ? excess : 0}
+                  willChange
+                />
+              ) : (
+                formatNum(excess, SIGNED_PCT_FMT)
+              )}
             </>
           )}
         </div>
