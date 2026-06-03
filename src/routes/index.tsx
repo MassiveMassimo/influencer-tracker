@@ -52,14 +52,14 @@ function Landing() {
     setSort((s) => (s.key === key ? { key, dir: (s.dir * -1) as 1 | -1 } : { key, dir: -1 }));
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-6 py-8 md:px-10 md:py-10">
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header>
         <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
           Signal Tracker · vs SPY
         </div>
         <h1 className="mt-1 font-heading text-2xl">Influencer accuracy</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ranked by 3-month hit rate — share of first calls per ticker that beat SPY. Sample size shown; thin samples are flagged and ranked last.
+          Ranked by 3-month hit rate: share of first calls per ticker that beat SPY. Sample size shown; thin samples are flagged and ranked last.
         </p>
       </header>
 
@@ -67,13 +67,13 @@ function Landing() {
         <p className="text-sm text-muted-foreground">No creators yet. Run the pipeline.</p>
       ) : (
         <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-          <div className="grid grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] items-center gap-3 border-border/40 border-b px-5 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+          <div className="grid grid-cols-[1.25rem_minmax(0,1fr)_auto_auto_auto] items-center gap-2.5 border-border/40 border-b px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5">
             <span>#</span>
             <span>Creator</span>
             <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("hitRate3m")}>Hit 3m</button>
             <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("avgExcess3m")}>Excess 3m</button>
             <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("totalCalls")}>Calls</button>
-            <span className="text-right">Updated</span>
+            <span className="hidden text-right md:block">Updated</span>
           </div>
           <ul className="divide-border/40 divide-y">
             {rows.map((c, i) => (
@@ -81,7 +81,7 @@ function Landing() {
                 <Link
                   to="/c/$handle"
                   params={{ handle: c.handle }}
-                  className="grid grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] items-center gap-3 px-5 py-4 no-underline transition-colors hover:bg-foreground/[0.03]"
+                  className="grid grid-cols-[1.25rem_minmax(0,1fr)_auto_auto_auto] items-center gap-2.5 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5"
                 >
                   <span className="font-mono text-xs text-muted-foreground tabular-nums">{i + 1}</span>
                   <div className="flex min-w-0 items-center gap-3">
@@ -94,7 +94,7 @@ function Landing() {
                     )}
                     <div className="min-w-0">
                       <div className="truncate font-medium text-sm text-foreground">{c.name}</div>
-                      <div className="font-mono text-xs text-muted-foreground">@{c.handle}</div>
+                      <div className="truncate font-mono text-xs text-muted-foreground">@{c.handle}</div>
                     </div>
                   </div>
                   <div className="text-right font-mono text-sm tabular-nums">
@@ -108,7 +108,7 @@ function Landing() {
                     {signed(c.avgExcess3m)}
                   </div>
                   <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">{c.totalCalls}</div>
-                  <div className="text-right font-mono text-[10px] text-muted-foreground tabular-nums">{relativeDate(c.generatedAt)}</div>
+                  <div className="hidden text-right font-mono text-[10px] text-muted-foreground tabular-nums md:block">{relativeDate(c.generatedAt)}</div>
                 </Link>
               </li>
             ))}

@@ -27,8 +27,15 @@ const ScrollArea = React.forwardRef<
      */
     maskHeight?: number;
     maskClassName?: string;
+    /**
+     * Color the edge-fade mask blends into. Must match the scroll area's own
+     * surface background, or the fade reveals the wrong color at the edges.
+     * Defaults to the page background token; override on non-default surfaces.
+     * @default "var(--color-background)"
+     */
+    maskColor?: string;
   }
->(({ className, children, scrollHideDelay = 0, viewportClassName, maskClassName, maskHeight = 30, ...props }, ref) => {
+>(({ className, children, scrollHideDelay = 0, viewportClassName, maskClassName, maskHeight = 30, maskColor = "var(--color-background)", style, ...props }, ref) => {
   const [showMask, setShowMask] = React.useState<Mask>({
     top: false,
     bottom: false,
@@ -85,6 +92,7 @@ const ScrollArea = React.forwardRef<
           data-slot="scroll-area"
           aria-roledescription="scroll area"
           className={cn("relative overflow-hidden", className)}
+          style={{ ["--scroll-mask-color" as string]: maskColor, ...style }}
           {...props}
         >
           <div
@@ -104,6 +112,7 @@ const ScrollArea = React.forwardRef<
           data-slot="scroll-area"
           scrollHideDelay={scrollHideDelay}
           className={cn("relative overflow-hidden", className)}
+          style={{ ["--scroll-mask-color" as string]: maskColor, ...style }}
           {...props}
         >
           <ScrollAreaPrimitive.Viewport
@@ -188,8 +197,8 @@ const ScrollMask = ({
           "before:h-(--top-fade-height) after:h-(--bottom-fade-height)",
           showMask.top ? "before:opacity-100" : "before:opacity-0",
           showMask.bottom ? "after:opacity-100" : "after:opacity-0",
-          "before:from-background before:bg-gradient-to-b before:to-transparent",
-          "after:from-background after:bg-gradient-to-t after:to-transparent",
+          "before:from-(--scroll-mask-color) before:bg-gradient-to-b before:to-transparent",
+          "after:from-(--scroll-mask-color) after:bg-gradient-to-t after:to-transparent",
           className
         )}
       />
@@ -209,8 +218,8 @@ const ScrollMask = ({
           "before:w-(--left-fade-width) after:w-(--right-fade-width)",
           showMask.left ? "before:opacity-100" : "before:opacity-0",
           showMask.right ? "after:opacity-100" : "after:opacity-0",
-          "before:from-background before:bg-gradient-to-r before:to-transparent",
-          "after:from-background after:bg-gradient-to-l after:to-transparent",
+          "before:from-(--scroll-mask-color) before:bg-gradient-to-r before:to-transparent",
+          "after:from-(--scroll-mask-color) after:bg-gradient-to-l after:to-transparent",
           className
         )}
       />

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { HomeIcon, LineChartIcon, UsersIcon } from "lucide-react";
 import GitHubLink from "./GitHubLink";
 import ThemeToggle from "./ThemeToggle";
+import { ScrollArea } from "./ui/scroll-area";
 
 export interface CreatorRef {
   handle: string;
@@ -48,7 +49,10 @@ export function RailContent({
         </div>
       </Link>
 
-      <nav className="mt-3 flex-1 overflow-y-auto px-2 pb-4">
+      {/* Mask defaults to --color-background; the rail's bg-foreground/[0.02]
+          overlay is ~background, so the edge fade reads correctly. */}
+      <ScrollArea className="mt-3 min-h-0 flex-1" viewportClassName="px-2 pb-4">
+        <nav>
         <ul className="flex flex-col gap-0.5">
           <li>
             <Link
@@ -101,7 +105,8 @@ export function RailContent({
             ))
           )}
         </ul>
-      </nav>
+        </nav>
+      </ScrollArea>
 
       <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
         <span className="flex items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">

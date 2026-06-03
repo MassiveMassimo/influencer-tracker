@@ -138,10 +138,28 @@ reimplemented on local primitives.
 | `src/components/ThemeToggle.tsx` | transitions.dev icon-swap pattern (3-state) |
 | `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
 | `src/components/ui/*` (badge/card/drawer/separator/table) | shadcn/ui-style primitives (radix-ui + vaul + cva) |
+| `src/components/ui/scroll-area.tsx` | lina — github.com/SameerJS6/lina (radix variant, `npx shadcn add https://lina.sameer.sh/r/lina-radix.json`) |
 | `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
 
 To grab a fresh devl.dev snippet: open the component page and press `c` for code
 (client-rendered — not in the page HTML).
+
+## Scroll areas (lina)
+
+Any scrollable region (overflow lists, wide tables, drawer bodies) uses the lina
+`ScrollArea` (`src/components/ui/scroll-area.tsx`), **not** raw `overflow-*`. lina
+adds an adaptive edge-fade mask that appears only when content is scrollable and
+native-feeling touch scrolling. Wired into: the ticker calls table (`ui/table.tsx`,
+horizontal), the proof-viewer drawer body, and the `WorkspaceRail` nav.
+
+**The mask must always match the surface background**, or the fade reveals the
+wrong color at the edges. The mask color is the CSS var `--scroll-mask-color`,
+defaulting to `var(--color-background)` (correct for any `bg-background` surface).
+On a non-default surface, pass `maskColor` (e.g. `maskColor="var(--card)"`) so the
+fade blends into that surface. Tables auto-size: lina's viewport is `size-full`
+(needs a definite-height parent), so `ui/table.tsx` passes `viewportClassName="h-auto"`
+to size to the table; a drawer body needs the drawer at a definite `h-[…]` (not
+`max-h-`) for `flex-1` to bound the scroll area.
 
 ## Conventions
 

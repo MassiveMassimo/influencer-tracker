@@ -413,7 +413,7 @@ function CallRow({ handle, call }: { handle: string; call: Call }) {
         <span className={`size-2 shrink-0 rounded-full ${dot}`} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-sm text-foreground">{call.ticker}</span>
+            <span className="shrink-0 font-mono text-sm text-foreground">{call.ticker}</span>
             {call.isFirstCall && (
               <span
                 title="Only the earliest call per ticker is scored; later calls on the same ticker are not counted."

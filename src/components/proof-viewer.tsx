@@ -6,6 +6,7 @@ import {
   DrawerDescription,
   DrawerTitle,
 } from "#/components/ui/drawer.tsx";
+import { ScrollArea } from "#/components/ui/scroll-area.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
 import type { Call } from "#/lib/types.ts";
 
@@ -127,9 +128,9 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()} shouldScaleBackground>
-      <DrawerContent className="max-h-[92vh]">
+      <DrawerContent className="h-[92vh]">
         {call && (
-          <div className="overflow-y-auto px-5 pt-2 pb-8">
+          <ScrollArea className="min-h-0 flex-1" viewportClassName="px-5 pt-2 pb-8">
             <div className="mb-4">
               <DrawerTitle asChild>
                 <h2 className="flex items-baseline">
@@ -143,7 +144,7 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
               </VisuallyHidden.Root>
             </div>
             <ProofContent call={call} />
-          </div>
+          </ScrollArea>
         )}
       </DrawerContent>
     </Drawer>

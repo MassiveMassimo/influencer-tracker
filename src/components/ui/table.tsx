@@ -4,18 +4,24 @@ import * as React from "react"
 
 import { cn } from "#/lib/utils.ts"
 
+import { ScrollArea } from "./scroll-area"
+
 function Table({ className, ...props }: React.ComponentProps<"table">) {
+  // Horizontal overflow scrolls through lina so wide tables get the edge-fade
+  // mask (signals there's more to the right). viewport is forced to h-auto so
+  // the Root sizes to the table instead of collapsing on size-full's h-full.
   return (
-    <div
+    <ScrollArea
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="w-full"
+      viewportClassName="h-auto"
     >
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
       />
-    </div>
+    </ScrollArea>
   )
 }
 
