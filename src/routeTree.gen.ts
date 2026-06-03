@@ -9,14 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OgDotpngRouteImport } from './routes/og[.]png'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OgHandleRouteImport } from './routes/og.$handle'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
+import { Route as OgHandleSymbolRouteImport } from './routes/og.$handle.$symbol'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
 
+const OgDotpngRoute = OgDotpngRouteImport.update({
+  id: '/og.png',
+  path: '/og.png',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgHandleRoute = OgHandleRouteImport.update({
+  id: '/og/$handle',
+  path: '/og/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CHandleRoute = CHandleRouteImport.update({
@@ -29,6 +42,11 @@ const CHandleIndexRoute = CHandleIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CHandleRoute,
 } as any)
+const OgHandleSymbolRoute = OgHandleSymbolRouteImport.update({
+  id: '/$symbol',
+  path: '/$symbol',
+  getParentRoute: () => OgHandleRoute,
+} as any)
 const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
   id: '/ticker/$symbol',
   path: '/ticker/$symbol',
@@ -37,47 +55,88 @@ const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/og.png': typeof OgDotpngRoute
   '/c/$handle': typeof CHandleRouteWithChildren
+  '/og/$handle': typeof OgHandleRouteWithChildren
+  '/og/$handle/$symbol': typeof OgHandleSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/og.png': typeof OgDotpngRoute
+  '/og/$handle': typeof OgHandleRouteWithChildren
+  '/og/$handle/$symbol': typeof OgHandleSymbolRoute
   '/c/$handle': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/og.png': typeof OgDotpngRoute
   '/c/$handle': typeof CHandleRouteWithChildren
+  '/og/$handle': typeof OgHandleRouteWithChildren
+  '/og/$handle/$symbol': typeof OgHandleSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/c/$handle' | '/c/$handle/' | '/c/$handle/ticker/$symbol'
+  fullPaths:
+    | '/'
+    | '/og.png'
+    | '/c/$handle'
+    | '/og/$handle'
+    | '/og/$handle/$symbol'
+    | '/c/$handle/'
+    | '/c/$handle/ticker/$symbol'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/c/$handle' | '/c/$handle/ticker/$symbol'
+  to:
+    | '/'
+    | '/og.png'
+    | '/og/$handle'
+    | '/og/$handle/$symbol'
+    | '/c/$handle'
+    | '/c/$handle/ticker/$symbol'
   id:
     | '__root__'
     | '/'
+    | '/og.png'
     | '/c/$handle'
+    | '/og/$handle'
+    | '/og/$handle/$symbol'
     | '/c/$handle/'
     | '/c/$handle/ticker/$symbol'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OgDotpngRoute: typeof OgDotpngRoute
   CHandleRoute: typeof CHandleRouteWithChildren
+  OgHandleRoute: typeof OgHandleRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/og.png': {
+      id: '/og.png'
+      path: '/og.png'
+      fullPath: '/og.png'
+      preLoaderRoute: typeof OgDotpngRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og/$handle': {
+      id: '/og/$handle'
+      path: '/og/$handle'
+      fullPath: '/og/$handle'
+      preLoaderRoute: typeof OgHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/c/$handle': {
@@ -93,6 +152,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/c/$handle/'
       preLoaderRoute: typeof CHandleIndexRouteImport
       parentRoute: typeof CHandleRoute
+    }
+    '/og/$handle/$symbol': {
+      id: '/og/$handle/$symbol'
+      path: '/$symbol'
+      fullPath: '/og/$handle/$symbol'
+      preLoaderRoute: typeof OgHandleSymbolRouteImport
+      parentRoute: typeof OgHandleRoute
     }
     '/c/$handle/ticker/$symbol': {
       id: '/c/$handle/ticker/$symbol'
@@ -117,9 +183,23 @@ const CHandleRouteChildren: CHandleRouteChildren = {
 const CHandleRouteWithChildren =
   CHandleRoute._addFileChildren(CHandleRouteChildren)
 
+interface OgHandleRouteChildren {
+  OgHandleSymbolRoute: typeof OgHandleSymbolRoute
+}
+
+const OgHandleRouteChildren: OgHandleRouteChildren = {
+  OgHandleSymbolRoute: OgHandleSymbolRoute,
+}
+
+const OgHandleRouteWithChildren = OgHandleRoute._addFileChildren(
+  OgHandleRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OgDotpngRoute: OgDotpngRoute,
   CHandleRoute: CHandleRouteWithChildren,
+  OgHandleRoute: OgHandleRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
