@@ -55,8 +55,10 @@ scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date.
 ## Proof embeds
 
 Each call links to its source via `shortcode`: numeric ⇒ X tweet embed, otherwise
-⇒ IG reel embed (`/reel/<code>/embed`). The ticker page renders an expandable
-proof row (embed + summary + quote). No local media is needed for display.
+⇒ IG reel embed (`/reel/<code>/embed`). On the ticker page, tapping a call row
+opens `ProofViewer` (`src/components/proof-viewer.tsx`) — a Radix dialog on
+desktop and a vaul drawer on mobile (switched via `useMediaQuery`, 768px) — that
+shows the embed + summary + quote. No local media is needed for display.
 
 ## Profile pics
 

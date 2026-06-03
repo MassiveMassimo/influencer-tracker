@@ -22,7 +22,18 @@ export async function prices(handle: string) {
   const from = calls.reduce((m, c) => c.postDate < m ? c.postDate : m, calls[0]?.postDate ?? "2025-01-01");
   for (const t of tickers) {
     const out = join(pricesDir(handle), `${t}.json`);
-    if (existsSync(out)) continue;
+    if (existsSync(out)) {
+      // Distrust truncated caches: a partial Yahoo run can leave a 1-bar file
+      // that the old existsSync skip would keep forever (SPY benchmark broke
+      // this way). Only treat >1 bar as a real cache hit.
+      try {
+        const cached = JSON.parse(await readFile(out, "utf8"));
+        if (Array.isArray(cached) && cached.length > 1) continue;
+        console.warn(`REFETCH ${t}: cached file has ${cached?.length ?? 0} bar(s)`);
+      } catch {
+        console.warn(`REFETCH ${t}: unreadable cache`);
+      }
+    }
     try {
       const ohlc = await fetchOhlc(t, from);
       if (!ohlc.length) { console.warn(`FLAG ${t}: no price data`); continue; }

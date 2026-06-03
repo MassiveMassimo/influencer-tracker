@@ -1,6 +1,11 @@
 import { X } from "lucide-react";
 import { Dialog, VisuallyHidden } from "radix-ui";
-import { Drawer } from "vaul";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+} from "#/components/ui/drawer.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
 import type { Call } from "#/lib/types.ts";
 
@@ -121,30 +126,26 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
   }
 
   return (
-    <Drawer.Root open={open} onOpenChange={(o) => !o && onClose()}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mt-24 flex max-h-[92vh] flex-col rounded-t-2xl border-t border-border/60 bg-background outline-none">
-          <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-border" />
-          {call && (
-            <div className="overflow-y-auto px-5 pt-4 pb-8">
-              <div className="mb-4">
-                <Drawer.Title asChild>
-                  <h2 className="flex items-baseline">
-                    <Heading call={call} />
-                  </h2>
-                </Drawer.Title>
-                <VisuallyHidden.Root>
-                  <Drawer.Description>
-                    Proof media and context for the {call.ticker} call.
-                  </Drawer.Description>
-                </VisuallyHidden.Root>
-              </div>
-              <ProofContent call={call} />
+    <Drawer open={open} onOpenChange={(o) => !o && onClose()} shouldScaleBackground>
+      <DrawerContent className="max-h-[92vh]">
+        {call && (
+          <div className="overflow-y-auto px-5 pt-2 pb-8">
+            <div className="mb-4">
+              <DrawerTitle asChild>
+                <h2 className="flex items-baseline">
+                  <Heading call={call} />
+                </h2>
+              </DrawerTitle>
+              <VisuallyHidden.Root>
+                <DrawerDescription>
+                  Proof media and context for the {call.ticker} call.
+                </DrawerDescription>
+              </VisuallyHidden.Root>
             </div>
-          )}
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+            <ProofContent call={call} />
+          </div>
+        )}
+      </DrawerContent>
+    </Drawer>
   );
 }
