@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { HomeIcon, LineChartIcon, UsersIcon } from "lucide-react";
+import GitHubLink from "./GitHubLink";
 import ThemeToggle from "./ThemeToggle";
 
 export interface CreatorRef {
@@ -107,7 +108,10 @@ export function RailContent({
           <span className="size-1.5 rounded-full bg-emerald-500" />
           Paper mode
         </span>
-        <ThemeToggle />
+        <div className="flex items-center gap-1.5">
+          <GitHubLink className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground" />
+          <ThemeToggle />
+        </div>
       </div>
     </div>
   );

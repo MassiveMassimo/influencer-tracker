@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LineChartIcon, MenuIcon } from "lucide-react";
+import GitHubLink from "./GitHubLink";
 import {
   Drawer,
   DrawerContent,
@@ -48,6 +49,8 @@ export function MobileNav({ creators }: { creators: CreatorRef[] }) {
           Signal Tracker
         </span>
       </div>
+
+      <GitHubLink className="ml-auto flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground" />
     </div>
   );
 }
