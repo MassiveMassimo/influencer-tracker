@@ -32,6 +32,10 @@ function toneClass(x: number) {
       : "text-muted-foreground";
 }
 
+function ageDays(iso: string) {
+  return Math.round((Date.now() - new Date(iso + "T00:00:00Z").getTime()) / 86400000);
+}
+
 function Overview() {
   const ds = Route.useLoaderData();
   const { handle } = Route.useParams();
@@ -41,7 +45,7 @@ function Overview() {
     { label: "Total calls", value: String(sc.totalCalls) },
     { label: "Unique tickers", value: String(sc.uniqueTickers) },
     { label: "Calls / week", value: sc.callsPerWeek.toFixed(1) },
-    { label: "Hit rate 3m", value: pct(sc.hitRate["3m"]), tone: sc.hitRate["3m"] - 0.5 },
+    { label: "Hit rate 3m", value: `${pct(sc.hitRate["3m"])} · ${Math.round(sc.hitRate["3m"] * sc.hitRateN["3m"])}/${sc.hitRateN["3m"]}`, tone: sc.hitRate["3m"] - 0.5 },
     { label: "Avg excess 3m", value: signed(sc.avgExcess["3m"]), tone: sc.avgExcess["3m"] },
   ];
 
@@ -58,6 +62,9 @@ function Overview() {
         </div>
         <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
           as of {ds.generatedAt}
+          {ageDays(ds.generatedAt) > 30 && (
+            <span className="ml-2 text-amber-600 dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
+          )}
         </div>
       </header>
 
@@ -96,6 +103,7 @@ function Overview() {
         <div className="bg-background p-6">
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
             Avg excess vs SPY · by horizon
+            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
           </div>
           <div className="mt-3">
             <HorizonBars ds={ds} />
@@ -185,7 +193,10 @@ function CallRow({ handle, call }: { handle: string; call: Call }) {
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm text-foreground">{call.ticker}</span>
             {call.isFirstCall && (
-              <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-foreground">
+              <span
+                title="Only the earliest call per ticker is scored; later calls on the same ticker are not counted."
+                className="rounded-full bg-foreground/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-foreground"
+              >
                 first
               </span>
             )}

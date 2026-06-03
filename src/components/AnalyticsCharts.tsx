@@ -3,6 +3,7 @@
 // horizon" and the conviction-vs-return scatter are rendered natively here.
 import { Gauge } from "#/components/charts/gauge";
 import { FunnelChart } from "#/components/charts/funnel-chart";
+import { LOW_CONFIDENCE_N } from "#/lib/scorecard.ts";
 import type { Dataset, Horizon } from "../lib/types";
 
 const HORIZONS: Horizon[] = ["1w", "1m", "3m", "toDate"];
@@ -22,14 +23,24 @@ function convictionPoints(ds: Dataset) {
 // Hit-rate gauge — used in the overview featured pane. Wrap in ChartBoundary at call site.
 export function HitRateGauge({ ds }: { ds: Dataset }) {
   const sc = ds.scorecard;
+  const n = sc.hitRateN["3m"];
+  const beats = Math.round(sc.hitRate["3m"] * n);
   return (
-    <Gauge
-      value={Math.round(sc.hitRate["3m"] * 100)}
-      centerValue={sc.hitRate["3m"]}
-      defaultLabel="beat SPY"
-      inactiveFillOpacity={0.4}
-      formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
-    />
+    <div>
+      <Gauge
+        value={Math.round(sc.hitRate["3m"] * 100)}
+        centerValue={sc.hitRate["3m"]}
+        defaultLabel="beat SPY"
+        inactiveFillOpacity={0.4}
+        formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
+      />
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        {beats} of {n} first calls · 3m
+        {n < LOW_CONFIDENCE_N && (
+          <span className="ml-1 text-amber-600 dark:text-amber-400">· low confidence</span>
+        )}
+      </p>
+    </div>
   );
 }
 
