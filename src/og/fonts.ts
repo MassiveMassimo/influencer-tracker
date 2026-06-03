@@ -17,13 +17,14 @@ function read(pkg: string, file: string): Buffer {
 
 let cache: SatoriFont[] | null = null;
 
-/** Geist Mono (labels/stats) + Fraunces (display). Cached at module scope. */
+/** Geist Mono only — the app is mono-first (--font-heading maps to the mono
+ *  family), so display + labels share one typeface. Cached at module scope. */
 export function ogFonts(): SatoriFont[] {
   if (cache) return cache;
   cache = [
     { name: "Geist Mono", data: read("@fontsource/geist-mono", "geist-mono-latin-400-normal.woff"), weight: 400, style: "normal" },
     { name: "Geist Mono", data: read("@fontsource/geist-mono", "geist-mono-latin-600-normal.woff"), weight: 600, style: "normal" },
-    { name: "Fraunces", data: read("@fontsource/fraunces", "fraunces-latin-600-normal.woff"), weight: 600, style: "normal" },
+    { name: "Geist Mono", data: read("@fontsource/geist-mono", "geist-mono-latin-700-normal.woff"), weight: 700, style: "normal" },
   ];
   return cache;
 }

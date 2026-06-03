@@ -106,10 +106,10 @@ function Stat({ pal, value }: { pal: OgPalette; value: number | null }) {
   const color = value == null ? pal.fgMuted : ok ? pal.up : pal.down;
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 96, fontWeight: 600, color }}>
+      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 96, fontWeight: 700, lineHeight: 1, color }}>
         {value == null ? "—" : signed(value)}
       </div>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, color: pal.fgMuted }}>vs SPY · 3m</div>
+      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, lineHeight: 1, color: pal.fgMuted }}>vs SPY · 3m</div>
     </div>
   );
 }
@@ -119,14 +119,14 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
     return (
       <Frame pal={pal} bg={bg}>
         <Kicker pal={pal} text="Signal Tracker · vs SPY" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 84, lineHeight: 1, color: pal.fg }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.fg }}>
             Influencer accuracy,
           </div>
-          <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 84, lineHeight: 1, color: pal.lagoonDeep }}>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.lagoonDeep }}>
             measured against the market.
           </div>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 28, color: pal.fgMuted, marginTop: 8 }}>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 26, color: pal.fgMuted, marginTop: 10 }}>
             Forward returns of stock calls, net of SPY.
           </div>
         </div>
@@ -143,7 +143,7 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
             <img src={card.avatar} width={120} height={120} style={{ borderRadius: 999, border: `2px solid ${pal.line}` }} />
           ) : null}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 64, color: pal.fg }}>{card.name}</div>
+            <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1, color: pal.fg }}>{card.name}</div>
             <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, color: pal.fgMuted }}>@{card.handle} · {card.totalCalls} calls</div>
           </div>
         </div>
@@ -159,12 +159,12 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
       <Kicker pal={pal} text={`@${card.handle}`} />
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 20 }}>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 600, fontSize: 96, color: pal.fg }}>{card.symbol}</div>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 96, lineHeight: 1, color: pal.fg }}>{card.symbol}</div>
           {card.company ? (
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, color: pal.fgMuted }}>{card.company}</div>
+            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, lineHeight: 1, color: pal.fgMuted }}>{card.company}</div>
           ) : null}
         </div>
-        <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 36, color: pal.fgMuted }}>called by {card.name}</div>
+        <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 600, fontSize: 32, color: pal.fgMuted }}>called by {card.name}</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <Stat pal={pal} value={card.excess3m} />
