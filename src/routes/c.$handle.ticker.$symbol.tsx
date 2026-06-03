@@ -26,9 +26,26 @@ import {
 import { ChartBoundary } from "../components/ChartBoundary";
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import { windowSeries, type Timeframe } from "#/lib/window-series.ts";
+import { siteUrl } from "#/og/site.ts";
 
 export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   loader: ({ params }) => getDataset({ data: params.handle }),
+  head: ({ params, loaderData }) => {
+    const name = loaderData?.creator.name ?? params.handle;
+    const img = siteUrl(`/og/${params.handle}/${params.symbol}`);
+    return {
+      meta: [
+        { title: `${params.symbol} — ${name} · Signal Tracker` },
+        { property: "og:title", content: `${params.symbol} — ${name}` },
+        {
+          property: "og:url",
+          content: siteUrl(`/c/${params.handle}/ticker/${params.symbol}`),
+        },
+        { property: "og:image", content: img },
+        { name: "twitter:image", content: img },
+      ],
+    };
+  },
   component: TickerPage,
 });
 

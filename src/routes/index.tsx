@@ -3,9 +3,18 @@ import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useState } from "react";
 import { listCreators } from "../lib/data";
 import { LOW_CONFIDENCE_N } from "../lib/scorecard";
+import { siteUrl } from "#/og/site.ts";
 
 export const Route = createFileRoute("/")({
   loader: () => listCreators(),
+  head: () => ({
+    meta: [
+      { title: "Signal Tracker — influencer accuracy vs SPY" },
+      { property: "og:url", content: siteUrl("/") },
+      { property: "og:image", content: siteUrl("/og.png") },
+      { name: "twitter:image", content: siteUrl("/og.png") },
+    ],
+  }),
   component: Landing,
 });
 
