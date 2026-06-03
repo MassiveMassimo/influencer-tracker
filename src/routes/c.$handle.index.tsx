@@ -22,7 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../components/ui/pagination";
-import type { Call, Dataset, OhlcBar } from "../lib/types";
+import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { siteUrl } from "#/og/site.ts";
 
@@ -300,7 +300,6 @@ function CallsList({
             key={c.shortcode}
             handle={handle}
             call={c}
-            bars={(ds.tickers[c.ticker]?.ohlc ?? []).filter((b) => b.date >= c.postDate)}
           />
         ))}
         {calls.length === 0 && (
@@ -392,7 +391,7 @@ function CallsPagination({
   );
 }
 
-function CallRow({ handle, call, bars }: { handle: string; call: Call; bars: OhlcBar[] }) {
+function CallRow({ handle, call }: { handle: string; call: Call }) {
   const excess = call.returns.toDate.excess;
   // Status dot: pending when no elapsed return, else beat/lag vs SPY.
   const dot =
@@ -427,7 +426,7 @@ function CallRow({ handle, call, bars }: { handle: string; call: Call; bars: Ohl
           <div className="truncate text-xs text-muted-foreground">{call.company}</div>
         </div>
         <div className="hidden shrink-0 sm:block">
-          <Sparkline bars={bars} excess={call.returns.toDate.excess} />
+          <Sparkline closes={call.spark ?? []} excess={call.returns.toDate.excess} />
         </div>
         <div className="font-mono text-[11px] text-muted-foreground tabular-nums">
           {call.postDate}

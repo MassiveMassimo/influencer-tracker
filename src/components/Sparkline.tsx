@@ -1,20 +1,17 @@
-import type { OhlcBar } from "#/lib/types.ts";
-
-// Mini stock-path sparkline from a call date forward, dot at the call (first) point.
+// Mini stock-path sparkline from a baked close series, dot at the first point.
 // Colored by the call's to-date excess sign.
 export function Sparkline({
-  bars,
+  closes,
   excess,
   width = 64,
   height = 20,
 }: {
-  bars: OhlcBar[];
+  closes: number[];
   excess: number | null;
   width?: number;
   height?: number;
 }) {
-  if (bars.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
-  const closes = bars.map((b) => b.c);
+  if (closes.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
   const min = Math.min(...closes), max = Math.max(...closes);
   const span = max - min || 1;
   const pad = 2;
