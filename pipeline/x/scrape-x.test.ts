@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { toRecord, isRateLimit } from "./scrape-x";
+import { toRecord, isRateLimit, isTransient } from "./scrape-x";
 
 describe("toRecord", () => {
   it("keeps PHOTO media (Rettiwt's uppercase enum), drops video", () => {
@@ -37,5 +37,21 @@ describe("isRateLimit", () => {
     expect(isRateLimit(new Error("Too many requests (429)"))).toBe(true);
     expect(isRateLimit(new Error("rate limit exceeded"))).toBe(true);
     expect(isRateLimit(new Error("not found"))).toBe(false);
+  });
+});
+
+describe("isTransient", () => {
+  it("retries 404/429/5xx response statuses (X load-sheds with 404 mid-pagination)", () => {
+    expect(isTransient({ response: { status: 404 } })).toBe(true);
+    expect(isTransient({ response: { status: 429 } })).toBe(true);
+    expect(isTransient({ response: { status: 503 } })).toBe(true);
+  });
+  it("retries transient network errors", () => {
+    expect(isTransient(new Error("socket hang up"))).toBe(true);
+    expect(isTransient(new Error("ETIMEDOUT"))).toBe(true);
+  });
+  it("does not retry a 401 or a plain error", () => {
+    expect(isTransient({ response: { status: 401 } })).toBe(false);
+    expect(isTransient(new Error("bad input"))).toBe(false);
   });
 });

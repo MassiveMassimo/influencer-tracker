@@ -31,38 +31,67 @@ export function isRateLimit(e: unknown): boolean {
   return /rate.?limit|too many|429/i.test(String((e as Error)?.message ?? e));
 }
 
+// Transient API failures worth retrying: rate limits, 5xx, and the 404s X
+// load-sheds with during deep pagination. Capped retries bound a real 404.
+export function isTransient(e: unknown): boolean {
+  const s = (e as any)?.response?.status ?? (e as any)?.status;
+  if (s === 429 || s === 404 || (typeof s === "number" && s >= 500 && s < 600)) return true;
+  return /rate.?limit|too many|429|timeout|ETIMEDOUT|ECONNRESET|socket hang up/i.test(String((e as Error)?.message ?? e));
+}
+
 async function downloadImage(url: string, dest: string): Promise<void> {
   // Only fetch https URLs; this runs unattended against API-supplied URLs.
   if (new URL(url).protocol !== "https:") return;
-  const res = await withRetry(() => fetch(url), { label: "img", isRetryable: isRateLimit, delayMs: () => 2000 });
+  const res = await withRetry(() => fetch(url), { label: "img", isRetryable: isTransient, delayMs: () => 2000 });
   if (!res.ok) return;
   await mkdir(dirname(dest), { recursive: true });
   await writeFile(dest, Buffer.from(await res.arrayBuffer()));
 }
 
 // Fetch a creator's original tweets over the last `months` and download images.
-// X caps a user's reachable history near ~3,200 tweets; we log if truncated.
+// X search caps a single query's reachable depth (~3,200), so we walk backwards
+// in time windows (endDate = oldest seen) to cover the full range, deduping by id.
 export async function scrapeX(handle: string, months = 12): Promise<TweetRecord[]> {
   if (!RETTIWT_KEY) throw new Error("RETTIWT_API_KEY not set (use a throwaway X account key)");
   const rettiwt = new Rettiwt({ apiKey: RETTIWT_KEY });
   const user = handle.replace(/^@/, "");
   const cutoff = new Date(Date.now() - months * 30 * 86400_000);
-  const filter = { fromUsers: [user], onlyOriginal: true, startDate: cutoff, endDate: new Date() };
 
+  const seen = new Set<string>();
   const records: TweetRecord[] = [];
-  let cursor: string | undefined;
-  let truncated = false;
-  for (let page = 0; page < 250; page++) {
-    const data: any = await withRetry(
-      () => rettiwt.tweet.search(filter as any, 20, cursor),
-      { label: "x.search", isRetryable: isRateLimit, delayMs: (a) => Math.min(2 ** a, 30) * 1000 },
-    );
-    records.push(...(data.list ?? []).map(toRecord));
-    if (!data.next || !data.list?.length) break;
-    cursor = data.next;
-    // Search returns newest-first (LATEST), so the cap drops the OLDEST tweets.
-    if (records.length >= 3200) { truncated = true; break; }
+  let windowEnd = new Date();
+  let incomplete = false;
+  const WINDOW_CAP = 80;
+  let w = 0;
+  for (; w < WINDOW_CAP; w++) {
+    // Search returns newest-first within [cutoff, windowEnd].
+    const filter = { fromUsers: [user], onlyOriginal: true, startDate: cutoff, endDate: windowEnd };
+    let cursor: string | undefined;
+    let oldest = windowEnd.getTime();
+    let added = 0;
+    for (let page = 0; page < 400; page++) {
+      const data: any = await withRetry(
+        () => rettiwt.tweet.search(filter as any, 20, cursor),
+        { label: `x.search w${w}`, isRetryable: isTransient, retries: 6, delayMs: (a) => Math.min(2 ** a, 30) * 1000 },
+      );
+      for (const t of data.list ?? []) {
+        const rec = toRecord(t);
+        if (seen.has(rec.id)) continue;
+        seen.add(rec.id);
+        records.push(rec);
+        added++;
+        const tm = new Date(rec.createdAt).getTime();
+        if (tm < oldest) oldest = tm;
+      }
+      if (!data.next || !data.list?.length) break;
+      cursor = data.next;
+    }
+    if (oldest <= cutoff.getTime()) break; // reached the cutoff boundary
+    if (added === 0) break;                // no new tweets older than this window
+    windowEnd = new Date(oldest - 1000);   // step the window back past the oldest seen
+    console.log(`scraped ${records.length} tweets so far; older than ${new Date(oldest).toISOString().slice(0, 10)}`);
   }
+  if (w >= WINDOW_CAP) incomplete = true;
 
   await mkdir(rawDir(handle), { recursive: true });
   for (const r of records) {
@@ -74,7 +103,7 @@ export async function scrapeX(handle: string, months = 12): Promise<TweetRecord[
   await writeFile(join(rawDir(handle), "tweets.json"), JSON.stringify(records, null, 2));
   // Parity with the IG path: score.ts reads shortcodes.json for the scraped count.
   await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(records.map((r) => r.id), null, 2));
-  if (truncated) console.warn(`COVERAGE: hit ~3200-tweet ceiling for @${user}; older tweets may be missing`);
+  if (incomplete) console.warn(`COVERAGE: hit window cap for @${user}; oldest tweets may be missing`);
   console.log(`scraped ${records.length} tweets for @${user}`);
   return records;
 }
