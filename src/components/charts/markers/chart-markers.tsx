@@ -64,7 +64,7 @@ export function MarkerTooltipContent({ markers }: MarkerTooltipContentProps) {
                     )}
                   </div>
                   {marker.description && (
-                    <div className="truncate text-chart-tooltip-muted text-xs">
+                    <div className="max-w-[16rem] whitespace-normal break-words text-chart-tooltip-muted text-xs">
                       {marker.description}
                     </div>
                   )}
