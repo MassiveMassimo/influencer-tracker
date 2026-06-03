@@ -5,6 +5,10 @@ import {
   AccordionTrigger,
 } from "./ui/accordion";
 
+const Mono = ({ children }: { children: React.ReactNode }) => (
+  <span className="font-mono text-foreground">{children}</span>
+);
+
 // Plain-language glossary for the landing table's columns and scoring model.
 const FAQ: { q: string; a: React.ReactNode }[] = [
   {
@@ -14,17 +18,20 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
         It tracks the stock calls finfluencers make on social media and scores
         them against what the market actually did. Every bullish &ldquo;buy
         this&rdquo; post is measured by its forward return versus the S&amp;P
-        500 — so a call only counts as good if it beat simply holding the index.
+        500, so a call only counts as good if it beat simply holding the index.
       </>
     ),
   },
   {
-    q: "What does “vs SPY” mean?",
+    q: "What does “vs SPY” mean, and why SPY?",
     a: (
       <>
-        SPY is the S&amp;P 500 ETF — the market benchmark. A pick that rose 8%
-        while the market rose 10% didn&rsquo;t add value, so returns are always
-        shown <em>relative</em> to SPY rather than on their own.
+        SPY is the S&amp;P 500 ETF, the default market benchmark. A pick that
+        rose 8% while the market rose 10% didn&rsquo;t add value, so returns are
+        always shown <em>relative</em> to SPY rather than on their own. SPY is a
+        deliberately tough, neutral bar: it isn&rsquo;t sector-adjusted, so a
+        tech pick that merely rode a tech rally won&rsquo;t look special unless
+        it beat the broad market too.
       </>
     ),
   },
@@ -35,8 +42,8 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
         The call&rsquo;s return <strong>minus SPY&rsquo;s return</strong> over
         the same window (also called alpha). +5% excess means the stock beat the
         market by 5 points; a negative number means it lagged. The{" "}
-        <span className="font-mono text-foreground">Excess 3m</span> column is
-        the average across the creator&rsquo;s calls.
+        <Mono>Excess 3m</Mono> column is the average excess across the
+        creator&rsquo;s scored calls.
       </>
     ),
   },
@@ -44,12 +51,46 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "What is a hit, and how is hit rate computed?",
     a: (
       <>
-        A <strong>hit</strong> is a call whose excess is positive — it beat SPY.{" "}
+        A <strong>hit</strong> is a call whose excess is positive: it beat SPY.{" "}
         <strong>Hit rate</strong> is the share of calls that were hits over a
-        given window. <span className="font-mono text-foreground">Hit 3m</span>{" "}
-        is the 3-month hit rate; the small fraction beneath it (e.g.{" "}
-        <span className="font-mono text-foreground">7/12</span>) is hits over
-        scored calls.
+        given window. <Mono>Hit 3m</Mono> is the 3-month hit rate, and the small
+        fraction beneath it (e.g. <Mono>7/12</Mono>) is hits over scored calls.
+      </>
+    ),
+  },
+  {
+    q: "Why can hit rate and excess point different ways?",
+    a: (
+      <>
+        They measure different things. Hit rate is how <em>often</em> a creator
+        beats the market; excess is by <em>how much</em>, on average. A few big
+        winners can pull average excess positive even when most calls miss (high
+        excess, low hit rate), and a run of small wins beside one large loss can
+        do the reverse. So a 43% hit rate sitting next to a{" "}
+        <Mono>+11.4%</Mono> excess isn&rsquo;t a contradiction.
+      </>
+    ),
+  },
+  {
+    q: "What counts as a good score?",
+    a: (
+      <>
+        As a rough anchor: beating SPY more than half the time (hit rate above
+        50%) with positive average excess, across a healthy sample, is the bar,
+        and most creators don&rsquo;t clear it. This is a record of past calls,
+        not advice or a prediction of what any creator will pick next.
+      </>
+    ),
+  },
+  {
+    q: "Why is “Calls” bigger than the scored number?",
+    a: (
+      <>
+        <Mono>Calls</Mono> counts every bullish buy call found. The hit-rate
+        fraction (e.g. <Mono>76/177</Mono>) counts only the <em>first</em> call
+        per ticker that has enough forward price history to score. A creator
+        with 880 calls may have far fewer unique, scorable first calls: the big
+        number is activity, the fraction is what accuracy is measured on.
       </>
     ),
   },
@@ -59,8 +100,8 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
       <>
         Forward horizons measured from each post&rsquo;s date: one week, one
         month, three months, and from the post until today. Returns are taken
-        from the post date <em>forward</em> — not the entry price a creator
-        brags about after the fact.
+        from the post date <em>forward</em>, not the entry price a creator brags
+        about after the fact.
       </>
     ),
   },
@@ -68,7 +109,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     q: "What counts as a call?",
     a: (
       <>
-        Only explicit bullish buy calls are scored — clear &ldquo;I&rsquo;m
+        Only explicit bullish buy calls are scored: clear &ldquo;I&rsquo;m
         buying / you should own this&rdquo; statements. Neutral mentions,
         bearish takes, and vague hype are tracked but excluded from accuracy. If
         a creator pushes the same ticker repeatedly, only the{" "}
@@ -78,12 +119,15 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     ),
   },
   {
-    q: "Why are some rows flagged “low”?",
+    q: "Why are some creators flagged “low” and ranked last?",
     a: (
       <>
         Fewer than 10 scored calls is too thin a sample to trust, so those
-        creators are flagged <span className="text-amber-600 dark:text-amber-400">low</span>{" "}
-        and ranked last. A high hit rate on 3 calls is luck, not skill.
+        creators are flagged{" "}
+        <span className="text-amber-600 dark:text-amber-400">low</span> and
+        sorted below everyone else, <em>regardless of their hit rate</em>.
+        That&rsquo;s why a creator showing 57% can sit below one showing 43%: a
+        high rate on a handful of calls is luck, not skill.
       </>
     ),
   },
