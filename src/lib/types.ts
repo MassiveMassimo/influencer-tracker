@@ -23,6 +23,7 @@ export interface Scorecard {
   totalCalls: number;
   uniqueTickers: number;
   hitRate: { "1m": number; "3m": number };
+  hitRateN: { "1m": number; "3m": number };
   avgExcess: Record<Horizon, number>;
   callsPerWeek: number;
   best: Call[];

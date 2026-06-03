@@ -25,6 +25,8 @@ export function buildScorecard(calls: Call[]): Scorecard {
     const elapsed = first.map(c => c.returns[h].excess).filter((x): x is number => x != null);
     return elapsed.length ? elapsed.filter(x => x > 0).length / elapsed.length : 0;
   };
+  const hitN = (h: "1m" | "3m") =>
+    first.map(c => c.returns[h].excess).filter((x): x is number => x != null).length;
   const ranked = [...first]
     .filter(c => c.returns.toDate.excess != null)
     .sort((a, b) => (b.returns.toDate.excess! - a.returns.toDate.excess!));
@@ -36,6 +38,7 @@ export function buildScorecard(calls: Call[]): Scorecard {
     totalCalls: calls.length,
     uniqueTickers: new Set(calls.map(c => c.ticker)).size,
     hitRate: { "1m": hit("1m"), "3m": hit("3m") },
+    hitRateN: { "1m": hitN("1m"), "3m": hitN("3m") },
     avgExcess,
     callsPerWeek: first.length / weeks,
     best: ranked.slice(0, Math.floor(ranked.length / 2)).slice(0, 5),

@@ -39,3 +39,25 @@ test("buildScorecard averages excess over elapsed horizons only", () => {
   expect(sc.worst[0].ticker).toBe("BBB");
   function e(x: number | null) { return { stock: x, spy: 0, excess: x }; }
 });
+
+test("hitRateN counts first-calls with elapsed excess per horizon", () => {
+  const e = (x: number | null) => ({ stock: x, spy: 0, excess: x });
+  const calls = [
+    call({ ticker: "AAA", postDate: "2025-01-01",
+      returns: { "1w": e(0.1), "1m": e(0.1), "3m": e(0.1), "toDate": e(0.1) } }),
+    call({ ticker: "BBB", postDate: "2025-01-02",
+      returns: { "1w": e(0), "1m": e(0), "3m": e(-0.2), "toDate": e(-0.2) } }),
+    call({ ticker: "CCC", postDate: "2025-01-03",
+      returns: { "1w": e(0.3), "1m": e(0.3), "3m": e(null), "toDate": e(0.3) } }),
+  ];
+  const sc = buildScorecard(dedupeFirstCall(calls));
+  expect(sc.hitRateN["3m"]).toBe(2); // AAA, BBB have 3m; CCC pending
+  expect(sc.hitRateN["1m"]).toBe(3);
+  expect(sc.hitRate["3m"]).toBeCloseTo(0.5); // AAA up, BBB down => 1/2
+});
+
+test("hitRateN is 0 when all calls pending", () => {
+  const sc = buildScorecard(dedupeFirstCall([call({ ticker: "AAA", postDate: "2025-01-01" })]));
+  expect(sc.hitRateN["3m"]).toBe(0);
+  expect(sc.hitRate["3m"]).toBe(0);
+});
