@@ -137,7 +137,7 @@ reimplemented on local primitives.
 | `src/routes/c.$handle.index.tsx` (`Overview`: `StatTile` strip + `CallsList`) | devl.dev — https://www.devl.dev/c/dashboards/metrics-overview (took the stat-tile strip + recent-activity list; bklit charts dropped into the chart slots) |
 | `src/components/ThemeToggle.tsx` | transitions.dev icon-swap pattern (3-state) |
 | `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
-| `src/components/ui/*` (badge/card/drawer/separator/table) | shadcn/ui-style primitives (radix-ui + vaul + cva) |
+| `src/components/ui/*` (accordion/badge/card/drawer/pagination/separator/table) | shadcn/ui-style primitives (radix-ui + vaul + cva) |
 | `src/components/ui/scroll-area.tsx` | lina — github.com/SameerJS6/lina (radix variant, `npx shadcn add https://lina.sameer.sh/r/lina-radix.json`) |
 | `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
 
@@ -173,9 +173,12 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   vision/extract stages, not failures.
 - Charts: bklit-ui components (github.com/bklit/bklit-ui), vendored copy-in
   (shadcn-style, so not in `package.json`) under `src/components/charts/`, built
-  on `@visx` + `d3`, rendered as SVG. Time-series charts (candlestick/line/area/
-  bar) need `x` as a `Date`; gauge/funnel/scatter are categorical. Wrap charts in
-  `ChartBoundary`.
+  on `@visx` + `d3`, rendered as SVG. Only the used subset is kept (unused
+  area/bar/scatter/composed types were pruned). Time-series charts
+  (candlestick/line) need `x` as a `Date`; gauge/funnel are categorical. Wrap
+  charts in `ChartBoundary`. The ticker page's charts are `React.lazy`-split into
+  `charts/ticker-charts.tsx` so `motion`/`@visx`/`d3` load on mount, off the
+  route's initial bundle.
 
 ## Deployment (Vercel)
 
