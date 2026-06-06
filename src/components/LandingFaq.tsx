@@ -151,7 +151,7 @@ export function LandingFaq() {
       <div className="border-border/40 border-b px-5 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
         How to read this
       </div>
-      <Accordion type="single" collapsible className="px-5">
+      <Accordion className="px-5">
         {FAQ.map(({ q, a }) => (
           <AccordionItem key={q} value={q}>
             <AccordionTrigger>{q}</AccordionTrigger>
