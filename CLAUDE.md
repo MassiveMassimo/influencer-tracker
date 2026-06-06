@@ -127,19 +127,27 @@ its URL and call `saveAvatar` — downstream is already universal.
 ## Component provenance
 
 Where the UI came from, so it can be re-synced from canonical sources. The `ui/*`
-primitives are shadcn/ui-style, built on **Base UI** (`@base-ui/react`) + vaul + cva.
-coss-ui designs (devl.dev's foundation) map directly since coss-ui is itself built
-on Base UI. `components.json` is set to the `base-nova` style, so `npx shadcn add`
-scaffolds Base UI components (not radix). vaul stays for the mobile drawer
-(drag-to-dismiss + background scale — no Base UI equivalent).
+primitives are pulled from **coss-ui** (`@coss` registry, `https://coss.com/ui/r/{name}.json`)
+— Cal.com's shadcn-style component set built on **Base UI** (`@base-ui/react`).
+`components.json` registers `@coss` and uses the `base-nova` style, so
+`bunx --bun shadcn@latest add @coss/<name>` pulls the canonical coss component.
+Re-sync a primitive by re-running that add with `--overwrite`.
+
+Two `ui/*` files are deliberately **not** coss and must stay custom:
+- `scroll-area.tsx` / `table.tsx` — lina edge-fade mask (coss's scroll-area has no
+  mask; `table` wraps lina for the horizontal fade). Keep on re-sync.
+- `drawer.tsx` — vaul (drag-to-dismiss + background scale). coss/Base UI's Drawer
+  supports the same via `Drawer.SwipeArea` + the Indent parts
+  (`Drawer.Provider`/`IndentBackground`/`Indent`); a swap is feasible but unbaked.
 
 | Local file(s) | Source |
 |---|---|
 | `src/components/WorkspaceRail.tsx` (and `MobileNav.tsx`, which reuses its `RailContent`) | devl.dev — https://www.devl.dev/c/layouts/workspace-rail (aesthetic reference) |
 | `src/routes/c.$handle.index.tsx` (`Overview`: `StatTile` strip + `CallsList`) | devl.dev — https://www.devl.dev/c/dashboards/metrics-overview (took the stat-tile strip + recent-activity list; bklit charts dropped into the chart slots) |
 | `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
-| `src/components/ui/*` (accordion/badge/card/drawer/pagination/separator/switch/table/toggle-group) | shadcn/ui-style primitives on Base UI (`@base-ui/react`) + vaul + cva |
-| `src/components/ui/scroll-area.tsx` | lina — github.com/SameerJS6/lina (design reimplemented on Base UI `ScrollArea`, edge-fade mask preserved) |
+| `src/components/ui/*` (accordion/badge/button/card/pagination/separator/spinner/switch/toggle/toggle-group) | coss-ui (`@coss` registry) — Base UI primitives. Re-sync: `bunx --bun shadcn@latest add @coss/<name> --overwrite` |
+| `src/components/ui/drawer.tsx` | vaul (kept; not coss) — mobile drag-to-dismiss + background scale |
+| `src/components/ui/scroll-area.tsx`, `src/components/ui/table.tsx` | lina — github.com/SameerJS6/lina (Base UI `ScrollArea` + edge-fade mask; `table` wraps it). Custom, not coss |
 | `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
 
 To grab a fresh devl.dev snippet: open the component page and press `c` for code
