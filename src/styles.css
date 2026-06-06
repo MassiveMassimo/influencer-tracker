@@ -459,6 +459,17 @@ a {
   }
 }
 
+/* Manual reduce-motion (Preferences toggle). Broad override gated on the
+   attribute PreferencesProvider sets on <html>; the OS-media rules above stay. */
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* NumberFlowGroup wraps its flows in a <number-flow-group> element with no
    style passthrough; keep it transparent to layout so grouped flows still
    participate in the parent grid/flex. */
