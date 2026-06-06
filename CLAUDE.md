@@ -127,9 +127,11 @@ its URL and call `saveAvatar` — downstream is already universal.
 ## Component provenance
 
 Where the UI came from, so it can be re-synced from canonical sources. The `ui/*`
-primitives are shadcn/ui-style (radix-ui + vaul + cva) — **not** coss-ui (Base UI);
-devl.dev designs are built on coss-ui, but here only the *design* was borrowed and
-reimplemented on local primitives.
+primitives are shadcn/ui-style, built on **Base UI** (`@base-ui/react`) + vaul + cva.
+coss-ui designs (devl.dev's foundation) map directly since coss-ui is itself built
+on Base UI. `components.json` is set to the `base-nova` style, so `npx shadcn add`
+scaffolds Base UI components (not radix). vaul stays for the mobile drawer
+(drag-to-dismiss + background scale — no Base UI equivalent).
 
 | Local file(s) | Source |
 |---|---|
@@ -137,8 +139,8 @@ reimplemented on local primitives.
 | `src/routes/c.$handle.index.tsx` (`Overview`: `StatTile` strip + `CallsList`) | devl.dev — https://www.devl.dev/c/dashboards/metrics-overview (took the stat-tile strip + recent-activity list; bklit charts dropped into the chart slots) |
 | `src/components/ThemeToggle.tsx` | transitions.dev icon-swap pattern (3-state) |
 | `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
-| `src/components/ui/*` (accordion/badge/card/drawer/pagination/separator/table) | shadcn/ui-style primitives (radix-ui + vaul + cva) |
-| `src/components/ui/scroll-area.tsx` | lina — github.com/SameerJS6/lina (radix variant, `npx shadcn add https://lina.sameer.sh/r/lina-radix.json`) |
+| `src/components/ui/*` (accordion/badge/card/drawer/pagination/separator/switch/table/toggle-group) | shadcn/ui-style primitives on Base UI (`@base-ui/react`) + vaul + cva |
+| `src/components/ui/scroll-area.tsx` | lina — github.com/SameerJS6/lina (design reimplemented on Base UI `ScrollArea`, edge-fade mask preserved) |
 | `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
 
 To grab a fresh devl.dev snippet: open the component page and press `c` for code
