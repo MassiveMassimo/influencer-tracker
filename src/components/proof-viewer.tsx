@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { Dialog, VisuallyHidden } from "radix-ui";
+import { Dialog } from "@base-ui/react/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -95,15 +95,13 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
     return (
       <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-150 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-200" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-150 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
+          <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+          <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
             {call && (
               <>
                 <div className="mb-4 flex items-baseline justify-between gap-3">
-                  <Dialog.Title asChild>
-                    <h2 className="flex items-baseline">
-                      <Heading call={call} />
-                    </h2>
+                  <Dialog.Title render={<h2 className="flex items-baseline" />}>
+                    <Heading call={call} />
                   </Dialog.Title>
                   <Dialog.Close
                     aria-label="Close"
@@ -112,15 +110,13 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
                     <X className="size-4" />
                   </Dialog.Close>
                 </div>
-                <VisuallyHidden.Root>
-                  <Dialog.Description>
-                    Proof media and context for the {call.ticker} call.
-                  </Dialog.Description>
-                </VisuallyHidden.Root>
+                <Dialog.Description className="sr-only">
+                  Proof media and context for the {call.ticker} call.
+                </Dialog.Description>
                 <ProofContent call={call} />
               </>
             )}
-          </Dialog.Content>
+          </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
     );
@@ -137,11 +133,9 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
                   <Heading call={call} />
                 </h2>
               </DrawerTitle>
-              <VisuallyHidden.Root>
-                <DrawerDescription>
-                  Proof media and context for the {call.ticker} call.
-                </DrawerDescription>
-              </VisuallyHidden.Root>
+              <DrawerDescription className="sr-only">
+                Proof media and context for the {call.ticker} call.
+              </DrawerDescription>
             </div>
             <ProofContent call={call} />
           </ScrollArea>
