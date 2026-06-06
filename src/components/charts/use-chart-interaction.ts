@@ -5,6 +5,7 @@ import type { scaleLinear, scaleTime } from "@visx/scale";
 import { useCallback, useRef, useState } from "react";
 import type { LineConfig, Margin, TooltipData } from "./chart-context";
 import { useScheduledTooltip } from "./use-scheduled-tooltip";
+import { useHaptics } from "#/lib/haptics.tsx";
 
 type ScaleTime = ReturnType<typeof scaleTime<number>>;
 type ScaleLinear = ReturnType<typeof scaleLinear<number>>;
@@ -70,6 +71,10 @@ export function useChartInteraction({
 
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef<number>(0);
+  const { tick, select } = useHaptics();
+  // Tracks the last resolved data-point index so scrub ticks fire once per
+  // crossed point (not per pixel) — keeps iOS Taptic from coalescing.
+  const lastIndexRef = useRef<number>(-1);
 
   const resolveTooltipFromX = useCallback(
     (pixelX: number): TooltipData | null => {
@@ -183,10 +188,14 @@ export function useChartInteraction({
 
       const tooltip = resolveTooltipFromX(chartX);
       if (tooltip) {
+        if (tooltip.index !== lastIndexRef.current) {
+          lastIndexRef.current = tooltip.index;
+          tick();
+        }
         scheduleTooltip(tooltip);
       }
     },
-    [getChartX, resolveTooltipFromX, resolveIndexFromX, scheduleTooltip]
+    [getChartX, resolveTooltipFromX, resolveIndexFromX, scheduleTooltip, tick]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -194,6 +203,7 @@ export function useChartInteraction({
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
     }
+    lastIndexRef.current = -1;
     setSelection(null);
   }, [clearTooltip]);
 
@@ -205,16 +215,19 @@ export function useChartInteraction({
       }
       isDraggingRef.current = true;
       dragStartXRef.current = chartX;
+      lastIndexRef.current = -1;
+      select();
       clearTooltip();
       setSelection(null);
     },
-    [getChartX, clearTooltip]
+    [getChartX, clearTooltip, select]
   );
 
   const handleMouseUp = useCallback(() => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
     }
+    lastIndexRef.current = -1;
     setSelection(null);
   }, []);
 
@@ -222,6 +235,7 @@ export function useChartInteraction({
     (event: React.TouchEvent<SVGGElement>) => {
       if (event.touches.length === 1) {
         event.preventDefault();
+        lastIndexRef.current = -1;
         const chartX = getChartX(event, 0);
         if (chartX === null) {
           return;
@@ -234,6 +248,7 @@ export function useChartInteraction({
         event.preventDefault();
         resetTooltipDedupe();
         clearTooltip();
+        select();
         const x0 = getChartX(event, 0);
         const x1 = getChartX(event, 1);
         if (x0 === null || x1 === null) {
@@ -257,6 +272,7 @@ export function useChartInteraction({
       scheduleTooltip,
       resetTooltipDedupe,
       clearTooltip,
+      select,
     ]
   );
 
@@ -270,6 +286,10 @@ export function useChartInteraction({
         }
         const tooltip = resolveTooltipFromX(chartX);
         if (tooltip) {
+          if (tooltip.index !== lastIndexRef.current) {
+            lastIndexRef.current = tooltip.index;
+            tick();
+          }
           scheduleTooltip(tooltip);
         }
       } else if (event.touches.length === 2) {
@@ -290,11 +310,12 @@ export function useChartInteraction({
         });
       }
     },
-    [getChartX, resolveTooltipFromX, resolveIndexFromX, scheduleTooltip]
+    [getChartX, resolveTooltipFromX, resolveIndexFromX, scheduleTooltip, tick]
   );
 
   const handleTouchEnd = useCallback(() => {
     clearTooltip();
+    lastIndexRef.current = -1;
     setSelection(null);
   }, [clearTooltip]);
 
