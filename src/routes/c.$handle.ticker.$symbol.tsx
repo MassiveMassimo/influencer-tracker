@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDataset, fetchPrices } from "../lib/data";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
+import { useHaptics } from "#/lib/haptics.tsx";
 import type { Call } from "#/lib/types.ts";
 import type { ChartMarker } from "#/components/charts/markers/index.ts";
 import {
@@ -101,6 +102,7 @@ function TickerPage() {
   const calls = ds.calls.filter((c) => c.ticker === symbol);
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
+  const { impact, select } = useHaptics();
 
   const firstDate = firstDateOf(ds.calls);
   const query = useQuery(chartQuery(symbol, timeframe, firstDate));
@@ -164,7 +166,13 @@ function TickerPage() {
               <span className="ml-2 text-amber-600 dark:text-amber-400">· cached daily data</span>
             ) : null}
           </div>
-          <TimeframeTabs value={timeframe} onChange={setTimeframe} />
+          <TimeframeTabs
+            value={timeframe}
+            onChange={(tf) => {
+              impact();
+              setTimeframe(tf);
+            }}
+          />
         </div>
         {showSkeleton ? (
           <ChartSkeleton />
@@ -215,7 +223,10 @@ function TickerPage() {
             {calls.map((c) => (
               <TableRow
                 key={c.shortcode}
-                onClick={() => setSelectedCall(c)}
+                onClick={() => {
+                  select();
+                  setSelectedCall(c);
+                }}
                 className="cursor-pointer"
               >
                 <TableCell className="font-mono tabular-nums">
