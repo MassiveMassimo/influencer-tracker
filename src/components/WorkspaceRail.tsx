@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { HomeIcon, LineChartIcon, UsersIcon } from "lucide-react";
+import { HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import GitHubLink from "./GitHubLink";
-import ThemeToggle from "./ThemeToggle";
+import { Preferences } from "./Preferences";
 import { ScrollArea } from "./ui/scroll-area";
 
 export interface CreatorRef {
@@ -29,6 +30,7 @@ export function RailContent({
   creators: CreatorRef[];
   onNavigate?: () => void;
 }) {
+  const [prefsOpen, setPrefsOpen] = useState(false);
   return (
     <div className="flex h-full flex-col bg-foreground/[0.02]">
       <Link
@@ -115,9 +117,18 @@ export function RailContent({
         </span>
         <div className="flex items-center gap-1.5">
           <GitHubLink className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground" />
-          <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => setPrefsOpen(true)}
+            aria-label="Preferences"
+            title="Preferences"
+            className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground"
+          >
+            <SettingsIcon className="size-4" />
+          </button>
         </div>
       </div>
+      <Preferences open={prefsOpen} onOpenChange={setPrefsOpen} />
     </div>
   );
 }

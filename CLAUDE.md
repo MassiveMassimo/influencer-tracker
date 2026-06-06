@@ -137,7 +137,6 @@ scaffolds Base UI components (not radix). vaul stays for the mobile drawer
 |---|---|
 | `src/components/WorkspaceRail.tsx` (and `MobileNav.tsx`, which reuses its `RailContent`) | devl.dev — https://www.devl.dev/c/layouts/workspace-rail (aesthetic reference) |
 | `src/routes/c.$handle.index.tsx` (`Overview`: `StatTile` strip + `CallsList`) | devl.dev — https://www.devl.dev/c/dashboards/metrics-overview (took the stat-tile strip + recent-activity list; bklit charts dropped into the chart slots) |
-| `src/components/ThemeToggle.tsx` | transitions.dev icon-swap pattern (3-state) |
 | `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
 | `src/components/ui/*` (accordion/badge/card/drawer/pagination/separator/switch/table/toggle-group) | shadcn/ui-style primitives on Base UI (`@base-ui/react`) + vaul + cva |
 | `src/components/ui/scroll-area.tsx` | lina — github.com/SameerJS6/lina (design reimplemented on Base UI `ScrollArea`, edge-fade mask preserved) |
