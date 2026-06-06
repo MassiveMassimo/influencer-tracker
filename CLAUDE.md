@@ -69,7 +69,7 @@ same `CLASSIFY_SYS` + parse.
 
 Each call links to its source via `shortcode`: numeric ⇒ X tweet embed, otherwise
 ⇒ IG reel embed (`/reel/<code>/embed`). On the ticker page, tapping a call row
-opens `ProofViewer` (`src/components/proof-viewer.tsx`) — a Radix dialog on
+opens `ProofViewer` (`src/components/proof-viewer.tsx`) — a Base UI dialog on
 desktop and a vaul drawer on mobile (switched via `useMediaQuery`, 768px) — that
 shows the embed + summary + quote. No local media is needed for display.
 
