@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
+import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
 
 import { cn } from "#/lib/utils.ts";
 
@@ -35,7 +35,7 @@ const ScrollArea = React.forwardRef<
      */
     maskColor?: string;
   }
->(({ className, children, scrollHideDelay = 0, viewportClassName, maskClassName, maskHeight = 30, maskColor = "var(--color-background)", style, ...props }, ref) => {
+>(({ className, children, viewportClassName, maskClassName, maskHeight = 30, maskColor = "var(--color-background)", style, ...props }, ref) => {
   const [showMask, setShowMask] = React.useState<Mask>({
     top: false,
     bottom: false,
@@ -110,7 +110,6 @@ const ScrollArea = React.forwardRef<
         <ScrollAreaPrimitive.Root
           ref={ref}
           data-slot="scroll-area"
-          scrollHideDelay={scrollHideDelay}
           className={cn("relative overflow-hidden", className)}
           style={{ ["--scroll-mask-color" as string]: maskColor, ...style }}
           {...props}
@@ -133,30 +132,30 @@ const ScrollArea = React.forwardRef<
   );
 });
 
-ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName;
+ScrollArea.displayName = "ScrollArea";
 
 const ScrollBar = React.forwardRef<
-  React.ComponentRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
+  React.ComponentRef<typeof ScrollAreaPrimitive.Scrollbar>,
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Scrollbar>
 >(({ className, orientation = "vertical", ...props }, ref) => {
   const isTouch = React.useContext(ScrollAreaContext);
 
   if (isTouch) return null;
 
   return (
-    <ScrollAreaPrimitive.ScrollAreaScrollbar
+    <ScrollAreaPrimitive.Scrollbar
       ref={ref}
       orientation={orientation}
       data-slot="scroll-area-scrollbar"
       className={cn(
-        "hover:bg-muted dark:hover:bg-muted/50 data-[state=visible]:fade-in-0 data-[state=hidden]:fade-out-0 data-[state=visible]:animate-in data-[state=hidden]:animate-out flex touch-none p-px transition-[colors] duration-150 select-none",
+        "flex touch-none p-px transition-colors duration-150 select-none hover:bg-muted dark:hover:bg-muted/50",
         orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent",
         orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent px-1 pr-1.25",
         className
       )}
       {...props}
     >
-      <ScrollAreaPrimitive.ScrollAreaThumb
+      <ScrollAreaPrimitive.Thumb
         data-slot="scroll-area-thumb"
         className={cn(
           "bg-border relative flex-1 origin-center rounded-full transition-[scale]",
@@ -164,11 +163,11 @@ const ScrollBar = React.forwardRef<
           orientation === "horizontal" && "active:scale-x-98"
         )}
       />
-    </ScrollAreaPrimitive.ScrollAreaScrollbar>
+    </ScrollAreaPrimitive.Scrollbar>
   );
 });
 
-ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName;
+ScrollBar.displayName = "ScrollBar";
 
 const ScrollMask = ({
   showMask,
