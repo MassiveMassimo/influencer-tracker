@@ -1,5 +1,9 @@
 import { CheckIcon } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "#/components/ui/toggle-group.tsx";
+// Uses the raw Base UI primitive (not the coss ui/toggle-group pill button) so
+// the preview-card layout — flex-col card + full-size SVG illustration — isn't
+// overridden by coss's fixed-height/centered/svg-shrinking toggle styling.
+import { ToggleGroup } from "@base-ui/react/toggle-group";
+import { Toggle } from "@base-ui/react/toggle";
 import { usePreferences, type ThemeMode } from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import { cn } from "#/lib/utils.ts";
@@ -66,7 +70,7 @@ export function ThemePicker() {
       className="grid grid-cols-3 gap-3"
     >
       {OPTIONS.map((o) => (
-        <ToggleGroupItem
+        <Toggle
           key={o.value}
           value={o.value}
           aria-label={o.label}
@@ -82,7 +86,7 @@ export function ThemePicker() {
           <span className="absolute right-2 top-2 hidden size-4 items-center justify-center rounded-full bg-primary text-primary-foreground group-data-[pressed]:flex">
             <CheckIcon className="size-2.5" />
           </span>
-        </ToggleGroupItem>
+        </Toggle>
       ))}
     </ToggleGroup>
   );
