@@ -1,5 +1,9 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
+# Content Signals (https://contentsignals.org): how this site's content may be used.
+# search = index for search; ai-input = use as live input to answer queries;
+# ai-train = include in AI training corpora.
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Disallow:
 
 Sitemap: /sitemap.xml

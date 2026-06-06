@@ -16,7 +16,17 @@ const config = defineConfig({
   // platform (VERCEL env) and emits .vercel/output. OG rendering (satori + the
   // native @resvg/resvg-js addon) runs only in scripts/prebuild.ts at build time,
   // so it's deliberately not part of the app/server graph here.
-  nitro: {},
+  nitro: {
+    // RFC 8288 Link header on the homepage for agent discovery — advertises the
+    // sitemap and the llms.txt index in the HTTP response (no markup parse needed).
+    routeRules: {
+      '/': {
+        headers: {
+          Link: '</sitemap.xml>; rel="sitemap", </llms.txt>; rel="llms-txt"',
+        },
+      },
+    },
+  },
   plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
 })
 

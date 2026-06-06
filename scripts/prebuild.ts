@@ -5,6 +5,8 @@
 //     (fetched by fetchDataset() instead of being bundled into the server function).
 //  2. public/og/...png               — every OG card pre-rendered to a static PNG, so
 //     crawlers hit the CDN and satori/resvg never run at request time.
+//  3. public/llms.txt                 — agent-readable site index (llmstxt.org): summary,
+//     per-creator stats, and the machine-readable dataset URLs.
 //
 // OG theme is frozen to dark. The runtime day/night flip is dropped — social
 // platforms cache OG images aggressively, so a per-request theme has little real
@@ -28,11 +30,62 @@ interface IndexEntry {
   handle: string;
   name: string;
   totalCalls: number;
+  hitRate3m: number;
+  hitRate3mN: number;
   avgExcess3m: number;
+  generatedAt: string;
   avatar?: string;
 }
 
 const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
+
+// Build /llms.txt — an agent-readable index (llmstxt.org): site summary, per-creator
+// stats, and the machine-readable dataset URLs. Absolute URLs when VITE_SITE_URL is set
+// (Vercel build env), relative otherwise — both are valid llms.txt.
+function buildLlmsTxt(index: IndexEntry[]): string {
+  const base = (process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
+  const url = (p: string) => `${base}${p}`;
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
+  const signed = (x: number) => `${x >= 0 ? "+" : "-"}${(Math.abs(x) * 100).toFixed(1)}%`;
+
+  const creators = index
+    .map(
+      (e) =>
+        `- [${e.name} (@${e.handle})](${url(`/c/${e.handle}`)}): ${e.totalCalls} calls · ` +
+        `3-month hit rate ${pct(e.hitRate3m)} (n=${e.hitRate3mN}) · ` +
+        `avg 3-month excess vs SPY ${signed(e.avgExcess3m)} · updated ${e.generatedAt}`,
+    )
+    .join("\n");
+
+  const datasets = index
+    .map((e) => `- [${e.name} dataset (JSON)](${url(`/datasets/${e.handle}.json`)})`)
+    .join("\n");
+
+  return `# Signal Tracker
+
+> Scores finfluencer stock calls against forward prices, net of SPY. Only explicit
+> bullish calls are scored; accuracy is the forward return minus SPY over the same
+> window, at 1 week / 1 month / 3 months / to date.
+
+## Creators
+
+${creators}
+
+## Data
+
+Each creator is a self-contained, machine-readable dataset (creator, calls, scorecard,
+caveats) as JSON:
+
+${datasets}
+
+Baked daily OHLC per ticker is served at ${url("/prices/")}<SYMBOL>.json (e.g. ${url("/prices/SPY.json")}).
+
+## About
+
+- Methodology: forward returns are measured from each post's date, net of SPY (excess return).
+- Sources: each call links to its original Instagram reel or X/Twitter post.
+`;
+}
 
 // Render `card` to a PNG file, creating parent dirs as needed.
 async function emit(card: OgCard, outPath: string) {
@@ -111,8 +164,10 @@ async function main() {
     cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
   }
 
+  writeFileSync(join(PUB, "llms.txt"), buildLlmsTxt(index));
+
   console.log(
-    `prebuild done: ${index.length} creators, ${tickerJobs.length} tickers, datasets copied.`,
+    `prebuild done: ${index.length} creators, ${tickerJobs.length} tickers, datasets + llms.txt copied.`,
   );
 }
 
