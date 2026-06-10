@@ -4,30 +4,56 @@ import type { Dataset, OhlcBar } from "./types";
 import { loadIndex } from "./dataset-source";
 import { siteUrl } from "../og/site";
 
-// index.json is tiny and hit on every page, so keep it bundled in the function.
-export const listCreators = createServerFn({ method: "GET" }).handler(
-  async () => loadIndex(),
-);
+// Server-only: window guard FIRST so the client never reads process.env or imports the DB.
+// data.ts is reachable from client routes; the DB modules are dynamically imported only
+// inside this guarded branch so neon never enters the client bundle.
+const serverUseDb = () => typeof window === "undefined" && process.env.USE_DB === "1";
 
-// Datasets are large (MBs) and immutable per deploy, so they ship as static CDN
-// assets (public/datasets/<handle>.json, copied at build) instead of being bundled
-// into the server function. This is a plain fn (NOT a server fn) so it runs wherever
-// it's called: on the client it fetches the same-origin static file (browser-cached,
-// gzipped, reused across navigations); during SSR the function fetches it from the
-// edge. Keeps the data out of the function bundle.
+export const listCreators = createServerFn({ method: "GET" }).handler(async () => {
+  if (serverUseDb()) {
+    try {
+      const { getDb } = await import("../../db/client");
+      const { readIndex } = await import("./db-read");
+      return await readIndex(getDb());
+    } catch (e) {
+      console.error("listCreators DB fallback", e);
+    }
+  }
+  return loadIndex();
+});
+
+// Datasets are large (MBs). On the static path they ship as CDN assets (public/datasets/<h>.json);
+// under USE_DB they're reassembled from Postgres during SSR. The browser always uses the static
+// same-origin asset (browser-cached, gzipped) so the DB stays out of the client bundle.
 export async function fetchDataset(handle: string): Promise<Dataset> {
+  if (serverUseDb()) {
+    try {
+      const { getDb } = await import("../../db/client");
+      const { readDataset } = await import("./db-read");
+      return await readDataset(getDb(), handle);
+    } catch (e) {
+      console.error(`fetchDataset DB fallback ${handle}`, e);
+    }
+  }
   const path = `/datasets/${handle}.json`;
-  // SSR/server needs an absolute URL; the client uses the relative same-origin path.
   const url = typeof window === "undefined" ? siteUrl(path) : path;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`dataset ${handle}: ${res.status}`);
   return DatasetSchema.parse(await res.json());
 }
 
-// Shared per-ticker baked OHLC, served as a static asset (public/prices/<symbol>.json).
-// Used only as the ticker-page fallback when the live Yahoo fetch errors. Returns []
-// when the file is absent so the caller degrades to "no fallback data" gracefully.
+// Shared per-ticker baked OHLC. Ticker-page fallback when the live Yahoo fetch errors.
 export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
+  if (serverUseDb()) {
+    try {
+      const { getDb } = await import("../../db/client");
+      const { readPrices } = await import("./db-read");
+      const r = await readPrices(getDb(), symbol);
+      if (r.length) return r;
+    } catch (e) {
+      console.error(`fetchPrices DB fallback ${symbol}`, e);
+    }
+  }
   const path = `/prices/${symbol}.json`;
   const url = typeof window === "undefined" ? siteUrl(path) : path;
   const res = await fetch(url);
