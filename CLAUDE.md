@@ -149,10 +149,9 @@ follow.
   (writer) has INSERT/UPDATE on creators/calls/artifacts and INSERT-only on `prices`
   (UPDATE/DELETE REVOKEd — frozen scoring, never rewrite a scored price); **serve** (public
   read path) is SELECT-only on every table. Passwords: `INGEST_ROLE_PASSWORD`,
-  `SERVE_ROLE_PASSWORD` (both >=16 chars `[A-Za-z0-9_-]`). `serve` auto-grants SELECT on
-  future tables (ALTER DEFAULT PRIVILEGES); `ingest` grants are per-table (prices insert-only
-  vs writable creators/calls/artifacts), so re-run `db:roles` after a migration adding a
-  writable table.
+  `SERVE_ROLE_PASSWORD` (both >=16 chars `[A-Za-z0-9_-]`). Both roles use explicit grants
+  only (no ALTER DEFAULT PRIVILEGES) — re-run `db:roles` after any migration that adds a table
+  (both roles; Plan 4 adds tables the serve role must not see, so auto-grant is unsafe).
 - **Backfill** (`bun run db:backfill`, runs as ingest) loads the committed static data into
   the DB, idempotently (creators/calls upsert all columns; prices insert-only). **Parity
   gate**: `bun run scripts/parity-check.ts` asserts DB reassembly == static JSON (canonical
@@ -168,6 +167,8 @@ follow.
   `DATABASE_URL_SERVE` + `USE_DB=1` in Vercel prod env → one last redeploy.
   Transitional caveat: until Plan 3 caching, each SSR creator-page render pulls its full
   dataset (~1.4 MB) from Neon uncached — watch SSR latency; revert via `USE_DB=0` if it regresses.
+  Until Plan 3a ships, client-side navigation reads build-time static assets, so every prod DB
+  change must be accompanied by a redeploy — otherwise hard-load and client-nav diverge.
 
 ## Profile pics
 

@@ -39,13 +39,11 @@ async function main() {
     END IF;
   END $$`;
   await sql.query(`ALTER ROLE serve PASSWORD '${servePw.replaceAll("'", "''")}'`);
+  // Undo the previously-applied auto-grant (older script versions ran ALTER DEFAULT PRIVILEGES);
+  // Plan 4 adds tables the serve role must not see, so serve gets explicit grants only.
+  await sql`ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM serve`;
   await sql`GRANT SELECT ON creators, calls, prices, artifacts TO serve`;
   await sql`REVOKE INSERT, UPDATE, DELETE ON creators, calls, prices, artifacts FROM serve`;
-  // Future migrations create tables owned by the migration role (DATABASE_URL owner), so
-  // auto-grant the read role SELECT on them — a new table is then servable without re-running
-  // this script. (ingest stays per-table: prices is insert-only while creators/calls/artifacts
-  // are writable, so a migration adding a *writable* table still needs a db:roles re-run.)
-  await sql`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO serve`;
   console.log("serve role configured: SELECT-only.");
 }
 main();

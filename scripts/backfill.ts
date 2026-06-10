@@ -23,7 +23,7 @@ async function main() {
     // Guard against the (handle, shortcode) PK silently merging rows if a post ever
     // yields two calls: inserted count must equal the source call count.
     const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(calls).where(eq(calls.handle, entry.handle));
-    if (n !== ds.calls.length) throw new Error(`${entry.handle}: ${n} rows != ${ds.calls.length} calls`);
+    if (n !== ds.calls.length) throw new Error(`${entry.handle}: ${n} rows != ${ds.calls.length} calls — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy.`);
     console.log(`creator ${entry.handle}: ${ds.calls.length} calls`);
   }
   for (const file of readdirSync(PRICES).filter((f) => f.endsWith(".json"))) {

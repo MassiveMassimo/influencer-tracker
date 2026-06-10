@@ -15,8 +15,15 @@ export type Db = ReturnType<typeof makeDb>;
 // the serve role cannot INSERT/UPDATE/DELETE (Plan 1 review finding 3).
 // Lazy, memoized. NEVER construct at module load: data.ts is reachable from client
 // routes, and eager construction reads process.env + bundles neon into the client.
+// Throws when USE_DB=1 but DATABASE_URL_SERVE is unset — the catch in data.ts degrades
+// to static JSON and logs, so the throw surfaces the misconfiguration without a silent
+// escalation to owner privileges.
 let _db: Db | undefined;
 export function getDb(): Db {
+  // Guard precedes the ??= so a misconfigured startup never memoizes an owner connection.
+  if (process.env.USE_DB === "1" && !process.env.DATABASE_URL_SERVE) {
+    throw new Error("USE_DB=1 but DATABASE_URL_SERVE unset — refusing to serve as owner");
+  }
   return (_db ??= makeDb(process.env.DATABASE_URL_SERVE ?? process.env.DATABASE_URL!));
 }
 
@@ -26,5 +33,8 @@ export function getDb(): Db {
 // Not memoized (unlike getDb): one-shot scripts call it once, and skipping the cache keeps
 // the writer connection out of the long-lived serverless instance state getDb lives in.
 export function getWriteDb(): Db {
+  if (process.env.DATABASE_URL && !process.env.DATABASE_URL_INGEST) {
+    console.warn("DATABASE_URL_INGEST unset — writer running as owner (prices freeze not role-enforced)");
+  }
   return makeDb(process.env.DATABASE_URL_INGEST ?? process.env.DATABASE_URL!);
 }
