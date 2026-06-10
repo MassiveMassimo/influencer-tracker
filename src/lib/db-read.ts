@@ -43,6 +43,10 @@ export async function readDataset(db: Db, handle: string): Promise<Dataset> {
 
 export async function readIndex(db: Db): Promise<IndexEntry[]> {
   const rows = await db.select().from(creators).orderBy(asc(creators.ord));
+  // An empty creators table means an un-backfilled / broken DB, not a real "no creators"
+  // state (the static index always has >=2) — throw so listCreators degrades to the static
+  // index instead of serving an empty site (Plan 1 review finding 1; mirrors readCallsIndex).
+  if (rows.length === 0) throw new Error("creators table empty — run `bun run db:backfill`");
   return rows.map((c) => ({
     handle: c.handle,
     name: c.name,

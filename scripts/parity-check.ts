@@ -1,9 +1,9 @@
 // Compares DB-reassembled output vs the committed static JSON for the DB at DATABASE_URL.
 // Run AFTER `bun run db:backfill` against the target (prod) DB, before flipping USE_DB=1.
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { makeDb } from "../db/client";
-import { readDataset, readIndex } from "../src/lib/db-read";
+import { readDataset, readIndex, readPrices } from "../src/lib/db-read";
 
 const ROOT = join(import.meta.dir, "..");
 const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
@@ -27,6 +27,15 @@ async function main() {
     if (!eq(stat, await readDataset(db, e.handle))) throw new Error(`dataset parity FAILED for ${e.handle}`);
     console.log(`✓ ${e.handle}`);
   }
+  // Prices are the frozen-scoring source of truth — verify every per-symbol OHLC file
+  // reassembles byte-identical from the DB, not just creators/calls.
+  const priceFiles = readdirSync(join(ROOT, "data", "prices")).filter((f) => f.endsWith(".json"));
+  for (const f of priceFiles) {
+    const symbol = f.replace(/\.json$/, "");
+    const stat = readJson(join(ROOT, "data", "prices", f));
+    if (!eq(stat, await readPrices(db, symbol))) throw new Error(`prices parity FAILED for ${symbol}`);
+  }
+  console.log(`✓ ${priceFiles.length} price symbols`);
   console.log("PARITY OK — safe to flip USE_DB=1");
 }
 main();

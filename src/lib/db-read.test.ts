@@ -1,6 +1,7 @@
 import { test, expect, beforeAll, describe } from "bun:test";
 import { makeDb, type Db } from "../../db/client";
 import { backfillCreator, backfillPrices } from "../../db/backfill";
+import { assertSeparateTestDb } from "../../db/test-db";
 import { sql } from "drizzle-orm";
 import { readDataset, readIndex, readPrices, readCallsIndex } from "./db-read";
 import { buildCallsIndex } from "./call-index";
@@ -20,6 +21,7 @@ const db = RUN ? makeDb(process.env.DATABASE_URL_TEST!) : (undefined as unknown 
 describe.skipIf(!RUN)("DB read golden master", () => {
 
   beforeAll(async () => {
+    assertSeparateTestDb();
     await db.execute(sql`TRUNCATE creators, calls, prices, artifacts RESTART IDENTITY CASCADE`);
     for (const [ord, e] of index.entries()) {
       await backfillCreator(db, e, readJson(join(ROOT, "data", "creators", (e as { handle: string }).handle, "dataset.json")), ord as number);
@@ -58,5 +60,24 @@ describe.skipIf(!RUN)("DB read golden master", () => {
       .onConflictDoUpdate({ target: artifacts.key, set: { payload: expected, generatedAt: "2026-06-10" } });
     const fromDb = await readCallsIndex(db);
     expect(fromDb).toEqual(expected);
+  });
+});
+
+// Runs LAST: its TRUNCATE empties the DB, so it must not precede the golden-master block.
+// Proves the serve readers throw on an un-backfilled DB so data.ts degrades to static JSON
+// rather than serving an empty site / 404ing every ticker (Plan 1 review finding 1 + the
+// Plan 2 calls-index analog).
+describe.skipIf(!RUN)("empty-DB serve fallback guards", () => {
+  beforeAll(async () => {
+    assertSeparateTestDb();
+    await db.execute(sql`TRUNCATE creators, calls, prices, artifacts RESTART IDENTITY CASCADE`);
+  });
+
+  test("readIndex throws on an empty creators table", async () => {
+    await expect(readIndex(db)).rejects.toThrow(/empty/i);
+  });
+
+  test("readCallsIndex throws when the artifact is missing", async () => {
+    await expect(readCallsIndex(db)).rejects.toThrow(/missing|empty/i);
   });
 });

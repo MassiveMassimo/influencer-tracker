@@ -1,9 +1,10 @@
-// Reads the committed static data and loads it into the DB pointed to by DATABASE_URL.
+// Reads the committed static data and loads it into the DB. Runs as the ingest writer
+// (DATABASE_URL_INGEST), not the owner or the SELECT-only serve role (Plan 1 review finding 3).
 // Idempotent: creators/calls upsert; prices insert-only.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { eq, sql } from "drizzle-orm";
-import { makeDb } from "../db/client";
+import { getWriteDb } from "../db/client";
 import { calls } from "../db/schema";
 import { backfillCreator, backfillPrices } from "../db/backfill";
 import type { IndexEntry } from "../src/lib/dataset-source";
@@ -14,7 +15,7 @@ const PRICES = join(ROOT, "data", "prices");
 const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 
 async function main() {
-  const db = makeDb();
+  const db = getWriteDb();
   const index: IndexEntry[] = readJson(join(CREATORS, "index.json"));
   for (const [ord, entry] of index.entries()) {
     const ds = readJson(join(CREATORS, entry.handle, "dataset.json"));

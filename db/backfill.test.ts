@@ -1,6 +1,7 @@
 import { test, expect, beforeAll, describe } from "bun:test";
 import { makeDb, type Db } from "./client";
 import { backfillCreator } from "./backfill";
+import { assertSeparateTestDb } from "./test-db";
 import { creators, calls } from "./schema";
 import { eq, sql } from "drizzle-orm";
 import { readFileSync } from "node:fs";
@@ -22,6 +23,7 @@ const db = RUN ? makeDb(process.env.DATABASE_URL_TEST!) : (undefined as unknown 
 describe.skipIf(!RUN)("backfillCreator", () => {
 
   beforeAll(async () => {
+    assertSeparateTestDb();
     await db.execute(sql`TRUNCATE creators, calls RESTART IDENTITY CASCADE`);
     await backfillCreator(db, indexEntry, ds, 0);
   });

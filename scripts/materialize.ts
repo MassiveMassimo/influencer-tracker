@@ -1,13 +1,14 @@
 // Recompute serve artifacts from the DB ledger and upsert them into the `artifacts`
 // table. Run after backfill/score (and, in Plan 3, at the end of each ingest run).
-// Idempotent: upserts by key. Requires DATABASE_URL.
-import { getDb } from "../db/client";
+// Idempotent: upserts by key. Writes the artifacts table, so it runs as the ingest
+// writer (DATABASE_URL_INGEST), not the SELECT-only serve role.
+import { getWriteDb } from "../db/client";
 import { readIndex, readDataset } from "../src/lib/db-read";
 import { buildCallsIndex } from "../src/lib/call-index";
 import { artifacts } from "../db/schema";
 
 async function main() {
-  const db = getDb();
+  const db = getWriteDb();
   const index = await readIndex(db);
   const datasets = await Promise.all(index.map((e) => readDataset(db, e.handle)));
   const callsIndex = buildCallsIndex(datasets);
