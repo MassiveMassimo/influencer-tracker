@@ -223,14 +223,17 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
 ## Analytics (PostHog)
 
 Client-side PostHog, direct ingest (no reverse proxy). `src/lib/analytics.tsx`
-exports `<Analytics>`, mounted at the top of `RootComponent` in `__root.tsx`. It
-no-ops (renders children only) when `VITE_POSTHOG_KEY` is unset, so local dev and
-SSR stay clean. Config relies on posthog-js defaults: `capture_pageview:
+exports `<Analytics />`, a render-nothing component mounted once in `RootComponent`
+(`__root.tsx`). On mount it dynamic-imports `posthog-js` (keeping the ~68KB SDK off
+the initial route bundle) and inits; it skips init entirely when `VITE_POSTHOG_KEY`
+is unset, so local dev and SSR stay clean. Config pins the posthog-js
+`defaults: '2026-01-30'` snapshot — that's what enables `capture_pageview:
 'history_change'` (pageviews fire on every TanStack Router navigation, since the
-router uses the History API) + autocapture (every click/input, the source for
-"which sections are buried / least clicked") + session replay (`session_recording`,
-passwords masked). Session replay must **also** be toggled on in the PostHog project
-settings, not just here. The project token is public (ships to the client) — it's a
+router uses the History API), pageleave, and head-injected external scripts
+(SSR-safe replay recorder) — plus explicit `autocapture` (every click, the source
+for "which sections are buried / least clicked") + session replay
+(`session_recording`, passwords masked). Session replay must **also** be toggled on
+in the PostHog project settings, not just here. The project token is public (ships to the client) — it's a
 build-time `VITE_` var, set in Vercel like `VITE_SITE_URL`. `VITE_POSTHOG_HOST`
 defaults to US (`us.i.posthog.com`); use `eu.i.posthog.com` for EU.
 

@@ -8,21 +8,23 @@ const HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https
 // bundle (the app lazy-loads charts for the same reason). history_change still records
 // the first pageview at init time. Session replay loads its own lazy rrweb chunk and is
 // gated by the PostHog project-settings toggle — config here only sets masking.
-export function Analytics({ children }: { children: React.ReactNode }) {
+// Renders nothing — mount once near the root to fire the client-side init.
+export function Analytics() {
   useEffect(() => {
     if (!KEY) return
-    import('posthog-js').then(({ default: posthog }) => {
-      posthog.init(KEY, {
-        api_host: HOST,
-        capture_pageview: 'history_change',
-        capture_pageleave: 'if_capture_pageview',
-        autocapture: true,
-        session_recording: {
-          maskAllInputs: false,
-          maskInputOptions: { password: true },
-        },
+    import('posthog-js')
+      .then(({ default: posthog }) => {
+        posthog.init(KEY, {
+          api_host: HOST,
+          // defaults snapshot: history_change pageviews (fire on TanStack Router navs),
+          // pageleave, and head-injected external scripts (SSR-safe replay recorder).
+          defaults: '2026-01-30',
+          autocapture: true,
+          // NOTE: site has no text inputs today; revisit masking if any are added.
+          session_recording: { maskAllInputs: false, maskInputOptions: { password: true } },
+        })
       })
-    })
+      .catch(() => {}) // adblockers can block the posthog chunk; fail silently
   }, [])
-  return <>{children}</>
+  return null
 }
