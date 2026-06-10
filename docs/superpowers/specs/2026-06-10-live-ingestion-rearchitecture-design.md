@@ -91,6 +91,14 @@ Git previously gave immutability for free. In a mutable DB:
 - The exact price inputs (or a hash) are **denormalized onto each call** at score time, so drift is *detectable*, not merely forbidden. (Yahoo *adjusted* closes change retroactively on splits/dividends — "same date" ≠ "same number".)
 - **Backup = Neon PITR + periodic dumps** to the VM or Blob (replaces git history as the point-in-time recovery story).
 
+## Price data source & redistribution
+
+The site is now **public**, which changes the price-data calculus. Yahoo (via `yahoo-finance2`), Tiingo, and Alpha-Vantage free tiers are **unofficial and/or forbid redistribution** — serving their data to the public (charts, baked scoring prices) is a ToS/legal exposure that did not exist for a private tool.
+
+- **Scoring/baked prices:** prefer a source whose terms permit redistribution — **Stooq bulk EOD** is the usual clean choice for daily OHLC. Decide before public launch.
+- **Live charts:** the request-time Yahoo fetch is the grayest area. Either move to a redistribution-permitting source or treat charts as client-fetched (the user's browser hits the source, not our server redistributing). Resolve in the plan.
+- This is a launch blocker for the *public* posture, not the architecture — flagged here so it is decided deliberately, not by default.
+
 ## Reliability & observability
 
 - **Dead-man-switch:** ingest pings on success; alert on a missed window.
