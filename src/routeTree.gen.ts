@@ -14,7 +14,10 @@ import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TSymbolRouteImport } from './routes/t.$symbol'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
+import { Route as ApiCallsIndexRouteImport } from './routes/api/calls-index'
 import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
+import { Route as ApiPricesSymbolRouteImport } from './routes/api/prices.$symbol'
+import { Route as ApiDatasetHandleRouteImport } from './routes/api/dataset.$handle'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -42,10 +45,25 @@ const CHandleRoute = CHandleRouteImport.update({
   path: '/c/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCallsIndexRoute = ApiCallsIndexRouteImport.update({
+  id: '/api/calls-index',
+  path: '/api/calls-index',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CHandleIndexRoute = CHandleIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CHandleRoute,
+} as any)
+const ApiPricesSymbolRoute = ApiPricesSymbolRouteImport.update({
+  id: '/api/prices/$symbol',
+  path: '/api/prices/$symbol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDatasetHandleRoute = ApiDatasetHandleRouteImport.update({
+  id: '/api/dataset/$handle',
+  path: '/api/dataset/$handle',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
   id: '/ticker/$symbol',
@@ -57,8 +75,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/calls-index': typeof ApiCallsIndexRoute
   '/c/$handle': typeof CHandleRouteWithChildren
   '/t/$symbol': typeof TSymbolRoute
+  '/api/dataset/$handle': typeof ApiDatasetHandleRoute
+  '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
@@ -66,7 +87,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/calls-index': typeof ApiCallsIndexRoute
   '/t/$symbol': typeof TSymbolRoute
+  '/api/dataset/$handle': typeof ApiDatasetHandleRoute
+  '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/c/$handle': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
@@ -75,8 +99,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/calls-index': typeof ApiCallsIndexRoute
   '/c/$handle': typeof CHandleRouteWithChildren
   '/t/$symbol': typeof TSymbolRoute
+  '/api/dataset/$handle': typeof ApiDatasetHandleRoute
+  '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
@@ -86,8 +113,11 @@ export interface FileRouteTypes {
     | '/'
     | '/explore'
     | '/sitemap.xml'
+    | '/api/calls-index'
     | '/c/$handle'
     | '/t/$symbol'
+    | '/api/dataset/$handle'
+    | '/api/prices/$symbol'
     | '/c/$handle/'
     | '/c/$handle/ticker/$symbol'
   fileRoutesByTo: FileRoutesByTo
@@ -95,7 +125,10 @@ export interface FileRouteTypes {
     | '/'
     | '/explore'
     | '/sitemap.xml'
+    | '/api/calls-index'
     | '/t/$symbol'
+    | '/api/dataset/$handle'
+    | '/api/prices/$symbol'
     | '/c/$handle'
     | '/c/$handle/ticker/$symbol'
   id:
@@ -103,8 +136,11 @@ export interface FileRouteTypes {
     | '/'
     | '/explore'
     | '/sitemap.xml'
+    | '/api/calls-index'
     | '/c/$handle'
     | '/t/$symbol'
+    | '/api/dataset/$handle'
+    | '/api/prices/$symbol'
     | '/c/$handle/'
     | '/c/$handle/ticker/$symbol'
   fileRoutesById: FileRoutesById
@@ -113,8 +149,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExploreRoute: typeof ExploreRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiCallsIndexRoute: typeof ApiCallsIndexRoute
   CHandleRoute: typeof CHandleRouteWithChildren
   TSymbolRoute: typeof TSymbolRoute
+  ApiDatasetHandleRoute: typeof ApiDatasetHandleRoute
+  ApiPricesSymbolRoute: typeof ApiPricesSymbolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -154,12 +193,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/calls-index': {
+      id: '/api/calls-index'
+      path: '/api/calls-index'
+      fullPath: '/api/calls-index'
+      preLoaderRoute: typeof ApiCallsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/c/$handle/': {
       id: '/c/$handle/'
       path: '/'
       fullPath: '/c/$handle/'
       preLoaderRoute: typeof CHandleIndexRouteImport
       parentRoute: typeof CHandleRoute
+    }
+    '/api/prices/$symbol': {
+      id: '/api/prices/$symbol'
+      path: '/api/prices/$symbol'
+      fullPath: '/api/prices/$symbol'
+      preLoaderRoute: typeof ApiPricesSymbolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/dataset/$handle': {
+      id: '/api/dataset/$handle'
+      path: '/api/dataset/$handle'
+      fullPath: '/api/dataset/$handle'
+      preLoaderRoute: typeof ApiDatasetHandleRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/c/$handle/ticker/$symbol': {
       id: '/c/$handle/ticker/$symbol'
@@ -188,8 +248,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExploreRoute: ExploreRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiCallsIndexRoute: ApiCallsIndexRoute,
   CHandleRoute: CHandleRouteWithChildren,
   TSymbolRoute: TSymbolRoute,
+  ApiDatasetHandleRoute: ApiDatasetHandleRoute,
+  ApiPricesSymbolRoute: ApiPricesSymbolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
