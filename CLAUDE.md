@@ -189,6 +189,11 @@ follow.
   dataset (~1.4 MB) from Neon uncached — watch SSR latency; revert via `USE_DB=0` if it regresses.
   Until Plan 3a ships, client-side navigation reads build-time static assets, so every prod DB
   change must be accompanied by a redeploy — otherwise hard-load and client-nav diverge.
+- **Revalidate seam** (`src/routes/api/revalidate.ts`, POST, token-guarded by `REVALIDATE_TOKEN`):
+  the place Plan 3b's VM ingest will POST changed `{ paths, tags }` to bust the `swr`-cached CDN
+  entries. In 3a it's operator-callable + auth-tested only (`Authorization: Bearer`; unset token
+  → 503, mismatch → 401); the actual Vercel-API CDN purge is a 3b `TODO` (needs the project token,
+  which lives with the VM), so `purge` currently just records intent and does not bust the CDN.
 
 ## Profile pics
 
