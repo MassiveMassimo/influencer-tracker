@@ -4,10 +4,11 @@ import type { Dataset, OhlcBar } from "./types";
 import { loadIndex } from "./dataset-source";
 import { siteUrl } from "../og/site";
 
-// Server-only: window guard FIRST so the client never reads process.env or imports the DB.
-// data.ts is reachable from client routes; the DB modules are dynamically imported only
-// inside this guarded branch so neon never enters the client bundle.
-const serverUseDb = () => typeof window === "undefined" && process.env.USE_DB === "1";
+// import.meta.env.SSR is statically replaced with `false` in the client build, so Rollup
+// dead-code-eliminates the DB branch and never emits the neon/drizzle chunks at all. The
+// window guard stays as belt-and-braces. (Plan 1 review finding: the runtime-only window
+// check left neon as dead-but-present ~225 KB client chunks.)
+const serverUseDb = () => import.meta.env.SSR && typeof window === "undefined" && process.env.USE_DB === "1";
 
 export const listCreators = createServerFn({ method: "GET" }).handler(async () => {
   if (serverUseDb()) {
