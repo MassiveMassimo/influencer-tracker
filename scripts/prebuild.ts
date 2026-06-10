@@ -16,6 +16,8 @@ import { mkdirSync, rmSync, writeFileSync, readFileSync, cpSync, existsSync } fr
 import { join } from "node:path";
 import { renderOgPng, type OgCard } from "../src/og/render.tsx";
 import type { OgTheme } from "../src/og/solar.ts";
+import { buildCallsIndex } from "../src/lib/call-index";
+import type { Dataset } from "../src/lib/types";
 
 const ROOT = join(import.meta.dir, "..");
 const DATA = join(ROOT, "data", "creators");
@@ -135,9 +137,11 @@ async function main() {
   }
 
   // Per-creator: copy the dataset as a static asset, then one card per called ticker.
+  const datasets: Dataset[] = [];
   let tickerJobs: { card: OgCard; out: string }[] = [];
   for (const e of index) {
     const ds = readJson(join(DATA, e.handle, "dataset.json"));
+    datasets.push(ds as Dataset);
     cpSync(join(DATA, e.handle, "dataset.json"), join(DS_DIR, `${e.handle}.json`));
     const tickers = [...new Set(ds.calls.map((c: { ticker: string }) => c.ticker))] as string[];
     for (const symbol of tickers) {
@@ -164,10 +168,11 @@ async function main() {
     cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
   }
 
+  writeFileSync(join(PUB, "calls-index.json"), JSON.stringify(buildCallsIndex(datasets)));
   writeFileSync(join(PUB, "llms.txt"), buildLlmsTxt(index));
 
   console.log(
-    `prebuild done: ${index.length} creators, ${tickerJobs.length} tickers, datasets + llms.txt copied.`,
+    `prebuild done: ${index.length} creators, ${tickerJobs.length} tickers, datasets + llms.txt + calls-index copied.`,
   );
 }
 
