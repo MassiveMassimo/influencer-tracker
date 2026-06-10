@@ -1,8 +1,9 @@
 import { eq, asc } from "drizzle-orm";
 import type { Db } from "../../db/client";
-import { creators, calls, prices } from "../../db/schema";
+import { creators, calls, prices, artifacts } from "../../db/schema";
 import type { Dataset, Call, OhlcBar } from "./types";
 import type { IndexEntry } from "./dataset-source";
+import { CallIndexSchema, type CallIndexEntry } from "./call-index";
 
 function rowToCall(r: typeof calls.$inferSelect): Call {
   // onScreenPrice is present on EVERY committed call (explicit `null` on some), so emit it
@@ -53,4 +54,10 @@ export async function readIndex(db: Db): Promise<IndexEntry[]> {
 export async function readPrices(db: Db, symbol: string): Promise<OhlcBar[]> {
   const rows = await db.select().from(prices).where(eq(prices.symbol, symbol)).orderBy(asc(prices.date));
   return rows.map((r) => ({ date: r.date, o: r.o, h: r.h, l: r.l, c: r.c }));
+}
+
+export async function readCallsIndex(db: Db): Promise<CallIndexEntry[]> {
+  const [row] = await db.select().from(artifacts).where(eq(artifacts.key, "calls-index"));
+  if (!row) throw new Error("calls-index artifact missing — run `bun run db:materialize`");
+  return CallIndexSchema.parse(row.payload);
 }
