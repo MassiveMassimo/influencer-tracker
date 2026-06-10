@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TSymbolRouteImport } from './routes/t.$symbol'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
@@ -20,9 +22,19 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TSymbolRoute = TSymbolRouteImport.update({
+  id: '/t/$symbol',
+  path: '/t/$symbol',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CHandleRoute = CHandleRouteImport.update({
@@ -43,22 +55,28 @@ const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/c/$handle': typeof CHandleRouteWithChildren
+  '/t/$symbol': typeof TSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/t/$symbol': typeof TSymbolRoute
   '/c/$handle': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/c/$handle': typeof CHandleRouteWithChildren
+  '/t/$symbol': typeof TSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
 }
@@ -66,25 +84,37 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/explore'
     | '/sitemap.xml'
     | '/c/$handle'
+    | '/t/$symbol'
     | '/c/$handle/'
     | '/c/$handle/ticker/$symbol'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sitemap.xml' | '/c/$handle' | '/c/$handle/ticker/$symbol'
+  to:
+    | '/'
+    | '/explore'
+    | '/sitemap.xml'
+    | '/t/$symbol'
+    | '/c/$handle'
+    | '/c/$handle/ticker/$symbol'
   id:
     | '__root__'
     | '/'
+    | '/explore'
     | '/sitemap.xml'
     | '/c/$handle'
+    | '/t/$symbol'
     | '/c/$handle/'
     | '/c/$handle/ticker/$symbol'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExploreRoute: typeof ExploreRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CHandleRoute: typeof CHandleRouteWithChildren
+  TSymbolRoute: typeof TSymbolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -96,11 +126,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$symbol': {
+      id: '/t/$symbol'
+      path: '/t/$symbol'
+      fullPath: '/t/$symbol'
+      preLoaderRoute: typeof TSymbolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/c/$handle': {
@@ -142,8 +186,10 @@ const CHandleRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExploreRoute: ExploreRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CHandleRoute: CHandleRouteWithChildren,
+  TSymbolRoute: TSymbolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

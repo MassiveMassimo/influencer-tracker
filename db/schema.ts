@@ -48,3 +48,13 @@ export const prices = pgTable("prices", {
 }, (t) => [
   primaryKey({ columns: [t.symbol, t.date] }),
 ]);
+
+// Materialized serve artifacts (Plan 2+). One row per artifact key; `payload` is the
+// precomputed JSON served to the client. Recomputed at ingest in Plan 3; for now via
+// `bun run db:materialize`. Kept generic so a leaderboard / other aggregates can be
+// added as new keys without a schema change.
+export const artifacts = pgTable("artifacts", {
+  key: text("key").primaryKey(), // e.g. "calls-index"
+  payload: jsonb("payload").notNull(),
+  generatedAt: text("generated_at").notNull(),
+});
