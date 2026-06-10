@@ -80,6 +80,7 @@ export const creators = pgTable("creators", {
   handle: text("handle").primaryKey(),
   name: text("name").notNull(),
   avatar: text("avatar"),
+  ord: integer("ord").notNull(),                  // position in index.json — deterministic roster order
   generatedAt: text("generated_at").notNull(),
   spyAnchor: text("spy_anchor").notNull(),
   scorecard: jsonb("scorecard").notNull(),       // Scorecard
@@ -91,6 +92,7 @@ export const creators = pgTable("creators", {
 export const calls = pgTable("calls", {
   handle: text("handle").notNull().references(() => creators.handle, { onDelete: "cascade" }),
   shortcode: text("shortcode").notNull(),
+  ord: integer("ord").notNull(),                  // array index in the source dataset — preserves file order
   postDate: text("post_date").notNull(),
   ticker: text("ticker").notNull(),
   company: text("company").notNull(),
@@ -127,10 +129,14 @@ export const prices = pgTable("prices", {
 Run: `bun run db:generate`
 Expected: a new SQL file under `db/migrations/` with `CREATE TABLE creators/calls/prices`.
 
-- [ ] **Step 3: Apply it**
+- [ ] **Step 3: Apply it to BOTH the dev DB and the test branch**
 
-Run: `bun run db:migrate`
-Expected: `[✓] migrations applied`. Verify: `psql $DATABASE_URL -c "\dt"` lists the three tables.
+Migrations only target `DATABASE_URL`; the test branch (a point-in-time copy) does not inherit migrations created after it was branched, so apply explicitly to both:
+```bash
+bun run db:migrate
+DATABASE_URL="$DATABASE_URL_TEST" bun run db:migrate
+```
+Expected: `[✓] migrations applied` twice. Verify: `psql $DATABASE_URL -c "\dt"` and `psql $DATABASE_URL_TEST -c "\dt"` both list the three tables.
 
 - [ ] **Step 4: Commit**
 
@@ -159,8 +165,12 @@ export function makeDb(url = process.env.DATABASE_URL!) {
   return drizzle(neon(url), { schema });
 }
 
-export const db = makeDb();
 export type Db = ReturnType<typeof makeDb>;
+
+// Lazy, memoized. NEVER construct at module load: data.ts is reachable from client
+// routes, and eager construction reads process.env + bundles neon into the client.
+let _db: Db | undefined;
+export function getDb(): Db { return (_db ??= makeDb()); }
 ```
 
 - [ ] **Step 2: Commit**
@@ -182,8 +192,10 @@ The test backfills a single creator fixture into the test DB and asserts the row
 
 - [ ] **Step 1: Write the failing test**
 
+All three DB test files (this, `db-read.test.ts`, `prices-immutable.test.ts`) MUST gate on env so `bun test` still passes for anyone without a test DB. Bun runs test files serially in one process, so the shared `TRUNCATE` across files is not a race.
+
 ```ts
-import { test, expect, beforeAll } from "bun:test";
+import { test, expect, beforeAll, describe } from "bun:test";
 import { makeDb } from "./client";
 import { backfillCreator } from "./backfill";
 import { creators, calls } from "./schema";
@@ -191,16 +203,22 @@ import { eq, sql } from "drizzle-orm";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+const RUN = !!process.env.DATABASE_URL_TEST;
+const ROOT = join(import.meta.dir, "..");
+const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
+// Derive the fixture from the index so handle casing can never drift (handles are
+// "kevvonz" and "TheProfInvestor" — case matters on Linux CI).
+const index = RUN ? readJson(join(ROOT, "data", "creators", "index.json")) : [];
+const indexEntry = index.find((e: { handle: string }) => /prof/i.test(e.handle)) ?? index[0];
+const HANDLE = indexEntry?.handle;
+const ds = RUN ? readJson(join(ROOT, "data", "creators", HANDLE, "dataset.json")) : null;
+
+describe.skipIf(!RUN)("backfillCreator", () => {
 const db = makeDb(process.env.DATABASE_URL_TEST!);
-// Use a real creator dataset as the fixture (theprofinvestor is committed).
-const HANDLE = "theprofinvestor";
-const ds = JSON.parse(readFileSync(join(import.meta.dir, "..", "data", "creators", HANDLE, "dataset.json"), "utf8"));
-const indexEntry = JSON.parse(readFileSync(join(import.meta.dir, "..", "data", "creators", "index.json"), "utf8"))
-  .find((e: { handle: string }) => e.handle === HANDLE);
 
 beforeAll(async () => {
   await db.execute(sql`TRUNCATE creators, calls RESTART IDENTITY CASCADE`);
-  await backfillCreator(db, indexEntry, ds);
+  await backfillCreator(db, indexEntry, ds, 0);
 });
 
 test("backfill inserts one creator row", async () => {
@@ -221,6 +239,7 @@ test("a call round-trips its returns jsonb", async () => {
   expect(rows[0].returns).toEqual(sample.returns);
   expect(rows[0].ticker).toBe(sample.ticker);
 });
+}); // describe.skipIf
 ```
 
 - [ ] **Step 2: Create the skeleton so the import resolves but the test fails**
@@ -254,27 +273,26 @@ import { creators, calls, prices } from "./schema";
 import type { Dataset, OhlcBar } from "#/lib/types";
 import type { IndexEntry } from "#/lib/dataset-source";
 
-export async function backfillCreator(db: Db, indexEntry: IndexEntry, ds: Dataset): Promise<void> {
+// `ord` (index position) is required by the caller so creator roster order is
+// deterministic; pass it from the index array index in the runner.
+export async function backfillCreator(db: Db, indexEntry: IndexEntry, ds: Dataset, ord: number): Promise<void> {
   const { handle, name, avatar, ...indexStats } = indexEntry;
-  await db.insert(creators).values({
-    handle, name, avatar: avatar ?? null,
-    generatedAt: ds.generatedAt,
-    spyAnchor: ds.spyAnchor,
-    scorecard: ds.scorecard,
-    caveats: ds.caveats,
-    indexStats,
-  }).onConflictDoUpdate({
+  const creatorRow = {
+    handle, name, avatar: avatar ?? null, ord,
+    generatedAt: ds.generatedAt, spyAnchor: ds.spyAnchor,
+    scorecard: ds.scorecard, caveats: ds.caveats, indexStats,
+  };
+  await db.insert(creators).values(creatorRow).onConflictDoUpdate({
     target: creators.handle,
-    set: {
-      name, avatar: avatar ?? null, generatedAt: ds.generatedAt,
-      spyAnchor: ds.spyAnchor, scorecard: ds.scorecard, caveats: ds.caveats, indexStats,
-    },
+    set: { name, avatar: avatar ?? null, ord, generatedAt: ds.generatedAt,
+      spyAnchor: ds.spyAnchor, scorecard: ds.scorecard, caveats: ds.caveats, indexStats },
   });
 
   if (ds.calls.length === 0) return;
-  await db.insert(calls).values(ds.calls.map((c) => ({
+  const rows = ds.calls.map((c, i) => ({
     handle,
     shortcode: c.shortcode,
+    ord: i,                               // array position preserves file order (postDate has ties)
     postDate: c.postDate,
     ticker: c.ticker,
     company: c.company,
@@ -285,10 +303,20 @@ export async function backfillCreator(db: Db, indexEntry: IndexEntry, ds: Datase
     onScreenPrice: c.onScreenPrice ?? null,
     spark: c.spark ?? null,
     returns: c.returns,
-  }))).onConflictDoUpdate({
-    target: [calls.handle, calls.shortcode],
-    set: { returns: sqlExcluded("returns"), spark: sqlExcluded("spark") },
-  });
+  }));
+  // Chunk to keep each neon-http request body well under limits (TheProfInvestor: 880 calls).
+  for (let i = 0; i < rows.length; i += 200) {
+    await db.insert(calls).values(rows.slice(i, i + 200)).onConflictDoUpdate({
+      target: [calls.handle, calls.shortcode],
+      // Update every non-PK column so a re-run after a re-score never leaves stale data.
+      set: {
+        ord: ex("ord"), postDate: ex("post_date"), ticker: ex("ticker"), company: ex("company"),
+        isFirstCall: ex("is_first_call"), conviction: ex("conviction"), quote: ex("quote"),
+        summary: ex("summary"), onScreenPrice: ex("on_screen_price"), spark: ex("spark"),
+        returns: ex("returns"),
+      },
+    });
+  }
 }
 
 // Insert-only: never updates existing (symbol,date) rows — preserves frozen prices.
@@ -299,10 +327,10 @@ export async function backfillPrices(db: Db, symbol: string, bars: OhlcBar[]): P
 }
 ```
 
-Add this helper at the top of the file (drizzle's `excluded` reference for upserts):
+Add this helper at the top of the file (drizzle `excluded`-row reference for upserts; quote the column to be safe with reserved words like `returns`):
 ```ts
 import { sql } from "drizzle-orm";
-const sqlExcluded = (col: string) => sql.raw(`excluded.${col}`);
+const ex = (col: string) => sql.raw(`excluded."${col}"`);
 ```
 
 - [ ] **Step 2: Run the test to verify it passes**
@@ -331,7 +359,9 @@ git commit -m "feat(db): lossless backfill of creators/calls/prices from static 
 // Idempotent: creators/calls upsert; prices insert-only.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { eq, sql } from "drizzle-orm";
 import { makeDb } from "../db/client";
+import { calls } from "../db/schema";
 import { backfillCreator, backfillPrices } from "../db/backfill";
 import type { IndexEntry } from "../src/lib/dataset-source";
 
@@ -343,9 +373,13 @@ const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 async function main() {
   const db = makeDb();
   const index: IndexEntry[] = readJson(join(CREATORS, "index.json"));
-  for (const entry of index) {
+  for (const [ord, entry] of index.entries()) {
     const ds = readJson(join(CREATORS, entry.handle, "dataset.json"));
-    await backfillCreator(db, entry, ds);
+    await backfillCreator(db, entry, ds, ord);
+    // Guard against the (handle, shortcode) PK silently merging rows if a post ever
+    // yields two calls: inserted count must equal the source call count.
+    const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(calls).where(eq(calls.handle, entry.handle));
+    if (n !== ds.calls.length) throw new Error(`${entry.handle}: ${n} rows != ${ds.calls.length} calls`);
     console.log(`creator ${entry.handle}: ${ds.calls.length} calls`);
   }
   for (const file of readdirSync(PRICES).filter((f) => f.endsWith(".json"))) {
@@ -380,11 +414,12 @@ git commit -m "feat(db): backfill runner script"
 - [ ] **Step 1: Write the failing test (UPDATE/DELETE on prices must be rejected for the ingest role)**
 
 ```ts
-import { test, expect } from "bun:test";
+import { test, expect, describe } from "bun:test";
 import { neon } from "@neondatabase/serverless";
 
-// Connects as the restricted ingest role (DATABASE_URL_INGEST_TEST) and asserts that
-// UPDATE and DELETE on prices are forbidden, while INSERT works.
+// Connects as the restricted ingest role (DATABASE_URL_INGEST_TEST = ingest creds at the
+// TEST-branch host) and asserts UPDATE/DELETE on prices are forbidden.
+describe.skipIf(!process.env.DATABASE_URL_INGEST_TEST)("prices immutability", () => {
 const sqlRole = neon(process.env.DATABASE_URL_INGEST_TEST!);
 
 test("ingest role cannot UPDATE prices", async () => {
@@ -393,6 +428,7 @@ test("ingest role cannot UPDATE prices", async () => {
 
 test("ingest role cannot DELETE prices", async () => {
   await expect(sqlRole`DELETE FROM prices WHERE symbol = 'SPY'`).rejects.toThrow(/permission denied/i);
+});
 });
 ```
 
@@ -405,11 +441,16 @@ Expected: FAIL (role not created / grants not applied yet).
 
 ```ts
 // scripts/apply-roles.ts — creates the restricted ingest role and revokes mutation on
-// `prices`. Run once per environment after migrations. Requires INGEST_ROLE_PASSWORD.
+// `prices`. Run once per environment (against DATABASE_URL) after migrations.
 import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.DATABASE_URL!); // admin/owner connection
 const pw = process.env.INGEST_ROLE_PASSWORD!;
+// DDL cannot use bind params, so validate the password against a safe charset and
+// single-quote-escape it. Operator-supplied env var, but never interpolate unchecked.
+if (!/^[A-Za-z0-9_-]{16,}$/.test(pw)) {
+  throw new Error("INGEST_ROLE_PASSWORD must be >=16 chars of [A-Za-z0-9_-]");
+}
 
 async function main() {
   await sql`DO $$ BEGIN
@@ -417,7 +458,8 @@ async function main() {
       CREATE ROLE ingest LOGIN;
     END IF;
   END $$`;
-  await sql.unsafe(`ALTER ROLE ingest PASSWORD '${pw}'`);
+  // sql.unsafe() returns a FRAGMENT, not an executor — use sql.query() to actually run DDL.
+  await sql.query(`ALTER ROLE ingest PASSWORD '${pw.replaceAll("'", "''")}'`);
   await sql`GRANT INSERT, SELECT ON prices TO ingest`;
   await sql`REVOKE UPDATE, DELETE ON prices FROM ingest`;
   await sql`GRANT INSERT, UPDATE, SELECT ON creators, calls TO ingest`;
@@ -426,14 +468,14 @@ async function main() {
 main();
 ```
 
-- [ ] **Step 4: Apply and verify the test passes**
+- [ ] **Step 4: Apply to the test branch and verify the test passes**
 
-Run:
+The role must exist on the TEST branch (a branch created before the role does not inherit it). Apply there and point the test at the ingest credentials on the test-branch host:
 ```bash
-bun run db:roles
-DATABASE_URL_INGEST_TEST="<test-branch url with ingest role>" bun test db/prices-immutable.test.ts
+DATABASE_URL="$DATABASE_URL_TEST" bun run db:roles
+DATABASE_URL_INGEST_TEST="<ingest creds @ test-branch host>" bun test db/prices-immutable.test.ts
 ```
-Expected: PASS (2 tests).
+Expected: PASS (2 tests). Also apply to prod/dev later, at cutover: `bun run db:roles`.
 
 - [ ] **Step 5: Commit**
 
@@ -455,47 +497,46 @@ The golden-master: for each committed creator, the `Dataset` reassembled from th
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-import { test, expect, beforeAll } from "bun:test";
+import { test, expect, beforeAll, describe } from "bun:test";
 import { makeDb } from "../../db/client";
 import { backfillCreator, backfillPrices } from "../../db/backfill";
-import { creators, calls } from "../../db/schema";
 import { sql } from "drizzle-orm";
 import { readDataset, readIndex, readPrices } from "./db-read";
 import { DatasetSchema } from "./schema";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const db = makeDb(process.env.DATABASE_URL_TEST!);
+const RUN = !!process.env.DATABASE_URL_TEST;
 const ROOT = join(import.meta.dir, "..", "..");
 const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
-const index = readJson(join(ROOT, "data", "creators", "index.json"));
+const index = RUN ? readJson(join(ROOT, "data", "creators", "index.json")) : [];
+
+describe.skipIf(!RUN)("DB read golden master", () => {
+const db = makeDb(process.env.DATABASE_URL_TEST!);
 
 beforeAll(async () => {
   await db.execute(sql`TRUNCATE creators, calls, prices RESTART IDENTITY CASCADE`);
-  for (const e of index) {
-    backfillCreator(db, e, readJson(join(ROOT, "data", "creators", e.handle, "dataset.json")));
-  }
-  for (const e of index) {
-    await backfillCreator(db, e, readJson(join(ROOT, "data", "creators", e.handle, "dataset.json")));
+  for (const [ord, e] of index.entries()) {
+    await backfillCreator(db, e, readJson(join(ROOT, "data", "creators", e.handle, "dataset.json")), ord);
   }
   for (const f of readdirSync(join(ROOT, "data", "prices")).filter((f) => f.endsWith(".json"))) {
     await backfillPrices(db, f.replace(/\.json$/, ""), readJson(join(ROOT, "data", "prices", f)));
   }
 });
 
-test("readDataset deep-equals the static dataset.json", async () => {
+test("readDataset deep-equals the static dataset.json (incl. call order)", async () => {
   for (const e of index) {
     const static_ = readJson(join(ROOT, "data", "creators", e.handle, "dataset.json"));
     const fromDb = await readDataset(db, e.handle);
-    // Validate shape, then compare. JSON normalization guards key-order noise.
+    // Schema-shaped deep-equal (validates shape + compares meaning, key-order-insensitive).
+    // Array order IS asserted by toEqual — proves the `ord` column reconstructs file order.
     expect(DatasetSchema.parse(fromDb)).toEqual(DatasetSchema.parse(static_));
   }
 });
 
-test("readIndex deep-equals index.json (order-insensitive)", async () => {
+test("readIndex equals index.json in order", async () => {
   const fromDb = await readIndex(db);
-  const sortByHandle = (a: { handle: string }, b: { handle: string }) => a.handle.localeCompare(b.handle);
-  expect([...fromDb].sort(sortByHandle)).toEqual([...index].sort(sortByHandle));
+  expect(fromDb).toEqual(index); // order-sensitive: WorkspaceRail roster order must be stable
 });
 
 test("readPrices deep-equals the static price file", async () => {
@@ -503,6 +544,7 @@ test("readPrices deep-equals the static price file", async () => {
   const static_ = readJson(join(ROOT, "data", "prices", `${symbol}.json`));
   const fromDb = await readPrices(db, symbol);
   expect(fromDb).toEqual(static_);
+});
 });
 ```
 
@@ -541,6 +583,10 @@ import type { Dataset, Call, OhlcBar } from "./types";
 import type { IndexEntry } from "./dataset-source";
 
 function rowToCall(r: typeof calls.$inferSelect): Call {
+  // onScreenPrice is present on EVERY committed call (explicit `null` on 189 of them), so
+  // emit it unconditionally — a missing key would break the golden master (missing ≠ null).
+  // summary/spark are always present and non-null in the data, so the conditional spread
+  // always includes them; kept conditional to honor the optional type.
   return {
     shortcode: r.shortcode,
     postDate: r.postDate,
@@ -550,7 +596,7 @@ function rowToCall(r: typeof calls.$inferSelect): Call {
     conviction: r.conviction,
     quote: r.quote,
     ...(r.summary != null ? { summary: r.summary } : {}),
-    ...(r.onScreenPrice != null ? { onScreenPrice: r.onScreenPrice } : {}),
+    onScreenPrice: r.onScreenPrice,
     ...(r.spark != null ? { spark: r.spark as number[] } : {}),
     returns: r.returns as Call["returns"],
   };
@@ -559,10 +605,9 @@ function rowToCall(r: typeof calls.$inferSelect): Call {
 export async function readDataset(db: Db, handle: string): Promise<Dataset> {
   const [c] = await db.select().from(creators).where(eq(creators.handle, handle));
   if (!c) throw new Error(`dataset ${handle}: not found`);
-  // Preserve the dataset's original call order: backfill inserted in file order, and
-  // (handle, postDate) ascending matches the committed files. If a creator's file is not
-  // date-sorted, switch to a stored ordinal column — see NOTE in Plan 3.
-  const callRows = await db.select().from(calls).where(eq(calls.handle, handle)).orderBy(asc(calls.postDate));
+  // `ord` (array index at backfill) reconstructs exact file order — postDate has ties
+  // (597 dup dates for TheProfInvestor) so a date sort would scramble it.
+  const callRows = await db.select().from(calls).where(eq(calls.handle, handle)).orderBy(asc(calls.ord));
   return {
     creator: { handle: c.handle, name: c.name },
     generatedAt: c.generatedAt,
@@ -574,7 +619,7 @@ export async function readDataset(db: Db, handle: string): Promise<Dataset> {
 }
 
 export async function readIndex(db: Db): Promise<IndexEntry[]> {
-  const rows = await db.select().from(creators);
+  const rows = await db.select().from(creators).orderBy(asc(creators.ord));
   return rows.map((c) => ({
     handle: c.handle,
     name: c.name,
@@ -594,9 +639,7 @@ export async function readPrices(db: Db, symbol: string): Promise<OhlcBar[]> {
 Run: `DATABASE_URL_TEST=$DATABASE_URL_TEST bun test src/lib/db-read.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 3: If `readDataset` deep-equal fails on call ORDER**, the committed datasets are not strictly date-sorted. Fix forward: add an `ord integer` column to `calls`, set it from array index in `backfillCreator`, and `orderBy(asc(calls.ord))`. Re-run Tasks 5/6 migration. (Only do this if Step 2 fails on ordering.)
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add src/lib/db-read.ts src/lib/db-read.test.ts
@@ -614,62 +657,67 @@ The existing `listCreators`/`fetchDataset`/`fetchPrices` keep their signatures. 
 
 - [ ] **Step 1: Write the failing test**
 
-Test: `src/lib/data.test.ts`
+Test: `src/lib/data.test.ts`. In `bun test`, `typeof window === "undefined"` is true and `USE_DB` is unset, so `serverUseDb()` is false → the static branch runs and never imports the DB. The test stubs `fetch` and asserts the parsed dataset comes back.
 ```ts
 import { test, expect } from "bun:test";
-import { fetchDatasetImpl } from "./data";
-
-// fetchDatasetImpl is the env-agnostic core (handle, useDb, db) extracted for testability.
-test("useDb=false path does not touch the DB", async () => {
-  // Passing a db that throws proves the static branch never calls it.
-  const throwingDb = new Proxy({}, { get() { throw new Error("DB touched"); } }) as never;
-  // Static fetch is stubbed via globalThis.fetch.
-  const orig = globalThis.fetch;
-  globalThis.fetch = (async () => new Response(JSON.stringify(SAMPLE), { status: 200 })) as typeof fetch;
-  try {
-    const ds = await fetchDatasetImpl("theprofinvestor", false, throwingDb);
-    expect(ds.creator.handle).toBe("theprofinvestor");
-  } finally { globalThis.fetch = orig; }
-});
+import { fetchDataset } from "./data";
 
 const SAMPLE = {
-  creator: { handle: "theprofinvestor", name: "X" }, generatedAt: "2026-01-01",
+  creator: { handle: "TheProfInvestor", name: "X" }, generatedAt: "2026-01-01",
   spyAnchor: "2026-01-01", calls: [], caveats: [],
   scorecard: { totalCalls: 0, uniqueTickers: 0, hitRate: { "1m": 0, "3m": 0 },
     hitRateN: { "1m": 0, "3m": 0 }, avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0 },
     callsPerWeek: 0, best: [], worst: [] },
 };
+
+test("static branch (USE_DB unset) parses the fetched dataset", async () => {
+  const orig = globalThis.fetch;
+  globalThis.fetch = (async () => new Response(JSON.stringify(SAMPLE), { status: 200 })) as typeof fetch;
+  try {
+    const ds = await fetchDataset("TheProfInvestor");
+    expect(ds.creator.handle).toBe("TheProfInvestor");
+  } finally { globalThis.fetch = orig; }
+});
 ```
 
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `bun test src/lib/data.test.ts`
-Expected: FAIL — `fetchDatasetImpl` not exported.
+Expected: FAIL — `fetchDataset` not exported yet / module error (the new `data.ts` is written in Step 3).
 
 - [ ] **Step 3: Refactor `data.ts` to add the DB branch + testable core**
 
+CRITICAL: `data.ts` is imported by client routes, so it must NOT eagerly import the DB client or read `process.env` at module top-level (the browser has no `process`, and `db/client.ts` calls `neon(process.env.DATABASE_URL!)` at module load — that would crash every client page and pull `@neondatabase/serverless` into the client bundle / break `vite build`). Therefore: (1) the window guard comes FIRST, before any `process.env` read; (2) DB modules are `await import(...)`-ed only inside the server-only branch; (3) `db/client.ts` must memoize lazily (no eager `export const db`).
+
+`db/client.ts` already exposes the lazy `getDb()` (Task 3). Now `src/lib/data.ts`:
 ```ts
 import { createServerFn } from "@tanstack/react-start";
 import { DatasetSchema, PriceFileSchema } from "./schema";
 import type { Dataset, OhlcBar } from "./types";
 import { loadIndex, type IndexEntry } from "./dataset-source";
 import { siteUrl } from "../og/site";
-import { db, type Db } from "../../db/client";
-import { readDataset, readIndex, readPrices } from "./db-read";
 
-const useDb = () => process.env.USE_DB === "1";
+// Server-only: window guard FIRST so the client never reads process.env or imports the DB.
+const serverUseDb = () => typeof window === "undefined" && process.env.USE_DB === "1";
 
 export const listCreators = createServerFn({ method: "GET" }).handler(async () => {
-  if (useDb()) {
-    try { return await readIndex(db); } catch (e) { console.error("listCreators DB fallback", e); }
+  if (serverUseDb()) {
+    try {
+      const { getDb } = await import("../../db/client");
+      const { readIndex } = await import("./db-read");
+      return await readIndex(getDb());
+    } catch (e) { console.error("listCreators DB fallback", e); }
   }
   return loadIndex();
 });
 
-export async function fetchDatasetImpl(handle: string, withDb: boolean, database: Db): Promise<Dataset> {
-  if (withDb) {
-    try { return await readDataset(database, handle); }
-    catch (e) { console.error(`fetchDataset DB fallback ${handle}`, e); }
+export async function fetchDataset(handle: string): Promise<Dataset> {
+  if (serverUseDb()) {
+    try {
+      const { getDb } = await import("../../db/client");
+      const { readDataset } = await import("./db-read");
+      return await readDataset(getDb(), handle);
+    } catch (e) { console.error(`fetchDataset DB fallback ${handle}`, e); }
   }
   const path = `/datasets/${handle}.json`;
   const url = typeof window === "undefined" ? siteUrl(path) : path;
@@ -678,14 +726,14 @@ export async function fetchDatasetImpl(handle: string, withDb: boolean, database
   return DatasetSchema.parse(await res.json());
 }
 
-export async function fetchDataset(handle: string): Promise<Dataset> {
-  return fetchDatasetImpl(handle, useDb() && typeof window === "undefined", db);
-}
-
 export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
-  if (useDb() && typeof window === "undefined") {
-    try { const r = await readPrices(db, symbol); if (r.length) return r; }
-    catch (e) { console.error(`fetchPrices DB fallback ${symbol}`, e); }
+  if (serverUseDb()) {
+    try {
+      const { getDb } = await import("../../db/client");
+      const { readPrices } = await import("./db-read");
+      const r = await readPrices(getDb(), symbol);
+      if (r.length) return r;
+    } catch (e) { console.error(`fetchPrices DB fallback ${symbol}`, e); }
   }
   const path = `/prices/${symbol}.json`;
   const url = typeof window === "undefined" ? siteUrl(path) : path;
@@ -695,35 +743,38 @@ export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
 }
 ```
 
-NOTE: `fetchDataset`/`fetchPrices` only use the DB during SSR (`typeof window === "undefined"`); the browser keeps fetching the static same-origin asset so the DB stays out of the client bundle and client navigations stay CDN-cached. Export `IndexEntry` from `dataset-source.ts` if not already exported.
+NOTE: DB reads happen only during SSR; the browser keeps fetching the static same-origin asset, so the DB stays out of the client bundle and client navigations remain CDN-cached. `IndexEntry` is already exported from `dataset-source.ts`. The data.test.ts in Step 1 below tests the static branch only (no DB import); drop the earlier `fetchDatasetImpl` signature — the dynamic-import design replaces it.
 
-- [ ] **Step 4: Run to verify it passes**
+- [ ] **Step 4: Verify — tests, types, AND a clean client build**
 
-Run: `bun test src/lib/data.test.ts` then `bunx tsc --noEmit`
-Expected: PASS; no type errors.
+```bash
+bun test src/lib/data.test.ts
+bunx tsc --noEmit
+USE_DB=0 bun run build
+```
+Expected: tests PASS; no type errors; **`vite build` succeeds with `DATABASE_URL` unset** — this is the gate that proves the DB client did not leak into the client bundle. (`bun test`/`tsc` alone cannot catch a client-bundle import leak.) If the build fails resolving `@neondatabase/serverless` in a client chunk, the dynamic-import/window-guard ordering was not followed.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/data.ts src/lib/data.test.ts src/lib/dataset-source.ts
+git add src/lib/data.ts src/lib/data.test.ts
 git commit -m "feat(db): route data.ts reads through DB behind USE_DB flag with static fallback"
 ```
 
 ---
 
-### Task 11: End-to-end parity smoke test with the real server
+### Task 11: DB-vs-static parity check against the target database
 
 **Files:**
 - Create: `scripts/parity-check.ts`
 
-Proves the running app serves identical bytes with `USE_DB=0` vs `USE_DB=1` for the index and each dataset — the go/no-go gate before flipping the flag in production.
+The pre-cutover go/no-go gate: run against the **prod** DB after backfill to prove the DB reassembles every committed dataset and the index identically. jsonb does not preserve key order, so compare by deep-equal of a canonical (key-sorted) serialization, not raw `JSON.stringify` — parity of *meaning* is the gate, not bytes.
 
 - [ ] **Step 1: Write the parity script**
 
 ```ts
-// Fetches /datasets/<h>.json-equivalent payloads through the app under both flag values
-// and diffs them. Run the dev server twice (USE_DB=0, then USE_DB=1) on the same port,
-// or point BASE_A / BASE_B at two running instances.
+// Compares DB-reassembled output vs the committed static JSON for the DB at DATABASE_URL.
+// Run AFTER `bun run db:backfill` against the target (prod) DB, before flipping USE_DB=1.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { makeDb } from "../db/client";
@@ -732,26 +783,29 @@ import { readDataset, readIndex } from "../src/lib/db-read";
 const ROOT = join(import.meta.dir, "..");
 const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 
+// Canonical JSON: object keys sorted recursively so key-order differences don't false-fail.
+function canon(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(canon);
+  if (v && typeof v === "object") {
+    return Object.fromEntries(Object.keys(v as object).sort().map((k) => [k, canon((v as Record<string, unknown>)[k])]));
+  }
+  return v;
+}
+const eq = (a: unknown, b: unknown) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
+
 async function main() {
   const db = makeDb();
   const index = readJson(join(ROOT, "data", "creators", "index.json"));
-  const dbIndex = await readIndex(db);
-  const norm = (xs: { handle: string }[]) => JSON.stringify([...xs].sort((a, b) => a.handle.localeCompare(b.handle)));
-  if (norm(index) !== norm(dbIndex)) throw new Error("index parity FAILED");
+  if (!eq(index, await readIndex(db))) throw new Error("index parity FAILED");
   for (const e of index) {
     const stat = readJson(join(ROOT, "data", "creators", e.handle, "dataset.json"));
-    const fromDb = await readDataset(db, e.handle);
-    if (JSON.stringify(stat) !== JSON.stringify(fromDb)) {
-      throw new Error(`dataset parity FAILED for ${e.handle}`);
-    }
+    if (!eq(stat, await readDataset(db, e.handle))) throw new Error(`dataset parity FAILED for ${e.handle}`);
     console.log(`✓ ${e.handle}`);
   }
   console.log("PARITY OK — safe to flip USE_DB=1");
 }
 main();
 ```
-
-NOTE: byte-identical JSON requires key order to match. If `JSON.stringify` differs only by key order, switch the comparison to a deep-equal (e.g. compare `DatasetSchema.parse` of both) — parity of *meaning*, not bytes, is the real gate.
 
 - [ ] **Step 2: Run it**
 
@@ -794,7 +848,7 @@ Under a new `## Data source: DB vs static` section, record: backfill runner, `US
 
 - [ ] **Step 3: Flip procedure (manual, documented, not auto-run)**
 
-In CLAUDE.md note the cutover: (1) `bun run db:backfill` against prod Neon; (2) `bun run scripts/parity-check.ts` → must print PARITY OK; (3) set `USE_DB=1` in Vercel prod env; (4) redeploy once (last redeploy — afterwards data updates need no redeploy); (5) static JSON remains the panic fallback — revert by setting `USE_DB=0`.
+In CLAUDE.md note the cutover: (1) apply migrations + roles to prod: `bun run db:migrate && bun run db:roles`; (2) `bun run db:backfill` against prod Neon; (3) `bun run scripts/parity-check.ts` → must print PARITY OK; (4) set `USE_DB=1` in Vercel prod env; (5) redeploy once (last redeploy — afterwards data updates need no redeploy); (6) static JSON remains the panic fallback — revert instantly by setting `USE_DB=0`. **Transitional caveat:** until Plan 3 adds caching, each SSR creator-page render pulls its full dataset (TheProfInvestor ≈ 1.4 MB) from Neon uncached, replacing a CDN-cached static fetch — watch SSR latency before/after the flip; if it regresses, revert and prioritize Plan 3 caching.
 
 - [ ] **Step 4: Commit**
 
@@ -815,6 +869,8 @@ git commit -m "docs(db): data-source flag, backfill, and cutover procedure"
 - Roster off the build bundle → `listCreators` reads `readIndex` under `USE_DB` (Task 10). ✓ (Build-time `import.meta.glob` stays as the fallback; fully removing it is Plan 3 when ingest writes the DB directly.)
 - PITR/dumps backup, monitoring, cache invalidation, OG-on-VM, slim index, leaderboard, LLM gate → explicitly out of Plan 1 scope (Plans 2–4).
 
-**Placeholder scan:** No TBD/TODO. The two NOTEs (call-order fallback in Task 9, key-order parity in Task 11) are conditional fix-forward instructions with concrete steps, not deferrals.
+**Placeholder scan:** No TBD/TODO. No conditional fix-forward steps remain (the call-order contingency was resolved by the `ord` column; the parity comparison uses canonical deep-equal directly).
 
-**Type consistency:** `backfillCreator(db, indexEntry, ds)`, `backfillPrices(db, symbol, bars)`, `readDataset(db, handle)`, `readIndex(db)`, `readPrices(db, symbol)`, `fetchDatasetImpl(handle, withDb, db)` — signatures consistent across Tasks 4–11. Column names (`isFirstCall`/`is_first_call`, `onScreenPrice`/`on_screen_price`, `indexStats`/`index_stats`) consistent between schema (Task 2), backfill (Task 5), and read (Task 9). `IndexEntry` shape matches `src/lib/dataset-source.ts`.
+**Type consistency:** `backfillCreator(db, indexEntry, ds, ord)`, `backfillPrices(db, symbol, bars)`, `readDataset(db, handle)`, `readIndex(db)`, `readPrices(db, symbol)`, `getDb()` — signatures consistent across Tasks 3–11. Column names (`isFirstCall`/`is_first_call`, `onScreenPrice`/`on_screen_price`, `ord`, `indexStats`/`index_stats`) consistent between schema (Task 2), backfill (Task 5), and read (Task 9). `IndexEntry` matches `src/lib/dataset-source.ts` (already exported).
+
+**Review-applied fixes (Fable 5, verified against repo data):** `ord` column for deterministic call/roster order (postDate has 597 ties); `onScreenPrice` emitted unconditionally (189 explicit nulls); handles use real casing (`TheProfInvestor`); `sql.query` (not no-op `sql.unsafe`) for role DDL with password validation; migrations + roles applied to the test branch explicitly; lazy `getDb()` + window-guard-first + dynamic imports so the DB never enters the client bundle (gated by `USE_DB=0 bun run build`); all three DB test files gated with `describe.skipIf` so `bun test` passes without a test DB; insert chunking at 200 rows; all non-PK columns updated on upsert; canonical deep-equal for parity.
