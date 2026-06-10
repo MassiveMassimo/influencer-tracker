@@ -5,6 +5,18 @@ self-contained dataset under `data/creators/<handle>/`; the dashboard (TanStack
 Start) reads `dataset.json`. Two ingestion pipelines feed the **same** downstream
 contract, so scoring and the UI are platform-agnostic.
 
+## Development workflow (worktrees only)
+
+All feature work happens in a git **worktree on its own branch** — never on `main`.
+
+- **Never edit features on `main`** and **never switch this checkout off `main`**
+  (`git checkout <other>` / `git switch` in the primary clone is off-limits). The
+  primary checkout stays on `main` so parallel work never collides.
+- Start each feature in its own worktree: `git worktree add ../influencer-tracker-<feature> -b <feature>`.
+  One worktree per feature, one branch per worktree.
+- When done and verified, merge the branch back to `main` locally (fast-forward or
+  `git merge`), then `git worktree remove`. Open a PR only if explicitly asked.
+
 ## Pipelines
 
 Both end identically: `reel-calls.json` (a `ReelCall[]`) → `prices` → `score` →
