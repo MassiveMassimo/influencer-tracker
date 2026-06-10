@@ -1,9 +1,10 @@
 import { siteUrl } from "#/og/site.ts";
 
-// Defensive backstop for the API read routes; the primary cache is the vite routeRules (Task 3).
-// stale-while-revalidate needs an explicit duration (RFC 5861) — Vercel/most CDNs ignore the
-// bare directive, so SWR would never fire without =N.
-export const CACHE_CONTROL = "public, max-age=0, s-maxage=21600, stale-while-revalidate=3600";
+// Defensive backstop for the API read routes. On Vercel the real control is the ISR
+// `expiration` (6h) set by the vite routeRules (Task 3); this header only governs
+// non-Vercel/other CDNs. stale-while-revalidate needs an explicit duration (RFC 5861) —
+// Vercel/most CDNs ignore the bare directive, so SWR would never fire without =N.
+export const CACHE_CONTROL = "public, max-age=0, s-maxage=21600, stale-while-revalidate=21600";
 
 type MissMode =
   | { onMiss: "empty"; emptyBody: string }

@@ -185,12 +185,14 @@ follow.
   ingest + serve roles) → `bun run db:sync` (= `db:backfill && db:materialize` — never bare
   backfill, or the artifact goes stale) → `parity-check` prints OK → set
   `DATABASE_URL_SERVE` + `USE_DB=1` in Vercel prod env → one last redeploy.
-  Transitional caveat: until Plan 3 caching, each SSR creator-page render pulls its full
-  dataset (~1.4 MB) from Neon uncached — watch SSR latency; revert via `USE_DB=0` if it regresses.
-  Until Plan 3a ships, client-side navigation reads build-time static assets, so every prod DB
-  change must be accompanied by a redeploy — otherwise hard-load and client-nav diverge.
+  Plan 3a edge-caches the serve routes (`/c/**`, `/t/**`, `/explore`, `/api/*`) via Vercel ISR
+  at a 6h TTL (`vite.config.ts` `routeRules`), so SSR creator-page renders are served from the
+  CDN, not a fresh ~1.4 MB Neon pull each time — only the post-TTL revalidation hits the DB.
+  Client-side navigation reads the same CDN-cached `/api/*` routes (DB-backed), so a prod DB
+  change surfaces within the 6h ISR TTL with no redeploy (or immediately once the Plan 3b purge
+  seam busts the CDN). Revert via `USE_DB=0` if SSR latency regresses.
 - **Revalidate seam** (`src/routes/api/revalidate.ts`, POST, token-guarded by `REVALIDATE_TOKEN`):
-  the place Plan 3b's VM ingest will POST changed `{ paths, tags }` to bust the `swr`-cached CDN
+  the place Plan 3b's VM ingest will POST changed `{ paths, tags }` to bust the ISR-cached CDN
   entries. In 3a it's operator-callable + auth-tested only (`Authorization: Bearer`; unset token
   → 503, mismatch → 401); the actual Vercel-API CDN purge is a 3b `TODO` (needs the project token,
   which lives with the VM), so `purge` currently just records intent and does not bust the CDN.
