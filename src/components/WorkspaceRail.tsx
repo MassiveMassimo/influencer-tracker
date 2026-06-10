@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
+import { CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import GitHubLink from "./GitHubLink";
 import { Preferences } from "./Preferences";
 import { ScrollArea } from "./ui/scroll-area";
@@ -69,6 +69,20 @@ export function RailContent({
             >
               <HomeIcon className="size-4 opacity-70" />
               Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/explore"
+              onClick={onNavigate}
+              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
+              activeProps={{
+                className:
+                  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
+              }}
+            >
+              <CompassIcon className="size-4 opacity-70" />
+              Explore calls
             </Link>
           </li>
         </ul>
