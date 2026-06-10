@@ -203,6 +203,12 @@ settings, not just here. The project token is public (ships to the client) — i
 build-time `VITE_` var, set in Vercel like `VITE_SITE_URL`. `VITE_POSTHOG_HOST`
 defaults to US (`us.i.posthog.com`); use `eu.i.posthog.com` for EU.
 
+`VITE_POSTHOG_KEY`/`VITE_POSTHOG_HOST` are set in Vercel at **production scope
+only** — preview deploys (and local dev without a `.env` key) intentionally send
+nothing, so preview/PR traffic never pollutes the production analytics. Add the
+key to the preview scope only if you explicitly want a preview tracked. PostHog
+project is ID 8555 (US); dashboard at https://us.posthog.com/project/8555.
+
 ## Deployment (Vercel)
 
 Hosting is Vercel (framework preset: TanStack Start). The `nitro/vite` plugin
