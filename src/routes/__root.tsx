@@ -12,6 +12,7 @@ import { MobileNav } from '../components/MobileNav'
 import { listCreators } from '../lib/data'
 import { PreferencesProvider } from '#/lib/preferences.tsx'
 import { HapticsProvider } from '#/lib/haptics.tsx'
+import { Analytics } from '#/lib/analytics.tsx'
 import { siteUrl } from '#/og/site.ts'
 
 import appCss from '../styles.css?url'
@@ -59,22 +60,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootComponent() {
   const creators = Route.useLoaderData()
   return (
-    <PreferencesProvider>
-      <HapticsProvider>
-        <div
-          data-vaul-drawer-wrapper=""
-          className="grid min-h-svh grid-cols-1 bg-background text-foreground md:grid-cols-[260px_1fr]"
-        >
-          <div className="sticky top-0 hidden h-svh self-start md:block">
-            <WorkspaceRail creators={creators} />
+    <Analytics>
+      <PreferencesProvider>
+        <HapticsProvider>
+          <div
+            data-vaul-drawer-wrapper=""
+            className="grid min-h-svh grid-cols-1 bg-background text-foreground md:grid-cols-[260px_1fr]"
+          >
+            <div className="sticky top-0 hidden h-svh self-start md:block">
+              <WorkspaceRail creators={creators} />
+            </div>
+            <div className="min-w-0">
+              <MobileNav creators={creators} />
+              <Outlet />
+            </div>
           </div>
-          <div className="min-w-0">
-            <MobileNav creators={creators} />
-            <Outlet />
-          </div>
-        </div>
-      </HapticsProvider>
-    </PreferencesProvider>
+        </HapticsProvider>
+      </PreferencesProvider>
+    </Analytics>
   )
 }
 

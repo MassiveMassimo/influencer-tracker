@@ -189,6 +189,20 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   `charts/ticker-charts.tsx` so `motion`/`@visx`/`d3` load on mount, off the
   route's initial bundle.
 
+## Analytics (PostHog)
+
+Client-side PostHog, direct ingest (no reverse proxy). `src/lib/analytics.tsx`
+exports `<Analytics>`, mounted at the top of `RootComponent` in `__root.tsx`. It
+no-ops (renders children only) when `VITE_POSTHOG_KEY` is unset, so local dev and
+SSR stay clean. Config relies on posthog-js defaults: `capture_pageview:
+'history_change'` (pageviews fire on every TanStack Router navigation, since the
+router uses the History API) + autocapture (every click/input, the source for
+"which sections are buried / least clicked") + session replay (`session_recording`,
+passwords masked). Session replay must **also** be toggled on in the PostHog project
+settings, not just here. The project token is public (ships to the client) — it's a
+build-time `VITE_` var, set in Vercel like `VITE_SITE_URL`. `VITE_POSTHOG_HOST`
+defaults to US (`us.i.posthog.com`); use `eu.i.posthog.com` for EU.
+
 ## Deployment (Vercel)
 
 Hosting is Vercel (framework preset: TanStack Start). The `nitro/vite` plugin
