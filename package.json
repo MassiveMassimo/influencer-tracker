@@ -18,7 +18,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:backfill": "bun run scripts/backfill.ts",
     "db:roles": "bun run scripts/apply-roles.ts",
-    "db:materialize": "bun run scripts/materialize.ts"
+    "db:materialize": "bun run scripts/materialize.ts",
+    "db:sync": "bun run db:backfill && bun run db:materialize"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

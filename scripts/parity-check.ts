@@ -1,9 +1,10 @@
 // Compares DB-reassembled output vs the committed static JSON for the DB at DATABASE_URL.
-// Run AFTER `bun run db:backfill` against the target (prod) DB, before flipping USE_DB=1.
+// Run AFTER `bun run db:sync` against the target (prod) DB, before flipping USE_DB=1.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { makeDb } from "../db/client";
-import { readDataset, readIndex, readPrices } from "../src/lib/db-read";
+import { readCallsIndex, readDataset, readIndex, readPrices } from "../src/lib/db-read";
+import { buildCallsIndex } from "../src/lib/call-index";
 
 const ROOT = join(import.meta.dir, "..");
 const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
@@ -26,9 +27,14 @@ async function main() {
   const index = readJson(join(ROOT, "data", "creators", "index.json"));
   if (index.length === 0) throw new Error("index.json empty — refusing to certify parity");
   if (!eq(index, await readIndex(db))) throw new Error("index parity FAILED");
+  // Accumulate the DB datasets here so the calls-index artifact check below reuses them
+  // rather than re-fetching every creator — one Neon round-trip per creator, not two.
+  const datasets = [];
   for (const e of index) {
     const stat = readJson(join(ROOT, "data", "creators", e.handle, "dataset.json"));
-    if (!eq(stat, await readDataset(db, e.handle))) throw new Error(`dataset parity FAILED for ${e.handle}`);
+    const dbDataset = await readDataset(db, e.handle);
+    if (!eq(stat, dbDataset)) throw new Error(`dataset parity FAILED for ${e.handle}`);
+    datasets.push(dbDataset);
     console.log(`✓ ${e.handle}`);
   }
   // Prices are the frozen-scoring source of truth — verify every per-symbol OHLC file
@@ -41,6 +47,13 @@ async function main() {
     if (!eq(stat, await readPrices(db, symbol))) throw new Error(`prices parity FAILED for ${symbol}`);
   }
   console.log(`✓ ${priceFiles.length} price symbols`);
+  // Reassemble the calls-index from the DB datasets gathered above and assert it equals the
+  // materialized artifact — catches a stale/drifted artifact left by a backfill without a
+  // re-materialize (review M2). Uses the same readers/builder the serve path uses.
+  if (!eq(buildCallsIndex(datasets), await readCallsIndex(db))) {
+    throw new Error("calls-index artifact parity FAILED — re-run `bun run db:materialize`");
+  }
+  console.log("✓ calls-index artifact");
   console.log("PARITY OK — safe to flip USE_DB=1");
 }
 main();

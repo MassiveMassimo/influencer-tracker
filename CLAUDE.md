@@ -152,18 +152,21 @@ follow.
   `SERVE_ROLE_PASSWORD` (both >=16 chars `[A-Za-z0-9_-]`). Both roles use explicit grants
   only (no ALTER DEFAULT PRIVILEGES) — re-run `db:roles` after any migration that adds a table
   (both roles; Plan 4 adds tables the serve role must not see, so auto-grant is unsafe).
-- **Backfill** (`bun run db:backfill`, runs as ingest) loads the committed static data into
-  the DB, idempotently (creators/calls upsert all columns; prices insert-only). **Parity
-  gate**: `bun run scripts/parity-check.ts` asserts DB reassembly == static JSON (canonical
-  deep-equal) for index, every dataset, **and every price symbol** — must print `PARITY OK`
-  before flipping `USE_DB=1`.
+- **Sync** (`bun run db:sync` = `db:backfill && db:materialize`, runs as ingest) loads the
+  committed static data into the DB, idempotently (creators/calls upsert all columns; prices
+  insert-only), then re-materializes the calls-index artifact. Always sync, never bare
+  `db:backfill` — a backfill without a re-materialize leaves a stale artifact (review M2).
+  **Parity gate**: `bun run scripts/parity-check.ts` asserts DB reassembly == static JSON
+  (canonical deep-equal) for index, every dataset, **every price symbol**, **and the
+  materialized calls-index artifact** — must print `PARITY OK` before flipping `USE_DB=1`.
 - **Tests**: `db/*.test.ts` + `src/lib/db-read.test.ts` are env-gated (`DATABASE_URL_TEST`,
   `DATABASE_URL_INGEST_TEST`, `DATABASE_URL_SERVE_TEST` — a separate Neon **branch**, since
   they `TRUNCATE`). `db/test-db.ts` `assertSeparateTestDb()` refuses to TRUNCATE if the test
   URL equals `DATABASE_URL` (prod). `prices-immutable`/`serve-readonly` prove the role grants.
   All skip when unset, so `bun test` stays green without a DB.
 - **Cutover** (when ready): `bun run db:migrate && bun run db:roles` on prod (creates both
-  ingest + serve roles) → `bun run db:backfill` → `parity-check` prints OK → set
+  ingest + serve roles) → `bun run db:sync` (= `db:backfill && db:materialize` — never bare
+  backfill, or the artifact goes stale) → `parity-check` prints OK → set
   `DATABASE_URL_SERVE` + `USE_DB=1` in Vercel prod env → one last redeploy.
   Transitional caveat: until Plan 3 caching, each SSR creator-page render pulls its full
   dataset (~1.4 MB) from Neon uncached — watch SSR latency; revert via `USE_DB=0` if it regresses.
