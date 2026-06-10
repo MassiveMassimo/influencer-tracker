@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 
 // PostHog project token is public (ships to the client) — safe as a VITE_ build-time var.
 const KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined
-const HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com'
 
 // Dynamic-import after mount so the ~68KB gzip SDK never lands in the initial route
 // bundle (the app lazy-loads charts for the same reason). history_change still records
@@ -15,7 +14,12 @@ export function Analytics() {
     import('posthog-js')
       .then(({ default: posthog }) => {
         posthog.init(KEY, {
-          api_host: HOST,
+          // Reverse proxy: ingest + assets ride our own origin (/relay/**, rewritten
+          // to *.i.posthog.com by nitro routeRules in vite.config.ts) so blockers can't
+          // drop events. ui_host keeps in-app links (toolbar, "view in PostHog") pointed
+          // at the real US app.
+          api_host: '/relay',
+          ui_host: 'https://us.posthog.com',
           // defaults snapshot: history_change pageviews (fire on TanStack Router navs),
           // pageleave, and head-injected external scripts (SSR-safe replay recorder).
           defaults: '2026-01-30',

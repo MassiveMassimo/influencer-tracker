@@ -222,7 +222,7 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
 
 ## Analytics (PostHog)
 
-Client-side PostHog, direct ingest (no reverse proxy). `src/lib/analytics.tsx`
+Client-side PostHog, ingested through a reverse proxy. `src/lib/analytics.tsx`
 exports `<Analytics />`, a render-nothing component mounted once in `RootComponent`
 (`__root.tsx`). On mount it dynamic-imports `posthog-js` (keeping the ~68KB SDK off
 the initial route bundle) and inits; it skips init entirely when `VITE_POSTHOG_KEY`
@@ -234,14 +234,22 @@ router uses the History API), pageleave, and head-injected external scripts
 for "which sections are buried / least clicked") + session replay
 (`session_recording`, passwords masked). Session replay must **also** be toggled on
 in the PostHog project settings, not just here. The project token is public (ships to the client) — it's a
-build-time `VITE_` var, set in Vercel like `VITE_SITE_URL`. `VITE_POSTHOG_HOST`
-defaults to US (`us.i.posthog.com`); use `eu.i.posthog.com` for EU.
+build-time `VITE_` var, set in Vercel like `VITE_SITE_URL`.
 
-`VITE_POSTHOG_KEY`/`VITE_POSTHOG_HOST` are set in Vercel at **production scope
-only** — preview deploys (and local dev without a `.env` key) intentionally send
-nothing, so preview/PR traffic never pollutes the production analytics. Add the
-key to the preview scope only if you explicitly want a preview tracked. PostHog
-project is ID 8555 (US); dashboard at https://us.posthog.com/project/8555.
+**Reverse proxy.** `api_host` is `/relay` (not a PostHog host). `nitro.routeRules`
+in `vite.config.ts` rewrite `/relay/static/**` → `us-assets.i.posthog.com/static`
+(SDK/recorder assets) and `/relay/**` → `us.i.posthog.com` (ingestion). Plain proxy
+rules compile to **CDN-level rewrites** on Vercel (edge, no function invocation), so
+events ride our own origin and ad/tracker blockers (which blocklist `*.i.posthog.com`)
+can't drop them. `ui_host` stays `https://us.posthog.com` so in-app links work. There
+is no `VITE_POSTHOG_HOST` — the US upstreams are baked into the route rules (swap them
+for EU). The `/static` rule must stay first (more specific match).
+
+`VITE_POSTHOG_KEY` is set in Vercel at **production scope only** — preview deploys
+(and local dev without a `.env` key) intentionally send nothing, so preview/PR traffic
+never pollutes the production analytics. Add the key to the preview scope only if you
+explicitly want a preview tracked. PostHog project is `influencer-tracker` (ID 463765,
+US) in the personal org; dashboard at https://us.posthog.com/project/463765.
 
 ## Deployment (Vercel)
 

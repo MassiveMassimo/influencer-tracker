@@ -25,6 +25,13 @@ const config = defineConfig({
           Link: '</sitemap.xml>; rel="sitemap", </llms.txt>; rel="llms-txt"',
         },
       },
+      // PostHog reverse proxy — route analytics through our own origin so
+      // ad/tracker blockers (which blocklist *.i.posthog.com) can't drop events.
+      // Plain proxy rules compile to CDN-level rewrites on Vercel (no function
+      // invocation). Two upstreams: static assets vs ingestion. Keep the /static
+      // rule first — it's the more specific match. See analytics.tsx (api_host).
+      '/relay/static/**': { proxy: 'https://us-assets.i.posthog.com/static/**' },
+      '/relay/**': { proxy: 'https://us.i.posthog.com/**' },
     },
   },
   plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
