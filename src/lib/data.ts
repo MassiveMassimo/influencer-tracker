@@ -46,11 +46,23 @@ export async function fetchDataset(handle: string): Promise<Dataset> {
     });
     if (r != null) return r;
   }
-  const path = `/datasets/${handle}.json`;
-  const url = typeof window === "undefined" ? siteUrl(path) : path;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`dataset ${handle}: ${res.status}`);
-  return DatasetSchema.parse(await res.json());
+  // Primary: cached API route (DB-fresh under USE_DB; cache-revalidated on CDN).
+  // Fallback: deploy-frozen static asset for cold/broken API.
+  try {
+    const apiPath = `/api/dataset/${handle}`;
+    // USE_DB=0 SSR: two hops (fn→/api→CDN); USE_DB=1 in prod reads DB directly above.
+    const apiUrl = typeof window === "undefined" ? siteUrl(apiPath) : apiPath;
+    const res = await fetch(apiUrl);
+    if (res.ok) return DatasetSchema.parse(await res.json());
+    throw new Error(`dataset ${handle}: ${res.status}`);
+  } catch (e) {
+    console.warn(`/api fetch failed (fetchDataset ${handle}) — falling back to static`, e);
+    const path = `/datasets/${handle}.json`;
+    const url = typeof window === "undefined" ? siteUrl(path) : path;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`dataset ${handle}: ${res.status}`);
+    return DatasetSchema.parse(await res.json());
+  }
 }
 
 // Shared per-ticker baked OHLC. Ticker-page fallback when the live Yahoo fetch errors.
@@ -64,11 +76,26 @@ export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
     // Fall through to static if DB returned an empty array (symbol not yet in DB).
     if (r != null && r.length) return r;
   }
-  const path = `/prices/${symbol}.json`;
-  const url = typeof window === "undefined" ? siteUrl(path) : path;
-  const res = await fetch(url);
-  if (!res.ok) return [];
-  return PriceFileSchema.parse(await res.json());
+  // Primary: cached API route (DB-fresh under USE_DB; cache-revalidated on CDN).
+  // Fallback: deploy-frozen static asset on fetch error (catch). A non-OK API response
+  // returns [] directly — the API route already serves 200+[] for legitimate misses, so a
+  // non-OK here is a true upstream error where the static fetch would also fail. Preserves
+  // the original "never throw on missing prices" contract.
+  try {
+    const apiPath = `/api/prices/${symbol}`;
+    // USE_DB=0 SSR: two hops (fn→/api→CDN); USE_DB=1 in prod reads DB directly above.
+    const apiUrl = typeof window === "undefined" ? siteUrl(apiPath) : apiPath;
+    const res = await fetch(apiUrl);
+    if (res.ok) return PriceFileSchema.parse(await res.json());
+    return [];
+  } catch (e) {
+    console.warn(`/api fetch failed (fetchPrices ${symbol}) — falling back to static`, e);
+    const path = `/prices/${symbol}.json`;
+    const url = typeof window === "undefined" ? siteUrl(path) : path;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    return PriceFileSchema.parse(await res.json());
+  }
 }
 
 // Slim cross-creator calls index (Plan 2). One cached asset for the /explore and
@@ -83,9 +110,21 @@ export async function fetchCallsIndex(): Promise<CallIndexEntry[]> {
     });
     if (r != null) return r;
   }
-  const path = "/calls-index.json";
-  const url = typeof window === "undefined" ? siteUrl(path) : path;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`calls-index: ${res.status}`);
-  return CallIndexSchema.parse(await res.json());
+  // Primary: cached API route (DB-fresh under USE_DB; cache-revalidated on CDN).
+  // Fallback: deploy-frozen static asset for cold/broken API.
+  try {
+    const apiPath = "/api/calls-index";
+    // USE_DB=0 SSR: two hops (fn→/api→CDN); USE_DB=1 in prod reads DB directly above.
+    const apiUrl = typeof window === "undefined" ? siteUrl(apiPath) : apiPath;
+    const res = await fetch(apiUrl);
+    if (res.ok) return CallIndexSchema.parse(await res.json());
+    throw new Error(`calls-index: ${res.status}`);
+  } catch (e) {
+    console.warn(`/api fetch failed (fetchCallsIndex) — falling back to static`, e);
+    const path = "/calls-index.json";
+    const url = typeof window === "undefined" ? siteUrl(path) : path;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`calls-index: ${res.status}`);
+    return CallIndexSchema.parse(await res.json());
+  }
 }
