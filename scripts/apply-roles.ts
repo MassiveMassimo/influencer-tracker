@@ -41,6 +41,11 @@ async function main() {
   await sql.query(`ALTER ROLE serve PASSWORD '${servePw.replaceAll("'", "''")}'`);
   await sql`GRANT SELECT ON creators, calls, prices, artifacts TO serve`;
   await sql`REVOKE INSERT, UPDATE, DELETE ON creators, calls, prices, artifacts FROM serve`;
+  // Future migrations create tables owned by the migration role (DATABASE_URL owner), so
+  // auto-grant the read role SELECT on them — a new table is then servable without re-running
+  // this script. (ingest stays per-table: prices is insert-only while creators/calls/artifacts
+  // are writable, so a migration adding a *writable* table still needs a db:roles re-run.)
+  await sql`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO serve`;
   console.log("serve role configured: SELECT-only.");
 }
 main();

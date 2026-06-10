@@ -23,6 +23,8 @@ export function getDb(): Db {
 // Writer path for operator scripts (backfill, materialize): the restricted `ingest`
 // role (DATABASE_URL_INGEST) when configured, else owner. Distinct from getDb() so the
 // public serve connection stays SELECT-only while writers retain INSERT/UPDATE.
+// Not memoized (unlike getDb): one-shot scripts call it once, and skipping the cache keeps
+// the writer connection out of the long-lived serverless instance state getDb lives in.
 export function getWriteDb(): Db {
   return makeDb(process.env.DATABASE_URL_INGEST ?? process.env.DATABASE_URL!);
 }

@@ -19,8 +19,12 @@ function canon(v: unknown): unknown {
 const eq = (a: unknown, b: unknown) => JSON.stringify(canon(a)) === JSON.stringify(canon(b));
 
 async function main() {
-  const db = makeDb();
+  // Verify the EXACT connection prod will serve from (getDb → DATABASE_URL_SERVE), not the
+  // owner — so a wrong-branch serve URL or a missing serve GRANT is caught here, before the
+  // USE_DB=1 flip, rather than silently degrading every SSR render to static at runtime.
+  const db = makeDb(process.env.DATABASE_URL_SERVE ?? process.env.DATABASE_URL);
   const index = readJson(join(ROOT, "data", "creators", "index.json"));
+  if (index.length === 0) throw new Error("index.json empty — refusing to certify parity");
   if (!eq(index, await readIndex(db))) throw new Error("index parity FAILED");
   for (const e of index) {
     const stat = readJson(join(ROOT, "data", "creators", e.handle, "dataset.json"));
@@ -30,6 +34,7 @@ async function main() {
   // Prices are the frozen-scoring source of truth — verify every per-symbol OHLC file
   // reassembles byte-identical from the DB, not just creators/calls.
   const priceFiles = readdirSync(join(ROOT, "data", "prices")).filter((f) => f.endsWith(".json"));
+  if (priceFiles.length === 0) throw new Error("no price files found — refusing to certify parity");
   for (const f of priceFiles) {
     const symbol = f.replace(/\.json$/, "");
     const stat = readJson(join(ROOT, "data", "prices", f));

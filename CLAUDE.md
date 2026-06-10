@@ -149,7 +149,10 @@ follow.
   (writer) has INSERT/UPDATE on creators/calls/artifacts and INSERT-only on `prices`
   (UPDATE/DELETE REVOKEd — frozen scoring, never rewrite a scored price); **serve** (public
   read path) is SELECT-only on every table. Passwords: `INGEST_ROLE_PASSWORD`,
-  `SERVE_ROLE_PASSWORD` (both >=16 chars `[A-Za-z0-9_-]`).
+  `SERVE_ROLE_PASSWORD` (both >=16 chars `[A-Za-z0-9_-]`). `serve` auto-grants SELECT on
+  future tables (ALTER DEFAULT PRIVILEGES); `ingest` grants are per-table (prices insert-only
+  vs writable creators/calls/artifacts), so re-run `db:roles` after a migration adding a
+  writable table.
 - **Backfill** (`bun run db:backfill`, runs as ingest) loads the committed static data into
   the DB, idempotently (creators/calls upsert all columns; prices insert-only). **Parity
   gate**: `bun run scripts/parity-check.ts` asserts DB reassembly == static JSON (canonical
