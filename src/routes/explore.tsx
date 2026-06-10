@@ -2,15 +2,22 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { fetchCallsIndex, listCreators } from "../lib/data";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
+import { DataAsOf } from "../components/DataAsOf";
 import { siteUrl } from "#/og/site.ts";
 
 export const Route = createFileRoute("/explore")({
   loader: async () => {
     const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
+    // The calls-index artifact ships as a plain array with no generatedAt; use the freshest
+    // creator's generatedAt as the cross-creator "data as of" (newest scoring run in the set).
+    const generatedAt = creators.reduce<string>(
+      (max, c) => (c.generatedAt > max ? c.generatedAt : max),
+      "",
+    );
     // Only handle + name are used (the creator chips + the names map); drop the inlined
     // base64 avatars and stats so they aren't dehydrated into the SSR HTML (the root
     // loader already ships the full roster — no need to duplicate the avatar payload here).
-    return { calls, creators: creators.map((c) => ({ handle: c.handle, name: c.name })) };
+    return { calls, generatedAt, creators: creators.map((c) => ({ handle: c.handle, name: c.name })) };
   },
   head: () => ({
     meta: [
@@ -31,7 +38,7 @@ function tone(x: number | null) {
 }
 
 function Explore() {
-  const { calls, creators } = Route.useLoaderData();
+  const { calls, generatedAt, creators } = Route.useLoaderData();
   const names = useMemo(() => Object.fromEntries(creators.map((c) => [c.handle, c.name])), [creators]);
   const [filter, setFilter] = useState<CallFilter>({
     search: "", handles: [], firstOnly: false, beatSpyOnly: false, horizon: "ex3m", sort: { key: "postDate", dir: -1 },
@@ -50,6 +57,7 @@ function Explore() {
         <p className="mt-1 text-sm text-muted-foreground">
           Every scored call across all creators. Filter, sort, and search (all client-side over one cached index, {calls.length} calls).
         </p>
+        {generatedAt && <DataAsOf iso={generatedAt} className="mt-2 block" />}
       </header>
 
       <div className="flex flex-wrap items-center gap-2">

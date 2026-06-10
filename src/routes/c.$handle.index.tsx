@@ -6,6 +6,7 @@ import { useInView } from "#/lib/use-in-view.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
+import { DataAsOf } from "../components/DataAsOf";
 import { ChartBoundary } from "../components/ChartBoundary";
 import {
   CallFunnel,
@@ -153,10 +154,10 @@ function Overview() {
           </div>
           <h1 className="mt-1 font-heading text-2xl">{ds.creator.name}</h1>
         </div>
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
-          as of {ds.generatedAt}
+        <div>
+          <DataAsOf iso={ds.generatedAt} />
           {ageDays(ds.generatedAt) > 30 && (
-            <span className="ml-2 text-amber-600 dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
+            <span className="ml-2 font-mono text-[10px] text-amber-600 uppercase tracking-[0.2em] dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
           )}
         </div>
       </header>
