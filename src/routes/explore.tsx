@@ -7,7 +7,10 @@ import { siteUrl } from "#/og/site.ts";
 export const Route = createFileRoute("/explore")({
   loader: async () => {
     const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
-    return { calls, creators };
+    // Only handle + name are used (the creator chips + the names map); drop the inlined
+    // base64 avatars and stats so they aren't dehydrated into the SSR HTML (the root
+    // loader already ships the full roster — no need to duplicate the avatar payload here).
+    return { calls, creators: creators.map((c) => ({ handle: c.handle, name: c.name })) };
   },
   head: () => ({
     meta: [

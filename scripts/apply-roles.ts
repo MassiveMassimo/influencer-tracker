@@ -21,6 +21,8 @@ async function main() {
   await sql`GRANT INSERT, SELECT ON prices TO ingest`;
   await sql`REVOKE UPDATE, DELETE ON prices FROM ingest`;
   await sql`GRANT INSERT, UPDATE, SELECT ON creators, calls TO ingest`;
+  // Materialized serve artifacts (Plan 2) — ingest upserts them at the end of a run.
+  await sql`GRANT INSERT, UPDATE, SELECT ON artifacts TO ingest`;
   console.log("ingest role configured: prices insert-only.");
 }
 main();

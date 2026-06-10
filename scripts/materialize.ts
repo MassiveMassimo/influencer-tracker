@@ -11,7 +11,12 @@ async function main() {
   const index = await readIndex(db);
   const datasets = await Promise.all(index.map((e) => readDataset(db, e.handle)));
   const callsIndex = buildCallsIndex(datasets);
-  const generatedAt = new Date().toISOString().slice(0, 10);
+  // Never clobber a good artifact with an empty one — an empty index means the DB is
+  // un-backfilled or an ingest run failed before reaching here, not "zero calls".
+  if (callsIndex.length === 0) {
+    throw new Error("refusing to materialize an empty calls-index (DB un-backfilled or mid-ingest?)");
+  }
+  const generatedAt = new Date().toISOString();
   await db
     .insert(artifacts)
     .values({ key: "calls-index", payload: callsIndex, generatedAt })

@@ -8,8 +8,12 @@ export const Route = createFileRoute("/t/$symbol")({
     const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
     const summary = summarizeTicker(calls, params.symbol);
     if (summary.callCount === 0) throw notFound();
-    const names = Object.fromEntries(creators.map((c) => [c.handle, c.name] as const));
-    const avatars = Object.fromEntries(creators.map((c) => [c.handle, c.avatar] as const));
+    // Only the creators who called this ticker are rendered — project to just those so the
+    // whole roster's inlined base64 avatars aren't dehydrated into the SSR HTML.
+    const shownHandles = new Set(summary.byCreator.map((b) => b.handle));
+    const shown = creators.filter((c) => shownHandles.has(c.handle));
+    const names = Object.fromEntries(shown.map((c) => [c.handle, c.name] as const));
+    const avatars = Object.fromEntries(shown.map((c) => [c.handle, c.avatar] as const));
     return { summary, names, avatars };
   },
   head: ({ params }) => ({

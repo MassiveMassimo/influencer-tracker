@@ -59,5 +59,9 @@ export async function readPrices(db: Db, symbol: string): Promise<OhlcBar[]> {
 export async function readCallsIndex(db: Db): Promise<CallIndexEntry[]> {
   const [row] = await db.select().from(artifacts).where(eq(artifacts.key, "calls-index"));
   if (!row) throw new Error("calls-index artifact missing — run `bun run db:materialize`");
-  return CallIndexSchema.parse(row.payload);
+  const parsed = CallIndexSchema.parse(row.payload);
+  // An empty index is a DB problem (un-backfilled / mid-ingest), not a real "no calls"
+  // state — throw so fetchCallsIndex degrades to the static asset (mirrors Plan 1 finding 1).
+  if (parsed.length === 0) throw new Error("calls-index artifact empty — run `bun run db:materialize`");
+  return parsed;
 }
