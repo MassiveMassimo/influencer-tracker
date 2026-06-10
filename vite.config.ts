@@ -32,6 +32,14 @@ const config = defineConfig({
       // rule first — it's the more specific match. See analytics.tsx (api_host).
       '/relay/static/**': { proxy: 'https://us-assets.i.posthog.com/static/**' },
       '/relay/**': { proxy: 'https://us.i.posthog.com/**' },
+      // 6h stale-while-revalidate on Vercel CDN — serve API and SSR pages from
+      // the edge; background revalidation keeps data fresh without blocking reqs.
+      '/api/dataset/**': { swr: 21600 },
+      '/api/prices/**': { swr: 21600 },
+      '/api/calls-index': { swr: 21600 },
+      '/c/**': { swr: 21600 },
+      '/t/**': { swr: 21600 },
+      '/explore': { swr: 21600 },
     },
   },
   plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
