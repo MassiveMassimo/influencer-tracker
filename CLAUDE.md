@@ -113,6 +113,37 @@ the root route is `createRootRouteWithContext<{ queryClient }>`. The ticker
 loader prefetches the default timeframe with `ensureQueryData` for an SSR first
 paint.
 
+## Data source: DB vs static (Plan 1 — live re-architecture)
+
+Migrating from static-JSON-baked-at-build to **Neon Postgres as source of truth**, so
+data updates need no redeploy (see `docs/superpowers/specs/2026-06-10-live-ingestion-rearchitecture-design.md`
+and `docs/superpowers/plans/2026-06-10-live-rearch-plan1-db-foundation.md`). Plan 1 (the
+foundation) is in; Plans 2–4 (cross-creator features, ingest+materialize+cache, LLM gate)
+follow.
+
+- **Schema** (`db/schema.ts`, drizzle + `@neondatabase/serverless` neon-http): `creators`,
+  `calls` (PK `(handle, shortcode)`, `ord` column preserves source file order — `postDate`
+  has ties), `prices` (shared per-symbol OHLC). Migrations: `bun run db:generate` /
+  `db:migrate`. Client is lazy (`getDb()`, `db/client.ts`) — never constructed at module
+  load, so it stays out of the client bundle.
+- **`USE_DB` flag** (`src/lib/data.ts`): `"1"` = `listCreators`/`fetchDataset`/`fetchPrices`
+  read from the DB **during SSR only** (window-guarded, DB modules dynamically imported);
+  unset/`"0"` = the current static-JSON path. **Static JSON is always the panic fallback** —
+  any DB error logs and degrades to it. Flip back instantly with `USE_DB=0`.
+- **Frozen prices are DB-enforced**: `prices` is insert-only for the restricted `ingest`
+  role (`scripts/apply-roles.ts` REVOKEs UPDATE/DELETE). Never rewrite a scored price.
+- **Backfill** (`bun run db:backfill`) loads the committed static data into the DB,
+  idempotently (creators/calls upsert all columns; prices insert-only). **Parity gate**:
+  `bun run scripts/parity-check.ts` asserts DB reassembly == static JSON (canonical
+  deep-equal) — must print `PARITY OK` before flipping `USE_DB=1`.
+- **Tests**: `db/*.test.ts` + `src/lib/db-read.test.ts` are env-gated (`DATABASE_URL_TEST`,
+  `DATABASE_URL_INGEST_TEST` — a separate Neon **branch**, since they `TRUNCATE`). They skip
+  when unset, so `bun test` stays green without a DB.
+- **Cutover** (when ready): `bun run db:migrate && bun run db:roles` on prod → `bun run db:backfill`
+  → `parity-check` prints OK → set `USE_DB=1` in Vercel prod env → one last redeploy.
+  Transitional caveat: until Plan 3 caching, each SSR creator-page render pulls its full
+  dataset (~1.4 MB) from Neon uncached — watch SSR latency; revert via `USE_DB=0` if it regresses.
+
 ## Profile pics
 
 Platform-agnostic, like the `ReelCall` contract. Each scraper resolves its own
