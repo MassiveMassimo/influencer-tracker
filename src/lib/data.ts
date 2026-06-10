@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { DatasetSchema, PriceFileSchema } from "./schema";
+import { CallIndexSchema, type CallIndexEntry } from "./call-index";
 import type { Dataset, OhlcBar } from "./types";
 import { loadIndex } from "./dataset-source";
 import { siteUrl } from "../og/site";
@@ -60,4 +61,24 @@ export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
   const res = await fetch(url);
   if (!res.ok) return [];
   return PriceFileSchema.parse(await res.json());
+}
+
+// Slim cross-creator calls index (Plan 2). One cached asset for the /explore and
+// /t/$symbol routes; all filter/sort/search is client-side over it. DB-first under
+// USE_DB (the artifacts table, refreshed by ingest in Plan 3); static asset otherwise.
+export async function fetchCallsIndex(): Promise<CallIndexEntry[]> {
+  if (serverUseDb()) {
+    try {
+      const { getDb } = await import("../../db/client");
+      const { readCallsIndex } = await import("./db-read");
+      return await readCallsIndex(getDb());
+    } catch (e) {
+      console.error("fetchCallsIndex DB fallback", e);
+    }
+  }
+  const path = "/calls-index.json";
+  const url = typeof window === "undefined" ? siteUrl(path) : path;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`calls-index: ${res.status}`);
+  return CallIndexSchema.parse(await res.json());
 }
