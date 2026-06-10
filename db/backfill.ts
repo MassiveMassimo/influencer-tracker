@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import type { Db } from "./client";
 import { creators, calls, prices } from "./schema";
 import type { Dataset, OhlcBar } from "#/lib/types";
@@ -55,8 +55,36 @@ export async function backfillCreator(db: Db, indexEntry: IndexEntry, ds: Datase
 }
 
 // Insert-only: never updates existing (symbol,date) rows — preserves frozen prices.
+// Before inserting, surface any incoming bar whose OHLC differs from a stored bar on
+// the same (symbol,date): onConflictDoNothing would silently drop it, which is correct
+// for a benign re-run but hides an intentional Yahoo restatement (split/dividend). The
+// warn makes that visible — a real restatement is an OWNER-role `UPDATE prices`
+// followed by re-score + parity-check (see CLAUDE.md). One pre-query per symbol batch.
 export async function backfillPrices(db: Db, symbol: string, bars: OhlcBar[]): Promise<void> {
   if (bars.length === 0) return;
+
+  const existing = await db.select().from(prices)
+    .where(and(eq(prices.symbol, symbol), inArray(prices.date, bars.map((b) => b.date))));
+  if (existing.length > 0) {
+    const stored = new Map(existing.map((r) => [r.date, r]));
+    // Compare with an epsilon, not ===: doublePrecision round-trips losslessly in practice but
+    // a precision change upstream shouldn't spam warns. A real restatement (split/dividend) moves
+    // values far more than 1e-9, so this still catches genuine drift.
+    const differs = (x: number, y: number) => Math.abs(x - y) > 1e-9;
+    const drifted = bars.filter((b) => {
+      const s = stored.get(b.date);
+      return s && (differs(s.o, b.o) || differs(s.h, b.h) || differs(s.l, b.l) || differs(s.c, b.c));
+    });
+    if (drifted.length > 0) {
+      console.warn(
+        `[backfillPrices] ${symbol}: ${drifted.length} incoming bar(s) differ from frozen ` +
+        `stored values and will be dropped (insert-only). Dates: ` +
+        `${drifted.map((b) => b.date).join(", ")}. ` +
+        `If this is an intentional restatement, UPDATE prices as the DB owner, then re-score + parity-check.`,
+      );
+    }
+  }
+
   await db.insert(prices).values(bars.map((b) => ({ symbol, date: b.date, o: b.o, h: b.h, l: b.l, c: b.c })))
     .onConflictDoNothing();
 }

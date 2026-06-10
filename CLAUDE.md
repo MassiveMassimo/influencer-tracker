@@ -120,6 +120,23 @@ caps). The split, by granularity:
 
 `data/prices/` is committed (it's the build-time source for `public/prices/`).
 
+**Prices are insert-only, both stores.** `mergePrices` (`src/lib/prices-merge.ts`) is
+**existing-wins** on a date collision — an existing bar keeps its OHLC; only
+genuinely-new dates are appended. This mirrors the DB `prices` table (insert-only via
+`onConflictDoNothing` in `db/backfill.ts` `backfillPrices`). Both are insert-only **by
+design** so forward-return scoring stays reproducible: a later Yahoo restatement
+(split/dividend) can never silently rewrite a bar an accuracy figure was computed
+against. `backfillPrices` `console.warn`s when an incoming bar differs from a frozen
+stored bar (so a restatement is visible, not silently dropped).
+
+**Restatement runbook (intentional split/dividend).** Rewriting a frozen price is an
+**OWNER-role** operation — neither the `ingest` role (insert-only on `prices`) nor the
+`serve` role (read-only) can do it. Connect as the DB owner, `UPDATE prices SET … WHERE
+symbol = … AND date = …`, then **re-run the affected creator(s)' `score`** (so the
+static store + baked accuracy recompute) and **`bun run scripts/parity-check.ts`** (must
+print `PARITY OK`). The merge fn and the DB stay insert-only; the owner UPDATE is the
+single sanctioned path to change a scored bar.
+
 `QueryClient` is wired in `src/router.tsx` via `setupRouterSsrQueryIntegration`;
 the root route is `createRootRouteWithContext<{ queryClient }>`. The ticker
 loader prefetches the default timeframe with `ensureQueryData` for an SSR first
