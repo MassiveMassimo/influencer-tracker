@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { z } from "zod";
 import { creatorDir } from "./config";
 import { groq } from "./groq";
 import type { Direction, ReelCall } from "../src/lib/types";
@@ -25,16 +26,33 @@ export interface Classification {
   summary: string;
 }
 
-// One LLM classification call. Returns null on malformed JSON (caller skips).
-// `client` is the OpenAI-compatible POST fn (groq by default, fireworks for the
-// high-volume X path). Both share this prompt/parse so platforms never diverge.
+// Runtime validation of the LLM reply payload. The model is instructed to emit
+// exactly this shape (see CLASSIFY_SYS); coerce/clamp the few fields a model
+// realistically gets slightly wrong rather than rejecting the whole call.
+const ClassificationSchema = z.object({
+  ticker: z.string().nullable().catch(null),
+  company: z.string().nullable().catch(null),
+  direction: z.enum(["bullish", "bearish", "neutral"]).catch("neutral"),
+  isExplicitBuy: z.boolean().catch(false),
+  conviction: z.number().min(0).max(1).catch(0),
+  quote: z.string().catch(""),
+  onScreenPrice: z.number().nullable().catch(null),
+  summary: z.string().catch(""),
+});
+
+// One LLM classification call. Throws on an unreadable reply (missing envelope or
+// non-JSON content) so the caller's retry loop re-runs the post; returns a
+// validated Classification otherwise (a genuine no-ticker reply is still a valid
+// payload, handled downstream by toReelCall). `client` is the OpenAI-compatible
+// POST fn (groq by default, fireworks for the high-volume X path). Both share this
+// prompt/parse so platforms never diverge.
 type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
 
 export async function classify(
   textModel: string,
   body: string,
   client: ChatClient = groq,
-): Promise<Classification | null> {
+): Promise<Classification> {
   const r = await (await client("/chat/completions", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -42,12 +60,18 @@ export async function classify(
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: CLASSIFY_SYS }, { role: "user", content: body }],
     }),
-  })).json() as { choices: { message: { content: string } }[] };
-  try {
-    return JSON.parse(r.choices[0].message.content) as Classification;
-  } catch {
-    return null;
+  })).json() as { choices?: { message?: { content?: string } }[] };
+  const content = r.choices?.[0]?.message?.content;
+  if (typeof content !== "string") {
+    throw new Error("classify: missing choices/content in LLM reply");
   }
+  let raw: unknown;
+  try {
+    raw = JSON.parse(content);
+  } catch {
+    throw new Error("classify: reply content was not valid JSON");
+  }
+  return ClassificationSchema.parse(raw);
 }
 
 // Normalize a classification into a ReelCall. Null if no ticker (not a stock call).

@@ -27,8 +27,13 @@ export async function extract(handle: string) {
     const fp = join(framesDir(handle), f);
     const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
     const body = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
-    const c = await classify(text, body);
-    if (!c) { console.warn(`skip ${code}: malformed extract response`); continue; }
+    let c;
+    try {
+      c = await classify(text, body);
+    } catch (e) {
+      console.warn(`skip ${code}: classify failed — ${(e as Error).message}`);
+      continue;
+    }
     const rc = toReelCall(c, code, await postDateOf(handle, code));
     if (rc) out.push(rc);
   }

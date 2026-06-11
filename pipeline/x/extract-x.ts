@@ -12,7 +12,7 @@ import type { ReelCall } from "../../src/lib/types";
 export interface ExtractDeps {
   text: string;
   vision: string;
-  classifyFn: (textModel: string, body: string) => Promise<Classification | null>;
+  classifyFn: (textModel: string, body: string) => Promise<Classification>;
   readImageFn: (vision: string, imgPath: string) => Promise<FrameHint>;
 }
 
@@ -29,7 +29,6 @@ export async function tweetToReelCall(t: TweetRecord, handle: string, deps: Extr
   }
   const body = `TWEET:\n${t.text}\n\nIMAGE HINTS:\n${JSON.stringify(hints)}`;
   const c = await deps.classifyFn(deps.text, body);
-  if (!c) return null;
   return toReelCall(c, t.id, tweetDate(t.createdAt));
 }
 
