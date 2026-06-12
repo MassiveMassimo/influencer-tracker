@@ -98,7 +98,10 @@ export async function scrapeX(handle: string, months = 12, opts: { forward?: boo
     // Incremental: only tweets NEWER than the newest we already have. Use `newest` as-is
     // (no +1s) — `seen` dedupes the boundary tweet, and +1s would skip a different tweet
     // posted in the same second.
-    const newest = new Date(Math.max(...records.map((r) => new Date(r.createdAt).getTime())));
+    const newest = new Date(records.reduce((max, r) => {
+      const t = new Date(r.createdAt).getTime();
+      return t > max ? t : max;
+    }, 0));
     const filter = { fromUsers: [user], onlyOriginal: true, startDate: newest, endDate: new Date() };
     let cursor: string | undefined;
     for (let page = 0; page < 400; page++) {
@@ -111,6 +114,7 @@ export async function scrapeX(handle: string, months = 12, opts: { forward?: boo
     }
     console.log(`forward scrape: ${records.length} total (${seen.size} unique)`);
   } else {
+    if (opts.forward) console.log("forward requested but no prior data — running full backfill");
     // Backward-walk backfill: walk backwards in time windows (endDate = oldest seen)
     // to cover the full range, deduping by id.
     let windowEnd = records.length
