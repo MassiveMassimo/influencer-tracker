@@ -18,7 +18,7 @@ const start = args.from ? stages.indexOf(args.from) : 0;
 for (const stage of stages.slice(start)) {
   console.log(`\n=== ${stage} ===`);
   if (stage === "scrape") {
-    await scrapeX(handle);
+    await scrapeX(handle, 12, { forward: "forward" in args });
   } else if (stage === "extract") {
     await extractX(handle);
     console.log("PAUSE: review calls.review.md then re-run with --from prices");
