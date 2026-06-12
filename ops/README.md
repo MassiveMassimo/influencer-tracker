@@ -130,8 +130,15 @@ concurrently. Run one handle at a time if ingesting multiple handles on the same
 4. **Parity check** — asserts DB reassembly equals static JSON for index, every
    dataset, every price symbol, and the materialized calls-index artifact. Must print
    `PARITY OK` before proceeding.
-5. **Revalidate** — POSTs to `/api/revalidate` with `REVALIDATE_TOKEN` to bust the
-   ISR-cached CDN entries for the affected creator and ticker paths.
+5. **Revalidate** (`scripts/revalidate-creator.ts`, best-effort) — GETs the affected
+   creator + ticker paths (`/c/<h>`, `/api/dataset/<h>`, `/explore`, `/api/calls-index`,
+   each `/t/<sym>` + `/api/prices/<sym>`) against `VITE_SITE_URL` with header
+   `x-prerender-revalidate: <REVALIDATE_TOKEN>` — Vercel's on-demand prerender bypass.
+   The build bakes the same `REVALIDATE_TOKEN` into each ISR route's prerender config
+   (`vite.config.ts` `nitro.vercel.config.bypassToken`), so the sent token must equal the
+   build-time value. Never throws; if it's skipped or the token is unset, the 6h ISR TTL
+   still refreshes the CDN. (The older `/api/revalidate` POST seam still exists but is an
+   inert 3a stub — it is *not* what resume calls.)
 
 If any step fails, resume exits with a non-zero code and Telegrams a failure message.
 
