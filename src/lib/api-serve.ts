@@ -6,6 +6,14 @@ import { siteUrl } from "#/og/site.ts";
 // Vercel/most CDNs ignore the bare directive, so SWR would never fire without =N.
 export const CACHE_CONTROL = "public, max-age=0, s-maxage=21600, stale-while-revalidate=21600";
 
+// A creator handle / ticker symbol is a short token. Reject anything else (encoded
+// slashes, query/fragment chars, traversal) before it reshapes the same-origin fetch
+// URL or mints an ISR cache entry. `.` `$` `!` are allowed for Yahoo symbols
+// (e.g. $ETH.X, SI1!); `/` `?` `#` `\` and `..`-with-slash traversal stay rejected.
+export function isSafeAssetKey(key: string): boolean {
+  return /^[A-Za-z0-9.$!_-]{1,40}$/.test(key);
+}
+
 type MissMode =
   | { onMiss: "empty"; emptyBody: string }
   | { onMiss: "error"; label: string };

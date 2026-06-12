@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { readFromDbOrNull } from "#/lib/data.ts";
-import { CACHE_CONTROL, staticFallback } from "#/lib/api-serve.ts";
+import { CACHE_CONTROL, isSafeAssetKey, staticFallback } from "#/lib/api-serve.ts";
 
 // Cached read route for a creator's full dataset. DB-first under USE_DB=1 (Plan 3 cache lives
 // in vite routeRules, Task 3); always-200 for a valid handle by falling back to the committed
@@ -11,6 +11,12 @@ export const Route = createFileRoute("/api/dataset/$handle")({
     handlers: {
       GET: async ({ params }) => {
         const handle = params.handle;
+        if (!isSafeAssetKey(handle)) {
+          return Response.json(
+            { error: "invalid handle" },
+            { status: 404, headers: { "Cache-Control": CACHE_CONTROL } },
+          );
+        }
         // SSR literal AT THE CALL SITE so Rollup DCE keeps neon/db modules out of any client
         // chunk (mirrors src/lib/data.ts); readFromDbOrNull adds the runtime USE_DB gate + log.
         if (import.meta.env.SSR) {
