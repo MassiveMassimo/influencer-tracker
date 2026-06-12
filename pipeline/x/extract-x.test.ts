@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test";
 import { tweetDate, tweetToReelCall, type ExtractDeps } from "./extract-x";
 import type { Classification } from "../calls";
 
-const deps = (c: Classification | null): ExtractDeps => ({
+const deps = (c: Classification): ExtractDeps => ({
   text: "text-model", vision: "vision-model",
   classifyFn: async () => c,
   readImageFn: async () => ({ ticker: null, price: null }),
@@ -23,10 +23,11 @@ describe("tweetToReelCall", () => {
     );
     expect(rc).toMatchObject({ shortcode: "t1", postDate: "2026-01-15", ticker: "NBIS", isExplicitBuy: true });
   });
-  it("returns null when classifier finds no call", async () => {
+  it("returns null when the model finds no ticker", async () => {
     const rc = await tweetToReelCall(
       { id: "t2", createdAt: "2026-01-15T10:00:00.000Z", text: "gm", imageUrls: [] },
-      "profinv", deps(null),
+      "profinv",
+      deps({ ticker: null, company: null, direction: "neutral", isExplicitBuy: false, conviction: 0, quote: "", onScreenPrice: null, summary: "" }),
     );
     expect(rc).toBeNull();
   });
