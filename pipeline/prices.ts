@@ -10,9 +10,17 @@ const yahooFinance = new YahooFinance();
 async function fetchOhlc(symbol: string, from: string): Promise<OhlcBar[]> {
   const rows = await yahooFinance.chart(symbol, { period1: from, interval: "1d" });
   return rows.quotes
-    .filter(q => q.open != null && q.close != null)
+    .filter(q => q.open != null && q.high != null && q.low != null && q.close != null)
     .map(q => ({ date: new Date(q.date).toISOString().slice(0,10),
       o: q.open!, h: q.high!, l: q.low!, c: q.close! }));
+}
+
+// Exported for tests. A cached series covers the needed range if it has more than
+// one bar and its earliest bar is at/before the requested `from` date.
+export function cacheCovers(cached: unknown, from: string): boolean {
+  if (!Array.isArray(cached) || cached.length <= 1) return false;
+  const first = cached[0];
+  return typeof first?.date === "string" && first.date <= from;
 }
 
 export async function prices(handle: string) {
@@ -23,13 +31,14 @@ export async function prices(handle: string) {
   for (const t of tickers) {
     const out = join(pricesDir(handle), `${t}.json`);
     if (existsSync(out)) {
-      // Distrust truncated caches: a partial Yahoo run can leave a 1-bar file
-      // that the old existsSync skip would keep forever (SPY benchmark broke
-      // this way). Only treat >1 bar as a real cache hit.
+      // Distrust truncated/under-covered caches: a partial Yahoo run can leave a
+      // short file the old existsSync skip would keep forever (SPY benchmark broke
+      // this way), and a newly-discovered older call can lower `from` below the
+      // cache's earliest bar. cacheCovers requires >1 bar AND earliest bar <= from.
       try {
         const cached = JSON.parse(await readFile(out, "utf8"));
-        if (Array.isArray(cached) && cached.length > 1) continue;
-        console.warn(`REFETCH ${t}: cached file has ${cached?.length ?? 0} bar(s)`);
+        if (cacheCovers(cached, from)) continue;
+        console.warn(`REFETCH ${t}: cache misses coverage (need <= ${from}, have ${Array.isArray(cached) && cached[0]?.date ? cached[0].date : "?"} / ${Array.isArray(cached) ? cached.length : 0} bar(s))`);
       } catch {
         console.warn(`REFETCH ${t}: unreadable cache`);
       }
