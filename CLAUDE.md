@@ -256,8 +256,11 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
 
 ## Conventions
 
-- **Tests run on `bun test`** (files import `bun:test`, NOT vitest). Typecheck
-  with `bunx tsc --noEmit`. The `#/` alias maps to `src/`.
+- **Tests run on `bun test`** (most files import `bun:test`; `pipeline/retry.test.ts`
+  and `pipeline/vision.test.ts` still import `vitest` — a known inconsistency to
+  reconcile). Typecheck with `bunx tsc --noEmit` (or `bun run typecheck`).
+  `.github/workflows/ci.yml` gates PRs + pushes to `main` on `bun test` + typecheck.
+  The `#/` alias maps to `src/`.
 - The X path reuses `pipeline/prices.ts`/`pipeline/score.ts`/`src/lib/scorecard.ts`/
   the dashboard unchanged — keep new platforms emitting the `ReelCall` shape, don't fork them.
 - Secrets in `.env` (gitignored): `GROQ_API_KEY`, `RETTIWT_API_KEY`,
