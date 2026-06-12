@@ -40,7 +40,22 @@ export async function prices(handle: string) {
       try {
         const cached = JSON.parse(await readFile(out, "utf8"));
         cachedBars = Array.isArray(cached) ? cached : [];
-        if (cacheCovers(cached, from)) continue;
+        if (cacheCovers(cached, from)) {
+          // Front-covered: extend FORWARD instead of skipping, else to-date freezes and
+          // recent horizons never mature. Fetch from ~10 days before the last bar so the
+          // overlap is >=2 trading days — detectBasisShift needs >=2 overlapping bars to fire.
+          const lastDate = cachedBars[cachedBars.length - 1]?.date ?? from;
+          const overlapFrom = new Date(new Date(lastDate).getTime() - 10 * 86400_000).toISOString().slice(0, 10);
+          try {
+            const fwd = await fetchOhlc(t, overlapFrom);
+            const shift = detectBasisShift(cachedBars, fwd);
+            if (shift != null) { console.warn(`SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping append, needs OWNER restatement`); continue; }
+            const ohlc = mergePrices(cachedBars, fwd);
+            await writeFile(out, JSON.stringify(ohlc));
+            console.log(`prices ${t}: extended to ${ohlc[ohlc.length - 1]?.date} (${ohlc.length} bars)`);
+          } catch (e) { console.warn(`FLAG ${t}: forward-extend failed: ${(e as Error).message}`); }
+          continue;
+        }
         console.warn(`REFETCH ${t}: cache misses coverage (need <= ${from}, have ${Array.isArray(cached) && cached[0]?.date ? cached[0].date : "?"} / ${Array.isArray(cached) ? cached.length : 0} bar(s))`);
       } catch {
         console.warn(`REFETCH ${t}: unreadable cache`);
