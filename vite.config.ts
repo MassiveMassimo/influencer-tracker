@@ -17,6 +17,13 @@ const config = defineConfig({
   // native @resvg/resvg-js addon) runs only in scripts/prebuild.ts at build time,
   // so it's deliberately not part of the app/server graph here.
   nitro: {
+    vercel: {
+      // On-demand ISR revalidation: Nitro bakes this into each isr route's
+      // .prerender-config.json. The VM's revalidate-creator.ts then GETs a path with
+      // `x-prerender-revalidate: <token>` to bust it instantly (else the 6h TTL governs).
+      // Reuses REVALIDATE_TOKEN (build-time env); unset → no token written → TTL-only.
+      config: { version: 3, bypassToken: process.env.REVALIDATE_TOKEN },
+    },
     // RFC 8288 Link header on the homepage for agent discovery — advertises the
     // sitemap and the llms.txt index in the HTTP response (no markup parse needed).
     routeRules: {
