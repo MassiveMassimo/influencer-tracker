@@ -1,0 +1,8 @@
+# ops/notify-fail.service  — dead-man backstop for crashes/timeouts the wrapper's try/catch misses
+[Service]
+Type=oneshot
+User=ubuntu
+EnvironmentFile=/home/ubuntu/influencer-tracker/.env
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/bin:/bin
+WorkingDirectory=/home/ubuntu/influencer-tracker
+ExecStart=/home/ubuntu/.bun/bin/bun -e 'import("./scripts/notify.ts").then(m=>m.notify("🚨 influencer-ingest unit failed/timed out"))'

@@ -1,0 +1,173 @@
+# VM ingest ops runbook
+
+Daily automated ingest for influencer-tracker. Two-stage: a systemd timer runs
+stage 1 (scrape + extract), then pauses for human review; the operator runs stage 2
+(score + sync + parity + revalidate) manually over SSH after approving the calls.
+
+---
+
+## 1. One-time VM setup
+
+### Clone via read-only deploy key
+
+Add a read-only SSH deploy key to the repo, install it at `~/.ssh/deploy_rsa` on the
+VM, and configure `~/.ssh/config`:
+
+```
+Host github.com
+  IdentityFile ~/.ssh/deploy_rsa
+  IdentitiesOnly yes
+```
+
+Then clone:
+
+```bash
+git clone git@github.com:MassiveMassimo/influencer-tracker.git ~/influencer-tracker
+cd ~/influencer-tracker
+bun install
+```
+
+### Seed per-creator state (required before first run)
+
+`reel-calls.json`, `raw/`, and `prices/` under `data/creators/<h>/` are gitignored —
+absent on a fresh clone. Rsync them from the Mac (source-of-truth checkout) for each
+existing X creator before the timer fires, or the first scrape starts from empty and
+a `db:sync` will corrupt that creator's stats.
+
+Run this from the Mac for each handle:
+
+```bash
+rsync -a data/creators/<h>/{reel-calls.json,raw,prices} \
+  ubuntu@imos-vm:~/influencer-tracker/data/creators/<h>/
+```
+
+Repeat for every handle listed in `INGEST_HANDLES`.
+
+### Populate `.env`
+
+Create `/home/ubuntu/influencer-tracker/.env` with:
+
+```
+DATABASE_URL_INGEST=...      # ingest role connection string (INSERT/UPDATE on creators/calls/artifacts, INSERT-only on prices)
+DATABASE_URL_SERVE=...       # serve role connection string (SELECT-only; parity-check reads this)
+GROQ_API_KEY=...
+FIREWORKS_API_KEY=...
+RETTIWT_API_KEY=...          # base64 cookie key from throwaway X account
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
+INGEST_HANDLES=handle1,handle2,...   # comma-separated list of X handles to ingest
+REVALIDATE_TOKEN=...         # on-demand ISR bypass token — must match the value baked into the Vercel build
+VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin for revalidate calls
+```
+
+### Install and enable the systemd units
+
+```bash
+sudo cp ~/influencer-tracker/ops/influencer-ingest.service /etc/systemd/system/
+sudo cp ~/influencer-tracker/ops/influencer-ingest.timer   /etc/systemd/system/
+sudo cp ~/influencer-tracker/ops/notify-fail.service       /etc/systemd/system/
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now influencer-ingest.timer
+
+# Confirm the timer is scheduled
+systemctl list-timers influencer-ingest.timer
+```
+
+---
+
+## 2. Daily flow
+
+### Stage 1 — automated (13:00 UTC)
+
+The timer fires `influencer-ingest.service`, which:
+
+1. Acquires `/tmp/influencer-ingest.lock` (exclusive, non-blocking via `flock -n`).
+2. Discards tracked VM writes and any untracked new-symbol price files, then pulls
+   fresh from `main` (see §4 for why).
+3. Runs `scripts/ingest.ts` for every handle in `INGEST_HANDLES`: forward scrape
+   (tweets since last run), extract calls via Fireworks, write `reel-calls.json` and
+   `calls.review.md`, then pause.
+4. Telegrams the operator a review ping with the exact command to inspect the output.
+
+### Stage 2 — manual (operator, over SSH)
+
+Review the extracted calls on the VM:
+
+```bash
+ssh ubuntu@imos-vm "cat ~/influencer-tracker/data/creators/<handle>/calls.review.md"
+```
+
+(The Telegram ping includes this exact command for the relevant handle.)
+
+If the calls look correct, run the resume:
+
+```bash
+ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts <handle>"
+```
+
+The `flock` here uses the **same lock file** as the timer. If the timer fires while
+the resume is running (unlikely but possible near 13:00 UTC), one of them will fail
+to acquire the lock and exit immediately rather than letting both proceed
+concurrently. Run one handle at a time if ingesting multiple handles on the same day.
+
+---
+
+## 3. What resume does
+
+`scripts/resume.ts` runs these stages in order:
+
+1. **Guard** — checks that the new `reel-calls.json` did not shrink materially vs the
+   prior run. Refuses to continue if it did (data-loss prevention; surface the diff
+   and investigate manually).
+2. **Score** — computes forward-return accuracy (1w/1m/3m/to-date vs SPY) for all
+   explicit bullish calls. Rewrites `dataset.json`, `index.json`, and per-symbol
+   files in `data/prices/`.
+3. **db:sync** (`db:backfill && db:materialize`) — upserts creators/calls into Neon,
+   insert-only on prices, then re-materializes the calls-index artifact. Always the
+   full sync, never bare backfill (a backfill without re-materialize leaves a stale
+   artifact).
+4. **Parity check** — asserts DB reassembly equals static JSON for index, every
+   dataset, every price symbol, and the materialized calls-index artifact. Must print
+   `PARITY OK` before proceeding.
+5. **Revalidate** — POSTs to `/api/revalidate` with `REVALIDATE_TOKEN` to bust the
+   ISR-cached CDN entries for the affected creator and ticker paths.
+
+If any step fails, resume exits with a non-zero code and Telegrams a failure message.
+
+---
+
+## 4. Ephemeral-scratch note
+
+`USE_DB=1` in production means Neon is the source of truth. The VM's static files
+(`dataset.json`, `index.json`, `data/prices/*.json`) are scratch — they get rewritten
+by `score` on every resume and discarded at the top of the next stage-1 run.
+
+Before each stage-1 run the service does:
+
+```bash
+git checkout -- data/        # reset all tracked files under data/ to HEAD
+git clean -fd data/prices/   # drop untracked new-symbol price files (scoped — never touches data/creators/)
+git pull --ff-only            # pull latest main
+```
+
+`data/creators/` is intentionally excluded from the clean: it holds seeded state
+(`reel-calls.json`, `raw/`, `prices/`) that is gitignored and must survive across runs.
+
+Accepted drift while `USE_DB=1`: the static panic-fallback JSON, baked OG cards, and
+per-call spark arrays go stale between manual redeploys. This is fine — the live DB
+path serves all normal traffic; the static files are only a fallback and a build-time
+input, not a runtime dependency.
+
+---
+
+## 5. Failure handling
+
+- **`notify-fail.service`** is declared in `influencer-ingest.service`'s `OnFailure=`
+  directive. If the ingest unit exits non-zero or is killed (timeout, OOM, etc.) and
+  the wrapper's own try/catch did not fire, systemd triggers `notify-fail.service`,
+  which calls `scripts/notify.ts` directly and sends a Telegram alert.
+- **`RuntimeMaxSec=4h`** is the dead-man timeout. If the ingest hangs for more than
+  four hours, systemd kills the unit and `notify-fail.service` fires.
+- To inspect a failed run: `journalctl -u influencer-ingest.service -n 100 --no-pager`
+- To trigger a manual test run (skips the lock): `sudo systemctl start influencer-ingest.service`

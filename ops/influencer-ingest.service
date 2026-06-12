@@ -1,0 +1,15 @@
+# ops/influencer-ingest.service
+[Unit]
+Description=influencer-tracker stage-1 ingest (X, forward incremental)
+OnFailure=notify-fail.service
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/influencer-tracker
+EnvironmentFile=/home/ubuntu/influencer-tracker/.env
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+RuntimeMaxSec=4h
+# VM static writes are ephemeral (DB is truth) — discard tracked + untracked new-symbol price
+# files, then pull. clean ONLY data/prices (never data/creators — that holds seeded state).
+# flock serializes vs a manual resume.
+ExecStart=/usr/bin/flock -n /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/prices/ && git pull --ff-only && bun run scripts/ingest.ts'

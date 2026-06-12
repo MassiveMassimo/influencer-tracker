@@ -1,0 +1,8 @@
+# ops/influencer-ingest.timer
+[Unit]
+Description=daily influencer-tracker ingest
+[Timer]
+OnCalendar=*-*-* 13:00:00 UTC
+Persistent=true
+[Install]
+WantedBy=timers.target
