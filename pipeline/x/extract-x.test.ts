@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test";
-import { tweetDate, tweetToReelCall, type ExtractDeps } from "./extract-x";
+import { tweetDate, tweetToReelCall, dedupeByShortcode, type ExtractDeps } from "./extract-x";
 import type { Classification } from "../calls";
+import type { ReelCall } from "../../src/lib/types";
 
 const deps = (c: Classification | null): ExtractDeps => ({
   text: "text-model", vision: "vision-model",
@@ -29,5 +30,20 @@ describe("tweetToReelCall", () => {
       "profinv", deps(null),
     );
     expect(rc).toBeNull();
+  });
+});
+
+describe("dedupeByShortcode", () => {
+  it("keeps the first occurrence and drops later duplicates by shortcode", () => {
+    const mk = (shortcode: string, ticker: string): ReelCall => ({
+      shortcode, postDate: "2026-01-01", ticker, company: "", direction: "bullish",
+      isExplicitBuy: true, conviction: 0.5, quote: "", onScreenPrice: null, summary: "",
+    });
+    const out = dedupeByShortcode([mk("t1", "AAA"), mk("t1", "BBB"), mk("t2", "CCC")]);
+    expect(out.map((c) => c.shortcode)).toEqual(["t1", "t2"]);
+    expect(out[0]!.ticker).toBe("AAA");
+  });
+  it("returns an empty array unchanged", () => {
+    expect(dedupeByShortcode([])).toEqual([]);
   });
 });

@@ -8,6 +8,19 @@ import { readImage, type FrameHint } from "../vision";
 import type { TweetRecord } from "./scrape-x";
 import type { ReelCall } from "../../src/lib/types";
 
+// Collapse duplicate calls by shortcode (tweet id), keeping the first occurrence.
+// Guards against a crash between the two checkpoint writes re-appending a call.
+export function dedupeByShortcode(calls: ReelCall[]): ReelCall[] {
+  const seen = new Set<string>();
+  const result: ReelCall[] = [];
+  for (const c of calls) {
+    if (seen.has(c.shortcode)) continue;
+    seen.add(c.shortcode);
+    result.push(c);
+  }
+  return result;
+}
+
 // Injected so the assembly can be unit-tested without hitting the network.
 export interface ExtractDeps {
   text: string;
@@ -49,9 +62,11 @@ export async function extractX(handle: string) {
   const done = new Set<string>(
     existsSync(donePath) ? JSON.parse(await readFile(donePath, "utf8")) : [],
   );
-  const out: ReelCall[] = existsSync(join(creatorDir(handle), "reel-calls.json"))
+  const loaded: ReelCall[] = existsSync(join(creatorDir(handle), "reel-calls.json"))
     ? JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"))
     : [];
+  const out: ReelCall[] = dedupeByShortcode(loaded);
+  const seenCalls = new Set(out.map((c) => c.shortcode));
   if (done.size) console.log(`resuming: ${done.size} done, ${tweets.length - done.size} pending, ${out.length} calls so far`);
 
   // Continuous worker pool. Fireworks isn't request-capped (adaptive per-model TPM
@@ -87,7 +102,10 @@ export async function extractX(handle: string) {
         const t = pending[next++];
         try {
           const rc = await tweetToReelCall(t, handle, deps);
-          if (rc) out.push(rc);
+          if (rc && !seenCalls.has(rc.shortcode)) {
+            seenCalls.add(rc.shortcode);
+            out.push(rc);
+          }
           done.add(t.id);                                           // mark done only on success
         } catch (e) {
           console.warn(`skip ${t.id}: ${(e as Error).message}`);   // left un-done; retried next pass
