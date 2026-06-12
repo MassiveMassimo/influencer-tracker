@@ -21,12 +21,14 @@ export function buildFunnel(
 }
 
 export function dedupeFirstCall(calls: Call[]): Call[] {
-  const earliest = new Map<string, string>();
-  for (const c of calls) {
-    const prev = earliest.get(c.ticker);
-    if (!prev || c.postDate < prev) earliest.set(c.ticker, c.postDate);
-  }
-  return calls.map(c => ({ ...c, isFirstCall: earliest.get(c.ticker) === c.postDate }));
+  // Winning index per ticker: earliest postDate; ties (same day) broken by source
+  // order (first occurrence wins, since we replace only on a strictly-earlier date).
+  const winner = new Map<string, number>();
+  calls.forEach((c, i) => {
+    const prev = winner.get(c.ticker);
+    if (prev === undefined || c.postDate < calls[prev]!.postDate) winner.set(c.ticker, i);
+  });
+  return calls.map((c, i) => ({ ...c, isFirstCall: winner.get(c.ticker) === i }));
 }
 
 function mean(xs: number[]): number {
