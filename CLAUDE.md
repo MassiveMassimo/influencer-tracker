@@ -197,6 +197,61 @@ follow.
   → 503, mismatch → 401); the actual Vercel-API CDN purge is a 3b `TODO` (needs the project token,
   which lives with the VM), so `purge` currently just records intent and does not bust the CDN.
 
+### Plan 3b — VM semi-auto ingest
+
+Daily X-only incremental ingest running on the ARM Ubuntu VM (`ssh ubuntu@imos-vm`, repo at
+`~/influencer-tracker`). Refreshes existing creators only — new-creator onboarding stays manual.
+Ops units + runbook: `ops/` (`influencer-ingest.{service,timer}`, `notify-fail.service`
+dead-man, `ops/README.md` with one-time rsync seed + required `.env` keys).
+
+**Stage 1 (automated, daily timer).** `scripts/ingest.ts` runs `scrapeX` + `extract-x` for each
+handle in `INGEST_HANDLES`, then pauses and sends a Telegram review ping. No scoring yet.
+
+**Stage 2 (manual, over SSH).** After reviewing `calls.review.md`:
+
+```
+flock /tmp/influencer-ingest.lock bun run scripts/resume.ts <handle>
+```
+
+Sequence: `guard-no-shrink` → `score` → `db:sync` → `parity-check` → `revalidate-creator`.
+The `flock` (shared with the systemd timer) prevents a manual resume racing the next daily run.
+`scripts/guard-no-shrink.ts` aborts if the freshly-scored call count is materially below the
+committed baseline — truncated-scrape / data-loss prevention — and runs **before** `score`
+overwrites `dataset.json`.
+
+**Forward scrape.** `scrapeX(handle, months, { forward })` (`pipeline/x/scrape-x.ts`) — with
+`--forward` fetches only tweets newer than the newest stored (`[newest, now]`, deduped by id),
+vs the default backward backfill walk. The image-download tail skips already-downloaded files
+(`existsSync`).
+
+**Price reactivity + split safety** (`pipeline/prices.ts`, `src/lib/prices-merge.ts`). A
+front-covered cached series is now extended forward (fetch a ~10-day overlap from the last
+stored bar, insert-only merge) instead of skipped — so to-date returns and recent horizons
+mature on each re-run. `detectBasisShift` halts any merge (all three call sites) when it sees
+a consistent non-1 close ratio over ≥2 overlapping dates (stock-split restatement signal); the
+frozen/insert-only guarantee is preserved — only appends or halts, never rewrites a scored bar.
+
+**Ephemeral-scratch git policy.** Under `USE_DB=1` the DB is source of truth, so before each
+stage-1 run the service discards local static churn:
+
+```
+git checkout -- data/ && git clean -fd data/prices/ && git pull --ff-only
+```
+
+`clean` is scoped to `data/prices/` only — never `data/creators/` (gitignored seeded
+per-creator state). Accepted drift: static panic-fallback JSON, OG cards, and baked `spark`
+go stale between manual redeploys.
+
+**Revalidate (resolves the 3a TODO).** On-demand ISR revalidation is wired via the Nitro→Vercel
+prerender bypass token: `vite.config.ts` sets `nitro.vercel.config.bypassToken =
+process.env.REVALIDATE_TOKEN` (baked into each ISR route's `.prerender-config.json` at build),
+and `scripts/revalidate-creator.ts` GETs the creator's affected paths (`/c/<h>`,
+`/api/dataset/<h>`, `/explore`, `/api/calls-index`, each `/t/<sym>` + `/api/prices/<sym>`)
+with header `x-prerender-revalidate: <token>`. Best-effort (never throws); the 6h ISR TTL
+(see Plan 3a cutover note above) is the correctness floor if the token is unset or the call
+is skipped. The older `/api/revalidate` POST seam remains as a documented, auth-tested target
+but is no longer the cache-buster.
+
 ## Profile pics
 
 Platform-agnostic, like the `ReelCall` contract. Each scraper resolves its own
