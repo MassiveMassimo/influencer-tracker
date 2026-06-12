@@ -40,7 +40,7 @@ async function purge(
 // comparison time nor the buffer size leaks the token length. Server-only route (Nitro Node
 // function, never client-bundled), so node:crypto is safe to import.
 function safeCompare(a: string, b: string): boolean {
-  const len = Math.max(a.length, b.length, 32);
+  const len = Math.max(Buffer.byteLength(a), Buffer.byteLength(b), 32);
   const bufA = Buffer.alloc(len);
   const bufB = Buffer.alloc(len);
   bufA.write(a);

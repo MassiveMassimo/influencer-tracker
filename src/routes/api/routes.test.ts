@@ -128,6 +128,24 @@ test("GET /api/dataset/$handle returns upstream status + JSON error on a CDN mis
   expect(await res.json()).toMatchObject({ error: expect.stringContaining("nope") });
 });
 
+test("GET /api/dataset/$handle → 404 on an unsafe handle (no upstream fetch)", async () => {
+  globalThis.fetch = (async () => {
+    throw new Error("must not fetch");
+  }) as unknown as typeof fetch;
+  const { Route } = await import("./dataset.$handle");
+  const res = await getHandler(Route)({ params: { handle: "../secret" } });
+  expect(res.status).toBe(404);
+});
+
+test("GET /api/prices/$symbol → 404 on an unsafe symbol (no upstream fetch)", async () => {
+  globalThis.fetch = (async () => {
+    throw new Error("must not fetch");
+  }) as unknown as typeof fetch;
+  const { Route } = await import("./prices.$symbol");
+  const res = await getHandler(Route)({ params: { symbol: "a/b" } });
+  expect(res.status).toBe(404);
+});
+
 test("GET /api/calls-index returns upstream status + JSON error on a CDN miss", async () => {
   missFetch();
   const { Route } = await import("./calls-index");

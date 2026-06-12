@@ -43,6 +43,9 @@ export function toLiveBars(quotes: RawQuote[]): LiveBar[] {
 
 // --- In-memory TTL cache (per server instance) -----------------------------
 const TTL_MS = 5 * 60 * 1000;
+// Cap the in-memory cache so a flood of distinct keys (e.g. crafted "All"
+// firstDates) can't grow it unbounded; evict oldest-inserted past the cap.
+const MAX_ENTRIES = 500;
 const cache = new Map<string, { at: number; bars: LiveBar[] }>();
 
 export function cacheGet(key: string, now: number): LiveBar[] | null {
@@ -56,6 +59,10 @@ export function cacheGet(key: string, now: number): LiveBar[] | null {
 }
 
 export function cacheSet(key: string, bars: LiveBar[], now: number): void {
+  if (cache.size >= MAX_ENTRIES && !cache.has(key)) {
+    const oldest = cache.keys().next().value; // Map preserves insertion order
+    if (oldest !== undefined) cache.delete(oldest);
+  }
   cache.set(key, { at: now, bars });
 }
 
@@ -92,7 +99,7 @@ async function fetchSymbol(
 const InputSchema = z.object({
   symbol: z.string().min(1).max(12),
   timeframe: z.enum(["1D", "1W", "1M", "3M", "6M", "1Y", "All"]),
-  firstDate: z.string(), // ISO date of earliest call, used for the "All" window
+  firstDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, "firstDate must start with YYYY-MM-DD"),
 });
 
 export const fetchChart = createServerFn({ method: "GET" })

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { readFromDbOrNull } from "#/lib/data.ts";
-import { CACHE_CONTROL, staticFallback } from "#/lib/api-serve.ts";
+import { CACHE_CONTROL, isSafeAssetKey, staticFallback } from "#/lib/api-serve.ts";
 
 // Cached read route for a ticker's baked daily OHLC. DB-first under USE_DB=1; always-200 for a
 // valid symbol by falling back to the committed static CDN asset (/prices/<SYMBOL>.json) on
@@ -11,6 +11,12 @@ export const Route = createFileRoute("/api/prices/$symbol")({
     handlers: {
       GET: async ({ params }) => {
         const symbol = params.symbol;
+        if (!isSafeAssetKey(symbol)) {
+          return Response.json(
+            { error: "invalid symbol" },
+            { status: 404, headers: { "Cache-Control": CACHE_CONTROL } },
+          );
+        }
         // SSR literal AT THE CALL SITE so Rollup DCE keeps neon/db modules out of any client
         // chunk (mirrors src/lib/data.ts); readFromDbOrNull adds the runtime USE_DB gate + log.
         if (import.meta.env.SSR) {
