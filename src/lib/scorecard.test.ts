@@ -22,6 +22,17 @@ test("dedupeFirstCall flags earliest postDate per ticker", () => {
     .toEqual(["AAA:2026-01-01", "BBB:2026-02-01"]);
 });
 
+test("dedupeFirstCall picks exactly one first-call when two share the earliest day", () => {
+  const calls = [
+    call({ ticker: "AAA", postDate: "2026-01-01", shortcode: "first" }),
+    call({ ticker: "AAA", postDate: "2026-01-01", shortcode: "second" }),
+    call({ ticker: "AAA", postDate: "2026-02-01", shortcode: "later" }),
+  ];
+  const flagged = dedupeFirstCall(calls).filter(c => c.isFirstCall);
+  expect(flagged.length).toBe(1);
+  expect(flagged[0]!.shortcode).toBe("first"); // earliest day, first in source order
+});
+
 test("buildScorecard averages excess over elapsed horizons only", () => {
   const calls = [
     call({ ticker: "AAA", postDate: "2026-01-01",
