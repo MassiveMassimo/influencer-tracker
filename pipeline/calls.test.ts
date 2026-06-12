@@ -46,7 +46,7 @@ describe("classify", () => {
 
   it("clamps an out-of-range conviction instead of throwing", async () => {
     const c = await classify("model", "body", reply({ ...payload, conviction: 2 }));
-    expect(c.conviction).toBe(0);
+    expect(c.conviction).toBe(1);
   });
 
   it("throws when the reply has no choices", async () => {

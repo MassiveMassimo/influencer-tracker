@@ -4,7 +4,14 @@ import { test, expect, describe, mock, afterEach } from "bun:test";
 mock.module("./dataset-source", () => ({ loadIndex: () => [] }));
 // @tanstack/react-start uses Vite internals too; stub createServerFn.
 mock.module("@tanstack/react-start", () => ({
-  createServerFn: () => ({ handler: (fn: () => unknown) => fn }),
+  createServerFn: () => {
+    const b = {
+      inputValidator: () => b,
+      middleware: () => b,
+      handler: (fn: unknown) => fn,
+    };
+    return b;
+  },
 }));
 
 const { readFromDbOrNull, fetchDataset, fetchPrices } = await import("./data");

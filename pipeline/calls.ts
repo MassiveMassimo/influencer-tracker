@@ -34,7 +34,7 @@ const ClassificationSchema = z.object({
   company: z.string().nullable().catch(null),
   direction: z.enum(["bullish", "bearish", "neutral"]).catch("neutral"),
   isExplicitBuy: z.boolean().catch(false),
-  conviction: z.number().min(0).max(1).catch(0),
+  conviction: z.number().catch(0).transform((v) => Math.min(1, Math.max(0, v))),
   quote: z.string().catch(""),
   onScreenPrice: z.number().nullable().catch(null),
   summary: z.string().catch(""),

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import YahooFinance from "yahoo-finance2";
+import { isSafeAssetKey } from "./api-serve.ts";
 import { chartWindow } from "./chart-window.ts";
 import type { Timeframe } from "./window-series.ts";
 
@@ -96,10 +97,14 @@ async function fetchSymbol(
   return bars;
 }
 
-const InputSchema = z.object({
-  symbol: z.string().min(1).max(12),
+export const InputSchema = z.object({
+  // isSafeAssetKey rejects path-reshaping chars (/ ? # \ %) before the symbol is
+  // concatenated unencoded into the Yahoo URL path or a cache key.
+  symbol: z.string().min(1).max(40).refine(isSafeAssetKey, "unsafe symbol"),
   timeframe: z.enum(["1D", "1W", "1M", "3M", "6M", "1Y", "All"]),
-  firstDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, "firstDate must start with YYYY-MM-DD"),
+  // Anchored end + length cap: an unbounded suffix would land verbatim in the
+  // "All" cache key and feed new Date() an Invalid Date.
+  firstDate: z.string().max(30).regex(/^\d{4}-\d{2}-\d{2}($|T)/, "firstDate must be YYYY-MM-DD"),
 });
 
 export const fetchChart = createServerFn({ method: "GET" })

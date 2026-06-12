@@ -35,15 +35,21 @@ export async function extract(handle: string) {
     const fp = join(framesDir(handle), f);
     const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
     const body = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
+    // Free local check first: a reel with no upload_date is skipped before the
+    // rate-limited LLM call.
+    const postDate = await postDateOf(handle, code);
+    if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); continue; }
     let c;
     try {
       c = await classify(text, body);
     } catch (e) {
-      console.warn(`skip ${code}: classify failed — ${(e as Error).message}`);
+      // classify() throws "classify: ..." only on an unparseable reply (skip the post).
+      // Transport/auth failures (429 past backoff, network, missing GROQ_API_KEY) are NOT
+      // per-post and must surface loudly, not silently truncate reel-calls.json.
+      if (!(e as Error).message.startsWith("classify:")) throw e;
+      console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
       continue;
     }
-    const postDate = await postDateOf(handle, code);
-    if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); continue; }
     const rc = toReelCall(c, code, postDate);
     if (rc) out.push(rc);
   }

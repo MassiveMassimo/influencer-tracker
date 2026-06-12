@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { creatorDir, pricesDir } from "./config";
+import { mergePrices } from "../src/lib/prices-merge";
 import type { OhlcBar, ReelCall } from "../src/lib/types";
 
 const yahooFinance = new YahooFinance();
@@ -30,6 +31,7 @@ export async function prices(handle: string) {
   const from = calls.reduce((m, c) => c.postDate < m ? c.postDate : m, calls[0]?.postDate ?? "2025-01-01");
   for (const t of tickers) {
     const out = join(pricesDir(handle), `${t}.json`);
+    let cachedBars: OhlcBar[] = [];
     if (existsSync(out)) {
       // Distrust truncated/under-covered caches: a partial Yahoo run can leave a
       // short file the old existsSync skip would keep forever (SPY benchmark broke
@@ -37,6 +39,7 @@ export async function prices(handle: string) {
       // cache's earliest bar. cacheCovers requires >1 bar AND earliest bar <= from.
       try {
         const cached = JSON.parse(await readFile(out, "utf8"));
+        cachedBars = Array.isArray(cached) ? cached : [];
         if (cacheCovers(cached, from)) continue;
         console.warn(`REFETCH ${t}: cache misses coverage (need <= ${from}, have ${Array.isArray(cached) && cached[0]?.date ? cached[0].date : "?"} / ${Array.isArray(cached) ? cached.length : 0} bar(s))`);
       } catch {
@@ -44,8 +47,10 @@ export async function prices(handle: string) {
       }
     }
     try {
-      const ohlc = await fetchOhlc(t, from);
-      if (!ohlc.length) { console.warn(`FLAG ${t}: no price data`); continue; }
+      const fetched = await fetchOhlc(t, from);
+      if (!fetched.length) { console.warn(`FLAG ${t}: no price data`); continue; }
+      // Existing-wins merge: never rewrite a frozen scored bar; append only new dates.
+      const ohlc = mergePrices(cachedBars, fetched);
       await writeFile(out, JSON.stringify(ohlc));
       console.log(`prices ${t}: ${ohlc.length} bars`);
     } catch (e) { console.warn(`FLAG ${t}: ${(e as Error).message}`); }

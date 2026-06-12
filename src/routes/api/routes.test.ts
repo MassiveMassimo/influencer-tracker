@@ -6,7 +6,14 @@ import { test, expect, mock, afterEach } from "bun:test";
 // CDN-only on Vercel, not on the function filesystem). global.fetch is mocked per-path below.
 mock.module("#/lib/dataset-source.ts", () => ({ loadIndex: () => [] }));
 mock.module("@tanstack/react-start", () => ({
-  createServerFn: () => ({ handler: (fn: () => unknown) => fn }),
+  createServerFn: () => {
+    const b = {
+      inputValidator: () => b,
+      middleware: () => b,
+      handler: (fn: unknown) => fn,
+    };
+    return b;
+  },
 }));
 
 import { DatasetSchema, PriceFileSchema } from "#/lib/schema.ts";

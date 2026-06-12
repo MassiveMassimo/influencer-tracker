@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { toLiveBars, cacheGet, cacheSet, type RawQuote } from "./chart-fetch.ts";
+import { InputSchema, toLiveBars, cacheGet, cacheSet, type RawQuote } from "./chart-fetch.ts";
 
 describe("toLiveBars", () => {
   it("maps quotes to ISO-datetime bars and drops incomplete rows", () => {
@@ -32,5 +32,22 @@ describe("cache", () => {
     cacheSet("X:1d", bars, t0);
     expect(cacheGet("X:1d", t0 + 5 * 60_000)).toEqual(bars);     // exactly 5 min: fresh
     expect(cacheGet("X:1d", t0 + 5 * 60_000 + 1)).toBeNull();    // 1 ms past: stale
+  });
+});
+
+describe("InputSchema", () => {
+  const valid = { symbol: "$ETH.X", timeframe: "1Y", firstDate: "2026-01-01" };
+
+  it("accepts a Yahoo-style symbol and a plain YYYY-MM-DD firstDate", () => {
+    expect(InputSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects path-reshaping symbols", () => {
+    expect(InputSchema.safeParse({ ...valid, symbol: "../etc" }).success).toBe(false);
+    expect(InputSchema.safeParse({ ...valid, symbol: "A/B" }).success).toBe(false);
+  });
+
+  it("rejects an over-long firstDate", () => {
+    expect(InputSchema.safeParse({ ...valid, firstDate: "2026-01-01" + "x".repeat(50) }).success).toBe(false);
   });
 });
