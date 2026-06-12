@@ -37,3 +37,9 @@ test("null on same basis / <2 overlap", () => {
   expect(detectBasisShift(bars, bars)).toBeNull();
   expect(detectBasisShift([bars[0]], [{...bars[0], c: 9}])).toBeNull();
 });
+test("null on noisy ratios (inconsistent shift)", () => {
+  // ratios 0.25 and 0.30, avg 0.275; |0.30 - 0.275| = 0.025 > 0.02 * 0.275 = 0.0055 → not a clean split
+  const existing = [{date:"2025-01-01",o:400,h:400,l:400,c:400},{date:"2025-01-02",o:400,h:400,l:400,c:400}];
+  const incoming = [{date:"2025-01-01",o:100,h:100,l:100,c:100},{date:"2025-01-02",o:120,h:120,l:120,c:120}];
+  expect(detectBasisShift(existing, incoming)).toBeNull();
+});
