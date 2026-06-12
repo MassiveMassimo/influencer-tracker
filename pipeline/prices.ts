@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { creatorDir, pricesDir } from "./config";
-import { mergePrices } from "../src/lib/prices-merge";
+import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
 import type { OhlcBar, ReelCall } from "../src/lib/types";
 
 const yahooFinance = new YahooFinance();
@@ -49,6 +49,8 @@ export async function prices(handle: string) {
     try {
       const fetched = await fetchOhlc(t, from);
       if (!fetched.length) { console.warn(`FLAG ${t}: no price data`); continue; }
+      const shift = detectBasisShift(cachedBars, fetched);
+      if (shift != null) { console.warn(`SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping merge, needs OWNER restatement`); continue; }
       // Existing-wins merge: never rewrite a frozen scored bar; append only new dates.
       const ohlc = mergePrices(cachedBars, fetched);
       await writeFile(out, JSON.stringify(ohlc));

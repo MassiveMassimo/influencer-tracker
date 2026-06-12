@@ -6,7 +6,7 @@ import { computeReturns } from "../src/lib/returns";
 import { dedupeFirstCall, buildScorecard, buildFunnel } from "../src/lib/scorecard";
 import { DatasetSchema } from "../src/lib/schema";
 import { buildSpark } from "../src/lib/spark";
-import { mergePrices } from "../src/lib/prices-merge";
+import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
 import type { Dataset, ReelCall, OhlcBar, Call } from "../src/lib/types";
 
 const CAVEATS = ["survivorship", "reposts-deduped", "forward-from-post-date"];
@@ -64,6 +64,8 @@ export async function score(handle: string, name: string, today = new Date().toI
     if (!bars.length) continue;
     const f = join(sharedDir, `${sym}.json`);
     const existing: OhlcBar[] = existsSync(f) ? JSON.parse(await readFile(f, "utf8")) : [];
+    const shift = detectBasisShift(existing, bars);
+    if (shift != null) { console.warn(`SPLIT ${sym}: basis shift x${shift.toFixed(4)} — skipping merge, needs OWNER restatement`); continue; }
     await writeFile(f, JSON.stringify(mergePrices(existing, bars)));
   }
   await updateIndex(handle, name, ds);
