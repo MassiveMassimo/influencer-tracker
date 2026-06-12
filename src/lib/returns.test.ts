@@ -34,3 +34,18 @@ test("computeReturns produces excess = stock - spy per horizon", () => {
   expect(r["1w"].excess).toBeCloseTo(0.10, 6);
   expect(r["toDate"].stock).toBeCloseTo(0.10, 6);
 });
+
+const lateBars: OhlcBar[] = [
+  { date: "2026-07-01", o: 200, h: 200, l: 200, c: 200 },
+  { date: "2026-07-02", o: 210, h: 210, l: 210, c: 210 },
+];
+
+test("forwardReturn is null when the series starts after the horizon window", () => {
+  expect(forwardReturn(lateBars, "2026-06-01", 7)).toBeNull();
+});
+
+test("computeReturns yields null toDate/1w when series starts after the call", () => {
+  const r = computeReturns(lateBars, lateBars, "2026-06-01");
+  expect(r["toDate"].stock).toBeNull();
+  expect(r["1w"].stock).toBeNull();
+});
