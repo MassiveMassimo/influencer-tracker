@@ -6,6 +6,7 @@ import { assertConnectedAs } from "./test-db";
 // TEST-branch host) and asserts every mutation is forbidden — the public SSR read path
 // (getDb → DATABASE_URL_SERVE) must never be able to write the ledger.
 const SERVE = process.env.DATABASE_URL_SERVE_TEST;
+const REPORT = process.env.DATABASE_URL_REPORT_TEST;
 
 describe.skipIf(!SERVE)("serve role is read-only", () => {
   // Construct only when running — bun still evaluates a skipped describe body.
@@ -44,6 +45,26 @@ describe.skipIf(!SERVE)("serve role is read-only", () => {
 
   test("serve role cannot read call_overrides", async () => {
     await expect((async () => { await sqlRole`SELECT 1 FROM call_overrides LIMIT 1`; })())
+      .rejects.toThrow(/permission denied/i);
+  });
+
+  test("serve role cannot read call_reports", async () => {
+    await expect((async () => { await sqlRole`SELECT 1 FROM call_reports LIMIT 1`; })())
+      .rejects.toThrow(/permission denied/i);
+  });
+});
+
+// Connects as the INSERT-only report role and asserts SELECT is denied. The report
+// role is used exclusively by /api/report — it must not be able to read the ledger.
+describe.skipIf(!REPORT)("report role is INSERT-only on call_reports", () => {
+  const sqlReport = REPORT ? neon(REPORT) : (undefined as unknown as ReturnType<typeof neon>);
+
+  beforeAll(async () => {
+    await assertConnectedAs(sqlReport, "report");
+  });
+
+  test("report role cannot SELECT call_reports", async () => {
+    await expect((async () => { await sqlReport`SELECT 1 FROM call_reports LIMIT 1`; })())
       .rejects.toThrow(/permission denied/i);
   });
 });

@@ -50,6 +50,8 @@ Create `/home/ubuntu/influencer-tracker/.env` with:
 ```
 DATABASE_URL_INGEST=...      # ingest role connection string (INSERT/UPDATE on creators/calls/artifacts, INSERT-only on prices)
 DATABASE_URL_SERVE=...       # serve role connection string (SELECT-only; parity-check reads this)
+DATABASE_URL_REPORT=...      # report role connection string (INSERT-only on call_reports; used by /api/report)
+REPORT_SALT=...              # random >=16 chars; salts the IP dedupe hash — generate: openssl rand -base64 32 | tr -d '/+=' | head -c 40
 FIREWORKS_API_KEY=...        # vision + classification (IG + X)
 RETTIWT_API_KEY=...          # base64 cookie key from throwaway X account
 TELEGRAM_BOT_TOKEN=...
