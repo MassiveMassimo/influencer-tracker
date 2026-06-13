@@ -1,3 +1,14 @@
+export function publishedMessage(handle: string, newCalls: number, newScored: number): string {
+  return `✅ ${handle}: published — ${newCalls} new call(s), ${newScored} newly scored.`;
+}
+
+export function blockedMessage(handle: string, reason: string): string {
+  return [
+    `🚫 ${handle}: ingest BLOCKED — ${reason}`,
+    `Investigate, then: ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${handle}"`,
+  ].join("\n");
+}
+
 export function reviewMessage(handle: string, newCalls: number, newScored: number): string {
   return [
     `📋 ${handle}: ${newCalls} new calls (${newScored} newly scored).`,
