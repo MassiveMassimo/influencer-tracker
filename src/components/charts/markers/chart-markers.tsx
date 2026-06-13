@@ -97,7 +97,6 @@ export function ChartMarkers({
     containerRef,
     tooltipData,
     setTooltipData,
-    animationDuration,
   } = useChart();
 
   // Markers under the cursor — drives the anchored hover card (quote etc.).
@@ -139,7 +138,7 @@ export function ChartMarkers({
     <>
       {/* SVG markers rendered in chart space */}
       {Array.from(markersByDate.entries()).map(
-        ([dateKey, dateMarkers], groupIndex) => {
+        ([dateKey, dateMarkers]) => {
           const markerDate = dateMarkers[0]?.date;
           if (!markerDate) {
             return null;
@@ -157,9 +156,7 @@ export function ChartMarkers({
               })()
             : undefined;
 
-          const markerDelay = animate
-            ? animationDuration / 1000 + groupIndex * 0.1
-            : 0;
+          const markerDelay = 0;
 
           return (
             <MarkerGroup

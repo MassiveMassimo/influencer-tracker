@@ -308,24 +308,26 @@ function TickerPage() {
             onPrefetch={prefetchTimeframe}
           />
         </div>
-        {!showSkeleton && candles.length > 0 && callsInWindow === 0 ? (
-          <div className="mb-4 rounded-lg bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
-            No calls in the selected period.
-          </div>
-        ) : null}
-        {showSkeleton ? (
-          <ChartSkeleton />
-        ) : candles.length === 0 ? (
-          <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">
-            No price data for this symbol.
-          </div>
-        ) : (
-          <ChartBoundary>
-            <Suspense fallback={<ChartSkeleton />}>
-              <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} />
-            </Suspense>
-          </ChartBoundary>
-        )}
+        <div className="relative">
+          {showSkeleton ? (
+            <ChartSkeleton />
+          ) : candles.length === 0 ? (
+            <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">
+              No price data for this symbol.
+            </div>
+          ) : (
+            <ChartBoundary>
+              <Suspense fallback={<ChartSkeleton />}>
+                <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} />
+              </Suspense>
+            </ChartBoundary>
+          )}
+          {!showSkeleton && candles.length > 0 && callsInWindow === 0 ? (
+            <div className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur-sm">
+              No calls in the selected period.
+            </div>
+          ) : null}
+        </div>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
