@@ -1,9 +1,8 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { cn } from "#/lib/utils.ts";
-import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 
 /** Subset of `Intl.NumberFormatOptions` supported by NumberFlow */
 export interface ChartStatFlowFormat {
@@ -38,6 +37,31 @@ function formatStatValue(
   return `${prefix ?? ""}${formatted}${suffix ?? ""}`;
 }
 
+function useNumberFlowElementReady(): boolean {
+  const [ready, setReady] = useState(
+    () =>
+      typeof customElements !== "undefined" &&
+      Boolean(customElements.get("number-flow-react"))
+  );
+
+  useEffect(() => {
+    if (ready) {
+      return;
+    }
+    let cancelled = false;
+    customElements.whenDefined("number-flow-react").then(() => {
+      if (!cancelled) {
+        setReady(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ready]);
+
+  return ready;
+}
+
 export interface ChartStatFlowProps {
   value: number;
   label: string;
@@ -63,7 +87,7 @@ export function ChartStatFlow({
   labelClassName = "text-xs",
   icon,
 }: ChartStatFlowProps) {
-  const numberFlowReady = useNumberFlowReady();
+  const numberFlowReady = useNumberFlowElementReady();
   const staticValue = useMemo(
     () => formatStatValue(value, formatOptions, prefix, suffix),
     [value, formatOptions, prefix, suffix]
