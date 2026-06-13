@@ -21,6 +21,9 @@ data/creators/*
 !data/creators/*/
 data/creators/*/*
 !data/creators/*/dataset.json
+# Yahoo quoteType cache (symbol-scope.ts). Regenerable + static per symbol, so a
+# local/VM cache, never committed; survives the VM's data/prices-scoped git clean.
+data/symbol-types.json
 .chrome-profile
 playwright-report
 

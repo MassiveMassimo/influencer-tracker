@@ -54,6 +54,16 @@ test("a resolvable call with no price bars is excluded", () => {
   expect(ds.calls).toHaveLength(0);
 });
 
+test("an out-of-scope symbol (per the injected predicate) is excluded though it prices fine", () => {
+  const bars = { VOO: [bar("2026-06-01", 100), bar("2026-06-08", 110)], SPY: spyBars };
+  const call: ReelCall = { shortcode: "v", postDate: "2026-06-01", ticker: "VOO", company: "Vanguard S&P 500 ETF",
+    direction: "bullish", isExplicitBuy: true, conviction: 1, quote: "buy", onScreenPrice: null, summary: "x" };
+  // Default predicate keeps it (priceable); the scope predicate drops it.
+  expect(assembleDataset({ handle: "h", name: "n" }, [call], bars, "2026-06-09").calls).toHaveLength(1);
+  expect(assembleDataset({ handle: "h", name: "n" }, [call], bars, "2026-06-09", undefined, "Reels",
+    sym => sym !== "VOO").calls).toHaveLength(0);
+});
+
 test("an equities-only dataset omits the crypto caveat", () => {
   const ds = assembleDataset({ handle: "h", name: "n" },
     [{ shortcode: "a", postDate: "2026-06-01", ticker: "AAPL", company: "Apple",

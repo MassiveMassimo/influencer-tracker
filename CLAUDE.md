@@ -69,6 +69,23 @@ The shared classifier (`pipeline/calls.ts`, `CLASSIFY_SYS`) returns, per post:
 **Only explicit bullish calls** (`isExplicitBuy && direction === "bullish"`) are
 scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date.
 
+**Scope gate — only individual securities are scored** (`pipeline/symbol-scope.ts`).
+A finfluencer "call" means an individual stock/crypto pick, not "buy the market", so
+`score.ts` drops any bullish call whose canonical symbol is an index ETF / mutual
+fund / index / FX / derivative, keyed off Yahoo `quoteType`. Kept: `EQUITY`,
+`CRYPTOCURRENCY` (the product deliberately scores crypto). Dropped: `ETF`,
+`MUTUALFUND`, `INDEX`, `CURRENCY`, `FUTURE`, `OPTION`, **`ECNQUOTE`** (Yahoo's "no
+clean primary listing" type — e.g. a foreign ETF like VFV queried without its `.TO`
+suffix; a real primary-listed equity never returns it). Deny-list + **fail-open**: a
+genuinely-unknown `quoteType` is kept, since silently dropping a real call is worse
+than scoring a stray fund. The decision is injected into `assembleDataset` as a pure
+predicate (default keeps all, so it stays unit-testable). `quoteTypes()` caches each
+lookup to `data/symbol-types.json` (gitignored, regenerable; static per symbol so
+scoring stays reproducible without committing it). This removes the index-ETF
+over-flag class deterministically — no human review, no false alarms; the residual
+extraction errors (false-negatives, ticker confusion between two equities) are an
+LLM-quality problem, not a scope one.
+
 **LLM providers — provider matrix.** `classify(model, body, client)` and
 `readImage(model, path, client)` take the OpenAI-compatible POST fn as `client`,
 so each stage picks its provider. The rule: **self-hosted Parakeet for audio,

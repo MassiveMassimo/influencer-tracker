@@ -8,6 +8,7 @@ import { DatasetSchema } from "../src/lib/schema";
 import { buildSpark } from "../src/lib/spark";
 import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
 import { resolveSymbol } from "../src/lib/symbol";
+import { quoteTypes, isOutOfScope } from "./symbol-scope";
 import type { Dataset, ReelCall, OhlcBar, Call } from "../src/lib/types";
 
 const CAVEATS = ["survivorship", "reposts-deduped", "forward-from-post-date"];
@@ -19,6 +20,10 @@ export function assembleDataset(
   generatedAt: string,
   counts?: { reelsScraped: number; reelsWithTicker: number },
   postNoun = "Reels",
+  // Scope gate: drop calls whose canonical symbol is an index ETF / fund / index /
+  // derivative (not a stock pick). Injected so this stays a pure fn — score()
+  // resolves it from Yahoo quoteType (symbol-scope.ts); default keeps all (tests).
+  isInScope: (sym: string) => boolean = () => true,
 ): Dataset {
   const spy = ohlc["SPY"] ?? [];
   const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
@@ -34,6 +39,7 @@ export function assembleDataset(
       console.warn(`UNPRICEABLE ${c.ticker} (${sym ? "no price data" : "unresolved/out-of-scope"}) — shortcode ${c.shortcode}`);
       return [];
     }
+    if (!isInScope(sym)) return []; // out-of-scope type; logged once per symbol in score()
     return [{
       shortcode: c.shortcode, postDate: c.postDate, ticker: sym, company: c.company,
       isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
@@ -64,8 +70,14 @@ export async function score(handle: string, name: string, today = new Date().toI
   }
   let reelsScraped = reelCalls.length;
   try { reelsScraped = JSON.parse(await readFile(join(creatorDir(handle), "raw", "shortcodes.json"), "utf8")).length; } catch {}
+  // Resolve scope (Yahoo quoteType, cached) for every priced symbol, then drop
+  // out-of-scope ones from scoring. SPY is the benchmark, never a scored call.
+  const symbols = Object.keys(ohlc).filter(s => s !== "SPY");
+  const types = await quoteTypes(symbols);
+  const outOfScope = new Set(symbols.filter(s => isOutOfScope(types[s])));
+  for (const s of outOfScope) console.warn(`OUT-OF-SCOPE ${s}: ${types[s]} — not a stock pick, excluded from scoring`);
   const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today,
-    { reelsScraped, reelsWithTicker: reelCalls.length }, postNoun);
+    { reelsScraped, reelsWithTicker: reelCalls.length }, postNoun, sym => !outOfScope.has(sym));
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
   // Write deduped per-ticker prices to a shared store (one file per symbol across
   // all creators) for the ticker-page fallback. Merge so a creator with a shorter
