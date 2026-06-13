@@ -213,8 +213,13 @@ handle in `INGEST_HANDLES`, then pauses and sends a Telegram review ping. No sco
 flock /tmp/influencer-ingest.lock bun run scripts/resume.ts <handle>
 ```
 
-Sequence: `guard-no-shrink` → `score` → `db:sync` → `parity-check` → `revalidate-creator`.
+Sequence: `guard-no-shrink` → `score` → scoped `backfill.ts <handle>` → `db:materialize`
+(global artifact rebuild) → scoped `parity-check.ts <handle>` → `revalidate-creator`.
+Scoped to avoid overwriting other creators' live DB rows with today's reset static files;
+`materialize` still rebuilds the global calls-index from the full DB.
 The `flock` (shared with the systemd timer) prevents a manual resume racing the next daily run.
+Creators with no new reviewed calls are never resumed, so their existing calls' to-date/recent
+returns lag until their next reviewed call (or a manual re-score + redeploy from the Mac).
 `scripts/guard-no-shrink.ts` aborts if the freshly-scored call count is materially below the
 committed baseline — truncated-scrape / data-loss prevention — and runs **before** `score`
 overwrites `dataset.json`.

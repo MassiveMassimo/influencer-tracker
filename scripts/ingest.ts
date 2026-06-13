@@ -5,6 +5,11 @@ import { notify, reviewMessage } from "./notify";
 const handles = (process.env.INGEST_HANDLES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 if (!handles.length) { console.error("INGEST_HANDLES unset"); process.exit(1); }
 
+if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
+  console.error("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID unset — refusing to run blind (no review pings would be delivered)");
+  process.exit(1);
+}
+
 async function counts(h: string) {
   try {
     const rc = JSON.parse(await readFile(`data/creators/${h}/reel-calls.json`, "utf8"));

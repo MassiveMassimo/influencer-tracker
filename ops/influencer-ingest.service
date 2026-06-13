@@ -11,5 +11,5 @@ Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
 RuntimeMaxSec=4h
 # VM static writes are ephemeral (DB is truth) — discard tracked + untracked new-symbol price
 # files, then pull. clean ONLY data/prices (never data/creators — that holds seeded state).
-# flock serializes vs a manual resume.
-ExecStart=/usr/bin/flock -n /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/prices/ && git pull --ff-only && bun run scripts/ingest.ts'
+# flock waits up to 2h for the lock (vs skipping the day if a manual resume holds it).
+ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/prices/ && git pull --ff-only && bun run scripts/ingest.ts'

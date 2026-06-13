@@ -60,6 +60,10 @@ REVALIDATE_TOKEN=...         # on-demand ISR bypass token — must match the val
 VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin for revalidate calls
 ```
 
+> **`REVALIDATE_TOKEN`** must be a sufficiently long random secret (Vercel expects ~32 chars;
+> generate with `openssl rand -base64 32`). It must be IDENTICAL in the Vercel build env and
+> this `.env` — a mismatch means on-demand revalidation silently no-ops (the 6h ISR TTL still heals).
+
 ### Install and enable the systemd units
 
 ```bash
@@ -82,7 +86,7 @@ systemctl list-timers influencer-ingest.timer
 
 The timer fires `influencer-ingest.service`, which:
 
-1. Acquires `/tmp/influencer-ingest.lock` (exclusive, non-blocking via `flock -n`).
+1. Acquires `/tmp/influencer-ingest.lock` (exclusive; waits up to 2h via `flock -w 7200`).
 2. Discards tracked VM writes and any untracked new-symbol price files, then pulls
    fresh from `main` (see §4 for why).
 3. Runs `scripts/ingest.ts` for every handle in `INGEST_HANDLES`: forward scrape
@@ -123,12 +127,13 @@ concurrently. Run one handle at a time if ingesting multiple handles on the same
 2. **Score** — computes forward-return accuracy (1w/1m/3m/to-date vs SPY) for all
    explicit bullish calls. Rewrites `dataset.json`, `index.json`, and per-symbol
    files in `data/prices/`.
-3. **db:sync** (`db:backfill && db:materialize`) — upserts creators/calls into Neon,
-   insert-only on prices, then re-materializes the calls-index artifact. Always the
-   full sync, never bare backfill (a backfill without re-materialize leaves a stale
-   artifact).
-4. **Parity check** — asserts DB reassembly equals static JSON for index, every
-   dataset, every price symbol, and the materialized calls-index artifact. Must print
+3. **Scoped backfill** (`db/backfill.ts <handle>`) — upserts only the reviewed
+   creator's calls/prices into Neon (insert-only on prices), then runs
+   `db:materialize` to rebuild the global calls-index artifact from the DB.
+   Scoped to avoid overwriting other creators' live DB rows with today's reset
+   static files.
+4. **Scoped parity check** (`scripts/parity-check.ts <handle>`) — asserts DB
+   reassembly equals static JSON for this creator's dataset and prices. Must print
    `PARITY OK` before proceeding.
 5. **Revalidate** (`scripts/revalidate-creator.ts`, best-effort) — GETs the affected
    creator + ticker paths (`/c/<h>`, `/api/dataset/<h>`, `/explore`, `/api/calls-index`,
@@ -140,7 +145,14 @@ concurrently. Run one handle at a time if ingesting multiple handles on the same
    still refreshes the CDN. (The older `/api/revalidate` POST seam still exists but is an
    inert 3a stub — it is *not* what resume calls.)
 
-If any step fails, resume exits with a non-zero code and Telegrams a failure message.
+If any step fails, resume exits with a non-zero code. Failures surface in the operator's
+terminal (SSH session); resume has no `notify` call — only stage-1 `ingest.ts` and the
+`notify-fail` systemd unit send Telegram alerts.
+
+**Known limitation.** A creator with no new reviewed calls is never resumed, so its
+existing calls' to-date and recent-horizon returns do not mature in the DB until its next
+reviewed call (or a manual full re-score + redeploy from the Mac). Accepted for semi-auto;
+the Plan-4 judge + per-call approval state is the eventual fix.
 
 ---
 
@@ -177,4 +189,5 @@ input, not a runtime dependency.
 - **`RuntimeMaxSec=4h`** is the dead-man timeout. If the ingest hangs for more than
   four hours, systemd kills the unit and `notify-fail.service` fires.
 - To inspect a failed run: `journalctl -u influencer-ingest.service -n 100 --no-pager`
-- To trigger a manual test run (skips the lock): `sudo systemctl start influencer-ingest.service`
+- To trigger a manual test run: `sudo systemctl start influencer-ingest.service` — runs the
+  same `ExecStart` (same `flock`); it does NOT skip the lock.
