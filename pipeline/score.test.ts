@@ -1,5 +1,6 @@
 import { test, expect } from "bun:test";
 import { assembleDataset } from "./score";
+import { applyOverrides } from "./overrides";
 import type { ReelCall, OhlcBar } from "../src/lib/types";
 
 test("assembleDataset scores calls and validates against schema", () => {
@@ -72,6 +73,16 @@ test("an equities-only dataset omits the crypto caveat", () => {
     { AAPL: [bar("2026-06-01", 100), bar("2026-06-08", 110)], SPY: spyBars }, "2026-06-09");
   expect(ds.calls).toHaveLength(1);
   expect(ds.caveats).not.toContain("crypto-vs-spy");
+});
+
+test("applyOverrides feeds assembleDataset: an override flips a call out of scoring", () => {
+  const reelCalls: ReelCall[] = [{ shortcode: "a", postDate: "2026-06-01", ticker: "AAPL",
+    company: "Apple", direction: "bullish", isExplicitBuy: true, conviction: 1, quote: "q",
+    onScreenPrice: null, summary: "s" }];
+  const ohlc = { AAPL: [bar("2026-06-01", 100), bar("2026-06-08", 110)], SPY: spyBars };
+  const corrected = applyOverrides(reelCalls, [{ handle: "h", shortcode: "a", ticker: null,
+    isExplicitBuy: false, direction: null, reason: "not a buy" }]);
+  expect(assembleDataset({ handle: "h", name: "n" }, corrected, ohlc, "2026-06-09").calls).toHaveLength(0);
 });
 
 test("two raw crypto tickers collapse to one canonical first-call (gate before dedup)", () => {
