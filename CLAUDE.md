@@ -129,6 +129,65 @@ opens `ProofViewer` (`src/components/proof-viewer.tsx`) — a Base UI dialog on
 desktop and a vaul drawer on mobile (switched via `useMediaQuery`, 768px) — that
 shows the embed + summary + quote. No local media is needed for display.
 
+## Correction loop
+
+Public users can flag a misclassified call; operators review and record a durable
+override; the next `score()` bakes it in. The loop has two phases:
+
+**Phase 1 — report.** The proof drawer (`src/components/proof-viewer.tsx`) renders a
+"Report incorrect" control (`src/components/report-button.tsx`) that POSTs to
+`/api/report` (`src/routes/api/report.ts`). The endpoint validates the reason against a
+**closed enum** (`src/lib/report-reasons.ts`: `wrong-ticker | not-a-buy |
+wrong-direction | not-a-call | other`) and deduplicates reporters by salted IP hash
+(`REPORT_SALT` env, SHA-256) — one vote per IP per call, no accounts required. The
+report record lands in the `call_reports` table (INSERT-only for the `report` role).
+Reasons are never free text and never displayed publicly — operator-only — avoiding PII,
+stored-XSS, and defamation risk.
+
+**Phase 2 — override.** The operator review queue is `bun run scripts/review-reports.ts`,
+which ranks reported calls by distinct-reporter count. After confirming a correction, the
+operator records a durable override:
+
+```
+bun run scripts/apply-override.ts <handle> <shortcode> --reason "…" [--ticker X] [--buy false] [--direction bearish|neutral]
+```
+
+This writes to the `call_overrides` table (ingest role). The next `score()` run picks it
+up: `pipeline/overrides.ts` `applyOverrides` applies all overrides as a deterministic
+pass over the raw `ReelCall[]` **before** the `isExplicitBuy && bullish` scope filter —
+so the correction is baked identically into `dataset.json` and the DB `calls` row.
+Survives re-extract (applied after classification), survives backfill (the override is the
+source of truth, not the clobbered row), and survives the VM's ephemeral `git checkout --
+data/` (overrides live in the DB, not the working tree). Fail-open: a DB error loading
+overrides degrades to scoring the raw classification; it never breaks the pipeline.
+
+**Three-way role split.** `scripts/apply-roles.ts` (run via `db:roles`) manages three
+roles on the correction tables:
+
+- `report` — INSERT-only on `call_reports`; blind to `call_overrides` and every other
+  table. Used by the public `/api/report` endpoint via `DATABASE_URL_REPORT`.
+- `ingest` — reads + writes `call_overrides` (apply-override, score); reads `call_reports`
+  (review queue). Cannot write `prices` beyond INSERT (frozen scoring).
+- `serve` — SELECT-only on `creators`/`calls`/`artifacts`/`prices`; BLIND to both
+  `call_reports` and `call_overrides` (override effect already baked into `calls`).
+
+**Parity-neutral.** Overrides apply at score-time, so their effect lives in `calls` /
+`dataset.json` — the same tables `parity-check.ts` already asserts. No change to the
+parity gate.
+
+**Propagation.** After `score` + `backfill` + `materialize`, run `scripts/revalidate-creator.ts`
+(or the VM's Stage 2 sequence does it automatically). With `REVALIDATE_TOKEN` set, the
+ISR-cached CDN entries bust within ~1 min; unset, the 6h ISR TTL is the floor (see Plan 3a
+cutover docs above).
+
+**Cutover note for the correction loop.** After deploy, re-run `bun run db:migrate &&
+bun run db:roles` on prod — this migration adds `call_reports` + `call_overrides` and
+`apply-roles.ts` now also creates the `report` role. Required new secrets in Vercel prod
+env: `REPORT_ROLE_PASSWORD` (>=16 chars `[A-Za-z0-9_-]`), `DATABASE_URL_REPORT` (connects
+as the `report` role), `REPORT_SALT` (any random string, used to salt IP hashes). The
+existing `REVALIDATE_TOKEN` must also be set for sub-minute propagation after a correction
+is applied.
+
 ## Chart data: baked for scoring, live for display
 
 Two price paths, deliberately split:

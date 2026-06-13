@@ -1,4 +1,4 @@
-import { pgTable, text, doublePrecision, boolean, jsonb, integer, primaryKey, index } from "drizzle-orm/pg-core";
+import { pgTable, text, doublePrecision, boolean, jsonb, integer, primaryKey, index, foreignKey, uniqueIndex } from "drizzle-orm/pg-core";
 
 // One row per creator. Holds the non-call parts of Dataset verbatim (jsonb) so the
 // Dataset shape round-trips losslessly in Plan 1. These jsonb blobs are replaced by
@@ -58,3 +58,41 @@ export const artifacts = pgTable("artifacts", {
   payload: jsonb("payload").notNull(),
   generatedAt: text("generated_at").notNull(),
 });
+
+// Operator corrections to a call, applied by score() as a deterministic final pass
+// over the extracted ReelCall[] BEFORE the isExplicitBuy&&bullish filter. Each column
+// is nullable except the audit reason: a null field means "leave as classified", a
+// non-null field overrides it. This is the durable, auditable replacement for
+// hand-editing reel-calls.json (lost on re-extract) and for the owner-DELETE (which
+// loses the evidence). Serve role must NOT see this table (see scripts/apply-roles.ts).
+export const callOverrides = pgTable("call_overrides", {
+  handle: text("handle").notNull().references(() => creators.handle, { onDelete: "cascade" }),
+  shortcode: text("shortcode").notNull(),
+  ticker: text("ticker"),                         // null = keep classified ticker
+  isExplicitBuy: boolean("is_explicit_buy"),      // null = keep classified flag
+  direction: text("direction"),                   // null = keep; else "bullish"|"bearish"|"neutral"
+  reason: text("reason").notNull(),               // required audit trail (verbatim quote + why)
+  createdAt: text("created_at").notNull(),
+}, (t) => [
+  primaryKey({ columns: [t.handle, t.shortcode] }), // one (latest-wins) override per call
+]);
+
+// One row per (call, reporter) flag from the public "Report incorrect" control. FK to
+// calls so a report for a non-existent call is rejected at the DB without the report
+// role needing SELECT. The unique (handle, shortcode, reporterHash) dedupe bounds spam
+// to one report per reporter per call (onConflictDoNothing). reporterHash is a salted,
+// non-reversible hash of the client IP (see src/routes/api/report.ts) — operational
+// dedupe only, never displayed. reason is a closed enum (validated at the endpoint).
+// Serve role must NOT see this table.
+export const callReports = pgTable("call_reports", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  handle: text("handle").notNull(),
+  shortcode: text("shortcode").notNull(),
+  reason: text("reason").notNull(),               // enum: wrong-ticker|not-a-buy|wrong-direction|not-a-call|other
+  reporterHash: text("reporter_hash").notNull(),
+  createdAt: text("created_at").notNull(),
+}, (t) => [
+  foreignKey({ columns: [t.handle, t.shortcode], foreignColumns: [calls.handle, calls.shortcode] }).onDelete("cascade"),
+  uniqueIndex("call_reports_dedupe_idx").on(t.handle, t.shortcode, t.reporterHash),
+  index("call_reports_call_idx").on(t.handle, t.shortcode),
+]);

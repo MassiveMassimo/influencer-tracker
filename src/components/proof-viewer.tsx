@@ -7,6 +7,7 @@ import {
   DrawerTitle,
 } from "#/components/ui/drawer.tsx";
 import { ScrollArea } from "#/components/ui/scroll-area.tsx";
+import { ReportButton } from "#/components/report-button.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
 import type { Call } from "#/lib/types.ts";
 
@@ -36,7 +37,8 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 // Shared body rendered inside both the desktop dialog and the mobile drawer.
-function ProofContent({ call }: { call: Call }) {
+// `handle` is threaded separately because the Call shape carries only a shortcode.
+function ProofContent({ call, handle }: { call: Call; handle: string }) {
   const p = proof(call.shortcode);
   return (
     <div className="flex flex-col gap-5 md:flex-row md:items-start">
@@ -62,6 +64,7 @@ function ProofContent({ call }: { call: Call }) {
           <Label>Quote</Label>
           <p className="text-sm leading-relaxed text-muted-foreground">“{call.quote}”</p>
         </div>
+        <ReportButton handle={handle} shortcode={call.shortcode} />
       </div>
       <iframe
         src={p.embed}
@@ -87,7 +90,15 @@ function Heading({ call }: { call: Call }) {
 
 // Row click opens this. Desktop → centered dialog; mobile → bottom drawer (vaul).
 // `call` null means closed; both surfaces are controlled off the same state.
-export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () => void }) {
+export function ProofViewer({
+  call,
+  handle,
+  onClose,
+}: {
+  call: Call | null;
+  handle: string;
+  onClose: () => void;
+}) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const open = call != null;
 
@@ -113,7 +124,7 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
                 <Dialog.Description className="sr-only">
                   Proof media and context for the {call.ticker} call.
                 </Dialog.Description>
-                <ProofContent call={call} />
+                <ProofContent call={call} handle={handle} />
               </>
             )}
           </Dialog.Popup>
@@ -137,7 +148,7 @@ export function ProofViewer({ call, onClose }: { call: Call | null; onClose: () 
                 Proof media and context for the {call.ticker} call.
               </DrawerDescription>
             </div>
-            <ProofContent call={call} />
+            <ProofContent call={call} handle={handle} />
           </ScrollArea>
         )}
       </DrawerContent>

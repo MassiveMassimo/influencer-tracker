@@ -9,6 +9,9 @@ import { buildSpark } from "../src/lib/spark";
 import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
 import { resolveSymbol } from "../src/lib/symbol";
 import { quoteTypes, isOutOfScope } from "./symbol-scope";
+import { getWriteDb } from "../db/client";
+import { loadOverrides } from "../db/overrides";
+import { applyOverrides } from "./overrides";
 import type { Dataset, ReelCall, OhlcBar, Call } from "../src/lib/types";
 
 const CAVEATS = ["survivorship", "reposts-deduped", "forward-from-post-date"];
@@ -64,6 +67,23 @@ export function assembleDataset(
 
 export async function score(handle: string, name: string, today = new Date().toISOString().slice(0,10), postNoun = "Reels") {
   const reelCalls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
+  // Deterministic correction pass. Reads operator overrides from the DB (ingest role)
+  // and patches the classified calls before scoring, so the fix is baked identically
+  // into dataset.json AND (via backfill) the DB calls row. Fail-open: if the DB is
+  // unreachable, score still runs on the raw classification — corrections lag, scoring
+  // never breaks. Skipped entirely when no DB is configured (local/static runs).
+  let corrected = reelCalls;
+  if (process.env.DATABASE_URL_INGEST || process.env.DATABASE_URL) {
+    try {
+      const overrides = await loadOverrides(getWriteDb(), handle);
+      if (overrides.length) {
+        corrected = applyOverrides(reelCalls, overrides);
+        console.log(`applied ${overrides.length} override(s) for ${handle}`);
+      }
+    } catch (e) {
+      console.warn(`override load failed for ${handle} (scoring raw classification): ${(e as Error).message}`);
+    }
+  }
   const ohlc: Record<string, OhlcBar[]> = {};
   for (const f of await readdir(pricesDir(handle))) {
     if (f.endsWith(".json")) ohlc[f.replace(".json","")] = JSON.parse(await readFile(join(pricesDir(handle), f), "utf8"));
@@ -76,8 +96,8 @@ export async function score(handle: string, name: string, today = new Date().toI
   const types = await quoteTypes(symbols);
   const outOfScope = new Set(symbols.filter(s => isOutOfScope(types[s])));
   for (const s of outOfScope) console.warn(`OUT-OF-SCOPE ${s}: ${types[s]} — not a stock pick, excluded from scoring`);
-  const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today,
-    { reelsScraped, reelsWithTicker: reelCalls.length }, postNoun, sym => !outOfScope.has(sym));
+  const ds = assembleDataset({ handle, name }, corrected, ohlc, today,
+    { reelsScraped, reelsWithTicker: corrected.length }, postNoun, sym => !outOfScope.has(sym));
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
   // Write deduped per-ticker prices to a shared store (one file per symbol across
   // all creators) for the ticker-page fallback. Merge so a creator with a shorter

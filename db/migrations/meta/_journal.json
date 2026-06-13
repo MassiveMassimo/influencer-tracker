@@ -15,6 +15,20 @@
       "when": 1781081310753,
       "tag": "0001_productive_alex_wilder",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781367582780,
+      "tag": "0002_overconfident_phil_sheldon",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781368607169,
+      "tag": "0003_loving_sue_storm",
+      "breakpoints": true
     }
   ]
 }

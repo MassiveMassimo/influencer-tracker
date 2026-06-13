@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TSymbolRouteImport } from './routes/t.$symbol'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as ApiRevalidateRouteImport } from './routes/api/revalidate'
+import { Route as ApiReportRouteImport } from './routes/api/report'
 import { Route as ApiCallsIndexRouteImport } from './routes/api/calls-index'
 import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
 import { Route as ApiPricesSymbolRouteImport } from './routes/api/prices.$symbol'
@@ -51,6 +52,11 @@ const ApiRevalidateRoute = ApiRevalidateRouteImport.update({
   path: '/api/revalidate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReportRoute = ApiReportRouteImport.update({
+  id: '/api/report',
+  path: '/api/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCallsIndexRoute = ApiCallsIndexRouteImport.update({
   id: '/api/calls-index',
   path: '/api/calls-index',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/calls-index': typeof ApiCallsIndexRoute
+  '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/c/$handle': typeof CHandleRouteWithChildren
   '/t/$symbol': typeof TSymbolRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/calls-index': typeof ApiCallsIndexRoute
+  '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/t/$symbol': typeof TSymbolRoute
   '/api/dataset/$handle': typeof ApiDatasetHandleRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/calls-index': typeof ApiCallsIndexRoute
+  '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/c/$handle': typeof CHandleRouteWithChildren
   '/t/$symbol': typeof TSymbolRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/sitemap.xml'
     | '/api/calls-index'
+    | '/api/report'
     | '/api/revalidate'
     | '/c/$handle'
     | '/t/$symbol'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/sitemap.xml'
     | '/api/calls-index'
+    | '/api/report'
     | '/api/revalidate'
     | '/t/$symbol'
     | '/api/dataset/$handle'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/sitemap.xml'
     | '/api/calls-index'
+    | '/api/report'
     | '/api/revalidate'
     | '/c/$handle'
     | '/t/$symbol'
@@ -162,6 +174,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiCallsIndexRoute: typeof ApiCallsIndexRoute
+  ApiReportRoute: typeof ApiReportRoute
   ApiRevalidateRoute: typeof ApiRevalidateRoute
   CHandleRoute: typeof CHandleRouteWithChildren
   TSymbolRoute: typeof TSymbolRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       path: '/api/revalidate'
       fullPath: '/api/revalidate'
       preLoaderRoute: typeof ApiRevalidateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/report': {
+      id: '/api/report'
+      path: '/api/report'
+      fullPath: '/api/report'
+      preLoaderRoute: typeof ApiReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/calls-index': {
@@ -269,6 +289,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiCallsIndexRoute: ApiCallsIndexRoute,
+  ApiReportRoute: ApiReportRoute,
   ApiRevalidateRoute: ApiRevalidateRoute,
   CHandleRoute: CHandleRouteWithChildren,
   TSymbolRoute: TSymbolRoute,
