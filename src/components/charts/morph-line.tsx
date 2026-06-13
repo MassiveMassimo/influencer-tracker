@@ -26,11 +26,10 @@ type Point = [number, number];
 const gen = d3line<Point>().curve(curveNatural);
 
 const SAMPLES = 240;
-// 0.4s matches the candlestick crossfade so both charts transition as one on a
-// timeframe switch. Strong custom ease-in-out (the chart clip-reveal family):
-// a morph is on-screen movement, which wants natural accel/decel, not ease-out.
+// Matched to the candlestick crossfade (same 0.4s, same strong ease-out curve)
+// so both charts transition as one on a timeframe switch.
 const MORPH_DURATION = 0.4;
-const MORPH_EASE: [number, number, number, number] = [0.85, 0, 0.15, 1];
+const MORPH_EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
 
 // Resample a polyline to exactly `n` points by walking it at even index
 // fractions — cheap, and enough to keep curveNatural smooth at SAMPLES density.
