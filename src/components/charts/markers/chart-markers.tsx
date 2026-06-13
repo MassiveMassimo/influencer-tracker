@@ -14,6 +14,12 @@ export interface ChartMarkersProps {
   showLines?: boolean;
   /** Whether to animate markers on entrance. Default: true */
   animate?: boolean;
+  /**
+   * Bump this (e.g. the timeframe) to remount the markers and replay the
+   * stagger. Needed on charts that stay mounted across data swaps (the area
+   * chart), where the entrance variant would otherwise never fire again.
+   */
+  replayKey?: string | number;
 }
 
 // Tooltip content for markers
@@ -89,6 +95,7 @@ export function ChartMarkers({
   size = 28,
   showLines = true,
   animate = true,
+  replayKey,
 }: ChartMarkersProps) {
   const {
     xScale,
@@ -134,11 +141,30 @@ export function ChartMarkers({
   // Y position for markers (above chart area)
   const markerY = -8;
 
+  // Stagger left→right: order groups by date ascending so the earliest
+  // (leftmost) marker gets delay 0, not the newest (items are newest-first).
+  const sortedGroups = useMemo(
+    () =>
+      Array.from(markersByDate.entries()).sort(
+        ([, a], [, b]) =>
+          (a[0]?.date.getTime() ?? 0) - (b[0]?.date.getTime() ?? 0)
+      ),
+    [markersByDate]
+  );
+
+  // Spread the whole cascade across a fixed window (not a flat per-group step),
+  // so a symbol with 30 call dates ripples in just as fast as one with 3 — no
+  // multi-second tail. ~1.2s ceiling matches bklit's bar-stagger spec.
+  const STAGGER_WINDOW = 1.2;
+  const staggerStep =
+    sortedGroups.length > 1
+      ? Math.min(0.08, STAGGER_WINDOW / (sortedGroups.length - 1))
+      : 0;
+
   return (
     <>
       {/* SVG markers rendered in chart space */}
-      {Array.from(markersByDate.entries()).map(
-        ([dateKey, dateMarkers]) => {
+      {sortedGroups.map(([dateKey, dateMarkers], groupIndex) => {
           const markerDate = dateMarkers[0]?.date;
           if (!markerDate) {
             return null;
@@ -156,7 +182,8 @@ export function ChartMarkers({
               })()
             : undefined;
 
-          const markerDelay = 0;
+          // Stagger only — no base wait for the chart draw, leftmost first.
+          const markerDelay = animate ? groupIndex * staggerStep : 0;
 
           return (
             <MarkerGroup
@@ -164,7 +191,9 @@ export function ChartMarkers({
               animationDelay={markerDelay}
               containerRef={containerRef}
               isActive={isActive}
-              key={dateKey}
+              // replayKey in the key remounts the group on a timeframe switch so
+              // the entrance variant fires again (the area chart never unmounts).
+              key={`${dateKey}-${replayKey ?? ""}`}
               lineHeight={innerHeight}
               marginLeft={margin.left}
               marginTop={margin.top}
@@ -176,8 +205,7 @@ export function ChartMarkers({
               y={markerY}
             />
           );
-        }
-      )}
+        })}
 
       {/* Anchored hover card — the marker's own detail (title + description),
           positioned at the marker instead of inside the chart tooltip. Kept

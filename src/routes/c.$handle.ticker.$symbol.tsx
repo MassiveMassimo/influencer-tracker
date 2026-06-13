@@ -96,6 +96,14 @@ function priceFmt(x: number | null) {
   return `$${x.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
+// Signed nominal delta in dollars (penny-stock precision mirrors priceFmt).
+function signedCurrency(x: number | null) {
+  if (x == null) return "—";
+  const decimals = Math.abs(x) >= 1 ? 2 : 4;
+  const sign = x > 0 ? "+" : x < 0 ? "-" : "";
+  return `${sign}$${Math.abs(x).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+}
+
 function toneClass(x: number | null) {
   if (x == null) return "text-muted-foreground";
   return x > 0
@@ -117,10 +125,12 @@ function ChartSkeleton() {
 function PriceReadout({
   lastClose,
   tfChange,
+  tfDelta,
   usingFallback,
 }: {
   lastClose: number | null;
   tfChange: number | null;
+  tfDelta: number | null;
   usingFallback: boolean;
 }) {
   const ready = useNumberFlowReady();
@@ -132,6 +142,13 @@ function PriceReadout({
     minimumFractionDigits: lastClose >= 1 ? 2 : 4,
     maximumFractionDigits: lastClose >= 1 ? 2 : 4,
   };
+  const deltaFormat: Format = {
+    style: "currency",
+    currency: "USD",
+    signDisplay: "exceptZero",
+    minimumFractionDigits: lastClose >= 1 ? 2 : 4,
+    maximumFractionDigits: lastClose >= 1 ? 2 : 4,
+  };
   const changeFormat: Format = {
     style: "percent",
     signDisplay: "exceptZero",
@@ -140,7 +157,7 @@ function PriceReadout({
   };
 
   return (
-    <div className="flex items-baseline gap-3">
+    <div className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
       <NumberFlowGroup>
         <span className="font-heading text-2xl tabular-nums">
           {ready ? (
@@ -150,12 +167,17 @@ function PriceReadout({
           )}
         </span>
         <span className={`font-mono text-sm tabular-nums ${toneClass(tfChange)}`}>
-          {tfChange == null ? (
+          {tfChange == null || tfDelta == null ? (
             "—"
           ) : ready ? (
-            <NumberFlow format={changeFormat} value={tfChange} willChange />
+            <>
+              <NumberFlow format={deltaFormat} value={tfDelta} willChange />
+              {" ("}
+              <NumberFlow format={changeFormat} value={tfChange} willChange />
+              {")"}
+            </>
           ) : (
-            signed(tfChange)
+            `${signedCurrency(tfDelta)} (${signed(tfChange)})`
           )}
         </span>
       </NumberFlowGroup>
@@ -176,6 +198,7 @@ function TickerPage() {
   const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
   const { impact, select } = useHaptics();
   const queryClient = useQueryClient();
+  const numberFlowReady = useNumberFlowReady();
 
   const firstDate = firstDateOf(ds.calls);
   const query = useQuery(chartQuery(symbol, timeframe, firstDate));
@@ -231,6 +254,10 @@ function TickerPage() {
     icon: "▲",
     title: `${symbol} · ${c.postDate}`,
     description: `${c.returns.toDate.excess != null ? signed(c.returns.toDate.excess) + " vs SPY · " : ""}${c.quote}`,
+    onClick: () => {
+      select();
+      setSelectedCall(c);
+    },
   }));
 
   const candles = ohlc.map((b) => ({
@@ -279,6 +306,19 @@ function TickerPage() {
     lastClose != null && firstClose
       ? (lastClose - firstClose) / firstClose
       : null;
+  const tfDelta =
+    lastClose != null && firstClose != null ? lastClose - firstClose : null;
+
+  // Rendered in two slots (mobile top-right / desktop below price), so define once.
+  const callsLabel = numberFlowReady ? (
+    <NumberFlow
+      value={callsInWindow}
+      suffix={callsInWindow === 1 ? " call" : " calls"}
+      willChange
+    />
+  ) : (
+    `${callsInWindow} ${callsInWindow === 1 ? "call" : "calls"}`
+  );
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
@@ -294,11 +334,24 @@ function TickerPage() {
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
         <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <PriceReadout
-            lastClose={lastClose}
-            tfChange={tfChange}
-            usingFallback={usingFallback}
-          />
+          <div className="flex w-full flex-col items-start gap-1 sm:w-auto">
+            <div className="flex w-full items-start justify-between gap-3 sm:w-auto sm:justify-start">
+              <PriceReadout
+                lastClose={lastClose}
+                tfChange={tfChange}
+                tfDelta={tfDelta}
+                usingFallback={usingFallback}
+              />
+              {/* Mobile: calls count sits top-right of the price row. */}
+              <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em] sm:hidden">
+                {callsLabel}
+              </span>
+            </div>
+            {/* Desktop: calls count sits below the price. */}
+            <span className="hidden font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em] sm:block">
+              {callsLabel}
+            </span>
+          </div>
           <TimeframeTabs
             value={timeframe}
             onChange={(tf) => {
@@ -322,11 +375,6 @@ function TickerPage() {
               </Suspense>
             </ChartBoundary>
           )}
-          {!showSkeleton && candles.length > 0 && callsInWindow === 0 ? (
-            <div className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur-sm">
-              No calls in the selected period.
-            </div>
-          ) : null}
         </div>
       </section>
 
@@ -343,7 +391,7 @@ function TickerPage() {
         ) : (
           <ChartBoundary>
             <Suspense fallback={<ChartSkeleton />}>
-              <StockVsSpyLine norm={norm} markers={callMarkers} />
+              <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={view.timeframe} />
             </Suspense>
           </ChartBoundary>
         )}

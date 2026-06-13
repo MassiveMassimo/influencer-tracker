@@ -447,9 +447,16 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   wired into the `dateLabels` memo in `time-series-chart-shell.tsx` +
   `candlestick-chart.tsx` so 1D charts label "09:30" not a date); the lina
   edge-fade `scroll-area`/`table`; the `StockVsSpyLine` area wiring in
-  `ticker-charts.tsx` (`AreaChart` with a filled stock `Area` + a fill-less SPY
-  reference `Area`). The custom `morph-line` tween was dropped when the line
-  chart became an area chart.
+  `ticker-charts.tsx` (`AreaChart` with a filled stock `MorphArea` + a fill-less
+  SPY `MorphArea` at `fillOpacity={0}`); the `morph-area.tsx` vertex-lerp path
+  morph (resample to 240 pts, `animate(0,1)` rewrites `d` per frame) so the area
+  reshapes on a timeframe switch instead of hard-swapping; and the marker stagger
+  extensions in `markers/chart-markers.tsx` — bklit's `ChartMarkers` only does an
+  on-mount entrance, so we (a) feed `MarkerGroup.animationDelay` a left→right
+  cascade bounded to a fixed ~1.2s window (`STAGGER_WINDOW`, matching bklit's bar
+  stagger) and (b) add a `replayKey` prop (the timeframe) folded into each group's
+  React key, so the persistent area chart's markers remount and re-stagger on a
+  switch (the candlestick already remounts via its `ChartCrossfade` key).
 
 ## Analytics (PostHog)
 

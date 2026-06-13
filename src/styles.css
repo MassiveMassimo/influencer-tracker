@@ -440,6 +440,18 @@ a {
   z-index: 0;
   pointer-events: none;
 }
+/* Below the sm breakpoint the tabs stack under the price, so fill the card
+   width and stretch each tab evenly. The pill is JS-sized from offsetWidth,
+   so it tracks the stretched tabs (and re-snaps on resize). */
+@media (max-width: 639px) {
+  .t-tabs {
+    display: flex;
+    width: 100%;
+  }
+  .t-tab {
+    flex: 1 1 0;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .t-tabs-pill,
   .t-tab {

@@ -4,7 +4,7 @@ import type { Timeframe } from "#/lib/window-series.ts";
 import { CandlestickChart } from "./candlestick-chart.tsx";
 import { Candlestick } from "./candlestick.tsx";
 import { AreaChart } from "./area-chart.tsx";
-import { Area } from "./area.tsx";
+import { MorphArea } from "./morph-area.tsx";
 import { Grid } from "./grid.tsx";
 import { XAxis } from "./x-axis.tsx";
 import { YAxis } from "./y-axis.tsx";
@@ -19,9 +19,11 @@ type NormPoint = { date: Date; stock: number; spy: number | null };
 
 // Crossfade between timeframes: AnimatePresence keeps the outgoing chart mounted
 // while it fades out and the incoming one fades in, stacked in the same 320px
-// box, so the two animations overlap into one smooth dissolve. `initial={false}`
-// skips the fade on first paint (SSR/hydration stays static). The route gates
-// `timeframe` on data readiness, so each key change is a real, fully-formed swap.
+// box, so the two animations overlap into one smooth dissolve. Default `initial`
+// (true) so the first mount animates in on page load too — note `initial={false}`
+// here would propagate through PresenceContext and suppress the nested candle
+// entrance on first paint. The route gates `timeframe` on data readiness, so each
+// key change is a real, fully-formed swap.
 function ChartCrossfade({
   timeframe,
   children,
@@ -31,7 +33,7 @@ function ChartCrossfade({
 }) {
   return (
     <div className="relative h-[320px]">
-      <AnimatePresence initial={false}>
+      <AnimatePresence>
         <motion.div
           animate={{ opacity: 1 }}
           className="absolute inset-0"
@@ -63,7 +65,7 @@ export function PriceCandles({
       <CandlestickChart data={candles} margin={{ left: 56 }} style={{ height: 320 }} revealSignature={timeframe}>
         <Grid horizontal />
         <Candlestick fadedOpacity={0.25} />
-        <ChartMarkers items={markers} />
+        <ChartMarkers items={markers} replayKey={timeframe} />
         <XAxis />
         <YAxis />
         <ChartTooltip />
@@ -75,9 +77,11 @@ export function PriceCandles({
 export function StockVsSpyLine({
   norm,
   markers,
+  timeframe,
 }: {
   norm: NormPoint[];
   markers: ChartMarker[];
+  timeframe: Timeframe;
 }) {
   // No crossfade wrapper: the chart stays mounted across timeframes and the
   // shell reveal / y-domain tween handle the transition as `norm` changes. Stock
@@ -86,9 +90,9 @@ export function StockVsSpyLine({
   return (
     <AreaChart data={norm} className="h-[320px]" aspectRatio="auto">
       <Grid horizontal highlightRowValues={[100]} />
-      <Area dataKey="stock" />
-      <Area dataKey="spy" stroke="var(--info)" fillOpacity={0} />
-      <ChartMarkers items={markers} />
+      <MorphArea dataKey="stock" />
+      <MorphArea dataKey="spy" stroke="var(--info)" fillOpacity={0} />
+      <ChartMarkers items={markers} replayKey={timeframe} />
       <XAxis />
       <ChartTooltip />
     </AreaChart>

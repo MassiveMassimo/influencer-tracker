@@ -182,6 +182,22 @@ export function MarkerGroup({
     e.stopPropagation(); // Prevent chart crosshair from moving while hovering markers
   };
 
+  // Pressing the collapsed marker opens the first marker's action. Clusters
+  // still fan on hover so the rest stay reachable via the fanned circles.
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const primary = markers[0];
+    if (primary?.onClick) {
+      primary.onClick();
+    } else if (primary?.href) {
+      if (primary.target === "_blank") {
+        window.open(primary.href, "_blank", "noopener,noreferrer");
+      } else {
+        window.location.href = primary.href;
+      }
+    }
+  };
+
   const portalX = x + marginLeft;
   const portalY = y + marginTop;
 
@@ -220,6 +236,7 @@ export function MarkerGroup({
         {/* Interactive marker group */}
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Chart marker interaction */}
         <g
+          onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onMouseMove={handleMouseMove}

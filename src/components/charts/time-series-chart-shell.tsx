@@ -94,11 +94,10 @@ function resolveTimeSeriesYDomain(
 
   const { minValue, maxValue } = collectNumericExtents(data, dataKeys);
 
-  if (minValue >= 0) {
-    const top = maxValue <= 0 ? 100 : maxValue * 1.1;
-    return [0, top];
-  }
-
+  // NOTE: local patch on synced bklit core (re-apply after re-sync). bklit
+  // zero-anchors positive series ([0, max]), which crushes the rebased-to-100
+  // Stock-vs-SPY area into a thin strip at the top. Pad tight to the extents
+  // instead (matching candlestick) so the comparison fills the panel.
   const padding = (maxValue - minValue) * 0.05 || 1;
   return [minValue - padding, maxValue + padding];
 }
