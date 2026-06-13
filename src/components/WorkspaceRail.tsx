@@ -4,6 +4,7 @@ import { CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "l
 import GitHubLink from "./GitHubLink";
 import { Preferences } from "./Preferences";
 import { ScrollArea } from "./ui/scroll-area";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 
 export interface CreatorRef {
   handle: string;
@@ -166,10 +167,10 @@ function BackendHealth({ creators }: { creators: CreatorRef[] }) {
 
   let dot = "bg-muted-foreground/40";
   let label = "Backend";
-  let title = newest ? `Data updated ${newest}` : "No data yet";
+  let detail = newest ? `Data updated ${newest}` : "No data yet";
   if (isClient && newest) {
     const days = Math.floor((Date.now() - Date.parse(newest)) / 86_400_000);
-    title = `Data updated ${newest} · ${days <= 0 ? "today" : `${days}d ago`}`;
+    detail = `Data updated ${newest} · ${days <= 0 ? "today" : `${days}d ago`}`;
     // Daily 13:00 UTC cadence: today/yesterday is healthy, a slipped day is amber, ≥3d stale.
     if (days < 2) {
       dot = "bg-emerald-500";
@@ -183,13 +184,17 @@ function BackendHealth({ creators }: { creators: CreatorRef[] }) {
     }
   }
   return (
-    <span
-      title={title}
-      className="flex items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]"
-    >
-      <span className={`size-1.5 rounded-full ${dot}`} />
-      {label}
-    </span>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <span className="flex items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+            <span className={`size-1.5 rounded-full ${dot}`} />
+            {label}
+          </span>
+        }
+      />
+      <TooltipPopup>{detail}</TooltipPopup>
+    </Tooltip>
   );
 }
 
