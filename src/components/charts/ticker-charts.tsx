@@ -87,7 +87,7 @@ export function StockVsSpyLine({
     <AreaChart data={norm} className="h-[320px]" aspectRatio="auto">
       <Grid horizontal highlightRowValues={[100]} />
       <Area dataKey="stock" />
-      <Area dataKey="spy" stroke="var(--chart-3)" fillOpacity={0} />
+      <Area dataKey="spy" stroke="var(--info)" fillOpacity={0} />
       <ChartMarkers items={markers} />
       <XAxis />
       <ChartTooltip />
