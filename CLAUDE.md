@@ -176,7 +176,7 @@ roles on the correction tables:
 parity gate.
 
 **Propagation.** After `score` + `backfill` + `materialize`, run `scripts/revalidate-creator.ts`
-(or the VM's Stage 2 sequence does it automatically). With `REVALIDATE_TOKEN` set, the
+(or the VM's automated daily run does it automatically). With `REVALIDATE_TOKEN` set, the
 ISR-cached CDN entries bust within ~1 min; unset, the 6h ISR TTL is the floor (see Plan 3a
 cutover docs above).
 
@@ -300,32 +300,38 @@ follow.
   → 503, mismatch → 401); the actual Vercel-API CDN purge is a 3b `TODO` (needs the project token,
   which lives with the VM), so `purge` currently just records intent and does not bust the CDN.
 
-### Plan 3b — VM semi-auto ingest
+### Plan 3b — VM automated ingest
 
 Daily X-only incremental ingest running on the ARM Ubuntu VM (`ssh ubuntu@imos-vm`, repo at
 `~/influencer-tracker`). Refreshes existing creators only — new-creator onboarding stays manual.
 Ops units + runbook: `ops/` (`influencer-ingest.{service,timer}`, `notify-fail.service`
 dead-man, `ops/README.md` with one-time rsync seed + required `.env` keys).
 
-**Stage 1 (automated, daily timer).** `scripts/ingest.ts` runs `scrapeX` + `extract-x` for each
-handle in `INGEST_HANDLES`, then pauses and sends a Telegram review ping. No scoring yet.
+**Fully automated daily run.** The daily timer fires `scripts/ingest.ts`, which runs `scrapeX` +
+`extract-x` for each handle in `INGEST_HANDLES`, then immediately auto-invokes `scripts/resume.ts`
+per handle (no human review of `calls.review.md` in between). `resume.ts` sequence: `guard-no-shrink`
+→ `score` → scoped `backfill.ts <handle>` → `db:materialize` (global artifact rebuild) → scoped
+`parity-check.ts <handle>` → `revalidate-creator`. Scoped to avoid overwriting other creators'
+live DB rows with today's reset static files; `materialize` still rebuilds the global calls-index
+from the full DB.
 
-**Stage 2 (manual, over SSH).** After reviewing `calls.review.md`:
+Every active handle re-scores on every daily run (always-resume), so operator overrides and
+to-date/recent-horizon returns mature for all creators without needing a new reviewed call.
 
-```
-flock /tmp/influencer-ingest.lock bun run scripts/resume.ts <handle>
-```
-
-Sequence: `guard-no-shrink` → `score` → scoped `backfill.ts <handle>` → `db:materialize`
-(global artifact rebuild) → scoped `parity-check.ts <handle>` → `revalidate-creator`.
-Scoped to avoid overwriting other creators' live DB rows with today's reset static files;
-`materialize` still rebuilds the global calls-index from the full DB.
-The `flock` (shared with the systemd timer) prevents a manual resume racing the next daily run.
-Creators with no new reviewed calls are never resumed, so their existing calls' to-date/recent
-returns lag until their next reviewed call (or a manual re-score + redeploy from the Mac).
 `scripts/guard-no-shrink.ts` aborts if the freshly-scored call count is materially below the
 committed baseline — truncated-scrape / data-loss prevention — and runs **before** `score`
 overwrites `dataset.json`.
+
+**Telegram messages.** On success: a published-summary per handle. On `guard-no-shrink` or parity
+failure: a BLOCKED alert containing the manual re-run command for that handle.
+
+**Manual `resume.ts` — surviving uses only.** The `flock`-guarded `resume.ts` call over SSH is
+retained for two paths: (a) investigating and re-running after a BLOCKED alert; (b) re-scoring
+after a human override (flag correction via the report→override loop). No upfront call review
+before the automated run — correctness is caught reactively. The accepted tradeoff: silent errors
+on low-traffic pages persist in the scorecard until seen and flagged. This supersedes the earlier
+"keep the human review gate on the scored subset until precision re-measures >95%" stance — the
+report→override correction loop is now the safety net that makes shipping-then-correcting acceptable.
 
 **Forward scrape.** `scrapeX(handle, months, { forward })` (`pipeline/x/scrape-x.ts`) — with
 `--forward` fetches only tweets newer than the newest stored (`[newest, now]`, deduped by id),
@@ -340,7 +346,7 @@ a consistent non-1 close ratio over ≥2 overlapping dates (stock-split restatem
 frozen/insert-only guarantee is preserved — only appends or halts, never rewrites a scored bar.
 
 **Ephemeral-scratch git policy.** Under `USE_DB=1` the DB is source of truth, so before each
-stage-1 run the service discards local static churn:
+daily run the service discards local static churn:
 
 ```
 git checkout -- data/ && git clean -fd data/prices/ && git pull --ff-only

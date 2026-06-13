@@ -1,8 +1,8 @@
 # VM ingest ops runbook
 
-Daily automated ingest for influencer-tracker. Two-stage: a systemd timer runs
-stage 1 (scrape + extract), then pauses for human review; the operator runs stage 2
-(score + sync + parity + revalidate) manually over SSH after approving the calls.
+Daily automated ingest for influencer-tracker. The systemd timer runs scrape + extract +
+score + sync + parity + revalidate in a single unattended run per handle. No human review
+step — Telegram reports published results or sends a BLOCKED alert on guard/parity failure.
 
 ---
 
@@ -63,7 +63,7 @@ VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin for rev
 ```
 
 > **`REVALIDATE_TOKEN` — required for instant propagation.**
-> `revalidate-creator.ts` (stage 2, step 5) GETs each affected path with
+> `revalidate-creator.ts` (resume, step 5) GETs each affected path with
 > `x-prerender-revalidate: <token>` to bust the CDN within ~1 min of an ingest.
 > Without this token set, changes only surface after the 6h ISR TTL (the TTL is still
 > the correctness floor, but operators should not rely on it for timely corrections).
@@ -114,7 +114,7 @@ systemctl list-timers influencer-ingest.timer
 
 ## 2. Daily flow
 
-### Stage 1 — automated (13:00 UTC)
+### Automated run (13:00 UTC)
 
 The timer fires `influencer-ingest.service`, which:
 
@@ -123,30 +123,27 @@ The timer fires `influencer-ingest.service`, which:
    fresh from `main` (see §4 for why).
 3. Runs `scripts/ingest.ts` for every handle in `INGEST_HANDLES`: forward scrape
    (tweets since last run), extract calls via Fireworks, write `reel-calls.json` and
-   `calls.review.md`, then pause.
-4. Telegrams the operator a review ping with the exact command to inspect the output.
+   `calls.review.md`, then immediately auto-invokes `scripts/resume.ts` per handle —
+   no human pause.
+4. Per-handle Telegram messages:
+   - **Published:** handle scored, synced, CDN busted — no action needed.
+   - **BLOCKED:** `guard-no-shrink` or parity check failed; the message includes the
+     manual re-run command for investigation.
 
-### Stage 2 — manual (operator, over SSH)
+### Manual resume — BLOCKED investigation / post-override re-score
 
-Review the extracted calls on the VM:
-
-```bash
-ssh ubuntu@imos-vm "cat ~/influencer-tracker/data/creators/<handle>/calls.review.md"
-```
-
-(The Telegram ping includes this exact command for the relevant handle.)
-
-If the calls look correct, run the resume:
+Only needed when the automated run sends a BLOCKED alert or after applying a human
+override (flag correction via the report→override loop). Use the `flock` guard to
+avoid racing the timer:
 
 ```bash
-ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts <handle>"
+ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock ~/.bun/bin/bun run scripts/resume.ts <handle>"
 ```
 
-The `flock` here uses the **same lock file** as the timer, so the two can never run
+The `flock` uses the **same lock file** as the timer, so the two can never run
 concurrently. The manual resume blocks until it acquires the lock; if the timer fires
-while a resume is running (unlikely but possible near 13:00 UTC) it waits up to 2h
-(`flock -w 7200`) and only the `notify-fail` dead-man fires if it still can't acquire
-it. Run one handle at a time if ingesting multiple handles on the same day.
+while a resume is running it waits up to 2h (`flock -w 7200`) and the `notify-fail`
+dead-man fires if it still can't acquire it. Run one handle at a time.
 
 ---
 
@@ -178,14 +175,13 @@ it. Run one handle at a time if ingesting multiple handles on the same day.
    still refreshes the CDN. (The older `/api/revalidate` POST seam still exists but is an
    inert 3a stub — it is *not* what resume calls.)
 
-If any step fails, resume exits with a non-zero code. Failures surface in the operator's
-terminal (SSH session); resume has no `notify` call — only stage-1 `ingest.ts` and the
-`notify-fail` systemd unit send Telegram alerts.
+If any step fails, resume exits with a non-zero code. In the automated run, `ingest.ts` catches
+the failure and sends a BLOCKED Telegram alert with the manual re-run command; the
+`notify-fail` systemd unit is the backstop if the process is killed before it can notify.
+In a manual SSH session, failures surface in the terminal only.
 
-**Known limitation.** A creator with no new reviewed calls is never resumed, so its
-existing calls' to-date and recent-horizon returns do not mature in the DB until its next
-reviewed call (or a manual full re-score + redeploy from the Mac). Accepted for semi-auto;
-the Plan-4 judge + per-call approval state is the eventual fix.
+Every active handle re-scores on every daily run (always-resume), so overrides and
+to-date/recent-horizon returns mature for all creators without needing a new reviewed call.
 
 ---
 
@@ -220,7 +216,8 @@ input, not a runtime dependency.
   the wrapper's own try/catch did not fire, systemd triggers `notify-fail.service`,
   which calls `scripts/notify.ts` directly and sends a Telegram alert.
 - **`RuntimeMaxSec=4h`** is the dead-man timeout. If the ingest hangs for more than
-  four hours, systemd kills the unit and `notify-fail.service` fires.
+  four hours, systemd kills the unit and `notify-fail.service` fires. Bump to `6h` in
+  `influencer-ingest.service` if `INGEST_HANDLES` grows to 10+ handles.
 - To inspect a failed run: `journalctl -u influencer-ingest.service -n 100 --no-pager`
 - To trigger a manual test run: `sudo systemctl start influencer-ingest.service` — runs the
   same `ExecStart` (same `flock`); it does NOT skip the lock.
