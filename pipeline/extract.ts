@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { transcriptsDir, framesDir, rawDir } from "./config";
-import { discoverModels } from "./groq";
+import { fireworks, FIREWORKS_MODEL } from "./fireworks";
 import { classify, toReelCall, writeCalls } from "./calls";
 import type { ReelCall } from "../src/lib/types";
 
@@ -26,7 +26,8 @@ async function postDateOf(handle: string, code: string): Promise<string | null> 
 }
 
 export async function extract(handle: string) {
-  const { text } = await discoverModels();
+  // Classification on Fireworks (like the X path) — Groq's free tier throttled it.
+  const text = FIREWORKS_MODEL;
   const out: ReelCall[] = [];
   for (const f of await readdir(transcriptsDir(handle))) {
     if (!f.endsWith(".json")) continue;
@@ -41,11 +42,11 @@ export async function extract(handle: string) {
     if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); continue; }
     let c;
     try {
-      c = await classify(text, body);
+      c = await classify(text, body, fireworks);
     } catch (e) {
       // classify() throws "classify: ..." only on an unparseable reply (skip the post).
-      // Transport/auth failures (429 past backoff, network, missing GROQ_API_KEY) are NOT
-      // per-post and must surface loudly, not silently truncate reel-calls.json.
+      // Transport/auth failures (429 past backoff, network, missing FIREWORKS_API_KEY) are
+      // NOT per-post and must surface loudly, not silently truncate reel-calls.json.
       if (!(e as Error).message.startsWith("classify:")) throw e;
       console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
       continue;
