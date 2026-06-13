@@ -62,6 +62,12 @@ function fromNetscape(text: string): any[] {
   return out;
 }
 
+// True if the context already carries a logged-in IG session (ds_user_id cookie).
+async function hasSession(ctx: any): Promise<boolean> {
+  const cookies = await ctx.cookies("https://www.instagram.com");
+  return cookies.some((c: any) => c.name === "ds_user_id");
+}
+
 // Seed a prior session from cookies.txt if present; returns true if cookies were loaded.
 async function seedCookies(ctx: any, handle: string): Promise<boolean> {
   const jar = cookiesPath(handle);
@@ -101,14 +107,18 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
     } catch { /* non-JSON response */ }
   });
 
-  // Seed a prior session (cookies.txt) so headless/VM runs skip the manual login.
-  const seeded = await seedCookies(ctx, handle);
+  // Prefer the persistent profile's own session (a real browser login performed once,
+  // e.g. seeded over VNC on the VM) — IG only trusts the heavier GraphQL harvest from a
+  // genuinely-logged-in session. Only seed cookies.txt when the profile has none; seeding
+  // stale cookies would clobber a good profile login. scrape() rewrites cookies.txt from
+  // the live (trusted) session at teardown (below), so yt-dlp downloads stay valid.
+  const loggedIn = (await hasSession(ctx)) || (await seedCookies(ctx, handle));
 
-  // Gate on login before scrolling. Seeded session logs in headlessly; a fresh
-  // profile with no cookies waits for a manual browser login.
+  // Gate on login before scrolling. A logged-in profile/seeded session is detected fast;
+  // a fresh profile with no session waits for a manual browser login.
   await page.goto("https://www.instagram.com/", { waitUntil: "domcontentloaded" });
-  if (!(await waitForLogin(ctx, seeded ? 15_000 : 6 * 60_000))) {
-    if (seeded) { await ctx.close(); throw new Error("seeded cookies rejected by IG (expired/challenged) — refresh cookies.txt"); }
+  if (!(await waitForLogin(ctx, loggedIn ? 15_000 : 6 * 60_000))) {
+    if (loggedIn) { await ctx.close(); throw new Error("IG session rejected (expired/challenged) — re-login the .chrome-profile (VNC) or refresh cookies.txt"); }
     console.log("\n>>> Log into Instagram in the open browser window. Waiting for session...");
     if (!(await waitForLogin(ctx))) {
       await ctx.close();
