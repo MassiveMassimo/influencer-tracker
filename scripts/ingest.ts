@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { $ } from "bun";
-import { notify, reviewMessage } from "./notify";
+import { notify, publishedMessage, blockedMessage } from "./notify";
 
 const handles = (process.env.INGEST_HANDLES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 if (!handles.length) { console.error("INGEST_HANDLES unset"); process.exit(1); }
@@ -21,10 +21,17 @@ for (const h of handles) {
   try {
     const before = await counts(h);
     const name = JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
-    await $`bun run pipeline:x --handle ${h} --name ${name} --forward`;   // scrape(forward)+extract, pauses
+    await $`bun run pipeline:x --handle ${h} --name ${name} --forward`;   // stage-1: scrape(forward)+extract
     const after = await counts(h);
-    const fresh = after.total - before.total;
-    if (fresh > 0) await notify(reviewMessage(h, fresh, after.scored - before.scored));
-    else console.log(`${h}: no new calls`);
-  } catch (e) { await notify(`🚨 ingest FAILED ${h}: ${(e as Error).message}`); }
+    // Stage-2 (the old manual step), now automatic. resume.ts = guard → score → backfill →
+    // materialize → parity → revalidate. A guard/parity failure throws → BLOCKED alert, no publish.
+    // Always-resume: re-scores every active handle so operator overrides + return-maturation apply
+    // even when a creator had no new calls.
+    // No own flock: the systemd unit already holds /tmp/influencer-ingest.lock around this run.
+    await $`bun run scripts/resume.ts ${h}`;
+    await notify(publishedMessage(h, after.total - before.total, after.scored - before.scored));
+  } catch (e) {
+    // scrape / extract / guard-no-shrink / score / parity failure — surfaced, not silently published.
+    await notify(blockedMessage(h, (e as Error).message));
+  }
 }

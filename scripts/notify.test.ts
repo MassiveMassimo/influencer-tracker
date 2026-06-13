@@ -1,13 +1,5 @@
 import { test, expect } from "bun:test";
-import { reviewMessage, publishedMessage, blockedMessage } from "./notify";
-
-test("review ping carries handle, counts, and the flock'd resume", () => {
-  const m = reviewMessage("TheProfInvestor", 3, 2);
-  expect(m).toContain("TheProfInvestor");
-  expect(m).toContain("3 new");
-  expect(m).toContain("flock");
-  expect(m).toContain("resume.ts");
-});
+import { publishedMessage, blockedMessage } from "./notify";
 
 test("publishedMessage states handle + counts, no SSH review command", () => {
   const m = publishedMessage("theprofinvestor", 4, 2);
