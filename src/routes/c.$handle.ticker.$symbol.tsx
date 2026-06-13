@@ -87,6 +87,13 @@ function signed(x: number | null) {
   return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
 }
 
+// Headline price: cents for >= $1, 4 places for sub-dollar (penny stocks).
+function priceFmt(x: number | null) {
+  if (x == null) return "—";
+  const decimals = x >= 1 ? 2 : 4;
+  return `$${x.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+}
+
 function toneClass(x: number | null) {
   if (x == null) return "text-muted-foreground";
   return x > 0
@@ -152,6 +159,13 @@ function TickerPage() {
   const showSkeleton = query.isPending && ohlc.length === 0;
   const isUpdating = query.isFetching && !showSkeleton;
 
+  // Headline readout: last close of the fetched window, change measured over the
+  // selected timeframe (first → last bar), so it reads like a normal stock chart.
+  const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : null;
+  const firstClose = ohlc.length ? ohlc[0].c : null;
+  const tfChange =
+    lastClose != null && firstClose ? (lastClose - firstClose) / firstClose : null;
+
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header>
@@ -162,6 +176,14 @@ function TickerPage() {
           {symbol}
           <span className="text-base text-muted-foreground">{calls[0]?.company}</span>
         </h1>
+        {lastClose != null ? (
+          <div className="mt-2 flex items-baseline gap-3">
+            <span className="font-heading text-3xl tabular-nums">{priceFmt(lastClose)}</span>
+            <span className={`font-mono text-sm tabular-nums ${toneClass(tfChange)}`}>
+              {signed(tfChange)} · {timeframe}
+            </span>
+          </div>
+        ) : null}
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">

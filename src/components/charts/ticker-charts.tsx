@@ -4,6 +4,7 @@ import { Candlestick } from "./candlestick.tsx";
 import { LineChart, Line } from "./line-chart.tsx";
 import { Grid } from "./grid.tsx";
 import { XAxis } from "./x-axis.tsx";
+import { YAxis } from "./y-axis.tsx";
 import { ChartTooltip } from "./tooltip/chart-tooltip.tsx";
 import { ChartMarkers, type ChartMarker } from "./markers/index.ts";
 
@@ -23,11 +24,12 @@ export function PriceCandles({
   timeframe: Timeframe;
 }) {
   return (
-    <CandlestickChart data={candles} style={{ height: 320 }} revealSignature={timeframe}>
+    <CandlestickChart data={candles} margin={{ right: 56 }} style={{ height: 320 }} revealSignature={timeframe}>
       <Grid horizontal />
       <Candlestick fadedOpacity={0.25} />
       <ChartMarkers items={markers} />
       <XAxis />
+      <YAxis />
       <ChartTooltip />
     </CandlestickChart>
   );
