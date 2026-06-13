@@ -55,6 +55,7 @@ RETTIWT_API_KEY=...          # base64 cookie key from throwaway X account
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
 INGEST_HANDLES=handle1,handle2,...   # comma-separated list of X handles to ingest
+IG_PROXY=socks5://127.0.0.1:1081   # VM-only: route IG scrape+yt-dlp through the iProyal ISP residential relay (no-auth local). Unset on the Mac (scrapes direct). Datacenter IP gets IG accounts locked.
 REVALIDATE_TOKEN=...         # on-demand ISR bypass token — must match the value baked into the Vercel build
 VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin for revalidate calls
 ```

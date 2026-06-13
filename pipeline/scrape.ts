@@ -77,9 +77,16 @@ async function seedCookies(ctx: any, handle: string): Promise<boolean> {
   }
 }
 
+// Residential egress for IG. Set IG_PROXY=socks5://127.0.0.1:1081 on the VM (iProyal
+// ISP relay); unset on the Mac so it scrapes direct. Playwright SOCKS5 must be no-auth.
+const IG_PROXY = process.env.IG_PROXY;
+
 export async function scrape(handle: string, months = 12, userDataDir = ".chrome-profile") {
   const cutoff = Date.now() - months * 30 * 86400_000;
-  const ctx = await (chromium as any).launchPersistentContext(userDataDir, { headless: false });
+  const ctx = await (chromium as any).launchPersistentContext(userDataDir, {
+    headless: false,
+    ...(IG_PROXY ? { proxy: { server: IG_PROXY } } : {}),
+  });
   const page = await ctx.newPage();
 
   const seen = new Map<string, number>(); // shortcode -> taken_at (epoch ms)
@@ -163,8 +170,10 @@ export function downloadReel(handle: string, shortcode: string): boolean {
   const url = `https://www.instagram.com/reel/${shortcode}/`;
   const jar = cookiesPath(handle);
   const cookieArgs = existsSync(jar) ? ["--cookies", jar] : ["--cookies-from-browser", "chrome"];
+  const proxyArgs = IG_PROXY ? ["--proxy", IG_PROXY] : [];
   const r = spawnSync("yt-dlp", [
     ...cookieArgs,
+    ...proxyArgs,
     "-o", join(out, "reel.%(ext)s"),
     "--write-info-json", url,
   ], { stdio: "inherit" });

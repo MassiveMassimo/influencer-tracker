@@ -38,6 +38,11 @@ before pricing. Resume with `--from <stage>`.
   `/reels/` page back to the cutoff (default 12 months).
 - Downloads each reel with `yt-dlp`, reusing the session via an exported
   Netscape cookie jar (`data/creators/<h>/cookies.txt`, gitignored).
+- **Residential egress (`IG_PROXY`).** Both the Playwright harvest and the `yt-dlp`
+  download route through `IG_PROXY` when set (`socks5://127.0.0.1:1081` on the VM — the
+  iProyal ISP-residential relay, no-auth locally). Unset on the Mac → scrapes direct.
+  IG locks accounts scraped from datacenter IPs, so VM runs **must** set it. Also use a
+  warmed burner IG account (never a personal one) for `cookies.txt`.
 - Then: `transcribe` (Groq Whisper), `frames` (sample 3 frames → Groq vision
   for on-screen ticker/price hints), `extract`.
 
