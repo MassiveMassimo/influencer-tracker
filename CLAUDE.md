@@ -240,6 +240,15 @@ static store + baked accuracy recompute) and **`bun run scripts/parity-check.ts`
 print `PARITY OK`). The merge fn and the DB stay insert-only; the owner UPDATE is the
 single sanctioned path to change a scored bar.
 
+**Call-deletion runbook (deliberate re-score shrink).** When a re-score legitimately *drops*
+calls for a creator (e.g. canonical-symbol consolidation, dropping unpriceable picks), the new
+count is below the DB's — and `backfill` refuses to shrink (`n != ds.calls.length` guard; `ingest`
+has no DELETE on `calls`). This is an **OWNER-role** op: `DELETE FROM calls WHERE handle = '<h>'`,
+then re-run scoped `backfill.ts <h>` + `db:materialize`. First check `call_reports`/`call_overrides`
+for that handle — the `call_reports`→`calls` FK cascades on delete. Same shrink also trips the VM's
+`guard-no-shrink`, so the daily run BLOCKs on that handle until the DB is reconciled this way.
+(2026-06-14: applied to kevvonz, 32→12.)
+
 `QueryClient` is wired in `src/router.tsx` via `setupRouterSsrQueryIntegration`;
 the root route is `createRootRouteWithContext<{ queryClient }>`. The ticker
 loader prefetches the default timeframe with `ensureQueryData` for an SSR first
@@ -249,9 +258,10 @@ paint.
 
 Migrating from static-JSON-baked-at-build to **Neon Postgres as source of truth**, so
 data updates need no redeploy (see `docs/superpowers/specs/2026-06-10-live-ingestion-rearchitecture-design.md`
-and `docs/superpowers/plans/2026-06-10-live-rearch-plan1-db-foundation.md`). Plan 1 (the
-foundation) is in; Plans 2–4 (cross-creator features, ingest+materialize+cache, LLM gate)
-follow.
+and `docs/superpowers/plans/2026-06-10-live-rearch-plan1-db-foundation.md`). **Cutover is
+complete (2026-06-14): prod runs live on the DB (`USE_DB=1`) and the VM daily ingest timer is
+enabled** — Plans 1–3b shipped (Plan 4's LLM gate stays shelved; see correction-loop section).
+A prod DB change now surfaces with no redeploy. `USE_DB=0` remains the instant revert.
 
 - **Schema** (`db/schema.ts`, drizzle + `@neondatabase/serverless` neon-http): `creators`,
   `calls` (PK `(handle, shortcode)`, `ord` column preserves source file order — `postDate`
@@ -284,10 +294,13 @@ follow.
   they `TRUNCATE`). `db/test-db.ts` `assertSeparateTestDb()` refuses to TRUNCATE if the test
   URL equals `DATABASE_URL` (prod). `prices-immutable`/`serve-readonly` prove the role grants.
   All skip when unset, so `bun test` stays green without a DB.
-- **Cutover** (when ready): `bun run db:migrate && bun run db:roles` on prod (creates both
-  ingest + serve roles) → `bun run db:sync` (= `db:backfill && db:materialize` — never bare
-  backfill, or the artifact goes stale) → `parity-check` prints OK → set
-  `DATABASE_URL_SERVE` + `USE_DB=1` in Vercel prod env → one last redeploy.
+- **Cutover** (DONE 2026-06-14 — kept as the procedure for a fresh environment): `bun run
+  db:migrate && bun run db:roles` on prod (creates both ingest + serve roles) → `bun run db:sync`
+  (= `db:backfill && db:materialize` — never bare backfill, or the artifact goes stale) →
+  `parity-check` prints OK → set `DATABASE_URL_SERVE` + `USE_DB=1` in Vercel prod env → one last
+  redeploy. Note: once the VM has run live, the DB legitimately leads the committed static
+  (new ingested calls), so `db:sync`/`parity-check` will fail by design — they're a clean-cutover
+  gate only, not re-runnable against an already-live DB.
   Plan 3a edge-caches the serve routes (`/c/**`, `/t/**`, `/explore`, `/api/*`) via Vercel ISR
   at a 6h TTL (`vite.config.ts` `routeRules`), so SSR creator-page renders are served from the
   CDN, not a fresh ~1.4 MB Neon pull each time — only the post-TTL revalidation hits the DB.
