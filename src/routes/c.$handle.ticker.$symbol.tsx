@@ -48,7 +48,13 @@ export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
     // for this symbol + SPY in parallel — no request waterfall. The shared price
     // store replaces the old per-dataset tickers map (which dehydrated ~5 MB into HTML).
     const [, bakedOhlc, bakedSpy] = await Promise.all([
-      context.queryClient.ensureQueryData(chartQuery(params.symbol, "1Y", firstDate)),
+      // Best-effort SSR prefetch: a live-Yahoo failure must degrade to the baked
+      // fallback, never reject the loader and crash the whole route. fetchPrices
+      // already returns [] (never throws) when prices are missing.
+      context.queryClient.ensureQueryData(chartQuery(params.symbol, "1Y", firstDate)).catch((err) => {
+        console.warn("[ticker loader] live-Yahoo prefetch failed, using baked fallback:", (err as Error)?.message ?? err);
+        return undefined;
+      }),
       fetchPrices(params.symbol),
       fetchPrices("SPY"),
     ]);
@@ -176,6 +182,10 @@ function TickerPage() {
         </div>
         {showSkeleton ? (
           <ChartSkeleton />
+        ) : candles.length === 0 ? (
+          <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">
+            No price data for this symbol.
+          </div>
         ) : (
           <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <ChartBoundary>
@@ -193,6 +203,10 @@ function TickerPage() {
         </div>
         {showSkeleton ? (
           <ChartSkeleton />
+        ) : norm.length === 0 ? (
+          <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">
+            No price data for this symbol.
+          </div>
         ) : (
           <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <ChartBoundary>
