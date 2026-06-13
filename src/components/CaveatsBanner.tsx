@@ -2,6 +2,7 @@ const TEXT: Record<string, string> = {
   survivorship: "Deleted losing-call reels can't be scraped — accuracy shown is an upper bound.",
   "reposts-deduped": "Repeated promotions are counted once (first bullish mention per ticker).",
   "forward-from-post-date": "Returns are measured from each reel's post date forward — not the gains he brags about.",
+  "crypto-vs-spy": "Crypto calls are scored against SPY despite trading 24/7 — an asset-class mismatch in the headline metric.",
 };
 
 export function CaveatsBanner({ caveats }: { caveats: string[] }) {

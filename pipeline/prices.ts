@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { creatorDir, pricesDir } from "./config";
 import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
+import { resolveSymbol } from "../src/lib/symbol";
 import type { OhlcBar, ReelCall } from "../src/lib/types";
 
 const yahooFinance = new YahooFinance();
@@ -34,10 +35,23 @@ export function cacheCovers(cached: unknown, from: string): boolean {
   return typeof first?.date === "string" && first.date <= from;
 }
 
+// Resolve every call ticker to its canonical Yahoo symbol, drop unresolvable
+// ones (null), dedupe (BTCUSD/BTCUSDT/BTC.X collapse to one fetch), and always
+// include the SPY benchmark. The single place the baked path applies the seam.
+export function canonicalSymbols(calls: ReelCall[]): string[] {
+  const set = new Set<string>();
+  for (const c of calls) {
+    const sym = resolveSymbol(c.ticker);
+    if (sym) set.add(sym);
+  }
+  set.add("SPY");
+  return [...set];
+}
+
 export async function prices(handle: string) {
   await mkdir(pricesDir(handle), { recursive: true });
   const calls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
-  const tickers = [...new Set(calls.map(c => c.ticker)), "SPY"];
+  const tickers = canonicalSymbols(calls);
   const from = calls.reduce((m, c) => c.postDate < m ? c.postDate : m, calls[0]?.postDate ?? "2025-01-01");
   for (const t of tickers) {
     const out = join(pricesDir(handle), `${t}.json`);
