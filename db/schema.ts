@@ -1,4 +1,4 @@
-import { pgTable, text, doublePrecision, boolean, jsonb, integer, primaryKey, index } from "drizzle-orm/pg-core";
+import { pgTable, text, doublePrecision, boolean, jsonb, integer, primaryKey, index, foreignKey, uniqueIndex } from "drizzle-orm/pg-core";
 
 // One row per creator. Holds the non-call parts of Dataset verbatim (jsonb) so the
 // Dataset shape round-trips losslessly in Plan 1. These jsonb blobs are replaced by
@@ -75,4 +75,24 @@ export const callOverrides = pgTable("call_overrides", {
   createdAt: text("created_at").notNull(),
 }, (t) => [
   primaryKey({ columns: [t.handle, t.shortcode] }), // one (latest-wins) override per call
+]);
+
+// One row per (call, reporter) flag from the public "Report incorrect" control. FK to
+// calls so a report for a non-existent call is rejected at the DB without the report
+// role needing SELECT. The unique (handle, shortcode, reporterHash) dedupe bounds spam
+// to one report per reporter per call (onConflictDoNothing). reporterHash is a salted,
+// non-reversible hash of the client IP (see src/routes/api/report.ts) — operational
+// dedupe only, never displayed. reason is a closed enum (validated at the endpoint).
+// Serve role must NOT see this table.
+export const callReports = pgTable("call_reports", {
+  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+  handle: text("handle").notNull(),
+  shortcode: text("shortcode").notNull(),
+  reason: text("reason").notNull(),               // enum: wrong-ticker|not-a-buy|wrong-direction|not-a-call|other
+  reporterHash: text("reporter_hash").notNull(),
+  createdAt: text("created_at").notNull(),
+}, (t) => [
+  foreignKey({ columns: [t.handle, t.shortcode], foreignColumns: [calls.handle, calls.shortcode] }).onDelete("cascade"),
+  uniqueIndex("call_reports_dedupe_idx").on(t.handle, t.shortcode, t.reporterHash),
+  index("call_reports_call_idx").on(t.handle, t.shortcode),
 ]);
