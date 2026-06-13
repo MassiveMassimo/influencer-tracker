@@ -110,10 +110,11 @@ If the calls look correct, run the resume:
 ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts <handle>"
 ```
 
-The `flock` here uses the **same lock file** as the timer. If the timer fires while
-the resume is running (unlikely but possible near 13:00 UTC), one of them will fail
-to acquire the lock and exit immediately rather than letting both proceed
-concurrently. Run one handle at a time if ingesting multiple handles on the same day.
+The `flock` here uses the **same lock file** as the timer, so the two can never run
+concurrently. The manual resume blocks until it acquires the lock; if the timer fires
+while a resume is running (unlikely but possible near 13:00 UTC) it waits up to 2h
+(`flock -w 7200`) and only the `notify-fail` dead-man fires if it still can't acquire
+it. Run one handle at a time if ingesting multiple handles on the same day.
 
 ---
 
@@ -127,7 +128,7 @@ concurrently. Run one handle at a time if ingesting multiple handles on the same
 2. **Score** — computes forward-return accuracy (1w/1m/3m/to-date vs SPY) for all
    explicit bullish calls. Rewrites `dataset.json`, `index.json`, and per-symbol
    files in `data/prices/`.
-3. **Scoped backfill** (`db/backfill.ts <handle>`) — upserts only the reviewed
+3. **Scoped backfill** (`scripts/backfill.ts <handle>`) — upserts only the reviewed
    creator's calls/prices into Neon (insert-only on prices), then runs
    `db:materialize` to rebuild the global calls-index artifact from the DB.
    Scoped to avoid overwriting other creators' live DB rows with today's reset
