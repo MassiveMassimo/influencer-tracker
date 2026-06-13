@@ -7,6 +7,7 @@ import { dedupeFirstCall, buildScorecard, buildFunnel } from "../src/lib/scoreca
 import { DatasetSchema } from "../src/lib/schema";
 import { buildSpark } from "../src/lib/spark";
 import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
+import { resolveSymbol } from "../src/lib/symbol";
 import type { Dataset, ReelCall, OhlcBar, Call } from "../src/lib/types";
 
 const CAVEATS = ["survivorship", "reposts-deduped", "forward-from-post-date"];
@@ -21,12 +22,25 @@ export function assembleDataset(
 ): Dataset {
   const spy = ohlc["SPY"] ?? [];
   const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
-  let calls: Call[] = bullish.map(c => ({
-    shortcode: c.shortcode, postDate: c.postDate, ticker: c.ticker, company: c.company,
-    isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
-    spark: buildSpark(ohlc[c.ticker] ?? [], c.postDate),
-    returns: computeReturns(ohlc[c.ticker] ?? [], spy, c.postDate),
-  }));
+  // Priceability gate: a bullish call is scored only if its ticker resolves to a
+  // canonical Yahoo symbol that has price bars. Unresolvable (null) or dataless
+  // tickers are excluded and logged — never emitted as a scored call with an
+  // empty price file. The emitted ticker is the canonical symbol, so fragmented
+  // crypto calls (BTCUSD/BTCUSDT/BTC.X) merge onto one ticker page.
+  let calls: Call[] = bullish.flatMap(c => {
+    const sym = resolveSymbol(c.ticker);
+    const bars = sym ? (ohlc[sym] ?? []) : [];
+    if (!sym || bars.length === 0) {
+      console.warn(`UNPRICEABLE ${c.ticker} (${sym ? "no price data" : "unresolved/out-of-scope"}) — shortcode ${c.shortcode}`);
+      return [];
+    }
+    return [{
+      shortcode: c.shortcode, postDate: c.postDate, ticker: sym, company: c.company,
+      isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
+      spark: buildSpark(bars, c.postDate),
+      returns: computeReturns(bars, spy, c.postDate),
+    }];
+  });
   calls = dedupeFirstCall(calls);
   const firstCalls = calls.filter(c => c.isFirstCall);
   const beatSpy = firstCalls.filter(c => (c.returns.toDate.excess ?? -1) > 0).length;
@@ -35,7 +49,8 @@ export function assembleDataset(
     : undefined;
   const ds: Dataset = {
     creator, generatedAt, spyAnchor: "SPY", calls,
-    scorecard: { ...buildScorecard(calls), funnel }, caveats: CAVEATS,
+    scorecard: { ...buildScorecard(calls), funnel },
+    caveats: calls.some(c => c.ticker.endsWith("-USD")) ? [...CAVEATS, "crypto-vs-spy"] : CAVEATS,
   };
   DatasetSchema.parse(ds); // fail-closed on a malformed dataset
   return ds;
