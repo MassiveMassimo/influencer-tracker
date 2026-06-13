@@ -56,13 +56,26 @@ TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
 INGEST_HANDLES=handle1,handle2,...   # comma-separated list of X handles to ingest
 IG_PROXY=socks5://127.0.0.1:1081   # VM-only: route IG scrape+yt-dlp through the iProyal ISP residential relay (no-auth local). Unset on the Mac (scrapes direct). Datacenter IP gets IG accounts locked.
-REVALIDATE_TOKEN=...         # on-demand ISR bypass token — must match the value baked into the Vercel build
+REVALIDATE_TOKEN=...         # required for instant propagation — see note below
 VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin for revalidate calls
 ```
 
-> **`REVALIDATE_TOKEN`** must be a sufficiently long random secret (Vercel expects ~32 chars;
-> generate with `openssl rand -base64 32`). It must be IDENTICAL in the Vercel build env and
-> this `.env` — a mismatch means on-demand revalidation silently no-ops (the 6h ISR TTL still heals).
+> **`REVALIDATE_TOKEN` — required for instant propagation.**
+> `revalidate-creator.ts` (stage 2, step 5) GETs each affected path with
+> `x-prerender-revalidate: <token>` to bust the CDN within ~1 min of an ingest.
+> Without this token set, changes only surface after the 6h ISR TTL (the TTL is still
+> the correctness floor, but operators should not rely on it for timely corrections).
+>
+> The token must be **identical** in two places:
+> 1. The **Vercel production** environment (`REVALIDATE_TOKEN` build-time env var —
+>    baked into each ISR route's `.prerender-config.json` at build time).
+> 2. This **VM `.env`** — read at runtime by `revalidate-creator.ts`.
+>
+> A mismatch causes on-demand revalidation to silently no-op (the 6h TTL still heals,
+> but instant cache-busting is lost). Unset on the VM → `revalidate-creator.ts` logs a
+> warning and exits without error; the resume still completes.
+>
+> Generate: `openssl rand -base64 32 | tr -d '/+=' | head -c 40`
 
 ### Install the Parakeet ASR runtime (IG transcription)
 
