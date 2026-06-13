@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Link } from "@tanstack/react-router";
 import { CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import GitHubLink from "./GitHubLink";
@@ -9,6 +9,7 @@ export interface CreatorRef {
   handle: string;
   name: string;
   avatar?: string;
+  generatedAt?: string; // newest of these across creators drives the backend-health dot
 }
 
 // Left workspace rail (devl workspace-rail aesthetic): app mark + name, primary
@@ -125,10 +126,7 @@ export function RailContent({
       </ScrollArea>
 
       <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
-        <span className="flex items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
-          <span className="size-1.5 rounded-full bg-emerald-500" />
-          Paper mode
-        </span>
+        <BackendHealth creators={creators} />
         <div className="flex items-center gap-1.5">
           <GitHubLink className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground" />
           <button
@@ -144,6 +142,54 @@ export function RailContent({
       </div>
       <Preferences open={prefsOpen} onOpenChange={setPrefsOpen} />
     </div>
+  );
+}
+
+// Backend-health dot derived from data freshness: the newest dataset `generatedAt` is a
+// proxy for "did the daily imos-vm ingest run". The compare against the client clock runs
+// post-mount (the server can't know the viewer's clock), so SSR and hydration agree on the
+// neutral first paint and only then resolve to live/delayed/stale.
+function BackendHealth({ creators }: { creators: CreatorRef[] }) {
+  const newest = creators
+    .map((c) => c.generatedAt)
+    .filter((d): d is string => !!d)
+    .sort()
+    .at(-1);
+  // isClient: false during SSR + the hydrating first paint (matches the server), true after.
+  // Avoids a hydration mismatch without a mount-effect — the clock is read inline only once
+  // the client snapshot is active. (Date.now() can't be the snapshot itself; it never settles.)
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
+  let dot = "bg-muted-foreground/40";
+  let label = "Backend";
+  let title = newest ? `Data updated ${newest}` : "No data yet";
+  if (isClient && newest) {
+    const days = Math.floor((Date.now() - Date.parse(newest)) / 86_400_000);
+    title = `Data updated ${newest} · ${days <= 0 ? "today" : `${days}d ago`}`;
+    // Daily 13:00 UTC cadence: today/yesterday is healthy, a slipped day is amber, ≥3d stale.
+    if (days < 2) {
+      dot = "bg-emerald-500";
+      label = "Live";
+    } else if (days < 3) {
+      dot = "bg-amber-500";
+      label = "Delayed";
+    } else {
+      dot = "bg-red-500";
+      label = "Stale";
+    }
+  }
+  return (
+    <span
+      title={title}
+      className="flex items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]"
+    >
+      <span className={`size-1.5 rounded-full ${dot}`} />
+      {label}
+    </span>
   );
 }
 
