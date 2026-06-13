@@ -3,7 +3,7 @@
 // intercepted GraphQL, then download each video with yt-dlp.
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -41,6 +41,42 @@ function toNetscape(cookies: any[]): string {
   return lines.join("\n") + "\n";
 }
 
+// Netscape cookie jar -> Playwright cookies, so a seeded session (cookies.txt
+// rsynced from another machine) logs in headlessly without a manual browser login.
+// Handles the `#HttpOnly_` line prefix (curl/yt-dlp dialect); other `#` lines are comments.
+function fromNetscape(text: string): any[] {
+  const out: any[] = [];
+  for (let line of text.split("\n")) {
+    let httpOnly = false;
+    if (line.startsWith("#HttpOnly_")) { httpOnly = true; line = line.slice(10); }
+    else if (line.startsWith("#") || !line.trim()) continue;
+    const p = line.split("\t");
+    if (p.length < 7) continue;
+    const [domain, , path, secure, expiry, name, value] = p;
+    out.push({
+      name, value, domain, path: path || "/",
+      expires: Number(expiry) > 0 ? Number(expiry) : -1,
+      httpOnly, secure: secure === "TRUE",
+    });
+  }
+  return out;
+}
+
+// Seed a prior session from cookies.txt if present; returns true if cookies were loaded.
+async function seedCookies(ctx: any, handle: string): Promise<boolean> {
+  const jar = cookiesPath(handle);
+  if (!existsSync(jar)) return false;
+  try {
+    const cookies = fromNetscape(await readFile(jar, "utf8"));
+    if (!cookies.length) return false;
+    await ctx.addCookies(cookies);
+    return true;
+  } catch (e) {
+    console.warn("cookie seed failed — falling back to manual login", e);
+    return false;
+  }
+}
+
 export async function scrape(handle: string, months = 12, userDataDir = ".chrome-profile") {
   const cutoff = Date.now() - months * 30 * 86400_000;
   const ctx = await (chromium as any).launchPersistentContext(userDataDir, { headless: false });
@@ -58,12 +94,19 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
     } catch { /* non-JSON response */ }
   });
 
-  // Gate on login before scrolling. Fresh profile -> user logs in manually.
+  // Seed a prior session (cookies.txt) so headless/VM runs skip the manual login.
+  const seeded = await seedCookies(ctx, handle);
+
+  // Gate on login before scrolling. Seeded session logs in headlessly; a fresh
+  // profile with no cookies waits for a manual browser login.
   await page.goto("https://www.instagram.com/", { waitUntil: "domcontentloaded" });
-  console.log("\n>>> Log into Instagram in the open browser window. Waiting for session...");
-  if (!(await waitForLogin(ctx))) {
-    await ctx.close();
-    throw new Error("login not detected within timeout — re-run after logging in");
+  if (!(await waitForLogin(ctx, seeded ? 15_000 : 6 * 60_000))) {
+    if (seeded) { await ctx.close(); throw new Error("seeded cookies rejected by IG (expired/challenged) — refresh cookies.txt"); }
+    console.log("\n>>> Log into Instagram in the open browser window. Waiting for session...");
+    if (!(await waitForLogin(ctx))) {
+      await ctx.close();
+      throw new Error("login not detected within timeout — re-run after logging in");
+    }
   }
   console.log(">>> Login detected. Harvesting reels...");
 
