@@ -1,58 +1,116 @@
 "use client";
 
-import { chartCssVars, useChart } from "./chart-context";
+import { memo, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { useChartStable, useYScale } from "./chart-context";
+import { DEFAULT_Y_DOMAIN_TWEEN_MS } from "./chart-phase";
+import { LINE_LOADING_PULSE_EASE } from "./line-loading-timing";
+import type { YAxisOrientation } from "./y-axis-scales";
+import {
+  resolveYAxisTickCount,
+  Y_AXIS_DEFAULT_TICK_COUNT,
+} from "./y-axis-ticks";
+
+const Y_AXIS_POSITION_TWEEN_MS = DEFAULT_Y_DOMAIN_TWEEN_MS;
 
 export interface YAxisProps {
-  /** Number of ticks. Aligns with Grid's numTicksRows so labels sit on gridlines. Default: 5 */
+  /** Scale group id (Recharts `yAxisId`). Default: `"left"`. */
+  yAxisId?: string | number;
+  /** Which side of the chart to render labels. Default: `"left"`. */
+  orientation?: YAxisOrientation;
+  /**
+   * Approximate tick count hint for `scale.ticks()` (d3). Actual label count may differ.
+   * Clamped to {@link Y_AXIS_MIN_TICK_COUNT}–{@link Y_AXIS_MAX_TICK_COUNT}. Default: 5.
+   */
   numTicks?: number;
-  /** Value formatter. Default: USD price, decimals chosen from the axis magnitude. */
-  format?: (value: number) => string;
+  /** Format large numbers (e.g. 1000 as "1k"). Default: true */
+  formatLargeNumbers?: boolean;
+  /** Custom formatter for tick labels (e.g. USD). Overrides formatLargeNumbers when set. */
+  formatValue?: (value: number) => string;
 }
 
-// Pick decimals once from the largest tick so every label on the axis shares a
-// format (mixing "$60" and "$60.00" reads as noise). >=100 → whole dollars,
-// >=1 → cents, sub-dollar → 4 places for penny stocks.
-function makeFormat(ticks: number[]): (value: number) => string {
-  const max = ticks.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
-  const decimals = max >= 100 ? 0 : max >= 1 ? 2 : 4;
-  return (v) =>
-    `$${v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+function formatLabel(
+  value: number,
+  formatLargeNumbers: boolean,
+  formatValue?: (value: number) => string
+): string {
+  if (formatValue) {
+    return formatValue(value);
+  }
+  if (formatLargeNumbers && value >= 1000) {
+    return `${(value / 1000).toFixed(0)}k`;
+  }
+  return String(value);
 }
 
-// Price labels for the linear y-scale, right-aligned into the chart's left
-// margin gutter (candles never draw there, so no overlap). Tick values come
-// from yScale.ticks(numTicks) — the same values @visx GridRows uses — so labels
-// land exactly on the horizontal gridlines.
-export function YAxis({ numTicks = 5, format }: YAxisProps) {
-  const { yScale } = useChart();
-  const ticks = yScale.ticks(numTicks);
-  const fmt = format ?? makeFormat(ticks);
+export function YAxis(props: YAxisProps) {
+  const { containerRef } = useChartStable();
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <g className="chart-y-axis" aria-hidden="true">
-      {ticks.map((v) => {
-        const y = yScale(v);
-        if (y == null || !Number.isFinite(y)) {
-          return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const container = containerRef.current;
+  if (!(mounted && container)) {
+    return null;
+  }
+
+  return <YAxisInner {...props} container={container} />;
+}
+
+const YAxisInner = memo(function YAxisInner({
+  yAxisId,
+  orientation = "left",
+  numTicks = Y_AXIS_DEFAULT_TICK_COUNT,
+  formatLargeNumbers = true,
+  formatValue,
+  container,
+}: YAxisProps & { container: HTMLDivElement }) {
+  const { margin } = useChartStable();
+  const yScale = useYScale(yAxisId);
+  const isLeft = orientation === "left";
+
+  const ticks = useMemo(() => {
+    const tickValues = yScale.ticks(resolveYAxisTickCount(numTicks));
+    return tickValues.map((value) => ({
+      value,
+      y: (yScale(value) ?? 0) + margin.top,
+      label: formatLabel(value, formatLargeNumbers, formatValue),
+    }));
+  }, [yScale, margin.top, numTicks, formatLargeNumbers, formatValue]);
+
+  return createPortal(
+    <div className="pointer-events-none absolute inset-0">
+      <div
+        className="absolute top-0 bottom-0"
+        style={
+          isLeft
+            ? { left: 0, width: margin.left }
+            : { right: 0, width: margin.right }
         }
-        return (
-          <text
-            key={v}
-            className="tabular-nums"
-            dy="0.32em"
-            fill={chartCssVars.label}
-            fontSize={11}
-            textAnchor="end"
-            x={-4}
-            y={y}
+      >
+        {ticks.map((tick) => (
+          <div
+            className="absolute flex items-center"
+            key={tick.value}
+            style={{
+              top: tick.y,
+              transform: "translateY(-50%)",
+              transition: `top ${Y_AXIS_POSITION_TWEEN_MS}ms cubic-bezier(${LINE_LOADING_PULSE_EASE.join(", ")})`,
+              ...(isLeft
+                ? { right: 0, justifyContent: "flex-end", paddingRight: 8 }
+                : { left: 0, justifyContent: "flex-start", paddingLeft: 8 }),
+            }}
           >
-            {fmt(v)}
-          </text>
-        );
-      })}
-    </g>
+            <span className="text-chart-label text-xs">{tick.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>,
+    container
   );
-}
+});
 
 YAxis.displayName = "YAxis";
 

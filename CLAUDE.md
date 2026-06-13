@@ -16,6 +16,11 @@ All feature work happens in a git **worktree on its own branch** — never on `m
   One worktree per feature, one branch per worktree.
 - When done and verified, merge the branch back to `main` locally (fast-forward or
   `git merge`), then `git worktree remove`. Open a PR only if explicitly asked.
+- **Visual verification happens on `main`, after merge.** The single local dev
+  server runs only against the primary `main` checkout, so changes the user needs
+  to eyeball (UI/chart/layout) get merged to `main` first, then verified on that
+  dev server — iterate on `main` if the visual pass finds issues. Build/typecheck/
+  test verification still happens in the worktree before merging.
 
 ## Pipelines
 
@@ -327,7 +332,7 @@ Two `ui/*` files are deliberately **not** coss and must stay custom:
 |---|---|
 | `src/components/WorkspaceRail.tsx` (and `MobileNav.tsx`, which reuses its `RailContent`) | devl.dev — https://www.devl.dev/c/layouts/workspace-rail (aesthetic reference) |
 | `src/routes/c.$handle.index.tsx` (`Overview`: `StatTile` strip + `CallsList`) | devl.dev — https://www.devl.dev/c/dashboards/metrics-overview (took the stat-tile strip + recent-activity list; bklit charts dropped into the chart slots) |
-| `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — github.com/bklit/bklit-ui (copy-in) |
+| `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — `@bklit` registry (`https://ui.bklit.com/r/{name}.json`), copy-in. Re-sync: `bunx --bun shadcn@latest add @bklit/<name> --overwrite` (e.g. `area-chart`, `candlestick-chart`, `line-chart`) |
 | `src/components/ui/*` (accordion/badge/button/card/pagination/separator/spinner/switch/toggle/toggle-group) | coss-ui (`@coss` registry) — Base UI primitives. Re-sync: `bunx --bun shadcn@latest add @coss/<name> --overwrite` |
 | `src/components/ui/drawer.tsx` | vaul (kept; not coss) — mobile drag-to-dismiss + background scale |
 | `src/components/ui/scroll-area.tsx`, `src/components/ui/table.tsx` | lina — github.com/SameerJS6/lina (Base UI `ScrollArea` + edge-fade mask; `table` wraps it). Custom, not coss |
@@ -366,14 +371,26 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   `FIREWORKS_API_KEY` (X text classification). Groq
   free-tier is rate-limited; `pipeline/groq.ts` backs off on 429 — expect slow
   vision/extract stages, not failures.
-- Charts: bklit-ui components (github.com/bklit/bklit-ui), vendored copy-in
-  (shadcn-style, so not in `package.json`) under `src/components/charts/`, built
-  on `@visx` + `d3`, rendered as SVG. Only the used subset is kept (unused
-  area/bar/scatter/composed types were pruned). Time-series charts
-  (candlestick/line) need `x` as a `Date`; gauge/funnel are categorical. Wrap
-  charts in `ChartBoundary`. The ticker page's charts are `React.lazy`-split into
-  `charts/ticker-charts.tsx` so `motion`/`@visx`/`d3` load on mount, off the
-  route's initial bundle.
+- Charts: bklit-ui components, vendored copy-in (shadcn-style, so not in
+  `package.json`) under `src/components/charts/`, built on `@visx` + `d3`,
+  rendered as SVG. Synced from the `@bklit` registry via
+  `bunx --bun shadcn@latest add @bklit/<name> --overwrite`; the core (shell,
+  context, grid, x-axis, tooltip, series) is shared across `area-chart`,
+  `candlestick-chart`, and `line-chart`, so re-sync **all three together** —
+  syncing one alone skews the shared core and breaks the others. Time-series
+  charts (candlestick/line/area) need `x` as a `Date`; gauge/funnel are
+  categorical. Wrap charts in `ChartBoundary`. The ticker page's charts are
+  `React.lazy`-split into `charts/ticker-charts.tsx` so `motion`/`@visx`/`d3`
+  load on mount, off the route's initial bundle.
+- **Local patches on top of the synced core** (re-apply after any re-sync — the
+  registry doesn't ship them): the intraday time-of-day axis/crosshair labels
+  (`intradayAwareFmt`/`isIntradaySeries`/`intradayTimeFmt` in `chart-formatters.ts`,
+  wired into the `dateLabels` memo in `time-series-chart-shell.tsx` +
+  `candlestick-chart.tsx` so 1D charts label "09:30" not a date); the lina
+  edge-fade `scroll-area`/`table`; the `StockVsSpyLine` area wiring in
+  `ticker-charts.tsx` (`AreaChart` with a filled stock `Area` + a fill-less SPY
+  reference `Area`). The custom `morph-line` tween was dropped when the line
+  chart became an area chart.
 
 ## Analytics (PostHog)
 

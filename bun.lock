@@ -20,6 +20,7 @@
         "@tanstack/router-plugin": "^1.132.0",
         "@visx/curve": "4.0.1-alpha.0",
         "@visx/event": "4.0.1-alpha.0",
+        "@visx/gradient": "4.0.1-alpha.0",
         "@visx/grid": "4.0.1-alpha.0",
         "@visx/responsive": "4.0.1-alpha.0",
         "@visx/scale": "4.0.1-alpha.0",
@@ -768,6 +769,8 @@
     "@visx/curve": ["@visx/curve@4.0.1-alpha.0", "", { "dependencies": { "@visx/vendor": "4.0.0-alpha.0" } }, "sha512-jRu61Uz274pV1zyioXmboyrLutYbnKsgjj4njSGCnhdXj5GkZvZbg+ThDb6oOzoAnJOBRLz4rzPlWvNJOzuVMg=="],
 
     "@visx/event": ["@visx/event@4.0.1-alpha.0", "", { "dependencies": { "@types/react": "*", "@visx/point": "4.0.1-alpha.0" } }, "sha512-EQqCMSv/s8NbFjo+hz3FKsvvYfP+2QslsFJ/24/O5l/W+7UC6J6aAvO0ujVwrTwdYbuQ+vhxKi1xdPdKR/qj1g=="],
+
+    "@visx/gradient": ["@visx/gradient@4.0.1-alpha.0", "", { "dependencies": { "@types/react": "*" }, "peerDependencies": { "react": "^16.14.0 || ^17.0.0-0 || ^18.0.0-0 || ^19.0.0-0" } }, "sha512-HxkxLdThV/gPaulw+t7/ESo7AtqIBq9IlHIkHi7lQqXe0Yl+x8rpM3KYlYqEZjtihD9CeEaVJjBbdY7fQb54IA=="],
 
     "@visx/grid": ["@visx/grid@4.0.1-alpha.0", "", { "dependencies": { "@types/react": "*", "@visx/curve": "4.0.1-alpha.0", "@visx/group": "4.0.1-alpha.0", "@visx/point": "4.0.1-alpha.0", "@visx/scale": "4.0.1-alpha.0", "@visx/shape": "4.0.1-alpha.0", "classnames": "^2.3.1" }, "peerDependencies": { "react": "^16.14.0 || ^17.0.0-0 || ^18.0.0-0 || ^19.0.0-0" } }, "sha512-rycutGmTHO+znNdPumheWMglm7YfpffvRwUkVy5zy4WoORIuKTMkDxwnOzHG2xMxU3EE/YCd37xFV5AxA30yeg=="],
 

@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import type { Timeframe } from "#/lib/window-series.ts";
 import { CandlestickChart } from "./candlestick-chart.tsx";
 import { Candlestick } from "./candlestick.tsx";
-import { LineChart } from "./line-chart.tsx";
-import { MorphLine } from "./morph-line.tsx";
+import { AreaChart } from "./area-chart.tsx";
+import { Area } from "./area.tsx";
 import { Grid } from "./grid.tsx";
 import { XAxis } from "./x-axis.tsx";
 import { YAxis } from "./y-axis.tsx";
@@ -38,8 +38,8 @@ function ChartCrossfade({
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           key={timeframe}
-          // Strong custom ease-out (built-in easings lack punch); 0.4s matches
-          // MorphLine so both charts transition as one on a timeframe switch.
+          // Strong custom ease-out (built-in easings lack punch) for a snappy
+          // crossfade between timeframes.
           transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
           {children}
@@ -79,18 +79,18 @@ export function StockVsSpyLine({
   norm: NormPoint[];
   markers: ChartMarker[];
 }) {
-  // No crossfade wrapper here: the line chart stays mounted across timeframes so
-  // MorphLine tweens its stroke as the `norm` data changes (see morph-line.tsx).
-  // revealSignature stays constant so the shell reveals once on mount and never
-  // replays a fade over the morph.
+  // No crossfade wrapper: the chart stays mounted across timeframes and the
+  // shell reveal / y-domain tween handle the transition as `norm` changes. Stock
+  // is the filled Area; SPY is a fill-less reference line (`fillOpacity={0}`) —
+  // two opaque fills would muddy the comparison.
   return (
-    <LineChart data={norm} revealMode="fade" className="h-[320px]">
+    <AreaChart data={norm} className="h-[320px]" aspectRatio="auto">
       <Grid horizontal highlightRowValues={[100]} />
-      <MorphLine dataKey="stock" />
-      <MorphLine dataKey="spy" stroke="var(--chart-3)" />
+      <Area dataKey="stock" />
+      <Area dataKey="spy" stroke="var(--chart-3)" fillOpacity={0} />
       <ChartMarkers items={markers} />
       <XAxis />
       <ChartTooltip />
-    </LineChart>
+    </AreaChart>
   );
 }

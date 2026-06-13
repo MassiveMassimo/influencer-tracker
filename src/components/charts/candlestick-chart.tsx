@@ -11,7 +11,7 @@ import {
   type ReactElement,
   type ReactNode,
   useCallback,
-  useLayoutEffect,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -19,11 +19,13 @@ import {
 import { cn } from "#/lib/utils.ts";
 import { ChartProvider, type LineConfig, type Margin } from "./chart-context";
 import { intradayAwareFmt, shortDateFmt } from "./chart-formatters";
+import { DEFAULT_CHART_LIFECYCLE } from "./chart-phase";
 import {
   decimateOhlcData,
   maxRenderPointsForWidth,
 } from "./decimate-time-series";
 import { useChartInteraction } from "./use-chart-interaction";
+import { wrapSingleYScale } from "./y-axis-scales";
 
 export interface OHLCDataPoint {
   date: Date;
@@ -185,23 +187,14 @@ const ChartCore = memo(function ChartCore({
     [data, innerWidth]
   );
 
-  // Intraday (1D) ranges label the crosshair pill with the time ("09:30");
-  // multi-day ranges use the date and let it roll (value-run collapsing keeps
-  // it static within a day).
   const dateLabels = useMemo(() => {
-    const fmt = intradayAwareFmt(
-      data.map((d) => xAccessor(d).getTime()),
-      shortDateFmt
-    );
+    const times = data.map((d) => xAccessor(d).getTime());
+    const fmt = intradayAwareFmt(times, shortDateFmt);
     return data.map((d) => fmt.format(xAccessor(d)));
   }, [data, xAccessor]);
 
-  // Layout effect (not useEffect) so the reveal reset commits before paint.
-  // On a timeframe change the prior state left isLoaded=true, so the new data
-  // would paint fully for one frame before the animation collapsed it — the
-  // double-flash. Resetting pre-paint means only the collapsed frame ever shows.
   // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature
-  useLayoutEffect(() => {
+  useEffect(() => {
     setRevealEpoch((n) => n + 1);
     setIsLoaded(false);
     const timer = setTimeout(() => setIsLoaded(true), animationDuration);
@@ -218,6 +211,7 @@ const ChartCore = memo(function ChartCore({
   } = useChartInteraction({
     xScale,
     yScale,
+    yScales: wrapSingleYScale(yScale),
     data,
     lines,
     margin,
@@ -257,10 +251,12 @@ const ChartCore = memo(function ChartCore({
   });
 
   const contextValue = {
+    ...DEFAULT_CHART_LIFECYCLE,
     data,
     renderData,
     xScale,
     yScale,
+    yScales: wrapSingleYScale(yScale),
     width,
     height,
     innerWidth,
