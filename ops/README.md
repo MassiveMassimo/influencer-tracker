@@ -50,8 +50,7 @@ Create `/home/ubuntu/influencer-tracker/.env` with:
 ```
 DATABASE_URL_INGEST=...      # ingest role connection string (INSERT/UPDATE on creators/calls/artifacts, INSERT-only on prices)
 DATABASE_URL_SERVE=...       # serve role connection string (SELECT-only; parity-check reads this)
-GROQ_API_KEY=...
-FIREWORKS_API_KEY=...
+FIREWORKS_API_KEY=...        # vision + classification (IG + X)
 RETTIWT_API_KEY=...          # base64 cookie key from throwaway X account
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
@@ -63,6 +62,23 @@ VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin for rev
 > **`REVALIDATE_TOKEN`** must be a sufficiently long random secret (Vercel expects ~32 chars;
 > generate with `openssl rand -base64 32`). It must be IDENTICAL in the Vercel build env and
 > this `.env` — a mismatch means on-demand revalidation silently no-ops (the 6h ISR TTL still heals).
+
+### Install the Parakeet ASR runtime (IG transcription)
+
+The IG `transcribe` stage runs **self-hosted Parakeet** on CPU (no GPU) instead of
+Groq Whisper. `transcribe.ts` shells the wav batch to `pipeline/asr/transcribe_parakeet.py`
+using the `~/asr-venv` interpreter (override with `PARAKEET_PYTHON`). One-time:
+
+```bash
+sudo apt-get install -y ffmpeg python3-venv      # ffmpeg also needed by the frames stage
+python3 -m venv ~/asr-venv
+~/asr-venv/bin/pip install onnx-asr onnxruntime soundfile huggingface_hub
+# warm the model cache (first load downloads ~600 MB from HF):
+~/asr-venv/bin/python -c 'import onnx_asr; onnx_asr.load_model("nemo-parakeet-tdt-0.6b-v2")'
+```
+
+X has no audio, so this is only needed on a VM that ingests IG. Benchmark on the
+4-core ARM VM: RTF ~0.17 (≈6x faster than realtime).
 
 ### Install and enable the systemd units
 

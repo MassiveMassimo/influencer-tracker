@@ -66,31 +66,33 @@ scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date.
 
 **LLM providers — provider matrix.** `classify(model, body, client)` and
 `readImage(model, path, client)` take the OpenAI-compatible POST fn as `client`,
-so each stage picks its provider. The rule: **Fireworks for everything except
-audio; Groq only for audio (Whisper).**
+so each stage picks its provider. The rule: **self-hosted Parakeet for audio,
+Fireworks for everything else. No external LLM API depends on Groq anymore.**
 
 | Stage | Pipeline | Provider | Model |
 |---|---|---|---|
-| transcribe (audio→text) | IG only | **Groq Whisper** | `whisper-large-v3` (`pipeline/transcribe.ts`) |
+| transcribe (audio→text) | IG only | **Parakeet (self-hosted, CPU/ONNX)** | `nemo-parakeet-tdt-0.6b-v2` via `onnx-asr` (`pipeline/transcribe.ts` → `pipeline/asr/transcribe_parakeet.py`) |
 | frames / image hints (vision OCR) | IG + X | **Fireworks** | `FIREWORKS_VISION_MODEL` (`kimi-k2p5`) |
 | extract (classification) | IG + X | **Fireworks** | `FIREWORKS_MODEL` (`deepseek-v4-flash`) |
 
-So Groq's only remaining job is Whisper transcription (the IG `transcribe` stage;
-X has no audio). Everything else — IG *and* X vision + classification — runs on
-**Fireworks** (`pipeline/fireworks.ts`), which isn't throttled like Groq's free
-tier (Groq's TPM limits were stalling IG vision/extract into multi-minute 429
-backoffs). Models picked by a bake-off on real TheProfInvestor data:
-deepseek-v4-flash beat gpt-oss-120b on call-detection (it under-flagged implicit
-"going higher"-style calls); kimi-k2p5 matched qwen3p6-plus's OCR accuracy at ~8x
-the speed (qwen's latency was timing out the extract). The cheap small VLMs
-(qwen3-vl-8b, gemma-4, llama-vision) are **on-demand-GPU only** on Fireworks —
-they 404 on serverless. All paths reuse the same `CLASSIFY_SYS` + parse.
+Vision + classification (IG *and* X) run on **Fireworks** (`pipeline/fireworks.ts`),
+which isn't throttled like Groq's free tier (Groq's TPM limits were stalling IG
+vision/extract into multi-minute 429 backoffs). Models picked by a bake-off on
+real TheProfInvestor data: deepseek-v4-flash beat gpt-oss-120b on call-detection
+(it under-flagged implicit "going higher"-style calls); kimi-k2p5 matched
+qwen3p6-plus's OCR accuracy at ~8x the speed. The cheap small VLMs (qwen3-vl-8b,
+gemma-4, llama-vision) are **on-demand-GPU only** on Fireworks — they 404 on
+serverless. All paths reuse the same `CLASSIFY_SYS` + parse.
 
-> **Parakeet is NOT used — it is deferred, not current.** NVIDIA Parakeet was
-> floated as a *future* server-side ASR to replace Groq Whisper (running locally
-> on the VM, dropping Groq entirely), but it is **out of scope / unbuilt** (see
-> Plan 3b "Out of scope"). Today, audio = Groq Whisper. Do not describe Parakeet
-> as live.
+**Transcription is self-hosted Parakeet, not Groq Whisper** (replaced it). `onnx-asr`
+runs `nemo-parakeet-tdt-0.6b-v2` on CPU (no GPU / no NeMo/CUDA) — benchmarked at
+RTF ~0.17 on the 4-core ARM VM (~6x faster than realtime). `transcribe.ts` extracts
+a 16 kHz mono wav per reel and shells the batch to `pipeline/asr/transcribe_parakeet.py`
+(one model load per run). The Python venv with `onnx-asr` is resolved via
+`PARAKEET_PYTHON` (else `~/asr-venv/bin/python`, else `python3`); VM setup is in
+`ops/README.md`. **Groq is no longer used** — `pipeline/groq.ts` and `GROQ_API_KEY`
+are now dead (only the unused default-client params in `calls.ts`/`vision.ts` still
+reference it); safe to drop in a later cleanup.
 
 ## Proof embeds
 
