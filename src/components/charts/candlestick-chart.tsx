@@ -11,14 +11,14 @@ import {
   type ReactElement,
   type ReactNode,
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { cn } from "#/lib/utils.ts";
 import { ChartProvider, type LineConfig, type Margin } from "./chart-context";
-import { intradayTimeFmt, shortDateFmt } from "./chart-formatters";
+import { intradayAwareFmt, shortDateFmt } from "./chart-formatters";
 import {
   decimateOhlcData,
   maxRenderPointsForWidth,
@@ -185,17 +185,23 @@ const ChartCore = memo(function ChartCore({
     [data, innerWidth]
   );
 
-  // Single-day ranges (1D intraday) label the crosshair pill with the time
-  // ("09:30") since the date never changes; multi-day ranges use the date and
-  // let it roll (value-run collapsing keeps it static within a day).
+  // Intraday (1D) ranges label the crosshair pill with the time ("09:30");
+  // multi-day ranges use the date and let it roll (value-run collapsing keeps
+  // it static within a day).
   const dateLabels = useMemo(() => {
-    const days = new Set(data.map((d) => xAccessor(d).toDateString()));
-    const fmt = days.size <= 1 ? intradayTimeFmt : shortDateFmt;
+    const fmt = intradayAwareFmt(
+      data.map((d) => xAccessor(d).getTime()),
+      shortDateFmt
+    );
     return data.map((d) => fmt.format(xAccessor(d)));
   }, [data, xAccessor]);
 
+  // Layout effect (not useEffect) so the reveal reset commits before paint.
+  // On a timeframe change the prior state left isLoaded=true, so the new data
+  // would paint fully for one frame before the animation collapsed it — the
+  // double-flash. Resetting pre-paint means only the collapsed frame ever shows.
   // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature
-  useEffect(() => {
+  useLayoutEffect(() => {
     setRevealEpoch((n) => n + 1);
     setIsLoaded(false);
     const timer = setTimeout(() => setIsLoaded(true), animationDuration);

@@ -272,7 +272,6 @@ export function Candlestick({
     xScale,
     yScale,
     xAccessor,
-    animationDuration,
     enterTransition,
     revealEpoch = 0,
     isLoaded,
@@ -361,15 +360,12 @@ export function Candlestick({
     bounce: 0.15,
   };
   const enter = enterTransition ?? defaultEnter;
-  const staggerDelayMs =
-    data.length > 0 ? (animationDuration * 0.6) / data.length : 0;
-
   if (animate && !isLoaded) {
     return (
       <g className="chart-candlesticks">
-        {geometries.map((geometry, index) => (
+        {geometries.map((geometry) => (
           <AnimatedCandle
-            delay={(index * staggerDelayMs) / 1000}
+            delay={0}
             enterTransition={enter}
             geometry={geometry}
             key={geometry.time}

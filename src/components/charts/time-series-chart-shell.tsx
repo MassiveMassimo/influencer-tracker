@@ -2,7 +2,7 @@
 
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { bisector, extent } from "d3-array";
-import type { Transition } from "motion/react";
+import { motion, type Transition } from "motion/react";
 import {
   Children,
   cloneElement,
@@ -11,14 +11,14 @@ import {
   type ReactElement,
   type ReactNode,
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
 import { DEFAULT_ANIMATION_EASING } from "./animation";
 import { ChartProvider, type LineConfig, type Margin } from "./chart-context";
 import { isGradientDefComponent, isPatternDefComponent } from "./chart-defs";
-import { intradayTimeFmt, shortDateFmt } from "./chart-formatters";
+import { intradayAwareFmt, shortDateFmt } from "./chart-formatters";
 import { ChartRevealClip } from "./chart-reveal-clip";
 import {
   decimateTimeSeries,
@@ -123,6 +123,8 @@ export interface TimeSeriesChartInnerProps {
   lines: LineConfig[];
   /** SVG clipPath id for grow animation. */
   clipPathId: string;
+  /** How to reveal series on enter: LTR clip (default) or simultaneous fade. */
+  revealMode?: "clip" | "fade";
   /** Optional ComposedChart bar layout (forwarded into context). */
   composedBarDataKeys?: string[];
   composedBarSize?: number;
@@ -157,6 +159,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   containerRef,
   lines,
   clipPathId,
+  revealMode = "clip",
   composedBarDataKeys,
   composedBarSize,
   composedMaxBarSize,
@@ -224,17 +227,23 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
     });
   }, [innerHeight, data, lines, yScaleDomainMax]);
 
-  // Single-day ranges (1D intraday) label the crosshair pill with the time
-  // ("09:30") since the date never changes; multi-day ranges use the date and
-  // let it roll (value-run collapsing keeps it static within a day).
+  // Intraday (1D) ranges label the crosshair pill with the time ("09:30");
+  // multi-day ranges use the date and let it roll (value-run collapsing keeps
+  // it static within a day).
   const dateLabels = useMemo(() => {
-    const days = new Set(data.map((d) => xAccessor(d).toDateString()));
-    const fmt = days.size <= 1 ? intradayTimeFmt : shortDateFmt;
+    const fmt = intradayAwareFmt(
+      data.map((d) => xAccessor(d).getTime()),
+      shortDateFmt
+    );
     return data.map((d) => fmt.format(xAccessor(d)));
   }, [data, xAccessor]);
 
+  // Layout effect (not useEffect) so the reveal reset commits before paint.
+  // On a timeframe change the prior state left isLoaded=true, so the new data
+  // would paint fully for one frame before the animation collapsed it — the
+  // double-flash. Resetting pre-paint means only the collapsed frame ever shows.
   // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (staticPreview) {
       setIsLoaded(true);
       return;
@@ -441,8 +450,17 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
             y={0}
           />
 
-          {showReveal ? (
+          {showReveal && revealMode === "clip" ? (
             <g clipPath={`url(#${clipPathId})`}>{preOverlayChildren}</g>
+          ) : showReveal && revealMode === "fade" ? (
+            <motion.g
+              key={`fade-${revealEpoch}`}
+              animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              transition={effectiveEnterTransition}
+            >
+              {preOverlayChildren}
+            </motion.g>
           ) : (
             preOverlayChildren
           )}

@@ -6,9 +6,12 @@ const TABS: Timeframe[] = ["1D", "1W", "1M", "3M", "6M", "1Y", "All"];
 export function TimeframeTabs({
   value,
   onChange,
+  onPrefetch,
 }: {
   value: Timeframe;
   onChange: (tf: Timeframe) => void;
+  /** Warm the cache for a timeframe before it's clicked (hover/focus). */
+  onPrefetch?: (tf: Timeframe) => void;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
   const pillRef = useRef<HTMLSpanElement>(null);
@@ -55,6 +58,8 @@ export function TimeframeTabs({
           aria-selected={value === tf}
           className="t-tab font-mono"
           onClick={() => onChange(tf)}
+          onPointerEnter={() => onPrefetch?.(tf)}
+          onFocus={() => onPrefetch?.(tf)}
         >
           {tf}
         </button>

@@ -19,12 +19,12 @@ function makeFormat(ticks: number[]): (value: number) => string {
     `$${v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
-// Price labels for the linear y-scale, right-aligned into the chart's right
+// Price labels for the linear y-scale, right-aligned into the chart's left
 // margin gutter (candles never draw there, so no overlap). Tick values come
 // from yScale.ticks(numTicks) — the same values @visx GridRows uses — so labels
 // land exactly on the horizontal gridlines.
 export function YAxis({ numTicks = 5, format }: YAxisProps) {
-  const { yScale, innerWidth, margin } = useChart();
+  const { yScale } = useChart();
   const ticks = yScale.ticks(numTicks);
   const fmt = format ?? makeFormat(ticks);
 
@@ -43,7 +43,7 @@ export function YAxis({ numTicks = 5, format }: YAxisProps) {
             fill={chartCssVars.label}
             fontSize={11}
             textAnchor="end"
-            x={innerWidth + margin.right - 4}
+            x={-4}
             y={y}
           >
             {fmt(v)}

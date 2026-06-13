@@ -10,7 +10,7 @@ import {
   useChart,
   useChartStable,
 } from "../chart-context";
-import { weekdayDateFmt } from "../chart-formatters";
+import { intradayAwareFmt, weekdayDateFmt } from "../chart-formatters";
 import { DateTicker } from "./date-ticker";
 import { TooltipBox } from "./tooltip-box";
 import { TooltipContent, type TooltipRow } from "./tooltip-content";
@@ -82,6 +82,7 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
     margin,
     columnWidth,
     lines,
+    data,
     xAccessor,
     dateLabels,
     containerRef,
@@ -159,9 +160,14 @@ const ChartTooltipInner = memo(function ChartTooltipInner({
     if (barXAccessor) {
       return barXAccessor(tooltipData.point);
     }
-    // For line/area charts, use the date
-    return weekdayDateFmt.format(xAccessor(tooltipData.point));
-  }, [tooltipData, barXAccessor, xAccessor]);
+    // Intraday (1D) charts show the time of day; multi-day charts the weekday
+    // date. Keyed off bar spacing (1D windows can cross midnight).
+    const fmt = intradayAwareFmt(
+      data.map((d) => xAccessor(d).getTime()),
+      weekdayDateFmt
+    );
+    return fmt.format(xAccessor(tooltipData.point));
+  }, [tooltipData, barXAccessor, xAccessor, data]);
 
   const tooltipContent = (
     <>

@@ -4,7 +4,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "#/lib/utils.ts";
 import { useChart, useChartStable } from "./chart-context";
-import { shortDateFmt } from "./chart-formatters";
+import { intradayAwareFmt, shortDateFmt } from "./chart-formatters";
 
 export interface XAxisProps {
   /** Number of ticks to show (including first and last). Default: 5. Used when `tickMode` is `"domain"`. */
@@ -120,6 +120,14 @@ const XAxisInner = memo(function XAxisInner({
     const endTime = endDate.getTime();
     const timeRange = endTime - startTime;
 
+    // Intraday (1D) ranges label the axis with the time of day; multi-day
+    // ranges use the date. Keyed off bar spacing, not the calendar-day span (a
+    // 1D window trails ~24h and can cross midnight).
+    const fmt = intradayAwareFmt(
+      data.map((d) => xAccessor(d).getTime()),
+      shortDateFmt
+    );
+
     // Create evenly spaced dates from start to end
     const tickCount = Math.max(2, numTicks); // At least first and last
     const dates: Date[] = [];
@@ -133,7 +141,7 @@ const XAxisInner = memo(function XAxisInner({
     return dates.map((date) => ({
       date,
       x: (xScale(date) ?? 0) + margin.left,
-      label: shortDateFmt.format(date),
+      label: fmt.format(date),
     }));
   }, [tickMode, data, xAccessor, xScale, margin.left, dateLabels, numTicks]);
 

@@ -1,6 +1,8 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
+import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { fetchDataset, fetchPrices } from "../lib/data";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
@@ -109,6 +111,63 @@ function ChartSkeleton() {
   );
 }
 
+// Live price + change, sitting in the chart header's left slot. Flows its digits
+// on timeframe change via NumberFlow (same treatment as the creator-page stats);
+// falls back to static formatting until the custom element registers (SSR / pre-hydration).
+function PriceReadout({
+  lastClose,
+  tfChange,
+  usingFallback,
+}: {
+  lastClose: number | null;
+  tfChange: number | null;
+  usingFallback: boolean;
+}) {
+  const ready = useNumberFlowReady();
+  if (lastClose == null) return null;
+
+  const priceFormat: Format = {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: lastClose >= 1 ? 2 : 4,
+    maximumFractionDigits: lastClose >= 1 ? 2 : 4,
+  };
+  const changeFormat: Format = {
+    style: "percent",
+    signDisplay: "exceptZero",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  };
+
+  return (
+    <div className="flex items-baseline gap-3">
+      <NumberFlowGroup>
+        <span className="font-heading text-2xl tabular-nums">
+          {ready ? (
+            <NumberFlow format={priceFormat} value={lastClose} willChange />
+          ) : (
+            priceFmt(lastClose)
+          )}
+        </span>
+        <span className={`font-mono text-sm tabular-nums ${toneClass(tfChange)}`}>
+          {tfChange == null ? (
+            "—"
+          ) : ready ? (
+            <NumberFlow format={changeFormat} value={tfChange} willChange />
+          ) : (
+            signed(tfChange)
+          )}
+        </span>
+      </NumberFlowGroup>
+      {usingFallback ? (
+        <span className="font-mono text-[10px] text-amber-600 uppercase tracking-[0.3em] dark:text-amber-400">
+          · cached daily data
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 function TickerPage() {
   const ds = Route.useLoaderData();
   const { symbol } = Route.useParams();
@@ -116,6 +175,7 @@ function TickerPage() {
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
   const { impact, select } = useHaptics();
+  const queryClient = useQueryClient();
 
   const firstDate = firstDateOf(ds.calls);
   const query = useQuery(chartQuery(symbol, timeframe, firstDate));
@@ -124,9 +184,47 @@ function TickerPage() {
   // fetch errors or returns nothing. OhlcBar and LiveBar share a shape.
   const { bakedOhlc, bakedSpy } = ds;
 
-  const usingFallback = query.isError || (query.data != null && query.data.ohlc.length === 0);
-  const ohlc: LiveBar[] = usingFallback ? bakedOhlc : (query.data?.ohlc ?? []);
-  const spy: LiveBar[] = usingFallback ? bakedSpy : (query.data?.spy ?? []);
+  // Committed view: only advances once the requested timeframe's live data is in
+  // hand, so the chart never paints an empty / placeholder / wrong-window frame
+  // mid-switch. The crossfade (AnimatePresence in ticker-charts) keys off
+  // `view.timeframe`, so it fires exactly once per real data swap. Until then the
+  // previous chart stays fully rendered — no skeleton, no dim, no stutter.
+  const buildView = (live: typeof query.data | null) => ({
+    timeframe,
+    ohlc: live ? live.ohlc : bakedOhlc,
+    spy: live ? live.spy : bakedSpy,
+    usingFallback: live == null,
+  });
+  const liveNow =
+    query.data != null && !query.isPlaceholderData && query.data.ohlc.length > 0
+      ? query.data
+      : null;
+  const [view, setView] = useState(() => buildView(liveNow));
+
+  useEffect(() => {
+    if (query.isPending || query.isPlaceholderData) {
+      return; // still fetching the requested timeframe — hold the current view
+    }
+    const live = query.data && query.data.ohlc.length > 0 ? query.data : null;
+    setView(buildView(live));
+  }, [
+    query.isPending,
+    query.isPlaceholderData,
+    query.data,
+    timeframe,
+    bakedOhlc,
+    bakedSpy,
+  ]);
+
+  // Warm the cache on hover/focus so the actual click is a hit and the swap is
+  // instant; keepPreviousData + view-gating keep an un-prefetched tap smooth too.
+  const prefetchTimeframe = (tf: Timeframe) => {
+    queryClient.prefetchQuery(chartQuery(symbol, tf, firstDate));
+  };
+
+  const usingFallback = view.usingFallback;
+  const ohlc: LiveBar[] = view.ohlc;
+  const spy: LiveBar[] = view.spy;
 
   const callMarkers: ChartMarker[] = calls.map((c) => ({
     date: new Date(c.postDate),
@@ -156,15 +254,31 @@ function TickerPage() {
     spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
   }));
 
-  const showSkeleton = query.isPending && ohlc.length === 0;
-  const isUpdating = query.isFetching && !showSkeleton;
+  // Only on a true cold start (no committed view data at all) — otherwise the
+  // view holds the prior window, so the chart stays up and we never skeleton
+  // mid-switch.
+  const showSkeleton = ohlc.length === 0;
 
-  // Headline readout: last close of the fetched window, change measured over the
+  // Calls falling inside the committed window — their markers only render when in
+  // range, so a small timeframe can show price with no markers. Drives the note below.
+  const windowStart = ohlc.length ? new Date(ohlc[0].date) : null;
+  const windowEnd = ohlc.length ? new Date(ohlc[ohlc.length - 1].date) : null;
+  const callsInWindow =
+    windowStart && windowEnd
+      ? calls.filter((c) => {
+          const d = new Date(c.postDate);
+          return d >= windowStart && d <= windowEnd;
+        }).length
+      : 0;
+
+  // Headline readout: last close of the committed window, change measured over the
   // selected timeframe (first → last bar), so it reads like a normal stock chart.
   const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : null;
   const firstClose = ohlc.length ? ohlc[0].c : null;
   const tfChange =
-    lastClose != null && firstClose ? (lastClose - firstClose) / firstClose : null;
+    lastClose != null && firstClose
+      ? (lastClose - firstClose) / firstClose
+      : null;
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
@@ -176,32 +290,29 @@ function TickerPage() {
           {symbol}
           <span className="text-base text-muted-foreground">{calls[0]?.company}</span>
         </h1>
-        {lastClose != null ? (
-          <div className="mt-2 flex items-baseline gap-3">
-            <span className="font-heading text-3xl tabular-nums">{priceFmt(lastClose)}</span>
-            <span className={`font-mono text-sm tabular-nums ${toneClass(tfChange)}`}>
-              {signed(tfChange)} · {timeframe}
-            </span>
-          </div>
-        ) : null}
       </header>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
         <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="whitespace-nowrap font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Price
-            {usingFallback ? (
-              <span className="ml-2 text-amber-600 dark:text-amber-400">· cached daily data</span>
-            ) : null}
-          </div>
+          <PriceReadout
+            lastClose={lastClose}
+            tfChange={tfChange}
+            usingFallback={usingFallback}
+          />
           <TimeframeTabs
             value={timeframe}
             onChange={(tf) => {
               impact();
               setTimeframe(tf);
             }}
+            onPrefetch={prefetchTimeframe}
           />
         </div>
+        {!showSkeleton && candles.length > 0 && callsInWindow === 0 ? (
+          <div className="mb-4 rounded-lg bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+            No calls in the selected period.
+          </div>
+        ) : null}
         {showSkeleton ? (
           <ChartSkeleton />
         ) : candles.length === 0 ? (
@@ -209,13 +320,11 @@ function TickerPage() {
             No price data for this symbol.
           </div>
         ) : (
-          <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
-            <ChartBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
-                <PriceCandles candles={candles} markers={callMarkers} timeframe={timeframe} />
-              </Suspense>
-            </ChartBoundary>
-          </div>
+          <ChartBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} />
+            </Suspense>
+          </ChartBoundary>
         )}
       </section>
 
@@ -230,13 +339,11 @@ function TickerPage() {
             No price data for this symbol.
           </div>
         ) : (
-          <div className={isUpdating ? "opacity-60 transition-opacity" : "transition-opacity"}>
-            <ChartBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
-                <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={timeframe} />
-              </Suspense>
-            </ChartBoundary>
-          </div>
+          <ChartBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <StockVsSpyLine norm={norm} markers={callMarkers} />
+            </Suspense>
+          </ChartBoundary>
         )}
       </section>
 

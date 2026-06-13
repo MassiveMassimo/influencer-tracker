@@ -28,6 +28,8 @@ export interface LineChartProps {
   animationEasing?: string;
   enterTransition?: Transition;
   revealSignature?: string;
+  /** "clip" = LTR wipe (default). "fade" = simultaneous opacity reveal. */
+  revealMode?: "clip" | "fade";
   /** Aspect ratio as "width / height". Default: "2 / 1" */
   aspectRatio?: string;
   /** Additional class name for the container */
@@ -116,6 +118,7 @@ interface ChartInnerProps {
   animationEasing?: string;
   enterTransition?: Transition;
   revealSignature?: string;
+  revealMode?: "clip" | "fade";
   children: ReactNode;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -130,6 +133,7 @@ function ChartInner({
   animationEasing,
   enterTransition,
   revealSignature,
+  revealMode,
   children,
   containerRef,
 }: ChartInnerProps) {
@@ -146,6 +150,7 @@ function ChartInner({
       height={height}
       lines={lines}
       margin={margin}
+      revealMode={revealMode}
       revealSignature={revealSignature}
       width={width}
       xDataKey={xDataKey}
@@ -163,6 +168,7 @@ export function LineChart({
   animationEasing,
   enterTransition,
   revealSignature,
+  revealMode,
   aspectRatio = "2 / 1",
   className = "",
   children,
@@ -186,6 +192,7 @@ export function LineChart({
             enterTransition={enterTransition}
             height={height}
             margin={margin}
+            revealMode={revealMode}
             revealSignature={revealSignature}
             width={width}
             xDataKey={xDataKey}

@@ -13,6 +13,7 @@ import { listCreators } from '../lib/data'
 import { PreferencesProvider } from '#/lib/preferences.tsx'
 import { HapticsProvider } from '#/lib/haptics.tsx'
 import { Analytics } from '#/lib/analytics.tsx'
+import { Agentation } from 'agentation'
 import { siteUrl } from '#/og/site.ts'
 
 import appCss from '../styles.css?url'
@@ -63,6 +64,12 @@ function RootComponent() {
     <PreferencesProvider>
       <HapticsProvider>
         <Analytics />
+        {import.meta.env.DEV && (
+          <Agentation
+            endpoint="http://localhost:4747"
+            onSessionCreated={(sessionId) => console.log("Session started:", sessionId)}
+          />
+        )}
         <div
           data-vaul-drawer-wrapper=""
           className="grid min-h-svh grid-cols-1 bg-background text-foreground md:grid-cols-[260px_1fr]"
