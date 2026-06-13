@@ -3,6 +3,7 @@ import { z } from "zod";
 import YahooFinance from "yahoo-finance2";
 import { isSafeAssetKey } from "./api-serve.ts";
 import { chartWindow } from "./chart-window.ts";
+import { resolveSymbol } from "./symbol.ts";
 import type { Timeframe } from "./window-series.ts";
 
 // yahoo-finance2 ChartOptions["interval"] uses "60m" as the canonical alias for
@@ -111,6 +112,11 @@ export const fetchChart = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }): Promise<ChartData> => {
     const tf = data.timeframe as Timeframe;
+    // Resolve to canonical so a stale URL with a raw/mis-notated symbol
+    // (e.g. /ticker/BTCUSD now that datasets use BTC-USD) still hits the right
+    // Yahoo series. No-op for already-canonical symbols. Same seam as the baked
+    // path (pipeline/prices.ts, pipeline/score.ts).
+    const symbol = resolveSymbol(data.symbol) ?? data.symbol;
     const { interval, period1 } = chartWindow(tf, {
       now: new Date(),
       firstDate: new Date(data.firstDate),
@@ -121,7 +127,7 @@ export const fetchChart = createServerFn({ method: "GET" })
     // sharing a ticker would collide.
     const keySuffix = tf === "All" ? `:All:${data.firstDate}` : `:${data.timeframe}`;
     const [ohlc, spy] = await Promise.all([
-      fetchSymbol(`${data.symbol}${keySuffix}`, data.symbol, interval, period1),
+      fetchSymbol(`${symbol}${keySuffix}`, symbol, interval, period1),
       fetchSymbol(`SPY${keySuffix}`, "SPY", interval, period1),
     ]);
     return { ohlc, spy, interval, asOf: new Date().toISOString() };
