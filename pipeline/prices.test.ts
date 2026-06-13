@@ -1,5 +1,6 @@
-import { describe, it, expect } from "bun:test";
-import { cacheCovers, dropUnsettled } from "./prices";
+import { describe, it, expect, test } from "bun:test";
+import { cacheCovers, dropUnsettled, canonicalSymbols } from "./prices";
+import type { ReelCall } from "../src/lib/types";
 
 describe("cacheCovers", () => {
   const bars = [{ date: "2025-01-01", o:1,h:1,l:1,c:1 }, { date: "2025-02-01", o:1,h:1,l:1,c:1 }];
@@ -26,4 +27,18 @@ describe("dropUnsettled", () => {
   it("keeps everything when all bars precede today", () => {
     expect(dropUnsettled([bar("2026-06-10")], "2026-06-13")).toHaveLength(1);
   });
+});
+
+const rc = (ticker: string): ReelCall => ({
+  shortcode: ticker, postDate: "2026-01-01", ticker, company: ticker,
+  direction: "bullish", isExplicitBuy: true, conviction: 1, quote: "", onScreenPrice: null, summary: "",
+});
+
+test("canonicalSymbols resolves, dedupes, drops null, and always includes SPY", () => {
+  const got = canonicalSymbols([rc("BTCUSD"), rc("BTCUSDT"), rc("AAPL"), rc("SI1!")]);
+  expect(got).toContain("BTC-USD"); // BTCUSD + BTCUSDT collapse to one
+  expect(got).toContain("AAPL");
+  expect(got).toContain("SPY");
+  expect(got).not.toContain("SI1!"); // rejected
+  expect(got.filter((s) => s === "BTC-USD")).toHaveLength(1); // deduped
 });
