@@ -397,7 +397,11 @@ function TickerPage() {
         </Table>
       </section>
 
-      <ProofViewer call={selectedCall} onClose={() => setSelectedCall(null)} />
+      <ProofViewer
+        call={selectedCall}
+        handle={ds.creator.handle}
+        onClose={() => setSelectedCall(null)}
+      />
     </main>
   );
 }
