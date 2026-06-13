@@ -24,6 +24,22 @@ async function main() {
   // owner — so a wrong-branch serve URL or a missing serve GRANT is caught here, before the
   // USE_DB=1 flip, rather than silently degrading every SSR render to static at runtime.
   const db = makeDb(process.env.DATABASE_URL_SERVE ?? process.env.DATABASE_URL);
+  const scopedHandle = process.argv[2];
+
+  if (scopedHandle) {
+    // Scoped mode: verify only the reviewed creator's dataset. The global index / all-datasets
+    // / all-prices / artifact checks false-fail on the VM's lagging committed static (prior
+    // days' scored data is live in the DB but never committed back). Prices are insert-only so
+    // they can't regress; a dataset match validates price-derived returns/spark/scorecard.
+    const stat = readJson(join(ROOT, "data", "creators", scopedHandle, "dataset.json"));
+    const dbDataset = await readDataset(db, scopedHandle);
+    if (!eq(stat, dbDataset)) throw new Error(`dataset parity FAILED for ${scopedHandle}`);
+    console.log(`✓ ${scopedHandle}`);
+    console.log(`PARITY OK (scoped: ${scopedHandle})`);
+    return;
+  }
+
+  // Global mode (cutover path): full index + all datasets + all prices + artifact — unchanged.
   const index = readJson(join(ROOT, "data", "creators", "index.json"));
   if (index.length === 0) throw new Error("index.json empty — refusing to certify parity");
   if (!eq(index, await readIndex(db))) throw new Error("index parity FAILED");

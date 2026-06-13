@@ -17,6 +17,39 @@ const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 async function main() {
   const db = getWriteDb();
   const index: IndexEntry[] = readJson(join(CREATORS, "index.json"));
+  const scopedHandle = process.argv[2];
+
+  if (scopedHandle) {
+    // Scoped mode: backfill only the single reviewed creator. A global sync would upsert
+    // other creators' daily-reset stale static over their live DB rows and trip the guard.
+    console.log(`scoped backfill: ${scopedHandle}`);
+    const ord = index.findIndex((e) => e.handle === scopedHandle);
+    if (ord === -1) throw new Error(`handle ${scopedHandle} not found in index.json`);
+    const entry = index[ord];
+    const ds = readJson(join(CREATORS, scopedHandle, "dataset.json"));
+    await backfillCreator(db, entry, ds, ord);
+    const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(calls).where(eq(calls.handle, scopedHandle));
+    if (n !== ds.calls.length) throw new Error(`${scopedHandle}: ${n} rows != ${ds.calls.length} calls — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy.`);
+    console.log(`creator ${scopedHandle}: ${ds.calls.length} calls`);
+    // Backfill only this creator's price symbols (insert-only; no cross-creator regression).
+    const symbols = [...new Set([...ds.calls.map((c: { ticker: string }) => c.ticker), "SPY"])];
+    for (const sym of symbols) {
+      const priceFile = join(PRICES, `${sym}.json`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let prices: any;
+      try {
+        prices = readJson(priceFile);
+      } catch {
+        // Skip symbols whose price file is absent (e.g. an unscored or unrecognised ticker).
+        continue;
+      }
+      await backfillPrices(db, sym, prices);
+    }
+    console.log(`backfill done (scoped): ${scopedHandle}.`);
+    return;
+  }
+
+  // Global mode (cutover path): loop all creators then all price files — unchanged.
   for (const [ord, entry] of index.entries()) {
     const ds = readJson(join(CREATORS, entry.handle, "dataset.json"));
     await backfillCreator(db, entry, ds, ord);
