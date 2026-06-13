@@ -8,12 +8,22 @@ import type { OhlcBar, ReelCall } from "../src/lib/types";
 
 const yahooFinance = new YahooFinance();
 
+// Drop the current UTC day (and anything later): Yahoo's daily chart includes today's
+// in-progress candle during market hours, and the insert-only merge would freeze that
+// partial bar forever, dropping the settled close. A bar matures one day later — harmless
+// at the 1w/1m/3m/to-date horizons we score.
+export function dropUnsettled(bars: OhlcBar[], todayUtc: string): OhlcBar[] {
+  return bars.filter((b) => b.date < todayUtc);
+}
+
 async function fetchOhlc(symbol: string, from: string): Promise<OhlcBar[]> {
   const rows = await yahooFinance.chart(symbol, { period1: from, interval: "1d" });
-  return rows.quotes
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  const mapped = rows.quotes
     .filter(q => q.open != null && q.high != null && q.low != null && q.close != null)
-    .map(q => ({ date: new Date(q.date).toISOString().slice(0,10),
+    .map(q => ({ date: new Date(q.date).toISOString().slice(0, 10),
       o: q.open!, h: q.high!, l: q.low!, c: q.close! }));
+  return dropUnsettled(mapped, todayUtc);
 }
 
 // Exported for tests. A cached series covers the needed range if it has more than
