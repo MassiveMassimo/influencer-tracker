@@ -41,4 +41,9 @@ describe.skipIf(!SERVE)("serve role is read-only", () => {
     await expect((async () => { await sqlRole`DELETE FROM creators WHERE handle = '__perm_probe__'`; })())
       .rejects.toThrow(/permission denied/i);
   });
+
+  test("serve role cannot read call_overrides", async () => {
+    await expect((async () => { await sqlRole`SELECT 1 FROM call_overrides LIMIT 1`; })())
+      .rejects.toThrow(/permission denied/i);
+  });
 });

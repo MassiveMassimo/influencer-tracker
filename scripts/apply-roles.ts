@@ -28,6 +28,8 @@ async function main() {
   await sql`GRANT INSERT, UPDATE, SELECT ON creators, calls TO ingest`;
   // Materialized serve artifacts (Plan 2) — ingest upserts them at the end of a run.
   await sql`GRANT INSERT, UPDATE, SELECT ON artifacts TO ingest`;
+  // Override store: ingest reads (score) + writes (apply-override.ts) it.
+  await sql`GRANT INSERT, UPDATE, SELECT ON call_overrides TO ingest`;
   console.log("ingest role configured: prices insert-only.");
 
   // Read-only serve role: the public SSR path (getDb → DATABASE_URL_SERVE) connects as
@@ -44,6 +46,8 @@ async function main() {
   await sql`ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM serve`;
   await sql`GRANT SELECT ON creators, calls, prices, artifacts TO serve`;
   await sql`REVOKE INSERT, UPDATE, DELETE ON creators, calls, prices, artifacts FROM serve`;
+  // call_overrides is operator-only correction data — serve must never see it.
+  await sql`REVOKE ALL ON call_overrides FROM serve`;
   console.log("serve role configured: SELECT-only.");
 }
 main();
