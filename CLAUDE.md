@@ -43,8 +43,8 @@ before pricing. Resume with `--from <stage>`.
   iProyal ISP-residential relay, no-auth locally). Unset on the Mac → scrapes direct.
   IG locks accounts scraped from datacenter IPs, so VM runs **must** set it. Also use a
   warmed burner IG account (never a personal one) for `cookies.txt`.
-- Then: `transcribe` (Groq Whisper), `frames` (sample 3 frames → Groq vision
-  for on-screen ticker/price hints), `extract`.
+- Then: `transcribe` (self-hosted Parakeet), `frames` (sample 3 frames → Fireworks
+  vision for on-screen ticker/price hints), `extract`.
 
 **X/Twitter** (`pipeline/x/scrape-x.ts`, text-first):
 - Rettiwt-API, authenticated by `RETTIWT_API_KEY` — a base64 cookie key from a

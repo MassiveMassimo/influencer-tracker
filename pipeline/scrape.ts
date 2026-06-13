@@ -65,7 +65,9 @@ function fromNetscape(text: string): any[] {
 // True if the context already carries a logged-in IG session (ds_user_id cookie).
 async function hasSession(ctx: any): Promise<boolean> {
   const cookies = await ctx.cookies("https://www.instagram.com");
-  return cookies.some((c: any) => c.name === "ds_user_id");
+  // Match waitForLogin: a cleared-but-not-purged cookie has the key with an empty
+  // value and is not a live session.
+  return cookies.some((c: any) => c.name === "ds_user_id" && c.value);
 }
 
 // Seed a prior session from cookies.txt if present; returns true if cookies were loaded.
@@ -94,6 +96,23 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
     ...(IG_PROXY ? { proxy: { server: IG_PROXY } } : {}),
   });
   const page = await ctx.newPage();
+
+  // Prove residential egress before scraping. A silent proxy failure (relay down,
+  // IG_PROXY typo) would scrape from the datacenter IP and get the account locked —
+  // the exact failure this guards against. Abort loudly instead, and log the IP so a
+  // run visibly confirms it's residential.
+  if (IG_PROXY) {
+    let egress = "";
+    try {
+      await page.goto("https://api.ipify.org?format=json", { waitUntil: "domcontentloaded", timeout: 15_000 });
+      egress = JSON.parse(await page.evaluate(() => document.body.innerText))?.ip ?? "";
+    } catch { /* egress stays empty -> abort below */ }
+    if (!egress) {
+      await ctx.close();
+      throw new Error(`IG_PROXY=${IG_PROXY} egress check failed (relay down/unreachable) — aborting to avoid scraping from the datacenter IP`);
+    }
+    console.log(`>>> IG proxy egress IP: ${egress}`);
+  }
 
   const seen = new Map<string, number>(); // shortcode -> taken_at (epoch ms)
   page.on("response", async (res: any) => {
