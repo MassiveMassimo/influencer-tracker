@@ -11,26 +11,37 @@ const KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined
 export function Analytics() {
   useEffect(() => {
     if (!KEY) return
-    import('posthog-js')
-      .then(({ default: posthog }) => {
-        posthog.init(KEY, {
-          // Reverse proxy: ingest + assets ride our own origin (/relay/**, rewritten
-          // to *.i.posthog.com by nitro routeRules in vite.config.ts) so blockers can't
-          // drop events. ui_host keeps in-app links (toolbar, "view in PostHog") pointed
-          // at the real US app.
-          api_host: '/relay',
-          ui_host: 'https://us.posthog.com',
-          // defaults snapshot: history_change pageviews (fire on TanStack Router navs),
-          // pageleave, and head-injected external scripts (SSR-safe replay recorder).
-          defaults: '2026-01-30',
-          autocapture: true,
-          // Surveys unused — stop posthog-js fetching surveys.js (~31KB) on every route.
-          disable_surveys: true,
-          // NOTE: site has no text inputs today; revisit masking if any are added.
-          session_recording: { maskAllInputs: false, maskInputOptions: { password: true } },
+    const init = () =>
+      import('posthog-js')
+        .then(({ default: posthog }) => {
+          posthog.init(KEY, {
+            // Reverse proxy: ingest + assets ride our own origin (/relay/**, rewritten
+            // to *.i.posthog.com by nitro routeRules in vite.config.ts) so blockers can't
+            // drop events. ui_host keeps in-app links (toolbar, "view in PostHog") pointed
+            // at the real US app.
+            api_host: '/relay',
+            ui_host: 'https://us.posthog.com',
+            // defaults snapshot: history_change pageviews (fire on TanStack Router navs),
+            // pageleave, and head-injected external scripts (SSR-safe replay recorder).
+            defaults: '2026-01-30',
+            autocapture: true,
+            // Surveys unused — stop posthog-js fetching surveys.js (~31KB) on every route.
+            disable_surveys: true,
+            // NOTE: site has no text inputs today; revisit masking if any are added.
+            session_recording: { maskAllInputs: false, maskInputOptions: { password: true } },
+          })
         })
-      })
-      .catch(() => {}) // adblockers can block the posthog chunk; fail silently
+        .catch(() => {}) // adblockers can block the posthog chunk; fail silently
+
+    // Defer the ~68KB SDK parse/eval off the hydration critical path to cut TBT.
+    // posthog-js queues events fired before init, so idle-deferring is lossless; the
+    // timeout caps the wait if the main thread stays busy past TTI.
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(init, { timeout: 4000 })
+      return () => window.cancelIdleCallback?.(id)
+    }
+    const t = setTimeout(init, 200)
+    return () => clearTimeout(t)
   }, [])
   return null
 }
