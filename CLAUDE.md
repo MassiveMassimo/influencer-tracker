@@ -111,6 +111,17 @@ qwen3p6-plus's OCR accuracy at ~8x the speed. The cheap small VLMs (qwen3-vl-8b,
 gemma-4, llama-vision) are **on-demand-GPU only** on Fireworks — they 404 on
 serverless. All paths reuse the same `CLASSIFY_SYS` + parse.
 
+**Fireworks billing & cost.** Prepaid-credits, pay-as-you-go drawdown (Fireworks account
+"Meeting.ai DEV TOOLS", Tier 3, $5,000/mo hard cap; the `monthlySpendThreshold` is a $100
+*alert*, not a cap). **No balance/usage/credits endpoint** — the control-plane API
+(`/v1/accounts/...`) exposes only the spend-threshold + resource quotas; check remaining
+balance + MTD spend in the Fireworks dashboard. Inference responses carry per-call token
+`usage` (sum it for an exact run cost). Live per-1M-token prices (standard tier): **text
+`deepseek-v4-flash` $0.14 in / $0.028 cached / $0.28 out**; **vision `kimi-k2p5` $0.60 in /
+$0.10 cached / $3.00 out**. Extract is **1 text call/tweet + 1 vision call/image**, so cost
+is vision-dominated — onboarding a ~10k-tweet creator (≈40% image tweets) runs **~$5**
+(text ~$1, vision ~$4); budget ~$0.50/1k tweets, scaling with image fraction/resolution.
+
 **Transcription is self-hosted Parakeet, not Groq Whisper** (replaced it). `onnx-asr`
 runs `nemo-parakeet-tdt-0.6b-v2` on CPU (no GPU / no NeMo/CUDA) — benchmarked at
 RTF ~0.17 on the 4-core ARM VM (~6x faster than realtime). `transcribe.ts` extracts
