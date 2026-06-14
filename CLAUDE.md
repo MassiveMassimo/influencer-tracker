@@ -119,8 +119,11 @@ balance + MTD spend in the Fireworks dashboard. Inference responses carry per-ca
 `usage` (sum it for an exact run cost). Live per-1M-token prices (standard tier): **text
 `deepseek-v4-flash` $0.14 in / $0.028 cached / $0.28 out**; **vision `kimi-k2p5` $0.60 in /
 $0.10 cached / $3.00 out**. Extract is **1 text call/tweet + 1 vision call/image**, so cost
-is vision-dominated — onboarding a ~10k-tweet creator (≈40% image tweets) runs **~$5**
-(text ~$1, vision ~$4); budget ~$0.50/1k tweets, scaling with image fraction/resolution.
+is vision-dominated. **Measured** (onboarding @thelonginvest, 2026-06-14): 8,248 tweets /
+2,226 image calls → deepseek 4.4M tok + kimi 6.1M tok → **~$12** off the prepaid balance
+(real-time, no billing lag). Budget **~$1.5/1k tweets**, vision is ~⅔ of it (images log
+~2.7k tok each — higher-res than naive estimates). Earlier ~$0.50/1k guesses were ~3× low;
+trust the balance-ledger delta, not token×list-price math.
 
 **Transcription is self-hosted Parakeet, not Groq Whisper** (replaced it). `onnx-asr`
 runs `nemo-parakeet-tdt-0.6b-v2` on CPU (no GPU / no NeMo/CUDA) — benchmarked at
