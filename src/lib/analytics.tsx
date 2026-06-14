@@ -24,6 +24,8 @@ export function Analytics() {
           // pageleave, and head-injected external scripts (SSR-safe replay recorder).
           defaults: '2026-01-30',
           autocapture: true,
+          // Surveys unused — stop posthog-js fetching surveys.js (~31KB) on every route.
+          disable_surveys: true,
           // NOTE: site has no text inputs today; revisit masking if any are added.
           session_recording: { maskAllInputs: false, maskInputOptions: { password: true } },
         })
