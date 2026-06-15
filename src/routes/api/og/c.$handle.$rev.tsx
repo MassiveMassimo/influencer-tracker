@@ -3,6 +3,23 @@ import { readFromDbOrNull } from "#/lib/data.ts";
 import { CACHE_CONTROL, isSafeAssetKey } from "#/lib/api-serve.ts";
 import type { IndexEntry } from "#/lib/dataset-source.ts";
 
+// satori needs inline image bytes — a /avatars/<h>.<ext> CDN path won't resolve inside
+// the renderer. Resolve to a data URI at request time. Robust to the legacy inline
+// data-URI form (passed through), so it works before/after the prod DB avatar migration.
+async function resolveAvatar(avatar: string | undefined): Promise<string | undefined> {
+  if (!avatar) return undefined;
+  if (avatar.startsWith("data:")) return avatar; // legacy inline form
+  if (!avatar.startsWith("/")) return undefined;
+  try {
+    const { siteUrl } = await import("#/og/site.ts");
+    const res = await fetch(siteUrl(avatar));
+    if (!res.ok) return undefined;
+    const mime = (res.headers.get("content-type") ?? "image/jpeg").split(";")[0].trim();
+    const b64 = Buffer.from(await res.arrayBuffer()).toString("base64");
+    return `data:${mime};base64,${b64}`;
+  } catch { return undefined; }
+}
+
 // Dynamic creator OG card. ISR-cached (vite routeRules); the $rev path segment busts
 // the CDN cache when stats change (the page head() emits a new rev). $rev is unused here.
 export const Route = createFileRoute("/api/og/c/$handle/$rev")({
@@ -30,6 +47,7 @@ export const Route = createFileRoute("/api/og/c/$handle/$rev")({
         }
 
         const { renderOgPng } = await import("#/og/render.tsx");
+        const avatar = entry ? await resolveAvatar(entry.avatar) : undefined;
         const png = await renderOgPng(
           entry
             ? {
@@ -37,7 +55,7 @@ export const Route = createFileRoute("/api/og/c/$handle/$rev")({
                 theme: "dark",
                 name: entry.name,
                 handle,
-                avatar: entry.avatar,
+                avatar,
                 excess3m: entry.avgExcess3m,
                 totalCalls: entry.totalCalls,
               }
