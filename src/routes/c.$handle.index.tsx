@@ -31,6 +31,7 @@ import {
 import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { siteUrl } from "#/og/site.ts";
+import { ogRev } from "#/og/og-rev.ts";
 
 const CALLS_PER_PAGE = 25;
 
@@ -38,7 +39,9 @@ export const Route = createFileRoute("/c/$handle/")({
   loader: ({ params }) => fetchDataset(params.handle),
   head: ({ params, loaderData }) => {
     const name = loaderData?.creator.name ?? params.handle;
-    const img = siteUrl(`/og/${params.handle}.png`);
+    const sc = loaderData?.scorecard;
+    const rev = ogRev([sc?.avgExcess["3m"], sc?.totalCalls]);
+    const img = siteUrl(`/api/og/c/${params.handle}/${rev}`);
     return {
       meta: [
         { title: `${name} · Signal Tracker` },

@@ -160,6 +160,10 @@ Update `og:image` / `twitter:image` in the affected `head()` functions:
   the rev-in-URL + page-route bust covers freshness.
 - No edge/WASM renderer migration — native resvg on Node is faster and already used.
 - Retroactively refreshing already-shared (frozen) posts — structurally impossible.
+- **Implementation note (extensionless URLs):** the served OG URLs are extensionless
+  (`/api/og/c/<handle>/<rev>`, `/api/og/t/<handle>/<symbol>/<rev>`), not `.png` as shown
+  above — TanStack/Nitro 404s a `$rev` segment with a file extension (static-asset lookup).
+  The `Content-Type: image/png` response header is authoritative for crawlers.
 
 ## Files touched
 

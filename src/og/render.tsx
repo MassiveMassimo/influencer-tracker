@@ -1,7 +1,7 @@
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import { ogFonts } from "./fonts";
-import { buildCardBackgroundSvg } from "./card-bg";
+import { buildCardBackgroundSvg, buildLineChartBackgroundSvg } from "./card-bg";
 import { palette, type OgPalette } from "./theme";
 import type { OgTheme } from "./solar";
 
@@ -27,13 +27,13 @@ export type OgCard =
       name: string; // creator name
       handle: string;
       excess3m: number | null;
+      closes?: number[]; // symbol price series for the line-graph background
     };
 
 // NOTE: resvg runs twice per render (background here, final card in renderOgPng)
-// and the bg is inlined as a base64 data URI. Fine per-request; add caching if
-// this is ever called in a tight loop (e.g. static-generating every creator).
-function cardBgUri(seed: string, up: boolean, theme: OgTheme, pal: OgPalette): string {
-  const svg = buildCardBackgroundSvg({ seed, up, theme, palette: pal, width: W, height: H });
+// and the bg is inlined as a base64 data URI. Fine per-request; the /api/og/*
+// routes are ISR-cached so this runs once per content rev, not per request.
+function svgToUri(svg: string): string {
   const png = new Resvg(svg, { fitTo: { mode: "width", value: W } }).render().asPng();
   return `data:image/png;base64,${png.toString("base64")}`;
 }
@@ -194,7 +194,19 @@ export async function renderOgPng(card: OgCard): Promise<Buffer> {
       : card.kind === "ticker"
         ? (card.excess3m ?? 0) >= 0
         : true;
-  const bg = cardBgUri(seed, up, card.theme, pal);
+  // Line color tracks the 3m-excess sign (the card's hero stat), not raw price direction.
+  const bgSvg =
+    card.kind === "ticker" && card.closes && card.closes.length > 0
+      ? buildLineChartBackgroundSvg({
+          closes: card.closes,
+          up,
+          theme: card.theme,
+          palette: pal,
+          width: W,
+          height: H,
+        })
+      : buildCardBackgroundSvg({ seed, up, theme: card.theme, palette: pal, width: W, height: H });
+  const bg = svgToUri(bgSvg);
   const svg = await satori(cardTree(card, pal, bg), { width: W, height: H, fonts: ogFonts() });
   return new Resvg(svg, { fitTo: { mode: "width", value: W } }).render().asPng();
 }
