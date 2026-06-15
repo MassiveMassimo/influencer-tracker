@@ -84,7 +84,13 @@ with zero false-positive buys. Note: existing creators keep one-ticker-per-post 
 until their `extract` stage is re-run with the new prompt — LLM cost, no re-scrape.)
 
 **Only explicit bullish calls** (`isExplicitBuy && direction === "bullish"`) are
-scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date.
+scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date. **`isExplicitBuy`
+deliberately spans the call formats finfluencers actually use** — a literal buy/hold
+instruction, a stated long position, AND a bullish price target / "going higher"
+conviction call (`"$AMD to 750"`). Do **not** narrow it to literal "buy" phrasing: a
+2026-06-15 bake-off measured that wording dropping ~49% of real buys on TheProfInvestor
+(price-target posts flipped to `isExplicitBuy:false`), which `guard-no-shrink` correctly
+blocked. Bearish/short calls and watchlist/no-position mentions stay `false`.
 
 **Scope gate — only individual securities are scored** (`pipeline/symbol-scope.ts`).
 A finfluencer "call" means an individual stock/crypto pick, not "buy the market", so

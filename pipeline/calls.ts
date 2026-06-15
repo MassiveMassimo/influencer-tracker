@@ -8,14 +8,21 @@ import type { Direction, ReelCall } from "../src/lib/types";
 // A single post can name MULTIPLE stocks (e.g. "loading up on NVDA and AMD,
 // holding TSLA, avoid INTC"). The model emits one entry per ticker the creator
 // takes a view on, so a multi-stock post is no longer collapsed to a single call.
-// The clause excluding context/index/competitor names keeps the stored set clean
-// (those would never be scored anyway — only isExplicitBuy && bullish is).
+// `isExplicitBuy` covers the call formats finfluencers actually use — not just a
+// literal "buy" instruction but also a stated long position and bullish price
+// targets ("$AMD to 750") — so the scored set isn't gutted (an earlier draft that
+// said only "tells viewers to buy/hold" dropped ~49% of real buys: price targets).
+// The context/index/competitor exclusion keeps the stored set clean (those would
+// never be scored anyway — only isExplicitBuy && bullish is).
 export const CLASSIFY_SYS =
   "You analyze a stock influencer's post (a video transcript or a tweet). A single post may " +
   "discuss MULTIPLE stocks. Emit ONE entry per distinct ticker the creator expresses a view on or " +
-  "position in, capturing that ticker's own direction and whether the creator explicitly tells " +
-  "viewers to buy/hold it. Do NOT emit tickers named only as market context, an index/benchmark, or " +
-  "a competitor the creator is not recommending. Use the provided text and on-screen/image hints " +
+  "position in. For each, set its `direction` (bullish/bearish/neutral) and `isExplicitBuy`: true " +
+  "when the creator makes a bullish call to OWN the stock — an explicit buy/hold instruction, a stated " +
+  "long position, OR a bullish price target or 'going higher' conviction call (e.g. '$AMD to 750', " +
+  "'NVDA to $200', 'next stop $400'); false for bearish/short calls and for neutral or " +
+  "watchlist/no-position mentions. Do NOT emit tickers named only as market context, an index/benchmark, " +
+  "or a competitor the creator is not recommending. Use the provided text and on-screen/image hints " +
   "(the hints are authoritative for the exact ticker symbol). " +
   'Reply ONLY JSON: {"calls":[{"ticker":string,"company":string|null,"direction":"bullish"|"bearish"|"neutral",' +
   '"isExplicitBuy":boolean,"conviction":number,"quote":string,"onScreenPrice":number|null,"summary":string}]}. ' +
