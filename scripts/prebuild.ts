@@ -26,6 +26,8 @@ const OG_DIR = join(PUB, "og");
 const DS_DIR = join(PUB, "datasets");
 const PRICES_SRC = join(ROOT, "data", "prices");
 const PRICES_DST = join(PUB, "prices");
+const AVATARS_SRC = join(ROOT, "data", "avatars");
+const AVATARS_DST = join(PUB, "avatars");
 const THEME: OgTheme = "dark";
 
 interface IndexEntry {
@@ -102,6 +104,7 @@ async function main() {
   mkdirSync(OG_DIR, { recursive: true });
   mkdirSync(DS_DIR, { recursive: true });
   rmSync(PRICES_DST, { recursive: true, force: true });
+  rmSync(AVATARS_DST, { recursive: true, force: true });
 
   const index: IndexEntry[] = readJson(join(DATA, "index.json"));
 
@@ -122,6 +125,11 @@ async function main() {
   if (existsSync(PRICES_SRC)) {
     mkdirSync(PRICES_DST, { recursive: true });
     cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
+  }
+
+  if (existsSync(AVATARS_SRC)) {
+    mkdirSync(AVATARS_DST, { recursive: true });
+    cpSync(AVATARS_SRC, AVATARS_DST, { recursive: true });
   }
 
   writeFileSync(join(PUB, "calls-index.json"), JSON.stringify(buildCallsIndex(datasets)));
