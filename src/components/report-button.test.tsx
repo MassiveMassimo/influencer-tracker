@@ -6,7 +6,7 @@ import { validateReportBody } from "../routes/api/report";
 // for every enum reason. Asserts the UI and the /api/report contract can't drift apart.
 test("every enum reason produces a body the endpoint accepts", () => {
   for (const reason of REPORT_REASONS) {
-    const body = { handle: "somecreator", shortcode: "ABC123", reason };
+    const body = { handle: "somecreator", shortcode: "ABC123", ticker: "AAPL", reason };
     expect(validateReportBody(body)).toEqual(body);
   }
 });

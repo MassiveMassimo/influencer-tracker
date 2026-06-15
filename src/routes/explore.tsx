@@ -110,7 +110,7 @@ function Explore() {
             <li className="px-5 py-6 text-sm text-muted-foreground">No calls match.</li>
           ) : (
             rows.slice(0, 500).map((r) => (
-              <li key={`${r.handle}:${r.shortcode}`}>
+              <li key={`${r.handle}:${r.shortcode}:${r.ticker}`}>
                 <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-3 md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">

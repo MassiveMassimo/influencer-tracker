@@ -41,12 +41,12 @@ describe.skipIf(!RUN)("reports", () => {
     }).onConflictDoNothing();
   });
 
-  test("insertReport dedupes by (handle, shortcode, reporterHash); queue counts compound", async () => {
-    await insertReport(db, { handle: "h", shortcode: "AAA", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" });
-    await insertReport(db, { handle: "h", shortcode: "AAA", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" }); // dup → ignored
-    await insertReport(db, { handle: "h", shortcode: "AAA", reason: "not-a-buy", reporterHash: "r2", createdAt: "2026-06-13" });
+  test("insertReport dedupes by (handle, shortcode, ticker, reporterHash); queue counts compound", async () => {
+    await insertReport(db, { handle: "h", shortcode: "AAA", ticker: "AAPL", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" });
+    await insertReport(db, { handle: "h", shortcode: "AAA", ticker: "AAPL", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" }); // dup → ignored
+    await insertReport(db, { handle: "h", shortcode: "AAA", ticker: "AAPL", reason: "not-a-buy", reporterHash: "r2", createdAt: "2026-06-13" });
     const q = await reportQueue(db);
-    expect(q[0]).toMatchObject({ handle: "h", shortcode: "AAA", count: 2 });
+    expect(q[0]).toMatchObject({ handle: "h", shortcode: "AAA", ticker: "AAPL", count: 2 });
   });
 
   test("REPORT_REASONS is the closed enum the endpoint validates against", () => {

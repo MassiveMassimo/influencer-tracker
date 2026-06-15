@@ -3,7 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { transcriptsDir, framesDir, rawDir } from "./config";
 import { fireworks, FIREWORKS_MODEL } from "./fireworks";
-import { classify, toReelCall, writeCalls } from "./calls";
+import { classify, toReelCalls, writeCalls } from "./calls";
 import type { ReelCall } from "../src/lib/types";
 
 // Pure: format a yt-dlp upload_date (YYYYMMDD) or return null. Exported for tests.
@@ -51,8 +51,7 @@ export async function extract(handle: string) {
       console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
       continue;
     }
-    const rc = toReelCall(c, code, postDate);
-    if (rc) out.push(rc);
+    out.push(...toReelCalls(c, code, postDate));
   }
   await writeCalls(handle, out);
   return out;

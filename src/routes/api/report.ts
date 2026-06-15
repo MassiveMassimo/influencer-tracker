@@ -12,19 +12,22 @@ import { REPORT_REASONS } from "#/lib/report-reasons.ts";
 export interface ReportInput {
   handle: string;
   shortcode: string;
+  ticker: string;
   reason: string;
 }
 
 // Validate the public body: closed reason enum, present + length-bounded ids. Returns the
-// clean input or null (→ 400). No free text, so no PII / stored-XSS surface.
+// clean input or null (→ 400). No free text, so no PII / stored-XSS surface. `ticker`
+// identifies which call within a (possibly multi-stock) post is being flagged.
 export function validateReportBody(body: unknown): ReportInput | null {
   if (!body || typeof body !== "object") return null;
   const b = body as Record<string, unknown>;
-  const { handle, shortcode, reason } = b;
+  const { handle, shortcode, ticker, reason } = b;
   if (typeof handle !== "string" || handle.length < 1 || handle.length > 64) return null;
   if (typeof shortcode !== "string" || shortcode.length < 1 || shortcode.length > 64) return null;
+  if (typeof ticker !== "string" || ticker.length < 1 || ticker.length > 32) return null;
   if (typeof reason !== "string" || !(REPORT_REASONS as readonly string[]).includes(reason)) return null;
-  return { handle, shortcode, reason };
+  return { handle, shortcode, ticker, reason };
 }
 
 // Non-reversible, salted hash of the client IP — operational dedupe only, never stored raw

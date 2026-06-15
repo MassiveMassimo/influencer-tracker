@@ -5,15 +5,23 @@ import { creatorDir } from "./config";
 import { groq } from "./groq";
 import type { Direction, ReelCall } from "../src/lib/types";
 
+// A single post can name MULTIPLE stocks (e.g. "loading up on NVDA and AMD,
+// holding TSLA, avoid INTC"). The model emits one entry per ticker the creator
+// takes a view on, so a multi-stock post is no longer collapsed to a single call.
+// The clause excluding context/index/competitor names keeps the stored set clean
+// (those would never be scored anyway — only isExplicitBuy && bullish is).
 export const CLASSIFY_SYS =
-  "You analyze a stock influencer's post (a video transcript or a tweet). Decide if it " +
-  "makes an EXPLICIT BULLISH call (names a ticker AND tells viewers to buy/hold it). Use " +
-  "the provided text and on-screen/image hints (the hints are authoritative for the exact " +
-  "ticker symbol). " +
-  'Reply ONLY JSON: {"ticker":string|null,"company":string|null,"direction":"bullish"|"bearish"|"neutral",' +
-  '"isExplicitBuy":boolean,"conviction":number,"quote":string,"onScreenPrice":number|null,"summary":string}. ' +
-  "ticker null if no specific stock. conviction 0..1. summary is one neutral sentence (<160 chars) on what " +
-  "the post is about and the thesis for the stock.";
+  "You analyze a stock influencer's post (a video transcript or a tweet). A single post may " +
+  "discuss MULTIPLE stocks. Emit ONE entry per distinct ticker the creator expresses a view on or " +
+  "position in, capturing that ticker's own direction and whether the creator explicitly tells " +
+  "viewers to buy/hold it. Do NOT emit tickers named only as market context, an index/benchmark, or " +
+  "a competitor the creator is not recommending. Use the provided text and on-screen/image hints " +
+  "(the hints are authoritative for the exact ticker symbol). " +
+  'Reply ONLY JSON: {"calls":[{"ticker":string,"company":string|null,"direction":"bullish"|"bearish"|"neutral",' +
+  '"isExplicitBuy":boolean,"conviction":number,"quote":string,"onScreenPrice":number|null,"summary":string}]}. ' +
+  "Use an empty array [] if the post names no specific stock the creator has a view on. One entry per ticker; " +
+  "conviction 0..1; quote is the verbatim phrase for THAT ticker; summary is one neutral sentence (<160 chars) " +
+  "on what the post says about that stock and the thesis for it.";
 
 export interface Classification {
   ticker: string | null;
@@ -26,9 +34,9 @@ export interface Classification {
   summary: string;
 }
 
-// Runtime validation of the LLM reply payload. The model is instructed to emit
-// exactly this shape (see CLASSIFY_SYS); coerce/clamp the few fields a model
-// realistically gets slightly wrong rather than rejecting the whole call.
+// Runtime validation of one entry in the LLM reply array. The model is instructed to emit
+// exactly this shape (see CLASSIFY_SYS); coerce/clamp the few fields a model realistically
+// gets slightly wrong rather than rejecting the whole call.
 const ClassificationSchema = z.object({
   ticker: z.string().nullable().catch(null),
   company: z.string().nullable().catch(null),
@@ -40,10 +48,15 @@ const ClassificationSchema = z.object({
   summary: z.string().catch(""),
 });
 
+// The envelope: a `calls` array. Be lenient about the few shapes a model lands on under
+// json_object — accept the canonical {calls:[…]}, an empty/absent array, or (defensively)
+// a bare single object emitted at the top level, normalizing all to Classification[].
+const ReplySchema = z.object({ calls: z.array(ClassificationSchema).catch([]) });
+
 // One LLM classification call. Throws on an unreadable reply (missing envelope or
-// non-JSON content) so the caller's retry loop re-runs the post; returns a
-// validated Classification otherwise (a genuine no-ticker reply is still a valid
-// payload, handled downstream by toReelCall). `client` is the OpenAI-compatible
+// non-JSON content) so the caller's retry loop re-runs the post; returns the
+// validated per-ticker Classifications otherwise (an empty array is a genuine
+// no-stock reply, handled downstream by toReelCalls). `client` is the OpenAI-compatible
 // POST fn (groq by default, fireworks for the high-volume X path). Both share this
 // prompt/parse so platforms never diverge.
 type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
@@ -52,7 +65,7 @@ export async function classify(
   textModel: string,
   body: string,
   client: ChatClient = groq,
-): Promise<Classification> {
+): Promise<Classification[]> {
   const r = await (await client("/chat/completions", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -71,23 +84,40 @@ export async function classify(
   } catch {
     throw new Error("classify: reply content was not valid JSON");
   }
-  return ClassificationSchema.parse(raw);
+  // Canonical shape is {calls:[…]}. Defensively accept a bare single object (a model
+  // occasionally drops the envelope) by wrapping it before validation.
+  const enveloped =
+    raw && typeof raw === "object" && !Array.isArray(raw) && !("calls" in raw)
+      ? { calls: [raw] }
+      : raw;
+  return ReplySchema.parse(enveloped).calls;
 }
 
-// Normalize a classification into a ReelCall. Null if no ticker (not a stock call).
-export function toReelCall(c: Classification, shortcode: string, postDate: string): ReelCall | null {
-  if (!c.ticker) return null;
-  return {
-    shortcode, postDate,
-    ticker: String(c.ticker).toUpperCase(),
-    company: c.company ?? "",
-    direction: c.direction ?? "neutral",
-    isExplicitBuy: !!c.isExplicitBuy,
-    conviction: Number(c.conviction ?? 0),
-    quote: c.quote ?? "",
-    onScreenPrice: c.onScreenPrice ?? null,
-    summary: c.summary ?? "",
-  };
+// Normalize a post's classifications into ReelCalls — one per named ticker. Entries
+// with no ticker are dropped (not a stock call). Duplicate tickers within the same
+// post (same uppercased symbol) are collapsed to the first occurrence so a post never
+// emits two calls for the same stock (the (handle, shortcode, ticker) identity must be
+// unique); a later same-stock entry from a sloppy reply is redundant, not a new call.
+export function toReelCalls(cs: Classification[], shortcode: string, postDate: string): ReelCall[] {
+  const seen = new Set<string>();
+  const out: ReelCall[] = [];
+  for (const c of cs) {
+    if (!c.ticker) continue;
+    const ticker = String(c.ticker).toUpperCase();
+    if (seen.has(ticker)) continue;
+    seen.add(ticker);
+    out.push({
+      shortcode, postDate, ticker,
+      company: c.company ?? "",
+      direction: c.direction ?? "neutral",
+      isExplicitBuy: !!c.isExplicitBuy,
+      conviction: Number(c.conviction ?? 0),
+      quote: c.quote ?? "",
+      onScreenPrice: c.onScreenPrice ?? null,
+      summary: c.summary ?? "",
+    });
+  }
+  return out;
 }
 
 // Markdown review table the human checks before pricing/scoring.
@@ -95,7 +125,9 @@ export function buildReview(calls: ReelCall[]): string {
   const bullish = calls.filter((c) => c.isExplicitBuy && c.direction === "bullish");
   return [
     "# Calls review — verify before scoring", "",
-    `Total posts with a ticker: ${calls.length}. Explicit bullish calls: ${bullish.length}.`, "",
+    // One row per (post, ticker): a post naming multiple stocks contributes several rows.
+    `Total ticker calls: ${calls.length} across ${new Set(calls.map((c) => c.shortcode)).size} posts. ` +
+      `Explicit bullish calls: ${bullish.length}.`, "",
     "| date | ticker | buy? | dir | conv | quote |", "|---|---|---|---|---|---|",
     ...[...calls].sort((a, b) => a.postDate.localeCompare(b.postDate)).map((c) =>
       `| ${c.postDate} | ${c.ticker} | ${c.isExplicitBuy ? "✅" : ""} | ${c.direction} | ${c.conviction} | ${c.quote.replace(/\|/g, " ").slice(0, 60)} |`),
