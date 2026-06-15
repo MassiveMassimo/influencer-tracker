@@ -194,6 +194,7 @@ export async function renderOgPng(card: OgCard): Promise<Buffer> {
       : card.kind === "ticker"
         ? (card.excess3m ?? 0) >= 0
         : true;
+  // Line color tracks the 3m-excess sign (the card's hero stat), not raw price direction.
   const bgSvg =
     card.kind === "ticker" && card.closes && card.closes.length > 0
       ? buildLineChartBackgroundSvg({
