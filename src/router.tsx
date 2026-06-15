@@ -15,7 +15,10 @@ export function getRouter() {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreload: 'intent',
-    defaultPreloadStaleTime: 0,
+    // Non-zero so an `intent` (hover) preload reuses recently-fetched loader data
+    // instead of re-pulling the ~1.3MB creator dataset on every hover. Actual
+    // navigations still respect the query staleTime (5min) above.
+    defaultPreloadStaleTime: 30_000,
   })
 
   setupRouterSsrQueryIntegration({ router, queryClient })

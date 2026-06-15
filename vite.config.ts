@@ -12,6 +12,21 @@ const config = defineConfig({
   // @visx ESM builds use extensionless internal imports that Node's SSR resolver
   // rejects; force Vite to bundle them for SSR so its resolver handles them.
   ssr: { noExternal: [/^@visx\//] },
+  // Split the rarely-changing vendor cores into their own chunks so a deploy that
+  // only touches app code doesn't bust their cache for return visitors. Targeted
+  // (react, @tanstack) — NOT a single catch-all vendor bucket, which would re-hash
+  // on any dep bump and can introduce load waterfalls.
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return "react";
+          if (id.includes("@tanstack")) return "tanstack";
+        },
+      },
+    },
+  },
   // nitro() builds the deployable server output. On Vercel it auto-detects the
   // platform (VERCEL env) and emits .vercel/output. OG rendering (satori + the
   // native @resvg/resvg-js addon) runs only in scripts/prebuild.ts at build time,
