@@ -95,20 +95,6 @@ async function emit(card: OgCard, outPath: string) {
   writeFileSync(outPath, await renderOgPng(card));
 }
 
-// Bounded-concurrency map — overlaps satori (async) across the ~220 renders.
-async function pool<T>(items: T[], n: number, fn: (item: T) => Promise<void>) {
-  let i = 0;
-  let done = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(n, items.length) }, async () => {
-      while (i < items.length) {
-        const item = items[i++];
-        await fn(item);
-        if (++done % 25 === 0) console.log(`  …${done}/${items.length}`);
-      }
-    }),
-  );
-}
 
 async function main() {
   rmSync(OG_DIR, { recursive: true, force: true });
@@ -119,49 +105,19 @@ async function main() {
 
   const index: IndexEntry[] = readJson(join(DATA, "index.json"));
 
-  // Home + one card per creator.
+  // Home card only — creator + ticker cards are now rendered on demand by the
+  // /api/og/{c,t}/* routes (dynamic, DB-fresh). See
+  // docs/superpowers/specs/2026-06-15-dynamic-og-images-design.md.
   await emit({ kind: "home", theme: THEME }, join(OG_DIR, "..", "og.png"));
-  for (const e of index) {
-    await emit(
-      {
-        kind: "creator",
-        theme: THEME,
-        name: e.name,
-        handle: e.handle,
-        avatar: e.avatar,
-        excess3m: e.avgExcess3m,
-        totalCalls: e.totalCalls,
-      },
-      join(OG_DIR, `${e.handle}.png`),
-    );
-  }
 
-  // Per-creator: copy the dataset as a static asset, then one card per called ticker.
+  // Per-creator: copy the dataset as a static CDN asset (panic fallback for the API
+  // read routes) and collect datasets for the calls-index / llms.txt below.
   const datasets: Dataset[] = [];
-  let tickerJobs: { card: OgCard; out: string }[] = [];
   for (const e of index) {
     const ds = readJson(join(DATA, e.handle, "dataset.json"));
     datasets.push(ds as Dataset);
     cpSync(join(DATA, e.handle, "dataset.json"), join(DS_DIR, `${e.handle}.json`));
-    const tickers = [...new Set(ds.calls.map((c: { ticker: string }) => c.ticker))] as string[];
-    for (const symbol of tickers) {
-      const calls = ds.calls.filter((c: { ticker: string }) => c.ticker === symbol);
-      tickerJobs.push({
-        card: {
-          kind: "ticker",
-          theme: THEME,
-          symbol,
-          company: calls[0]?.company,
-          name: ds.creator.name,
-          handle: ds.creator.handle,
-          excess3m: calls[0]?.returns?.["3m"]?.excess ?? null,
-        },
-        out: join(OG_DIR, e.handle, `${symbol}.png`),
-      });
-    }
   }
-  console.log(`rendering ${tickerJobs.length} ticker cards (theme=${THEME})…`);
-  await pool(tickerJobs, 8, (j) => emit(j.card, j.out));
 
   if (existsSync(PRICES_SRC)) {
     mkdirSync(PRICES_DST, { recursive: true });
@@ -172,7 +128,7 @@ async function main() {
   writeFileSync(join(PUB, "llms.txt"), buildLlmsTxt(index));
 
   console.log(
-    `prebuild done: ${index.length} creators, ${tickerJobs.length} tickers, datasets + llms.txt + calls-index copied.`,
+    `prebuild done: ${index.length} creators, datasets + llms.txt + calls-index copied.`,
   );
 }
 
