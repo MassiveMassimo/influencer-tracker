@@ -1,10 +1,10 @@
 // One-off: backfill profile pics for creators scraped before avatar capture
 // existed. Resolves each creator's avatar without re-scraping their posts, then
-// writes data/creators/<h>/avatar.txt and patches the index.json entry.
+// writes data/avatars/<h>.<ext> and patches the index.json entry with the public path.
 //
 //   bun run pipeline/backfill-avatars.ts [--force] [--handle <h>]
 //
-// --force re-fetches even when avatar.txt already exists; --handle limits to one.
+// --force re-fetches even when the entry already has an avatar; --handle limits to one.
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -76,18 +76,18 @@ for (const entry of idx) {
   } catch (e) {
     console.warn(`resolve fail @${handle} (${platform}): ${(e as Error).message}`);
   }
-  const dataUri = await saveAvatar(handle, url);
-  if (dataUri) {
-    entry.avatar = dataUri;
+  const avatarPath = await saveAvatar(handle, url);
+  if (avatarPath) {
+    entry.avatar = avatarPath;
     changed = true;
-    console.log(`✓ @${handle} (${platform}) — ${Math.round(dataUri.length / 1024)}kb`);
+    console.log(`✓ @${handle} (${platform}) — ${avatarPath}`);
   } else {
     console.warn(`✗ @${handle} (${platform}) — no avatar resolved`);
   }
 }
 
 if (changed) {
-  await writeFile(path, JSON.stringify(idx, null, 2));
+  await writeFile(path, JSON.stringify(idx, null, 2) + "\n");
   console.log("index.json updated");
 } else {
   console.log("nothing to update");

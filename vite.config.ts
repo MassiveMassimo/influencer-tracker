@@ -9,6 +9,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  // @resvg/resvg-js is a native .node addon (used by the /api/og/* OG routes via
+  // src/og/render.tsx). The dev dep-optimizer can't pre-bundle a native binary, so
+  // exclude it; it loads fine at runtime in the Node server.
+  optimizeDeps: { exclude: ['@resvg/resvg-js'] },
   // @visx ESM builds use extensionless internal imports that Node's SSR resolver
   // rejects; force Vite to bundle them for SSR so its resolver handles them.
   ssr: { noExternal: [/^@visx\//] },
@@ -29,8 +33,9 @@ const config = defineConfig({
   },
   // nitro() builds the deployable server output. On Vercel it auto-detects the
   // platform (VERCEL env) and emits .vercel/output. OG rendering (satori + the
-  // native @resvg/resvg-js addon) runs only in scripts/prebuild.ts at build time,
-  // so it's deliberately not part of the app/server graph here.
+  // native @resvg/resvg-js addon) runs in scripts/prebuild.ts (home card, build
+  // time) AND in the dynamic /api/og/* server routes (creator + ticker, request
+  // time, ISR-cached).
   nitro: {
     vercel: {
       // On-demand ISR revalidation: Nitro bakes this into each isr route's
@@ -61,6 +66,7 @@ const config = defineConfig({
       '/api/dataset/**': { isr: 21600 },
       '/api/prices/**': { isr: 21600 },
       '/api/calls-index': { isr: 21600 },
+      '/api/og/**': { isr: 21600 },
       '/c/**': { isr: 21600 },
       '/t/**': { isr: 21600 },
       '/explore': { isr: 21600 },

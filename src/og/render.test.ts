@@ -36,4 +36,31 @@ describe("renderOgPng", () => {
     });
     expect(pngSize(buf)).toEqual({ w: OG_WIDTH, h: OG_HEIGHT });
   });
+
+  it("renders a ticker card with a line-graph background to a PNG", async () => {
+    const png = await renderOgPng({
+      kind: "ticker",
+      theme: "dark",
+      symbol: "PLTR",
+      company: "Palantir",
+      name: "Test Creator",
+      handle: "test",
+      excess3m: 0.12,
+      closes: [10, 11, 9, 12, 14, 13, 15, 16, 14, 17],
+    });
+    // PNG magic bytes: 89 50 4E 47
+    expect(png.subarray(0, 4).toString("hex")).toBe("89504e47");
+  });
+
+  it("renders a ticker card with no closes (falls back to seeded bg)", async () => {
+    const png = await renderOgPng({
+      kind: "ticker",
+      theme: "dark",
+      symbol: "AAPL",
+      name: "Test Creator",
+      handle: "test",
+      excess3m: null,
+    });
+    expect(png.subarray(0, 4).toString("hex")).toBe("89504e47");
+  });
 });

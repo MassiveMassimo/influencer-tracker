@@ -22,6 +22,7 @@ import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
 import type { LiveBar } from "#/lib/chart-fetch.ts";
 import { siteUrl } from "#/og/site.ts";
+import { ogRev } from "#/og/og-rev.ts";
 
 // Charts (motion/@visx/d3) are code-split into their own chunk and loaded on
 // mount, keeping them off the route's initial JS. Both share one chunk.
@@ -64,7 +65,12 @@ export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   },
   head: ({ params, loaderData }) => {
     const name = loaderData?.creator.name ?? params.handle;
-    const img = siteUrl(`/og/${params.handle}/${params.symbol}.png`);
+    const symCalls = loaderData?.calls.filter((c) => c.ticker === params.symbol) ?? [];
+    const excess3m = symCalls[0]?.returns?.["3m"]?.excess ?? null;
+    const ohlc = loaderData?.bakedOhlc ?? [];
+    const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : 0;
+    const rev = ogRev([excess3m, ohlc.length, Math.round(lastClose)]);
+    const img = siteUrl(`/api/og/t/${params.handle}/${params.symbol}/${rev}`);
     return {
       meta: [
         { title: `${params.symbol} — ${name} · Signal Tracker` },
