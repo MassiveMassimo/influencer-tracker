@@ -42,10 +42,11 @@ export async function backfillCreator(db: Db, indexEntry: IndexEntry, ds: Datase
   // Chunk to keep each neon-http request body well under limits.
   for (let i = 0; i < rows.length; i += 200) {
     await db.insert(calls).values(rows.slice(i, i + 200)).onConflictDoUpdate({
-      target: [calls.handle, calls.shortcode],
+      target: [calls.handle, calls.shortcode, calls.ticker],
       // Update every non-PK column so a re-run after a re-score never leaves stale data.
+      // ticker is part of the PK now, so it is the conflict target, not a set column.
       set: {
-        ord: ex("ord"), postDate: ex("post_date"), ticker: ex("ticker"), company: ex("company"),
+        ord: ex("ord"), postDate: ex("post_date"), company: ex("company"),
         isFirstCall: ex("is_first_call"), conviction: ex("conviction"), quote: ex("quote"),
         summary: ex("summary"), onScreenPrice: ex("on_screen_price"), spark: ex("spark"),
         returns: ex("returns"),
