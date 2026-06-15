@@ -21,6 +21,7 @@ import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
 import { Route as ApiPricesSymbolRouteImport } from './routes/api/prices.$symbol'
 import { Route as ApiDatasetHandleRouteImport } from './routes/api/dataset.$handle'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
+import { Route as ApiOgCHandleRevRouteImport } from './routes/api/og/c.$handle.$rev'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -82,6 +83,11 @@ const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
   path: '/ticker/$symbol',
   getParentRoute: () => CHandleRoute,
 } as any)
+const ApiOgCHandleRevRoute = ApiOgCHandleRevRouteImport.update({
+  id: '/api/og/c/$handle/$rev',
+  path: '/api/og/c/$handle/$rev',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
+  '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/c/$handle': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
+  '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/c/$handle/': typeof CHandleIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
+  '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/api/prices/$symbol'
     | '/c/$handle/'
     | '/c/$handle/ticker/$symbol'
+    | '/api/og/c/$handle/$rev'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/api/prices/$symbol'
     | '/c/$handle'
     | '/c/$handle/ticker/$symbol'
+    | '/api/og/c/$handle/$rev'
   id:
     | '__root__'
     | '/'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/api/prices/$symbol'
     | '/c/$handle/'
     | '/c/$handle/ticker/$symbol'
+    | '/api/og/c/$handle/$rev'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   TSymbolRoute: typeof TSymbolRoute
   ApiDatasetHandleRoute: typeof ApiDatasetHandleRoute
   ApiPricesSymbolRoute: typeof ApiPricesSymbolRoute
+  ApiOgCHandleRevRoute: typeof ApiOgCHandleRevRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -268,6 +281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CHandleTickerSymbolRouteImport
       parentRoute: typeof CHandleRoute
     }
+    '/api/og/c/$handle/$rev': {
+      id: '/api/og/c/$handle/$rev'
+      path: '/api/og/c/$handle/$rev'
+      fullPath: '/api/og/c/$handle/$rev'
+      preLoaderRoute: typeof ApiOgCHandleRevRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -295,6 +315,7 @@ const rootRouteChildren: RootRouteChildren = {
   TSymbolRoute: TSymbolRoute,
   ApiDatasetHandleRoute: ApiDatasetHandleRoute,
   ApiPricesSymbolRoute: ApiPricesSymbolRoute,
+  ApiOgCHandleRevRoute: ApiOgCHandleRevRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
