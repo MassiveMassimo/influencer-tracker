@@ -74,11 +74,23 @@ before pricing. Resume with `--from <stage>`.
 
 ## What to extract per call
 
-The shared classifier (`pipeline/calls.ts`, `CLASSIFY_SYS`) returns, per post:
+The shared classifier (`pipeline/calls.ts`, `CLASSIFY_SYS`) returns a `{"calls":[…]}`
+**array — one entry per ticker the post names** (a single post can pitch several stocks,
+e.g. "loading up on NVDA and AMD, holding TSLA, avoid INTC"). Each entry has:
 `ticker`, `company`, `direction` (bullish/bearish/neutral), `isExplicitBuy`,
-`conviction` (0–1), `quote` (the verbatim call), `onScreenPrice`, and `summary`
-(one neutral sentence, <160 chars, on what the post is about + the thesis).
-`shortcode` = IG reel code or X tweet id; `postDate` = post date.
+`conviction` (0–1), `quote` (the verbatim call for that ticker), `onScreenPrice`, and
+`summary` (one neutral sentence, <160 chars, on what the post says about that stock +
+the thesis). `toReelCalls` expands the array into one `ReelCall` per ticker (drops
+no-ticker entries, collapses duplicate tickers within a post); `score` further collapses
+two raw tickers that canonicalize to the same symbol within one post (highest conviction
+wins). The prompt deliberately **excludes tickers named only as market context / an index
+/ a non-recommended competitor**, so the stored set stays calls-only. An empty array = no
+stock call. `shortcode` = IG reel code or X tweet id; `postDate` = post date. **Call
+identity is `(handle, shortcode, ticker)`** — the post alone is no longer unique.
+(Bake-off 2026-06-15: the prior single-ticker prompt dropped ~63% of tickers on
+multi-stock posts; the array prompt on the same `deepseek-v4-flash` recovered 100% recall
+with zero false-positive buys. Note: existing creators keep one-ticker-per-post history
+until their `extract` stage is re-run with the new prompt — LLM cost, no re-scrape.)
 
 **Only explicit bullish calls** (`isExplicitBuy && direction === "bullish"`) are
 scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date.
@@ -159,11 +171,13 @@ override; the next `score()` bakes it in. The loop has two phases:
 
 **Phase 1 — report.** The proof drawer (`src/components/proof-viewer.tsx`) renders a
 "Report incorrect" control (`src/components/report-button.tsx`) that POSTs to
-`/api/report` (`src/routes/api/report.ts`). The endpoint validates the reason against a
-**closed enum** (`src/lib/report-reasons.ts`: `wrong-ticker | not-a-buy |
-wrong-direction | not-a-call | other`) and deduplicates reporters by salted IP hash
-(`REPORT_SALT` env, SHA-256) — one vote per IP per call, no accounts required. The
-report record lands in the `call_reports` table (INSERT-only for the `report` role).
+`/api/report` (`src/routes/api/report.ts`). The POST body carries `(handle, shortcode,
+ticker, reason)` — `ticker` identifies which call within a multi-stock post is flagged.
+The endpoint validates the reason against a **closed enum** (`src/lib/report-reasons.ts`:
+`wrong-ticker | not-a-buy | wrong-direction | not-a-call | other`) and deduplicates
+reporters by salted IP hash (`REPORT_SALT` env, SHA-256) — one vote per IP per
+**(call = shortcode+ticker)**, no accounts required. The report record lands in the
+`call_reports` table (INSERT-only for the `report` role; FK + dedupe index are 3-col).
 Reasons are never free text and never displayed publicly — operator-only — avoiding PII,
 stored-XSS, and defamation risk.
 
@@ -172,8 +186,14 @@ which ranks reported calls by distinct-reporter count. After confirming a correc
 operator records a durable override:
 
 ```
-bun run scripts/apply-override.ts <handle> <shortcode> --reason "…" [--ticker X] [--buy false] [--direction bearish|neutral]
+bun run scripts/apply-override.ts <handle> <shortcode> --reason "…" [--target NVDA] [--ticker X] [--buy false] [--direction bearish|neutral]
 ```
+
+`--target` picks **which call in the post** to correct (its classified ticker, matched raw
+or canonical); omit it for a single-stock post (legacy whole-post override). `call_overrides`
+PK is `(handle, shortcode, target_ticker)`, with `target_ticker = ''` the legacy whole-post
+sentinel (existing overrides migrate to it and keep applying). `--ticker` still retags the
+matched call to a different symbol.
 
 This writes to the `call_overrides` table (ingest role). The next `score()` run picks it
 up: `pipeline/overrides.ts` `applyOverrides` applies all overrides as a deterministic
@@ -287,9 +307,14 @@ enabled** — Plans 1–3b shipped (Plan 4's LLM gate stays shelved; see correct
 A prod DB change now surfaces with no redeploy. `USE_DB=0` remains the instant revert.
 
 - **Schema** (`db/schema.ts`, drizzle + `@neondatabase/serverless` neon-http): `creators`,
-  `calls` (PK `(handle, shortcode)`, `ord` column preserves source file order — `postDate`
-  has ties), `prices` (shared per-symbol OHLC), `artifacts` (materialized serve payloads,
-  Plan 2). Migrations: `bun run db:generate` / `db:migrate`. Client is lazy — never
+  `calls` (PK `(handle, shortcode, ticker)` — a post can name multiple stocks, so the post
+  alone isn't unique; `ord` column preserves source file order — `postDate` has ties),
+  `prices` (shared per-symbol OHLC), `artifacts` (materialized serve payloads,
+  Plan 2). Migrations: `bun run db:generate` / `db:migrate`. **Migration 0004** (multi-stock)
+  widens the `calls` PK, adds `call_overrides.target_ticker` (PK discriminator), and adds
+  `call_reports.ticker` (3-col FK to `calls`); it's hand-ordered for a populated prod DB
+  (column-add before PK, nullable-add + backfill + NOT-NULL for the report ticker). No new
+  tables → **no `db:roles` re-run needed**. Client is lazy — never
   constructed at module load, so it stays out of the client bundle. Two read/write seams
   (`db/client.ts`): `getDb()` = public SSR read path, connects as the SELECT-only **serve**
   role (`DATABASE_URL_SERVE`, falls back to owner); `getWriteDb()` = operator scripts

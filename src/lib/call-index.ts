@@ -35,8 +35,9 @@ export const CallIndexEntrySchema = z.object({
 export const CallIndexSchema = z.array(CallIndexEntrySchema);
 
 // Flatten all creators' scored calls into the slim cross-creator index. Sort is
-// deterministic (postDate desc, handle asc, shortcode asc) so the artifact is stable
-// across rebuilds — a stable payload keeps cache busting meaningful in Plan 3.
+// deterministic (postDate desc, handle asc, shortcode asc, ticker asc) so the artifact
+// is stable across rebuilds — the ticker tiebreaker keeps multi-stock posts (which share
+// a shortcode) in a fixed order. A stable payload keeps cache busting meaningful in Plan 3.
 export function buildCallsIndex(datasets: Dataset[]): CallIndexEntry[] {
   const rows: CallIndexEntry[] = [];
   for (const d of datasets) {
@@ -61,7 +62,8 @@ export function buildCallsIndex(datasets: Dataset[]): CallIndexEntry[] {
     (a, b) =>
       b.postDate.localeCompare(a.postDate) ||
       a.handle.localeCompare(b.handle) ||
-      a.shortcode.localeCompare(b.shortcode),
+      a.shortcode.localeCompare(b.shortcode) ||
+      a.ticker.localeCompare(b.ticker),
   );
   return rows;
 }
