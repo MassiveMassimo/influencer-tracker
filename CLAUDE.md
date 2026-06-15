@@ -397,12 +397,29 @@ but is no longer the cache-buster.
 
 Platform-agnostic, like the `ReelCall` contract. Each scraper resolves its own
 avatar URL and calls `saveAvatar(handle, url)` (`pipeline/avatar.ts`), which
-downloads the bytes and writes a base64 data URI to `data/creators/<h>/avatar.txt`
-(inlined because CDN avatar URLs are signed and expire). `score.ts` reads that
-into the `index.json` entry's `avatar` field; `WorkspaceRail` renders it, falling
-back to an icon. IG resolves via `web_profile_info`, X via Rettiwt
+downloads the bytes and writes a committed image file `data/avatars/<h>.<ext>`
+(extension derived from the content-type; source format preserved, no transcode),
+returning the public path `/avatars/<h>.<ext>`. `data/avatars/` is committed as
+build-time source (like `data/prices/`); `scripts/prebuild.ts` copies it to
+`public/avatars/` (gitignored, served from the CDN, browser/CDN-cacheable).
+`score.ts` records the path in `index.json` + the DB `creators.avatar` column;
+`<img>` consumers (`WorkspaceRail`, `explore.tsx`, `index.tsx`, `t.$symbol.tsx`)
+use the path directly — no logic change needed (an `<img src>` accepts a path or
+a legacy data URI identically). The creator OG route
+(`src/routes/api/og/c.$handle.$rev.tsx`) resolves the path back to inline bytes
+via `resolveAvatar` (satori needs bytes, not paths); it also passes through a
+legacy `data:` URI unchanged, so it is robust both before and after the prod DB
+migration. IG resolves the avatar URL via `web_profile_info`, X via Rettiwt
 `user.details().profileImage`. A new platform (e.g. TikTok) only needs to resolve
 its URL and call `saveAvatar` — downstream is already universal.
+
+**Prod cutover.** After merge + deploy, run `bun run db:sync` (= `db:backfill &&
+db:materialize`) so `creators.avatar` in the DB becomes the path rather than the
+legacy base64 data URI. During the window between deploy and sync the DB still
+serves the old URI — `<img>` renders it fine and `resolveAvatar` passes it through
+unchanged, so nothing breaks. If `db:backfill` trips the count-guard on a drifted
+creator, patch it directly as DB owner:
+`UPDATE creators SET avatar = '/avatars/<h>.<ext>' WHERE handle = '<h>';`
 
 ## Component provenance
 
