@@ -21,6 +21,15 @@ All feature work happens in a git **worktree on its own branch** — never on `m
   to eyeball (UI/chart/layout) get merged to `main` first, then verified on that
   dev server — iterate on `main` if the visual pass finds issues. Build/typecheck/
   test verification still happens in the worktree before merging.
+- **Browser-automation artifact — `IntersectionObserver` doesn't fire reliably**
+  in the claude-in-chrome / headless inspection context. `useInView`-gated reveals
+  therefore stay at their initial state in automated screenshots: the creator-page
+  `StatTile` NumberFlow values render `0` (gated by `revealed`/`valueInView`, e.g.
+  `value={revealed ? seg.value : 0}` in `c.$handle.index.tsx`) even though real
+  users see them populate (above-fold IO fires immediately on a real page view).
+  Don't mistake the `0` stat tiles for a data bug when verifying via automation —
+  confirm reveal-animated UI in a real browser. (Console errors like React #418
+  are NOT artifacts — those reproduce regardless of IO.)
 
 ## Pipelines
 
