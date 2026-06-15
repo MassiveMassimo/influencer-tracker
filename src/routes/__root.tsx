@@ -65,10 +65,21 @@ function RootComponent() {
       <HapticsProvider>
         <Analytics />
         {import.meta.env.DEV && (
-          <Agentation
-            endpoint="http://localhost:4747"
-            onSessionCreated={(sessionId) => console.log("Session started:", sessionId)}
-          />
+          <>
+            <Agentation
+              endpoint="http://localhost:4747"
+              onSessionCreated={(sessionId) => console.log("Session started:", sessionId)}
+            />
+            {/* Dev-only — gated here (not in RootDocument) so the panel JS is
+                DCE'd from the prod bundle; the router code-splitter parses the
+                route component with importMeta, but not RootDocument. */}
+            <TanStackDevtools
+              config={{ position: 'bottom-right' }}
+              plugins={[
+                { name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> },
+              ]}
+            />
+          </>
         )}
         <div
           data-vaul-drawer-wrapper=""
@@ -96,17 +107,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-mono antialiased [overflow-wrap:anywhere]">
         {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
         <Scripts />
       </body>
     </html>

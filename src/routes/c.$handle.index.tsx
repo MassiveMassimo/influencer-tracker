@@ -1,5 +1,5 @@
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
@@ -8,12 +8,17 @@ import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { ChartBoundary } from "../components/ChartBoundary";
-import {
-  CallFunnel,
-  ConvictionScatter,
-  HitRateGauge,
-  HorizonBars,
-} from "../components/AnalyticsCharts";
+import { ConvictionScatter, HorizonBars } from "../components/AnalyticsCharts";
+
+// Gauge + Funnel pull motion + @visx; lazy-load them so that chunk stays off the
+// creator route's initial/hydration path (cuts TBT/LCP). The native HTML/SVG
+// HorizonBars + ConvictionScatter have no heavy deps and stay eager.
+const HitRateGauge = lazy(() =>
+  import("../components/AnalyticsCharts").then((m) => ({ default: m.HitRateGauge })),
+);
+const CallFunnel = lazy(() =>
+  import("../components/AnalyticsCharts").then((m) => ({ default: m.CallFunnel })),
+);
 import {
   Pagination,
   PaginationContent,
@@ -180,7 +185,11 @@ function Overview() {
           </div>
           <div className="mt-4">
             <ChartBoundary>
-              <HitRateGauge ds={ds} />
+              <Suspense
+                fallback={<div className="h-[180px] w-full animate-pulse rounded-md bg-muted/40" />}
+              >
+                <HitRateGauge ds={ds} />
+              </Suspense>
             </ChartBoundary>
           </div>
         </div>
@@ -190,7 +199,11 @@ function Overview() {
           </div>
           <div className="mt-4">
             <ChartBoundary>
-              <CallFunnel ds={ds} />
+              <Suspense
+                fallback={<div className="h-[240px] w-full animate-pulse rounded-md bg-muted/40" />}
+              >
+                <CallFunnel ds={ds} />
+              </Suspense>
             </ChartBoundary>
           </div>
         </div>
