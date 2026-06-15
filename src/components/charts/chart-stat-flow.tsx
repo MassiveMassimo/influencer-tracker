@@ -1,7 +1,7 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useSyncExternalStore } from "react";
 import { cn } from "#/lib/utils.ts";
 
 /** Subset of `Intl.NumberFormatOptions` supported by NumberFlow */
@@ -31,35 +31,32 @@ function formatStatValue(
   prefix?: string,
   suffix?: string
 ): string {
-  const formatted = new Intl.NumberFormat(undefined, formatOptions).format(
-    value
-  );
+  // Pinned locale ("en-US") so SSR and client format identically — a default
+  // (undefined) locale resolves to the runtime locale, which differs between the
+  // Vercel server and the user's browser → React hydration mismatch (#418).
+  const formatted = new Intl.NumberFormat("en-US", formatOptions).format(value);
   return `${prefix ?? ""}${formatted}${suffix ?? ""}`;
 }
 
+// useSyncExternalStore so the server snapshot (false) is also the first client
+// (hydration) snapshot — @number-flow/react registers the element at import time,
+// so a useState initializer reading customElements.get() would be true on the
+// client and mismatch the server's static fallback (hydration error #418).
 function useNumberFlowElementReady(): boolean {
-  const [ready, setReady] = useState(
-    () =>
-      typeof customElements !== "undefined" &&
-      Boolean(customElements.get("number-flow-react"))
+  return useSyncExternalStore(
+    (onChange) => {
+      if (typeof customElements === "undefined") return () => {};
+      let cancelled = false;
+      customElements.whenDefined("number-flow-react").then(() => {
+        if (!cancelled) onChange();
+      });
+      return () => {
+        cancelled = true;
+      };
+    },
+    () => Boolean(customElements.get("number-flow-react")),
+    () => false,
   );
-
-  useEffect(() => {
-    if (ready) {
-      return;
-    }
-    let cancelled = false;
-    customElements.whenDefined("number-flow-react").then(() => {
-      if (!cancelled) {
-        setReady(true);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [ready]);
-
-  return ready;
 }
 
 export interface ChartStatFlowProps {
@@ -105,6 +102,7 @@ export function ChartStatFlow({
           <NumberFlow
             format={formatOptions}
             isolate
+            locales="en-US"
             prefix={prefix}
             suffix={suffix}
             value={value}

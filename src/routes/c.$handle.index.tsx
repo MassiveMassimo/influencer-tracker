@@ -80,9 +80,12 @@ interface StatTileData {
 }
 
 // Static formatting that matches NumberFlow's output, for the pre-hydration
-// fallback (before the custom element is registered).
+// fallback (before the custom element is registered). Pinned locale ("en-US") so
+// SSR and client format identically — a default (undefined) locale resolves to the
+// runtime locale, which differs between the Vercel server and the user's browser
+// → React hydration mismatch (#418).
 function formatNum(value: number, format: Format): string {
-  return new Intl.NumberFormat(undefined, format).format(value);
+  return new Intl.NumberFormat("en-US", format).format(value);
 }
 
 function toneClass(x: number) {
@@ -264,6 +267,7 @@ function StatTile({
             <NumberFlow
               format={seg.format}
               isolate
+              locales="en-US"
               key={seg.key}
               opacityTiming={{ duration: 350, delay, easing: "ease-out" }}
               transformTiming={{
@@ -462,6 +466,7 @@ function CallRow({ handle, call }: { handle: string; call: Call }) {
                 <NumberFlow
                   format={SIGNED_PCT_FMT}
                   isolate
+                  locales="en-US"
                   trend={up ? 1 : -1}
                   value={valueInView ? excess : 0}
                   willChange
