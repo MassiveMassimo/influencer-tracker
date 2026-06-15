@@ -1,7 +1,7 @@
 import { readFile, writeFile, readdir, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { creatorDir, pricesDir, DATA, ROOT } from "./config";
+import { creatorDir, pricesDir, DATA, ROOT, AVATARS } from "./config";
 import { computeReturns } from "../src/lib/returns";
 import { dedupeFirstCall, buildScorecard, buildFunnel } from "../src/lib/scorecard";
 import { DatasetSchema } from "../src/lib/schema";
@@ -122,8 +122,13 @@ export async function score(handle: string, name: string, today = new Date().toI
 async function updateIndex(handle: string, name: string, ds: Dataset) {
   const path = join(DATA, "index.json");
   const idx: any[] = existsSync(path) ? JSON.parse(await readFile(path, "utf8")) : [];
+  // Avatar is a committed image file data/avatars/<h>.<ext>; store its public path
+  // (not bytes). Find whichever extension saveAvatar wrote.
   let avatar: string | undefined;
-  try { avatar = (await readFile(join(creatorDir(handle), "avatar.txt"), "utf8")).trim(); } catch {}
+  try {
+    const file = readdirSync(AVATARS).find((f) => f.startsWith(`${handle}.`));
+    if (file) avatar = `/avatars/${file}`;
+  } catch {}
   const entry = {
     handle, name,
     totalCalls: ds.scorecard.totalCalls,
