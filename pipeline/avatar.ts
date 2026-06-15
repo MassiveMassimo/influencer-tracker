@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { AVATARS } from "./config";
 
@@ -25,6 +25,11 @@ export async function saveAvatar(handle: string, url: string | null | undefined)
     const ext = EXT_BY_MIME[mime] ?? "jpg";
     const bytes = Buffer.from(await res.arrayBuffer());
     await mkdir(AVATARS, { recursive: true });
+    // One file per handle: drop any prior-format avatar so score.ts's prefix lookup
+    // stays deterministic (e.g. a stale .jpg lingering when we now write .png).
+    for (const f of await readdir(AVATARS)) {
+      if (f.startsWith(`${handle}.`)) await unlink(join(AVATARS, f));
+    }
     await writeFile(join(AVATARS, `${handle}.${ext}`), bytes);
     return `/avatars/${handle}.${ext}`;
   } catch { return null; /* avatar is optional */ }
