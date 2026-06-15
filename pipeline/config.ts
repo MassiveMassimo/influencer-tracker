@@ -2,6 +2,7 @@ import { join } from "node:path";
 
 export const ROOT = join(import.meta.dir, "..");
 export const DATA = join(ROOT, "data", "creators");
+export const AVATARS = join(ROOT, "data", "avatars");
 
 export function creatorDir(handle: string) { return join(DATA, handle); }
 export function rawDir(handle: string) { return join(creatorDir(handle), "raw"); }
