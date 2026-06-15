@@ -80,7 +80,7 @@ test("applyOverrides feeds assembleDataset: an override flips a call out of scor
     company: "Apple", direction: "bullish", isExplicitBuy: true, conviction: 1, quote: "q",
     onScreenPrice: null, summary: "s" }];
   const ohlc = { AAPL: [bar("2026-06-01", 100), bar("2026-06-08", 110)], SPY: spyBars };
-  const corrected = applyOverrides(reelCalls, [{ handle: "h", shortcode: "a", ticker: null,
+  const corrected = applyOverrides(reelCalls, [{ handle: "h", shortcode: "a", targetTicker: "", ticker: null,
     isExplicitBuy: false, direction: null, reason: "not a buy" }]);
   expect(assembleDataset({ handle: "h", name: "n" }, corrected, ohlc, "2026-06-09").calls).toHaveLength(0);
 });
@@ -101,4 +101,34 @@ test("two raw crypto tickers collapse to one canonical first-call (gate before d
   const firsts = ds.calls.filter(c => c.isFirstCall);
   expect(firsts).toHaveLength(1);
   expect(firsts[0].shortcode).toBe("early");
+});
+
+test("one post naming multiple stocks scores one call per ticker (same shortcode)", () => {
+  const nvdaBars = [bar("2026-06-01", 100), bar("2026-06-08", 120)];
+  const amdBars = [bar("2026-06-01", 50), bar("2026-06-08", 55)];
+  const calls: ReelCall[] = [
+    { shortcode: "post1", postDate: "2026-06-01", ticker: "NVDA", company: "Nvidia",
+      direction: "bullish", isExplicitBuy: true, conviction: 0.9, quote: "buy NVDA", onScreenPrice: null, summary: "s" },
+    { shortcode: "post1", postDate: "2026-06-01", ticker: "AMD", company: "AMD",
+      direction: "bullish", isExplicitBuy: true, conviction: 0.8, quote: "buy AMD", onScreenPrice: null, summary: "s" },
+  ];
+  const ds = assembleDataset({ handle: "h", name: "n" }, calls,
+    { NVDA: nvdaBars, AMD: amdBars, SPY: spyBars }, "2026-06-09");
+  expect(ds.calls.map(c => c.ticker).sort()).toEqual(["AMD", "NVDA"]);
+  expect(ds.calls.every(c => c.shortcode === "post1")).toBe(true);
+});
+
+test("same canonical symbol twice in one post collapses, keeping highest conviction", () => {
+  const bars = [bar("2026-06-01", 100), bar("2026-06-08", 110)];
+  const calls: ReelCall[] = [
+    { shortcode: "post1", postDate: "2026-06-01", ticker: "BTC", company: "Bitcoin",
+      direction: "bullish", isExplicitBuy: true, conviction: 0.5, quote: "low", onScreenPrice: null, summary: "s" },
+    { shortcode: "post1", postDate: "2026-06-01", ticker: "BTCUSD", company: "Bitcoin",
+      direction: "bullish", isExplicitBuy: true, conviction: 0.9, quote: "high", onScreenPrice: null, summary: "s" },
+  ];
+  const ds = assembleDataset({ handle: "h", name: "n" }, calls, { "BTC-USD": bars, SPY: spyBars }, "2026-06-09");
+  expect(ds.calls).toHaveLength(1);
+  expect(ds.calls[0].ticker).toBe("BTC-USD");
+  expect(ds.calls[0].conviction).toBe(0.9);
+  expect(ds.calls[0].quote).toBe("high");
 });

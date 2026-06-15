@@ -23,6 +23,7 @@ t("loadOverrides returns the rows for a handle, mapped to the Override shape", a
   await db.insert(callOverrides).values({
     handle: "h",
     shortcode: "AAA",
+    targetTicker: "NVDA",
     ticker: "AMD",
     isExplicitBuy: null,
     direction: null,
@@ -33,6 +34,7 @@ t("loadOverrides returns the rows for a handle, mapped to the Override shape", a
   expect(got).toEqual([{
     handle: "h",
     shortcode: "AAA",
+    targetTicker: "NVDA",
     ticker: "AMD",
     isExplicitBuy: null,
     direction: null,

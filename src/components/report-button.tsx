@@ -13,9 +13,10 @@ const LABELS: Record<string, string> = {
 
 // Crowdsourced "report incorrect" control. Client-safe: imports only react + the enum,
 // never the route/db modules, so neon/drizzle stay out of the client bundle. Best-effort
-// POST — the UI thanks the user immediately and dedupes per shortcode via localStorage.
-export function ReportButton({ handle, shortcode }: { handle: string; shortcode: string }) {
-  const key = `reported:${shortcode}`;
+// POST — the UI thanks the user immediately and dedupes per (shortcode, ticker) via
+// localStorage (a multi-stock post has one flaggable call per ticker).
+export function ReportButton({ handle, shortcode, ticker }: { handle: string; shortcode: string; ticker: string }) {
+  const key = `reported:${shortcode}:${ticker}`;
   const already = typeof localStorage !== "undefined" && localStorage.getItem(key) === "1";
   const [state, setState] = useState<"idle" | "open" | "sent">(already ? "sent" : "idle");
 
@@ -30,7 +31,7 @@ export function ReportButton({ handle, shortcode }: { handle: string; shortcode:
       await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ handle, shortcode, reason }),
+        body: JSON.stringify({ handle, shortcode, ticker, reason }),
       });
     } catch {
       // best-effort; UI already thanked the user

@@ -315,7 +315,7 @@ function CallsList({
       <ul className="divide-border/40 divide-y">
         {visible.map((c) => (
           <CallRow
-            key={c.shortcode}
+            key={`${c.shortcode}:${c.ticker}`}
             handle={handle}
             call={c}
           />

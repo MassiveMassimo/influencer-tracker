@@ -11,6 +11,7 @@ export async function loadOverrides(db: Db, handle: string): Promise<Override[]>
   return rows.map((r) => ({
     handle: r.handle,
     shortcode: r.shortcode,
+    targetTicker: r.targetTicker,
     ticker: r.ticker,
     isExplicitBuy: r.isExplicitBuy,
     direction: r.direction,

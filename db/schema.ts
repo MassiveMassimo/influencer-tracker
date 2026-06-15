@@ -15,13 +15,15 @@ export const creators = pgTable("creators", {
   indexStats: jsonb("index_stats").notNull(),     // IndexEntry minus handle/name/avatar
 });
 
-// One row per call. Upsert key is (handle, shortcode).
+// One row per call. Upsert key is (handle, shortcode, ticker): a single post can name
+// multiple stocks, so the post (shortcode) alone is not unique — ticker disambiguates the
+// distinct calls within one post.
 export const calls = pgTable("calls", {
   handle: text("handle").notNull().references(() => creators.handle, { onDelete: "cascade" }),
   shortcode: text("shortcode").notNull(),
+  ticker: text("ticker").notNull(),
   ord: integer("ord").notNull(),                  // array index in the source dataset — preserves file order
   postDate: text("post_date").notNull(),
-  ticker: text("ticker").notNull(),
   company: text("company").notNull(),
   isFirstCall: boolean("is_first_call").notNull(),
   conviction: doublePrecision("conviction").notNull(),
@@ -31,7 +33,7 @@ export const calls = pgTable("calls", {
   spark: jsonb("spark"),                          // number[] | null
   returns: jsonb("returns").notNull(),            // Record<Horizon, ReturnTriple>
 }, (t) => [
-  primaryKey({ columns: [t.handle, t.shortcode] }),
+  primaryKey({ columns: [t.handle, t.shortcode, t.ticker] }),
   index("calls_ticker_idx").on(t.ticker),
   index("calls_post_date_idx").on(t.postDate),
 ]);
@@ -68,13 +70,18 @@ export const artifacts = pgTable("artifacts", {
 export const callOverrides = pgTable("call_overrides", {
   handle: text("handle").notNull().references(() => creators.handle, { onDelete: "cascade" }),
   shortcode: text("shortcode").notNull(),
-  ticker: text("ticker"),                         // null = keep classified ticker
+  // Which call within the post this override targets, matched against the classified
+  // ticker (raw or canonical). Empty string = legacy/whole-post (pre-multi-stock, when a
+  // post had exactly one call) — applies to every call in that post. Part of the PK, so
+  // it cannot be NULL (Postgres PKs are NOT NULL); the empty string is the legacy sentinel.
+  targetTicker: text("target_ticker").notNull().default(""),
+  ticker: text("ticker"),                         // null = keep classified ticker; else retag to this symbol
   isExplicitBuy: boolean("is_explicit_buy"),      // null = keep classified flag
   direction: text("direction"),                   // null = keep; else "bullish"|"bearish"|"neutral"
   reason: text("reason").notNull(),               // required audit trail (verbatim quote + why)
   createdAt: text("created_at").notNull(),
 }, (t) => [
-  primaryKey({ columns: [t.handle, t.shortcode] }), // one (latest-wins) override per call
+  primaryKey({ columns: [t.handle, t.shortcode, t.targetTicker] }), // one (latest-wins) override per targeted call
 ]);
 
 // One row per (call, reporter) flag from the public "Report incorrect" control. FK to
@@ -88,11 +95,12 @@ export const callReports = pgTable("call_reports", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   handle: text("handle").notNull(),
   shortcode: text("shortcode").notNull(),
+  ticker: text("ticker").notNull(),               // which call within the post is flagged (calls PK is 3-col)
   reason: text("reason").notNull(),               // enum: wrong-ticker|not-a-buy|wrong-direction|not-a-call|other
   reporterHash: text("reporter_hash").notNull(),
   createdAt: text("created_at").notNull(),
 }, (t) => [
-  foreignKey({ columns: [t.handle, t.shortcode], foreignColumns: [calls.handle, calls.shortcode] }).onDelete("cascade"),
-  uniqueIndex("call_reports_dedupe_idx").on(t.handle, t.shortcode, t.reporterHash),
-  index("call_reports_call_idx").on(t.handle, t.shortcode),
+  foreignKey({ columns: [t.handle, t.shortcode, t.ticker], foreignColumns: [calls.handle, calls.shortcode, calls.ticker] }).onDelete("cascade"),
+  uniqueIndex("call_reports_dedupe_idx").on(t.handle, t.shortcode, t.ticker, t.reporterHash),
+  index("call_reports_call_idx").on(t.handle, t.shortcode, t.ticker),
 ]);

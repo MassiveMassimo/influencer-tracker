@@ -64,7 +64,7 @@ function ProofContent({ call, handle }: { call: Call; handle: string }) {
           <Label>Quote</Label>
           <p className="text-sm leading-relaxed text-muted-foreground">“{call.quote}”</p>
         </div>
-        <ReportButton handle={handle} shortcode={call.shortcode} />
+        <ReportButton handle={handle} shortcode={call.shortcode} ticker={call.ticker} />
       </div>
       <iframe
         src={p.embed}

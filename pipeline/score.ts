@@ -35,21 +35,36 @@ export function assembleDataset(
   // tickers are excluded and logged — never emitted as a scored call with an
   // empty price file. The emitted ticker is the canonical symbol, so fragmented
   // crypto calls (BTCUSD/BTCUSDT/BTC.X) merge onto one ticker page.
-  let calls: Call[] = bullish.flatMap(c => {
+  // A post can name multiple stocks, so one shortcode may yield several scored calls
+  // (one per ticker). Guard the (shortcode, ticker) identity: two raw tickers in the
+  // same post can canonicalize to the SAME symbol (e.g. "BTC" and "BTCUSD" → BTC-USD),
+  // which would collide. Collapse those, keeping the highest-conviction occurrence.
+  const seenPostSym = new Map<string, number>(); // `${shortcode}:${sym}` -> index in calls
+  let calls: Call[] = [];
+  for (const c of bullish) {
     const sym = resolveSymbol(c.ticker);
     const bars = sym ? (ohlc[sym] ?? []) : [];
     if (!sym || bars.length === 0) {
       console.warn(`UNPRICEABLE ${c.ticker} (${sym ? "no price data" : "unresolved/out-of-scope"}) — shortcode ${c.shortcode}`);
-      return [];
+      continue;
     }
-    if (!isInScope(sym)) return []; // out-of-scope type; logged once per symbol in score()
-    return [{
+    if (!isInScope(sym)) continue; // out-of-scope type; logged once per symbol in score()
+    const key = `${c.shortcode}:${sym}`;
+    const prevIdx = seenPostSym.get(key);
+    if (prevIdx !== undefined) {
+      if (c.conviction > calls[prevIdx]!.conviction) {
+        calls[prevIdx] = { ...calls[prevIdx]!, conviction: c.conviction, quote: c.quote, summary: c.summary, company: c.company };
+      }
+      continue;
+    }
+    seenPostSym.set(key, calls.length);
+    calls.push({
       shortcode: c.shortcode, postDate: c.postDate, ticker: sym, company: c.company,
       isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
       spark: buildSpark(bars, c.postDate),
       returns: computeReturns(bars, spy, c.postDate),
-    }];
-  });
+    });
+  }
   calls = dedupeFirstCall(calls);
   const firstCalls = calls.filter(c => c.isFirstCall);
   const beatSpy = firstCalls.filter(c => (c.returns.toDate.excess ?? -1) > 0).length;
