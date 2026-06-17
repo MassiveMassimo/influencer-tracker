@@ -20,6 +20,7 @@ import { ChartBoundary } from "../components/ChartBoundary";
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
+import { buildChartView } from "#/lib/chart-view.ts";
 import type { LiveBar } from "#/lib/chart-fetch.ts";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
@@ -218,12 +219,8 @@ function TickerPage() {
   // mid-switch. The crossfade (AnimatePresence in ticker-charts) keys off
   // `view.timeframe`, so it fires exactly once per real data swap. Until then the
   // previous chart stays fully rendered — no skeleton, no dim, no stutter.
-  const buildView = (live: typeof query.data | null) => ({
-    timeframe,
-    ohlc: live ? live.ohlc : bakedOhlc,
-    spy: live ? live.spy : bakedSpy,
-    usingFallback: live == null,
-  });
+  const buildView = (live: typeof query.data | null) =>
+    buildChartView({ timeframe, live: live ?? null, bakedOhlc, bakedSpy });
   const liveNow =
     query.data != null && !query.isPlaceholderData && query.data.ohlc.length > 0
       ? query.data
