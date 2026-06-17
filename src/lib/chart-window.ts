@@ -10,15 +10,6 @@ export interface ChartWindow {
 
 const DAY_MS = 86_400_000;
 
-// Step back to the most recent weekday (Yahoo has no weekend bars).
-function lastTradingDay(now: Date): Date {
-  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const dow = d.getUTCDay(); // 0 Sun, 6 Sat
-  if (dow === 0) d.setUTCDate(d.getUTCDate() - 2);
-  else if (dow === 6) d.setUTCDate(d.getUTCDate() - 1);
-  return d;
-}
-
 function daysAgo(now: Date, days: number): Date {
   return new Date(now.getTime() - days * DAY_MS);
 }
@@ -33,7 +24,11 @@ export function chartWindow(
   const { now, firstDate } = opts;
   switch (tf) {
     case "1D":
-      return { interval: "5m", period1: lastTradingDay(now) };
+      // Span several days back so the window always contains a full session even
+      // before the US open (when "today" has no intraday bars yet) or over a
+      // weekend/holiday. fetchChart trims this to the most recent session via
+      // trimToLastSession, giving true single-session 1D semantics.
+      return { interval: "5m", period1: daysAgo(now, 5) };
     case "1W":
       return { interval: "30m", period1: daysAgo(now, 7) };
     case "1M":
