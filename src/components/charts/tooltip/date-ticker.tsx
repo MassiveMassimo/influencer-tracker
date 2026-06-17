@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useSpring } from "motion/react";
+import { AnimatePresence, motion, useSpring } from "motion/react";
 import { memo, useMemo, useRef } from "react";
 
 const TICKER_ITEM_HEIGHT = 24;
@@ -19,10 +19,24 @@ const DateTickerCompact = memo(function DateTickerCompact({
 }: Omit<DateTickerProps, "visible">) {
   const label = labels[currentIndex] ?? labels[0] ?? "";
 
+  // Slide-fade the label on each change so the pill feels alive while scrubbing.
+  // The full odometer (DateTickerInner) is skipped for dense series and can't
+  // parse intraday "HH:MM" labels anyway, so this is the animation for those.
   return (
     <div className="overflow-hidden rounded-full bg-zinc-900 px-4 py-1 text-white shadow-lg dark:bg-zinc-100 dark:text-zinc-900">
-      <div className="flex h-6 items-center justify-center">
-        <span className="whitespace-nowrap font-medium text-sm">{label}</span>
+      <div className="relative flex h-6 items-center justify-center">
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.span
+            animate={{ y: 0, opacity: 1 }}
+            className="whitespace-nowrap font-medium text-sm"
+            exit={{ y: -10, opacity: 0 }}
+            initial={{ y: 10, opacity: 0 }}
+            key={label}
+            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+          >
+            {label}
+          </motion.span>
+        </AnimatePresence>
       </div>
     </div>
   );

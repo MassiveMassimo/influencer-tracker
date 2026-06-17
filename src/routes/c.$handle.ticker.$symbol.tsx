@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
@@ -21,6 +21,7 @@ import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
 import { buildChartView } from "#/lib/chart-view.ts";
+import { headlineReadout } from "#/lib/headline-readout.ts";
 import type { LiveBar } from "#/lib/chart-fetch.ts";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
@@ -206,6 +207,10 @@ function TickerPage() {
   const { impact, select } = useHaptics();
   const queryClient = useQueryClient();
   const numberFlowReady = useNumberFlowReady();
+  // Hovered candle's close, lifted from the chart so the headline tracks the
+  // crosshair; null when not scrubbing. Reset on a timeframe swap (below) so a
+  // stale price from the prior window never lingers in the headline.
+  const [hoverClose, setHoverClose] = useState<number | null>(null);
 
   const firstDate = firstDateOf(ds.calls);
   const query = useQuery(chartQuery(symbol, timeframe, firstDate));
@@ -242,6 +247,12 @@ function TickerPage() {
     bakedSpy,
   ]);
 
+  // Drop any hovered price when the committed window swaps — the prior bar's
+  // close is meaningless against the new window's baseline.
+  useEffect(() => {
+    setHoverClose(null);
+  }, [view.timeframe]);
+
   // Warm the cache on hover/focus so the actual click is a hit and the swap is
   // instant; keepPreviousData + view-gating keep an un-prefetched tap smooth too.
   const prefetchTimeframe = (tf: Timeframe) => {
@@ -252,37 +263,50 @@ function TickerPage() {
   const ohlc: LiveBar[] = view.ohlc;
   const spy: LiveBar[] = view.spy;
 
-  const callMarkers: ChartMarker[] = calls.map((c) => ({
-    date: new Date(c.postDate),
-    icon: "▲",
-    title: `${symbol} · ${c.postDate}`,
-    description: `${c.returns.toDate.excess != null ? signed(c.returns.toDate.excess) + " vs SPY · " : ""}${c.quote}`,
-    onClick: () => {
-      select();
-      setSelectedCall(c);
-    },
-  }));
+  // Memoized so the chart input arrays keep a stable ref across the route's
+  // per-frame re-renders while scrubbing (hoverClose changes) — otherwise the
+  // memoized chart components would see new props and re-render on every pointer move.
+  const callMarkers: ChartMarker[] = useMemo(
+    () =>
+      calls.map((c) => ({
+        date: new Date(c.postDate),
+        icon: "▲",
+        title: `${symbol} · ${c.postDate}`,
+        description: `${c.returns.toDate.excess != null ? signed(c.returns.toDate.excess) + " vs SPY · " : ""}${c.quote}`,
+        onClick: () => {
+          select();
+          setSelectedCall(c);
+        },
+      })),
+    [calls, symbol, select],
+  );
 
-  const candles = ohlc.map((b) => ({
-    date: new Date(b.date),
-    open: b.o,
-    high: b.h,
-    low: b.l,
-    close: b.c,
-  }));
+  const candles = useMemo(
+    () =>
+      ohlc.map((b) => ({
+        date: new Date(b.date),
+        open: b.o,
+        high: b.h,
+        low: b.l,
+        close: b.c,
+      })),
+    [ohlc],
+  );
 
-  // Rebase vs-SPY to the first bar of the fetched range.
-  const base = ohlc[0]?.c ?? 1;
-  const spyBase = spy[0]?.c ?? 1;
-  // Stock and SPY are fetched at the same Yahoo interval, so their bar
-  // timestamps share one grid — joining by exact date key aligns them
-  // (verified: ~98% match intraday; the rare gap just nulls one SPY point).
-  const spyByDate = new Map(spy.map((b) => [b.date, b.c]));
-  const norm = ohlc.map((b) => ({
-    date: new Date(b.date),
-    stock: (b.c / base) * 100,
-    spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
-  }));
+  const norm = useMemo(() => {
+    // Rebase vs-SPY to the first bar of the fetched range.
+    const base = ohlc[0]?.c ?? 1;
+    const spyBase = spy[0]?.c ?? 1;
+    // Stock and SPY are fetched at the same Yahoo interval, so their bar
+    // timestamps share one grid — joining by exact date key aligns them
+    // (verified: ~98% match intraday; the rare gap just nulls one SPY point).
+    const spyByDate = new Map(spy.map((b) => [b.date, b.c]));
+    return ohlc.map((b) => ({
+      date: new Date(b.date),
+      stock: (b.c / base) * 100,
+      spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
+    }));
+  }, [ohlc, spy]);
 
   // Only on a true cold start (no committed view data at all) — otherwise the
   // view holds the prior window, so the chart stays up and we never skeleton
@@ -301,16 +325,12 @@ function TickerPage() {
         }).length
       : 0;
 
-  // Headline readout: last close of the committed window, change measured over the
-  // selected timeframe (first → last bar), so it reads like a normal stock chart.
+  // Headline readout: while scrubbing, tracks the hovered candle (hoverClose);
+  // otherwise the window's last close. Change/delta always measured from the
+  // window's first bar, so it reads like a normal stock chart.
   const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : null;
   const firstClose = ohlc.length ? ohlc[0].c : null;
-  const tfChange =
-    lastClose != null && firstClose
-      ? (lastClose - firstClose) / firstClose
-      : null;
-  const tfDelta =
-    lastClose != null && firstClose != null ? lastClose - firstClose : null;
+  const head = headlineReadout(hoverClose, firstClose, lastClose);
 
   // Rendered in two slots (mobile top-right / desktop below price), so define once.
   const callsLabel = numberFlowReady ? (
@@ -340,9 +360,9 @@ function TickerPage() {
           <div className="flex w-full flex-col items-start gap-1 sm:w-auto">
             <div className="flex w-full items-start justify-between gap-3 sm:w-auto sm:justify-start">
               <PriceReadout
-                lastClose={lastClose}
-                tfChange={tfChange}
-                tfDelta={tfDelta}
+                lastClose={head.close}
+                tfChange={head.change}
+                tfDelta={head.delta}
                 usingFallback={usingFallback}
               />
               {/* Mobile: calls count sits top-right of the price row. */}
@@ -374,7 +394,7 @@ function TickerPage() {
           ) : (
             <ChartBoundary>
               <Suspense fallback={<ChartSkeleton />}>
-                <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} />
+                <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} onHoverClose={setHoverClose} />
               </Suspense>
             </ChartBoundary>
           )}

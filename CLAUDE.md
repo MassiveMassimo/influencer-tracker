@@ -552,7 +552,20 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   cascade bounded to a fixed ~1.2s window (`STAGGER_WINDOW`, matching bklit's bar
   stagger) and (b) add a `replayKey` prop (the timeframe) folded into each group's
   React key, so the persistent area chart's markers remount and re-stagger on a
-  switch (the candlestick already remounts via its `ChartCrossfade` key).
+  switch (the candlestick already remounts via its `ChartCrossfade` key); and the
+  compact date-pill animation in `tooltip/date-ticker.tsx` (`DateTickerCompact`
+  slide-fades its label via `AnimatePresence` on each change) — bklit's compact
+  pill is a static text swap, but it's the variant shown for dense/intraday series
+  (the full odometer `DateTickerInner` is skipped above 60 labels and can't parse
+  intraday "HH:MM" labels), so the scrub feels alive on 1D/1W.
+
+**Ticker headline tracks the crosshair.** Scrubbing the candlestick lifts the hovered
+candle's close to the header price + colored delta (`headlineReadout` in
+`src/lib/headline-readout.ts`, fed by a `HoverClose` reporter inside `PriceCandles`
+that reads chart `tooltipData`); on leave it reverts to the window's last close. Delta
+is always measured from the window's first bar. `PriceCandles`/`StockVsSpyLine` are
+`memo`'d and their inputs (`candles`/`norm`/`callMarkers`) `useMemo`'d so per-frame
+hover re-renders don't churn the charts.
 
 ## Analytics (PostHog)
 
