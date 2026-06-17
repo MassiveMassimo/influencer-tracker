@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
-import type { ReactNode } from "react";
+import { memo, type ReactNode, useEffect } from "react";
 import type { Timeframe } from "#/lib/window-series.ts";
+import { useChart } from "./chart-context.tsx";
 import { CandlestickChart } from "./candlestick-chart.tsx";
 import { Candlestick } from "./candlestick.tsx";
 import { AreaChart } from "./area-chart.tsx";
@@ -51,14 +52,29 @@ function ChartCrossfade({
   );
 }
 
-export function PriceCandles({
+// Reports the hovered candle's close up to the route header so the price readout
+// can track the crosshair (Robinhood-style). Lives inside the chart so it can read
+// `tooltipData` from context; renders nothing. `onChange` must be referentially
+// stable (a useState setter) so the effect only fires on an actual hover change.
+function HoverClose({ onChange }: { onChange: (close: number | null) => void }) {
+  const { tooltipData } = useChart();
+  const close = tooltipData ? ((tooltipData.point.close as number | undefined) ?? null) : null;
+  useEffect(() => {
+    onChange(close);
+  }, [close, onChange]);
+  return null;
+}
+
+export const PriceCandles = memo(function PriceCandles({
   candles,
   markers,
   timeframe,
+  onHoverClose,
 }: {
   candles: Candle[];
   markers: ChartMarker[];
   timeframe: Timeframe;
+  onHoverClose?: (close: number | null) => void;
 }) {
   return (
     <ChartCrossfade timeframe={timeframe}>
@@ -69,12 +85,13 @@ export function PriceCandles({
         <XAxis />
         <YAxis />
         <ChartTooltip />
+        {onHoverClose ? <HoverClose onChange={onHoverClose} /> : null}
       </CandlestickChart>
     </ChartCrossfade>
   );
-}
+});
 
-export function StockVsSpyLine({
+export const StockVsSpyLine = memo(function StockVsSpyLine({
   norm,
   markers,
   timeframe,
@@ -97,4 +114,4 @@ export function StockVsSpyLine({
       <ChartTooltip />
     </AreaChart>
   );
-}
+});
