@@ -6,15 +6,18 @@ const SATURDAY = new Date("2026-06-06T12:00:00Z");
 const FIRST = new Date("2025-06-03T00:00:00Z"); // ~1y of history
 
 describe("chartWindow", () => {
-  it("uses 5m for 1D, anchored to that trading day", () => {
+  it("uses 5m for 1D over a window wide enough to always contain the last session", () => {
     const w = chartWindow("1D", { now: NOW, firstDate: FIRST });
     expect(w.interval).toBe("5m");
-    expect(w.period1.toISOString().slice(0, 10)).toBe("2026-06-03");
+    // 5 days back clears weekends/holidays so the live fetch never returns an
+    // empty pre-open window; trimToLastSession then narrows it to one session.
+    expect(w.period1.toISOString().slice(0, 10)).toBe("2026-05-29");
   });
 
-  it("1D on a weekend steps back to the last weekday", () => {
+  it("1D on a weekend still spans back past the weekend", () => {
     const w = chartWindow("1D", { now: SATURDAY, firstDate: FIRST });
-    expect(w.period1.toISOString().slice(0, 10)).toBe("2026-06-05"); // Friday
+    expect(w.interval).toBe("5m");
+    expect(w.period1.toISOString().slice(0, 10)).toBe("2026-06-01"); // 5d before Sat
   });
 
   it("uses 30m for 1W (7 days back)", () => {

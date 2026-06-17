@@ -4,7 +4,7 @@ import YahooFinance from "yahoo-finance2";
 import { isSafeAssetKey } from "./api-serve.ts";
 import { chartWindow } from "./chart-window.ts";
 import { resolveSymbol } from "./symbol.ts";
-import type { Timeframe } from "./window-series.ts";
+import { type Timeframe, trimToLastSession } from "./window-series.ts";
 
 // yahoo-finance2 ChartOptions["interval"] uses "60m" as the canonical alias for
 // "1h". Both are accepted at runtime; this type covers only the values we use.
@@ -130,5 +130,9 @@ export const fetchChart = createServerFn({ method: "GET" })
       fetchSymbol(`${symbol}${keySuffix}`, symbol, interval, period1),
       fetchSymbol(`SPY${keySuffix}`, "SPY", interval, period1),
     ]);
-    return { ohlc, spy, interval, asOf: new Date().toISOString() };
+    // 1D fetches a multi-day window so the pre-open/weekend case is never empty;
+    // narrow it to a single session for true "1D" semantics (intraday hour
+    // labels, one trading day). Other timeframes keep their full window.
+    const view = tf === "1D" ? trimToLastSession(ohlc, spy) : { ohlc, spy };
+    return { ohlc: view.ohlc, spy: view.spy, interval, asOf: new Date().toISOString() };
   });
