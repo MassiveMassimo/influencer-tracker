@@ -390,7 +390,13 @@ committed baseline — truncated-scrape / data-loss prevention — and runs **be
 overwrites `dataset.json`.
 
 **Telegram messages.** On success: a published-summary per handle. On `guard-no-shrink` or parity
-failure: a BLOCKED alert containing the manual re-run command for that handle.
+failure: a BLOCKED alert containing the manual re-run command for that handle. Delivery goes
+through `scripts/notify.ts` `notify()`, which prefers the **Hermes gateway** (`hermes send --to
+$HERMES_TARGET`, default home channel) when `HERMES_BIN` is set — reusing Hermes's own Telegram
+creds, so no bot token need live in the VM `.env` — and falls back to the raw bot API
+(`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`). `ingest.ts` refuses to run blind unless **one** path is
+configured (`notifyConfigured()`). On the VM the Hermes path is used (`HERMES_BIN` set, no Telegram
+creds). A `notify()` send error is non-fatal — it warns and the ingest still completes.
 
 **Manual `resume.ts` — surviving uses only.** The `flock`-guarded `resume.ts` call over SSH is
 retained for two paths: (a) investigating and re-running after a BLOCKED alert; (b) re-scoring

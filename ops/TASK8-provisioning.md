@@ -65,8 +65,10 @@ DATABASE_URL_INGEST=...      # ingest role: INSERT/UPDATE creators/calls/artifac
 DATABASE_URL_SERVE=...       # serve role: SELECT-only; parity-check reads this
 FIREWORKS_API_KEY=...        # X text + vision classification
 RETTIWT_API_KEY=...          # base64 cookie key from a THROWAWAY X account
-TELEGRAM_BOT_TOKEN=...
-TELEGRAM_CHAT_ID=...
+# Notify path — set EITHER Hermes (preferred on the VM) OR the raw Telegram bot creds:
+HERMES_BIN=/home/ubuntu/.hermes/hermes-agent/venv/bin/hermes   # reuses Hermes's Telegram creds + home channel
+# TELEGRAM_BOT_TOKEN=...      # fallback path if HERMES_BIN unset
+# TELEGRAM_CHAT_ID=...
 INGEST_HANDLES=TheProfInvestor
 REVALIDATE_TOKEN=...         # MUST match the Vercel build value
 VITE_SITE_URL=https://influencer-tracker-beta.vercel.app
@@ -116,7 +118,7 @@ the prod creator/ticker pages refresh within seconds instead of the 6h TTL.
 ## 7. Dead-man test (verify failure alerting) — test both layers
 
 ```bash
-# (a) notification path + Telegram creds:
+# (a) notification path (Hermes via HERMES_BIN, or raw Telegram creds):
 sudo systemctl start notify-fail.service
 #     checkpoint: "ingest unit failed/timed out" alert arrives in Telegram
 
