@@ -38,3 +38,6 @@ public/prices/
 public/avatars/
 public/llms.txt
 public/calls-index.json
+
+# bake-off generated reports
+bakeoff-glm5p2-*.md
