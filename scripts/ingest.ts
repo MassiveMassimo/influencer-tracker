@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { $ } from "bun";
-import { notify, publishedMessage, blockedMessage } from "./notify";
+import { notify, notifyConfigured, publishedMessage, blockedMessage } from "./notify";
 
 const handles = (process.env.INGEST_HANDLES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 if (!handles.length) { console.error("INGEST_HANDLES unset"); process.exit(1); }
@@ -9,8 +9,8 @@ if (!handles.length) { console.error("INGEST_HANDLES unset"); process.exit(1); }
 // manual run from a non-login shell without ~/.bun/bin on PATH still works).
 const bun = process.execPath;
 
-if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
-  console.error("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID unset — refusing to run blind (no review pings would be delivered)");
+if (!notifyConfigured()) {
+  console.error("No notify path configured (set HERMES_BIN or TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) — refusing to run blind (no review pings would be delivered)");
   process.exit(1);
 }
 

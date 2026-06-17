@@ -54,8 +54,11 @@ DATABASE_URL_REPORT=...      # report role connection string (INSERT-only on cal
 REPORT_SALT=...              # random >=16 chars; salts the IP dedupe hash — generate: openssl rand -base64 32 | tr -d '/+=' | head -c 40
 FIREWORKS_API_KEY=...        # vision + classification (IG + X)
 RETTIWT_API_KEY=...          # base64 cookie key from throwaway X account
-TELEGRAM_BOT_TOKEN=...
-TELEGRAM_CHAT_ID=...
+# Notify path — set EITHER Hermes (preferred on the VM) OR the raw Telegram bot creds:
+HERMES_BIN=/home/ubuntu/.hermes/hermes-agent/venv/bin/hermes   # reuses Hermes's own Telegram creds + home channel; no bot token needed here
+# HERMES_TARGET=telegram     # optional override of the Hermes send target (default "telegram" = home channel)
+# TELEGRAM_BOT_TOKEN=...      # fallback path if HERMES_BIN unset
+# TELEGRAM_CHAT_ID=...
 INGEST_HANDLES=handle1,handle2,...   # comma-separated list of X handles to ingest
 IG_PROXY=socks5://127.0.0.1:1081   # VM-only: route IG scrape+yt-dlp through the iProyal ISP residential relay (no-auth local). Unset on the Mac (scrapes direct). Datacenter IP gets IG accounts locked.
 REVALIDATE_TOKEN=...         # required for instant propagation — see note below
