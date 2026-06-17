@@ -28,31 +28,47 @@ async function postDateOf(handle: string, code: string): Promise<string | null> 
 export async function extract(handle: string) {
   // Classification on Fireworks (like the X path) — Groq's free tier throttled it.
   const text = FIREWORKS_MODEL;
-  const out: ReelCall[] = [];
-  for (const f of await readdir(transcriptsDir(handle))) {
-    if (!f.endsWith(".json")) continue;
-    const code = f.replace(".json", "");
-    const tr = JSON.parse(await readFile(join(transcriptsDir(handle), f), "utf8"));
-    const fp = join(framesDir(handle), f);
-    const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
-    const body = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
-    // Free local check first: a reel with no upload_date is skipped before the
-    // rate-limited LLM call.
-    const postDate = await postDateOf(handle, code);
-    if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); continue; }
-    let c;
-    try {
-      c = await classify(text, body, fireworks);
-    } catch (e) {
-      // classify() throws "classify: ..." only on an unparseable reply (skip the post).
-      // Transport/auth failures (429 past backoff, network, missing FIREWORKS_API_KEY) are
-      // NOT per-post and must surface loudly, not silently truncate reel-calls.json.
-      if (!(e as Error).message.startsWith("classify:")) throw e;
-      console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
-      continue;
+  const files = (await readdir(transcriptsDir(handle))).filter((f) => f.endsWith(".json"));
+
+  // Classify is the only network call here (vision hints are precomputed in the
+  // frames stage), so run a worker pool instead of one reel at a time. Results
+  // go into a per-index slot and are flattened in order, so reel-calls.json keeps
+  // source-file order (the DB `ord` column) regardless of completion order.
+  // Tune via EXTRACT_CONCURRENCY; fireworks() backs off on 429/503.
+  const results: ReelCall[][] = Array.from({ length: files.length }, () => []);
+  const CONCURRENCY = Number(process.env.EXTRACT_CONCURRENCY) || 24;
+  let next = 0;
+
+  const worker = async () => {
+    while (next < files.length) {
+      const i = next++;
+      const f = files[i];
+      const code = f.replace(".json", "");
+      const tr = JSON.parse(await readFile(join(transcriptsDir(handle), f), "utf8"));
+      const fp = join(framesDir(handle), f);
+      const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
+      const body = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
+      // Free local check first: a reel with no upload_date is skipped before the
+      // rate-limited LLM call.
+      const postDate = await postDateOf(handle, code);
+      if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); results[i] = []; continue; }
+      let c;
+      try {
+        c = await classify(text, body, fireworks);
+      } catch (e) {
+        // classify() throws "classify: ..." only on an unparseable reply (skip the post).
+        // Transport/auth failures (429 past backoff, network, missing FIREWORKS_API_KEY) are
+        // NOT per-post and must surface loudly, not silently truncate reel-calls.json.
+        if (!(e as Error).message.startsWith("classify:")) throw e;
+        console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
+        results[i] = []; continue;
+      }
+      results[i] = toReelCalls(c, code, postDate);
     }
-    out.push(...toReelCalls(c, code, postDate));
-  }
+  };
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
+
+  const out: ReelCall[] = results.flat();
   await writeCalls(handle, out);
   return out;
 }

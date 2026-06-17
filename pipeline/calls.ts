@@ -110,7 +110,10 @@ export function toReelCalls(cs: Classification[], shortcode: string, postDate: s
   const out: ReelCall[] = [];
   for (const c of cs) {
     if (!c.ticker) continue;
-    const ticker = String(c.ticker).toUpperCase();
+    // Strip a leading "$" some models keep ($TSLA): the symbol must be the bare
+    // ticker or it never resolves on Yahoo. Skip if nothing's left.
+    const ticker = String(c.ticker).toUpperCase().replace(/^\$+/, "");
+    if (!ticker) continue;
     if (seen.has(ticker)) continue;
     seen.add(ticker);
     out.push({

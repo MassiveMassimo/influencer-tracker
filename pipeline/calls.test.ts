@@ -39,6 +39,14 @@ describe("toReelCalls", () => {
   it("drops entries with no ticker", () => {
     expect(toReelCalls([{ ...base, ticker: null }], "t", "2026-01-15")).toEqual([]);
   });
+  it("strips a leading $ from the ticker ($TSLA -> TSLA)", () => {
+    const [rc] = toReelCalls([{ ...base, ticker: "$tsla" }], "t", "2026-01-15");
+    expect(rc!.ticker).toBe("TSLA");
+  });
+  it("collapses $TSLA and TSLA in one post to a single call", () => {
+    const rcs = toReelCalls([{ ...base, ticker: "TSLA" }, { ...base, ticker: "$TSLA" }], "t", "2026-01-15");
+    expect(rcs.map((c) => c.ticker)).toEqual(["TSLA"]);
+  });
   it("returns [] for an empty classification array (no stock)", () => {
     expect(toReelCalls([], "t", "2026-01-15")).toEqual([]);
   });
