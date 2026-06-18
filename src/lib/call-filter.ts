@@ -52,6 +52,7 @@ export interface TickerCreatorRow {
   handle: string;
   callCount: number;
   firstCallDate: string | null; // earliest first-call postDate for this ticker
+  lastCallDate: string | null; // latest postDate for this ticker
   bestEx3m: number | null;
   ex3m: number | null; // first-call ex3m (the representative call)
   exToDate: number | null;
@@ -87,6 +88,7 @@ export function summarizeTicker(rows: CallIndexEntry[], symbol: string): TickerS
       handle,
       callCount: cs.length,
       firstCallDate: first?.postDate ?? null,
+      lastCallDate: cs.reduce<string | null>((m, c) => (m == null || c.postDate > m ? c.postDate : m), null),
       bestEx3m: cs.reduce<number | null>((m, c) => (c.ex3m != null && (m == null || c.ex3m > m) ? c.ex3m : m), null),
       ex3m: first?.ex3m ?? null,
       exToDate: first?.exToDate ?? null,

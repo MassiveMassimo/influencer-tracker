@@ -46,3 +46,17 @@ test("summarizeTicker aggregates one ticker across creators", () => {
   expect(s.creatorCount).toBe(2);
   expect(s.byCreator.map((b) => b.handle).sort()).toEqual(["alice", "bob"]);
 });
+
+test("summarizeTicker emits lastCallDate = max postDate per creator", () => {
+  const rows: CallIndexEntry[] = [
+    e({ shortcode: "a1", handle: "alice", ticker: "NVDA", postDate: "2026-05-03", isFirstCall: true }),
+    e({ shortcode: "a2", handle: "alice", ticker: "NVDA", postDate: "2026-06-10", isFirstCall: false }),
+    e({ shortcode: "b1", handle: "bob", ticker: "NVDA", postDate: "2026-05-20", isFirstCall: true }),
+  ];
+  const s = summarizeTicker(rows, "NVDA");
+  const alice = s.byCreator.find((b) => b.handle === "alice")!;
+  const bob = s.byCreator.find((b) => b.handle === "bob")!;
+  expect(alice.firstCallDate).toBe("2026-05-03");
+  expect(alice.lastCallDate).toBe("2026-06-10");
+  expect(bob.lastCallDate).toBe("2026-05-20");
+});

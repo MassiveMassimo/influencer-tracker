@@ -12,12 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TSymbolRouteImport } from './routes/t.$symbol'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as ApiRevalidateRouteImport } from './routes/api/revalidate'
 import { Route as ApiReportRouteImport } from './routes/api/report'
 import { Route as ApiCallsIndexRouteImport } from './routes/api/calls-index'
+import { Route as TSymbolIndexRouteImport } from './routes/t.$symbol.index'
 import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
+import { Route as TSymbolCreatorRouteImport } from './routes/t.$symbol.$creator'
 import { Route as ApiPricesSymbolRouteImport } from './routes/api/prices.$symbol'
 import { Route as ApiDatasetHandleRouteImport } from './routes/api/dataset.$handle'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
@@ -37,11 +38,6 @@ const ExploreRoute = ExploreRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TSymbolRoute = TSymbolRouteImport.update({
-  id: '/t/$symbol',
-  path: '/t/$symbol',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CHandleRoute = CHandleRouteImport.update({
@@ -64,10 +60,20 @@ const ApiCallsIndexRoute = ApiCallsIndexRouteImport.update({
   path: '/api/calls-index',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TSymbolIndexRoute = TSymbolIndexRouteImport.update({
+  id: '/t/$symbol/',
+  path: '/t/$symbol/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CHandleIndexRoute = CHandleIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CHandleRoute,
+} as any)
+const TSymbolCreatorRoute = TSymbolCreatorRouteImport.update({
+  id: '/t/$symbol/$creator',
+  path: '/t/$symbol/$creator',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPricesSymbolRoute = ApiPricesSymbolRouteImport.update({
   id: '/api/prices/$symbol',
@@ -103,10 +109,11 @@ export interface FileRoutesByFullPath {
   '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/c/$handle': typeof CHandleRouteWithChildren
-  '/t/$symbol': typeof TSymbolRoute
   '/api/dataset/$handle': typeof ApiDatasetHandleRoute
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
+  '/t/$symbol/$creator': typeof TSymbolCreatorRoute
   '/c/$handle/': typeof CHandleIndexRoute
+  '/t/$symbol/': typeof TSymbolIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
   '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
   '/api/og/t/$handle/$symbol/$rev': typeof ApiOgTHandleSymbolRevRoute
@@ -118,10 +125,11 @@ export interface FileRoutesByTo {
   '/api/calls-index': typeof ApiCallsIndexRoute
   '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
-  '/t/$symbol': typeof TSymbolRoute
   '/api/dataset/$handle': typeof ApiDatasetHandleRoute
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
+  '/t/$symbol/$creator': typeof TSymbolCreatorRoute
   '/c/$handle': typeof CHandleIndexRoute
+  '/t/$symbol': typeof TSymbolIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
   '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
   '/api/og/t/$handle/$symbol/$rev': typeof ApiOgTHandleSymbolRevRoute
@@ -135,10 +143,11 @@ export interface FileRoutesById {
   '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/c/$handle': typeof CHandleRouteWithChildren
-  '/t/$symbol': typeof TSymbolRoute
   '/api/dataset/$handle': typeof ApiDatasetHandleRoute
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
+  '/t/$symbol/$creator': typeof TSymbolCreatorRoute
   '/c/$handle/': typeof CHandleIndexRoute
+  '/t/$symbol/': typeof TSymbolIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
   '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
   '/api/og/t/$handle/$symbol/$rev': typeof ApiOgTHandleSymbolRevRoute
@@ -153,10 +162,11 @@ export interface FileRouteTypes {
     | '/api/report'
     | '/api/revalidate'
     | '/c/$handle'
-    | '/t/$symbol'
     | '/api/dataset/$handle'
     | '/api/prices/$symbol'
+    | '/t/$symbol/$creator'
     | '/c/$handle/'
+    | '/t/$symbol/'
     | '/c/$handle/ticker/$symbol'
     | '/api/og/c/$handle/$rev'
     | '/api/og/t/$handle/$symbol/$rev'
@@ -168,10 +178,11 @@ export interface FileRouteTypes {
     | '/api/calls-index'
     | '/api/report'
     | '/api/revalidate'
-    | '/t/$symbol'
     | '/api/dataset/$handle'
     | '/api/prices/$symbol'
+    | '/t/$symbol/$creator'
     | '/c/$handle'
+    | '/t/$symbol'
     | '/c/$handle/ticker/$symbol'
     | '/api/og/c/$handle/$rev'
     | '/api/og/t/$handle/$symbol/$rev'
@@ -184,10 +195,11 @@ export interface FileRouteTypes {
     | '/api/report'
     | '/api/revalidate'
     | '/c/$handle'
-    | '/t/$symbol'
     | '/api/dataset/$handle'
     | '/api/prices/$symbol'
+    | '/t/$symbol/$creator'
     | '/c/$handle/'
+    | '/t/$symbol/'
     | '/c/$handle/ticker/$symbol'
     | '/api/og/c/$handle/$rev'
     | '/api/og/t/$handle/$symbol/$rev'
@@ -201,9 +213,10 @@ export interface RootRouteChildren {
   ApiReportRoute: typeof ApiReportRoute
   ApiRevalidateRoute: typeof ApiRevalidateRoute
   CHandleRoute: typeof CHandleRouteWithChildren
-  TSymbolRoute: typeof TSymbolRoute
   ApiDatasetHandleRoute: typeof ApiDatasetHandleRoute
   ApiPricesSymbolRoute: typeof ApiPricesSymbolRoute
+  TSymbolCreatorRoute: typeof TSymbolCreatorRoute
+  TSymbolIndexRoute: typeof TSymbolIndexRoute
   ApiOgCHandleRevRoute: typeof ApiOgCHandleRevRoute
   ApiOgTHandleSymbolRevRoute: typeof ApiOgTHandleSymbolRevRoute
 }
@@ -229,13 +242,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/t/$symbol': {
-      id: '/t/$symbol'
-      path: '/t/$symbol'
-      fullPath: '/t/$symbol'
-      preLoaderRoute: typeof TSymbolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/c/$handle': {
@@ -266,12 +272,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCallsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/t/$symbol/': {
+      id: '/t/$symbol/'
+      path: '/t/$symbol'
+      fullPath: '/t/$symbol/'
+      preLoaderRoute: typeof TSymbolIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/c/$handle/': {
       id: '/c/$handle/'
       path: '/'
       fullPath: '/c/$handle/'
       preLoaderRoute: typeof CHandleIndexRouteImport
       parentRoute: typeof CHandleRoute
+    }
+    '/t/$symbol/$creator': {
+      id: '/t/$symbol/$creator'
+      path: '/t/$symbol/$creator'
+      fullPath: '/t/$symbol/$creator'
+      preLoaderRoute: typeof TSymbolCreatorRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/prices/$symbol': {
       id: '/api/prices/$symbol'
@@ -332,9 +352,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReportRoute: ApiReportRoute,
   ApiRevalidateRoute: ApiRevalidateRoute,
   CHandleRoute: CHandleRouteWithChildren,
-  TSymbolRoute: TSymbolRoute,
   ApiDatasetHandleRoute: ApiDatasetHandleRoute,
   ApiPricesSymbolRoute: ApiPricesSymbolRoute,
+  TSymbolCreatorRoute: TSymbolCreatorRoute,
+  TSymbolIndexRoute: TSymbolIndexRoute,
   ApiOgCHandleRevRoute: ApiOgCHandleRevRoute,
   ApiOgTHandleSymbolRevRoute: ApiOgTHandleSymbolRevRoute,
 }

@@ -510,3 +510,146 @@ html[data-reduce-motion="true"] *::after {
 number-flow-group {
   display: contents;
 }
+
+/* Creator switcher: avatar tabs + search-tab that morphs into a combobox.
+   Built on the .t-tabs pill; the pill expands to full width to become the
+   combobox background (see creator-switcher.tsx). The morph keeps both content
+   layers mounted and crossfades them while the pill grows, anchored on the
+   search icon so the input feels like it grows out of the glass. */
+:root {
+  --cs-dur: 200ms;
+  --cs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cs-root {
+  position: relative;
+}
+/* The tab-row layer stays in flow so the container keeps a stable size (no
+   layout jump on open); the combobox layer overlays it absolutely. */
+.cs-layer {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition:
+    opacity var(--cs-dur) var(--cs-ease),
+    transform var(--cs-dur) var(--cs-ease);
+  will-change: opacity, transform;
+}
+.cs-layer-combobox {
+  position: absolute;
+  inset: 3px;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 48px;
+  z-index: 2;
+}
+.cs-layer-combobox input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 13px;
+  color: var(--foreground);
+}
+/* Resting state: tabs visible, combobox collapsed onto the search-tab slot and
+   inert. transform-origin left so the input grows rightward out of the icon. */
+.cs-layer-combobox {
+  opacity: 0;
+  transform: scale(0.96);
+  transform-origin: left center;
+  pointer-events: none;
+}
+.cs-layer-tabs {
+  opacity: 1;
+  transform: scale(1);
+  /* Origin on the base rule so the collapse-back is symmetric with the open
+     (right-anchored scale in both directions, not center on close). */
+  transform-origin: right center;
+}
+.cs-root[data-open] .cs-layer-tabs {
+  opacity: 0;
+  transform: scale(0.96);
+  pointer-events: none;
+}
+.cs-root[data-open] .cs-layer-combobox {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+/* The search icon is the shared anchor: it occupies the same left edge in both
+   layers, so the crossfade reads as one icon staying put while the row swaps. */
+.cs-search-icon {
+  flex: 0 0 auto;
+}
+.cs-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  object-fit: cover;
+  display: block;
+}
+.cs-avatar-fallback {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  text-transform: uppercase;
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+/* Dropdown panel reveals from the top edge with the same fade/scale/translate
+   vibe as .t-marker-card (origin top-right, under the now-full-width pill). */
+.cs-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 30;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--popover);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 12%);
+  padding: 4px;
+  transform-origin: top right;
+  transform: translateY(-4px) scale(0.97);
+  opacity: 0;
+  pointer-events: none;
+  /* Faster, eager-out close (no delay) so dismiss feels instant. */
+  transition:
+    opacity 120ms var(--cs-ease),
+    transform 120ms var(--cs-ease);
+}
+.cs-panel[data-open] {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: var(--cs-dur);
+}
+.cs-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.cs-option:hover,
+.cs-option[data-active="true"] {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+/* Neutralize the morph for OS-level reduced motion (the manual toggle is
+   already covered by the broad html[data-reduce-motion] rule above). */
+@media (prefers-reduced-motion: reduce) {
+  .cs-layer,
+  .cs-panel {
+    transition: none !important;
+  }
+}
