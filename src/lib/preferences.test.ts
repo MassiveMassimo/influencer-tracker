@@ -38,6 +38,7 @@ describe("readStoredPrefs", () => {
       theme: "auto",
       reduceMotion: false,
       reduceHaptics: false,
+      showHalalStatus: false,
     });
   });
 
@@ -45,10 +46,12 @@ describe("readStoredPrefs", () => {
     localStorage.setItem("theme", "dark");
     localStorage.setItem("reduce-motion", "true");
     localStorage.setItem("reduce-haptics", "true");
+    localStorage.setItem("show-halal", "true");
     expect(readStoredPrefs()).toEqual({
       theme: "dark",
       reduceMotion: true,
       reduceHaptics: true,
+      showHalalStatus: true,
     });
   });
 });
