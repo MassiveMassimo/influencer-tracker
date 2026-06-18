@@ -70,7 +70,7 @@ export function TickerCallTimeline({
               const pct = timelineXPercent(Date.parse(call.postDate), startMs, endMs);
               return (
                 <span
-                  key={j}
+                  key={`${c.handle}-${call.postDate}-${j}`}
                   title={`${c.name} · ${call.postDate}`}
                   className={
                     call.isFirstCall
