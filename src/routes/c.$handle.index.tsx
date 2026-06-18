@@ -34,7 +34,7 @@ import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
-import { UNKNOWN_INFO, type HalalInfo } from "#/lib/halal/types.ts";
+import { type HalalInfo } from "#/lib/halal/types.ts";
 
 const CALLS_PER_PAGE = 25;
 
@@ -330,7 +330,7 @@ function CallsList({
             key={`${c.shortcode}:${c.ticker}`}
             handle={handle}
             call={c}
-            halalInfo={getHalal(c.ticker) ?? UNKNOWN_INFO}
+            halalInfo={getHalal(c.ticker)}
           />
         ))}
         {calls.length === 0 && (

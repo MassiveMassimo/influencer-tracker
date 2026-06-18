@@ -1,7 +1,7 @@
 import * as React from "react";
 import { type QueryClient, queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchHalal } from "./halal-fetch.ts";
-import { type HalalInfo } from "./halal/types.ts";
+import { type HalalInfo, UNKNOWN_INFO } from "./halal/types.ts";
 import { usePreferences } from "./preferences.tsx";
 
 const STALE_MS = 12 * 60 * 60 * 1000; // 12h — real client-side reuse lives here
@@ -28,8 +28,10 @@ export async function prefetchHalal(queryClient: QueryClient, symbols: string[])
   await queryClient.ensureQueryData(halalQuery(symbols)).catch(() => undefined);
 }
 
-// Returns a lookup fn. Disabled (no network) unless the opt-in toggle is on.
-export function useHalalStatus(symbols: string[]): (symbol: string) => HalalInfo | undefined {
+// Returns a lookup fn that fails open: an unfetched/missing symbol resolves to
+// UNKNOWN_INFO (which renders nothing), so call sites never coalesce. Disabled
+// (no network) unless the opt-in toggle is on.
+export function useHalalStatus(symbols: string[]): (symbol: string) => HalalInfo {
   const { showHalalStatus } = usePreferences();
   const key = symbols.join(",");
   const sorted = React.useMemo(() => [...new Set(symbols)].sort(), [key]);
@@ -37,5 +39,5 @@ export function useHalalStatus(symbols: string[]): (symbol: string) => HalalInfo
     ...halalQuery(sorted),
     enabled: showHalalStatus && sorted.length > 0,
   });
-  return React.useCallback((symbol: string) => q.data?.[symbol], [q.data]);
+  return React.useCallback((symbol: string) => q.data?.[symbol] ?? UNKNOWN_INFO, [q.data]);
 }

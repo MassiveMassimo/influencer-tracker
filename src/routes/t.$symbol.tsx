@@ -5,7 +5,6 @@ import { siteUrl } from "#/og/site.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { HalalCardContent } from "#/components/halal/halal-card-content.tsx";
-import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 
 export const Route = createFileRoute("/t/$symbol")({
   loader: async ({ params, context }) => {
@@ -42,7 +41,7 @@ function tone(x: number | null) {
 function TickerView() {
   const { summary, names, avatars } = Route.useLoaderData();
   const getHalal = useHalalStatus([summary.symbol]);
-  const halal = getHalal(summary.symbol) ?? UNKNOWN_INFO;
+  const halal = getHalal(summary.symbol);
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header>
