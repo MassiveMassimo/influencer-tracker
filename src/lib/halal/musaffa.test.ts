@@ -39,7 +39,7 @@ describe("fetchMusaffa", () => {
 
   it("throws MusaffaOutage on 5xx", async () => {
     mockFetch(503, { message: "down" });
-    expect(fetchMusaffa(["AAPL"], "key")).rejects.toBeInstanceOf(MusaffaOutage);
+    await expect(fetchMusaffa(["AAPL"], "key")).rejects.toBeInstanceOf(MusaffaOutage);
   });
 
   it("returns empty map for no keys without fetching", async () => {

@@ -47,8 +47,8 @@ function Explore() {
     search: "", handles: [], firstOnly: false, beatSpyOnly: false, horizon: "ex3m", sort: { key: "postDate", dir: -1 },
   });
   const rows = useMemo(() => applyCallFilter(calls, filter, names), [calls, filter, names]);
-  const rowTickers = useMemo(() => rows.map((r) => r.ticker), [rows]);
-  const getHalal = useHalalStatus(rowTickers);
+  const allTickers = useMemo(() => calls.map((c) => c.ticker), [calls]);
+  const getHalal = useHalalStatus(allTickers);
   const onSort = (key: SortKey) =>
     setFilter((f) => ({ ...f, sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 } }));
   const toggleHandle = (h: string) =>

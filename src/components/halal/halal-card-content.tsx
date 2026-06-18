@@ -25,6 +25,8 @@ export function HalalCardContent({ info }: { info: HalalInfo }) {
       <div className="flex justify-center">
         <ChartBoundary>
           <Gauge
+            width={112}
+            height={84}
             value={info.halalPct}
             // centerValue must be the 0–1 fraction — Intl style:"percent" multiplies ×100
             centerValue={purityFraction(info.halalPct)}
