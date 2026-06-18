@@ -5,7 +5,6 @@ import { PieChart } from "#/components/charts/pie-chart.tsx";
 import { PieSlice } from "#/components/charts/pie-slice.tsx";
 import { ChartBoundary } from "#/components/ChartBoundary";
 import { usePreferences } from "#/lib/preferences.tsx";
-import { useInView } from "#/lib/use-in-view.ts";
 import { musaffaKey, STATUS_META, type HalalInfo } from "#/lib/halal/types.ts";
 
 const SLICE = { halal: "#10b981", doubtful: "#f59e0b", notHalal: "#ef4444" } as const;
@@ -49,9 +48,6 @@ function Screen({ label, value }: { label: string; value: number }) {
 // "not rated" entry point. `symbol` is the route symbol, used for the lookup link.
 export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }) {
   const { showHalalStatus } = usePreferences();
-  // Defer the donut mount until it scrolls in — the panel sits below the SPY
-  // chart, so its bklit enter animation would otherwise play unseen.
-  const [donutRef, donutInView] = useInView<HTMLDivElement>();
   if (!showHalalStatus) return null;
 
   if (info.status === "unknown") {
@@ -101,16 +97,14 @@ export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }
         <div className="flex items-center gap-4">
           {/* Center label overlaid manually: bklit's PieCenter only renders its
               render-prop on hover, falling back to a "Total" label otherwise. */}
-          <div className="relative" ref={donutRef} style={{ width: 132, height: 132 }}>
-            {donutInView ? (
-              <ChartBoundary>
-                <PieChart data={data} size={132} innerRadius={46} padAngle={0.03} cornerRadius={3} hoverOffset={4}>
-                  {data.map((d, i) => (
-                    <PieSlice index={i} key={d.label} />
-                  ))}
-                </PieChart>
-              </ChartBoundary>
-            ) : null}
+          <div className="relative" style={{ width: 132, height: 132 }}>
+            <ChartBoundary>
+              <PieChart data={data} size={132} innerRadius={46} padAngle={0.03} cornerRadius={3} hoverOffset={4}>
+                {data.map((d, i) => (
+                  <PieSlice index={i} key={d.label} />
+                ))}
+              </PieChart>
+            </ChartBoundary>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
               <div className="font-heading text-xl leading-none text-foreground">
                 {info.halalPct.toFixed(0)}%
