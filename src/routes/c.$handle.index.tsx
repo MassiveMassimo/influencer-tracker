@@ -10,12 +10,9 @@ import { DataAsOf } from "../components/DataAsOf";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { ConvictionScatter, HorizonBars } from "../components/AnalyticsCharts";
 
-// Gauge + Funnel pull motion + @visx; lazy-load them so that chunk stays off the
-// creator route's initial/hydration path (cuts TBT/LCP). The native HTML/SVG
-// HorizonBars + ConvictionScatter have no heavy deps and stay eager.
-const HitRateGauge = lazy(() =>
-  import("../components/AnalyticsCharts").then((m) => ({ default: m.HitRateGauge })),
-);
+// Funnel pulls motion + @visx; lazy-load it so that chunk stays off the creator
+// route's initial/hydration path (cuts TBT/LCP). The native HTML/SVG HorizonBars
+// + ConvictionScatter have no heavy deps and stay eager.
 const CallFunnel = lazy(() =>
   import("../components/AnalyticsCharts").then((m) => ({ default: m.CallFunnel })),
 );
@@ -74,10 +71,6 @@ const PCT_FMT: Format = {
   maximumFractionDigits: 1,
 };
 const SIGNED_PCT_FMT: Format = { ...PCT_FMT, signDisplay: "exceptZero" };
-
-// Cascade offset between adjacent stat tiles; per-flow count duration.
-const STAGGER_MS = 90;
-const FLOW_DURATION_MS = 700;
 
 type StatSegment =
   | { kind: "num"; key: string; value: number; format: Format }
@@ -189,8 +182,8 @@ function Overview() {
         ref={statsRef}
       >
         <NumberFlowGroup>
-          {tiles.map((t, i) => (
-            <StatTile index={i} key={t.label} revealed={statsInView} tile={t} />
+          {tiles.map((t) => (
+            <StatTile key={t.label} revealed={statsInView} tile={t} />
           ))}
         </NumberFlowGroup>
       </section>
@@ -201,20 +194,11 @@ function Overview() {
       >
         <div className="bg-background p-6">
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Hit rate · calls beating SPY (3m)
+            Avg excess vs SPY · by horizon
+            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
           </div>
-          <div className="mt-4">
-            <ChartBoundary>
-              <Suspense
-                fallback={<div className="h-[180px] w-full animate-pulse rounded-md bg-muted/40" />}
-              >
-                {chartsInView ? (
-                  <HitRateGauge ds={ds} />
-                ) : (
-                  <div className="h-[180px] w-full" />
-                )}
-              </Suspense>
-            </ChartBoundary>
+          <div className="mt-3">
+            <HorizonBars ds={ds} />
           </div>
         </div>
         <div className="bg-background p-6">
@@ -237,23 +221,12 @@ function Overview() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2">
-        <div className="bg-background p-6">
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Avg excess vs SPY · by horizon
-            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
-          </div>
-          <div className="mt-3">
-            <HorizonBars ds={ds} />
-          </div>
+      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
+        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          Conviction vs return
         </div>
-        <div className="bg-background p-6">
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Conviction vs return
-          </div>
-          <div className="mt-3">
-            <ConvictionScatter ds={ds} />
-          </div>
+        <div className="mt-3">
+          <ConvictionScatter ds={ds} />
         </div>
       </section>
 
@@ -266,16 +239,12 @@ function Overview() {
 
 function StatTile({
   tile,
-  index,
   revealed,
 }: {
   tile: StatTileData;
-  index: number;
   revealed: boolean;
 }) {
   const ready = useNumberFlowReady();
-  // Stagger the cascade by tile position; all segments of one tile share its slot.
-  const delay = index * STAGGER_MS;
   const toneCls =
     tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
 
@@ -294,12 +263,6 @@ function StatTile({
               isolate
               locales="en-US"
               key={seg.key}
-              opacityTiming={{ duration: 350, delay, easing: "ease-out" }}
-              transformTiming={{
-                duration: FLOW_DURATION_MS,
-                delay,
-                easing: "ease-out",
-              }}
               value={revealed ? seg.value : 0}
               willChange
             />
