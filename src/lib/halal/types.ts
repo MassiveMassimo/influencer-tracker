@@ -47,8 +47,11 @@ export function musaffaKey(symbol: string): string {
   return s.replace(/^([A-Z]+)-([A-Z])$/, "$1.$2");
 }
 
-export function musaffaUrl(ticker: string, exchange: string): string {
-  return `https://musaffa.com/stock/${ticker}/${exchange}`;
+// Musaffa stock page is keyed by ticker only — no exchange segment. Verified against
+// musaffa.com's own links (e.g. /stock/NVDA/, /stock/BRK.B/, /stock/RELIANCE.NS/).
+// Appending the exchange (/stock/NOW/NYSE) 404s.
+export function musaffaUrl(ticker: string): string {
+  return `https://musaffa.com/stock/${ticker}/`;
 }
 
 export function badgeKindFor(status: HalalStatus): "halal" | "doubtful" | null {

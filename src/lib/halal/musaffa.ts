@@ -30,7 +30,7 @@ function toInfo(doc: TypesenseDoc): HalalInfo {
     doubtfulPct: doc.doubtful_revenue_percent ?? 0,
     exchange,
     ticker,
-    musaffaUrl: ticker && exchange ? musaffaUrl(ticker, exchange) : "",
+    musaffaUrl: ticker ? musaffaUrl(ticker) : "",
   };
 }
 

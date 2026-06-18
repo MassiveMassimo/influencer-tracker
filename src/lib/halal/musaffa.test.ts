@@ -34,7 +34,7 @@ describe("fetchMusaffa", () => {
     const out = await fetchMusaffa(["AAPL"], "key");
     expect(out.AAPL.status).toBe("halal");
     expect(out.AAPL.halalPct).toBeCloseTo(95.92);
-    expect(out.AAPL.musaffaUrl).toBe("https://musaffa.com/stock/AAPL/NASDAQ");
+    expect(out.AAPL.musaffaUrl).toBe("https://musaffa.com/stock/AAPL/");
   });
 
   it("throws MusaffaOutage on 5xx", async () => {

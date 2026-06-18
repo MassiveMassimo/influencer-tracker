@@ -95,8 +95,10 @@ the check is dropped to `unknown`, never sent.
 
 ### Musaffa page URL
 
-`https://musaffa.com/stock/<TICKER>/<EXCHANGE>` (verified to resolve, e.g.
-`/stock/AAPL/NASDAQ`). Built from the doc's `ticker` + `exchange`.
+`https://musaffa.com/stock/<TICKER>/` — ticker only, no exchange segment
+(verified against musaffa.com's own links, e.g. `/stock/NVDA/`, `/stock/BRK.B/`,
+`/stock/RELIANCE.NS/`). Appending the exchange (`/stock/NOW/NYSE`) 404s — the SPA
+soft-200s every path, so resolution must be checked by rendered content, not status.
 
 ## Architecture
 
@@ -120,7 +122,7 @@ fetchMusaffa(keys, apiKey)              Typesense GET, batch 250, MUSAFFA_API_KE
 **`src/lib/halal/musaffa.ts`** (server-only)
 - `parseRating(raw: string): HalalStatus` — pure status mapper.
 - `musaffaKey(symbol: string): string` — pure symbol→lookup-key (rules above).
-- `musaffaUrl(ticker: string, exchange: string): string` — pure URL builder.
+- `musaffaUrl(ticker: string): string` — pure URL builder (ticker only, no exchange).
 - `fetchMusaffa(keys: string[], apiKey: string): Promise<MusaffaRecord[]>` —
   batched Typesense fetch; validates keys with `isSafeAssetKey` before quoting;
   throws `MusaffaOutage` on HTTP 5xx (caller catches).
@@ -256,7 +258,7 @@ the toggle were off.
 - `parseRating` — every documented rating string → enum; junk → `unknown`.
 - `musaffaKey` — `AAPL`→`AAPL`, `BRK-B`→`BRK.B`, `$BTC`→`BTC` (won't match),
   `HEIA.AS` passthrough; lower-case input handled.
-- `musaffaUrl` — ticker + exchange → expected URL.
+- `musaffaUrl` — ticker → expected URL (`/stock/<ticker>/`).
 - `fetchHalal` — mocked `fetchMusaffa`: cache hit/miss + ~5-min expiry, fail-open
   on throw and on missing key, symbol→key mapping, join-back of unmatched → unknown,
   `isSafeAssetKey` rejection.

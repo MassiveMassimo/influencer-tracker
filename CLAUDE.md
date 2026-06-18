@@ -481,8 +481,12 @@ creator, patch it directly as DB owner:
 Opt-in (`showHalalStatus` preference, off by default) Shariah-compliance badge on
 tracked tickers: `hugeicons:halal` for compliant, lucide circle-question-mark for
 doubtful; not-halal/unknown render nothing. Hover/tap opens a coss `preview-card`
-with a revenue-purity bklit `Gauge` + a link to the stock's Musaffa page; the same
-`HalalCardContent` renders as an inline section on `/t/$symbol`.
+with a revenue-purity bklit `Gauge` (solid fill colored by status — emerald/amber/red,
+matching the badge; no center label) + a link to the stock's Musaffa page; the same
+`HalalCardContent` renders as an inline section on `/t/$symbol`. The badge/popup live
+inside row-level `<Link>`s, so `HalalIndicator` + the Musaffa link `stopPropagation` on
+click (React events bubble through the portal's React tree to the row) — without it the
+router hijacks the external link and navigates the row instead.
 
 **Live, not baked.** Halal status is dynamic (flips on earnings), so it follows the
 "live for display" path, not the frozen-scoring path. `fetchHalal` (`src/lib/halal-fetch.ts`,
@@ -492,11 +496,25 @@ server-side `MUSAFFA_API_KEY`; `useHalalStatus` (`src/lib/halal-query.ts`) cache
 client-side (12h staleTime) and is disabled unless the toggle is on. Fail-open: any
 error / missing key / unmatched symbol → `unknown` → nothing renders.
 
+**SSR-prefetched for first paint.** Each serve route's loader calls `prefetchHalal`
+(`halal-query.ts`) so the data is baked into the dehydrated payload — an opted-in viewer
+sees badges on the first client render with no post-hydration round-trip (was ~620ms →
+hydration-only). `prefetchHalal` runs **SSR-only** (`typeof window === "undefined"`); on
+client navigations it's skipped so `useHalalStatus` stays lazy + opt-in-gated (opted-out
+users never fetch). The SSR result is itself ISR-cached (6h), so the Musaffa call is
+amortized per page, not per visit — that ISR layer *is* the server-side cache (no KV
+needed). Mirrors how the ticker loader prefetches `chartQuery`.
+
 **Symbol keying gotcha.** Do NOT run `resolveSymbol` before a Musaffa lookup — it
 canonicalizes toward Yahoo (`BRK-B`, `BTC-USD`, `HEIA.AS`). Musaffa keys by US ticker
 with a dot for class shares (`BRK.B`). Use `musaffaKey` (`src/lib/halal/types.ts`):
 uppercase, strip `$`, class-share dash→dot. Crypto/foreign listings won't match →
 `unknown` (correct — Musaffa has no rating for them).
+
+**Musaffa page URL gotcha.** The stock page is `https://musaffa.com/stock/<ticker>/` —
+**ticker only, no exchange segment** (`musaffaUrl(ticker)` in `types.ts`). Appending the
+exchange (`/stock/NOW/NYSE`) 404s. Musaffa is a SPA that soft-200s every path, so verify
+a URL by rendered content, not HTTP status (a curl 200 is meaningless).
 
 `MUSAFFA_API_KEY` (Typesense search-only key) must be set in local `.env` and Vercel
 prod env. It's read-only and already ships in Musaffa's own web client; kept

@@ -43,7 +43,7 @@ describe("musaffaKey", () => {
 
 describe("musaffaUrl", () => {
   it("builds the stock page URL", () => {
-    expect(musaffaUrl("AAPL", "NASDAQ")).toBe("https://musaffa.com/stock/AAPL/NASDAQ");
+    expect(musaffaUrl("AAPL")).toBe("https://musaffa.com/stock/AAPL/");
   });
 });
 

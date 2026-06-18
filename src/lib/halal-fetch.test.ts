@@ -10,7 +10,7 @@ const AAPL: HalalInfo = {
   doubtfulPct: 0,
   exchange: "NASDAQ",
   ticker: "AAPL",
-  musaffaUrl: "https://musaffa.com/stock/AAPL/NASDAQ",
+  musaffaUrl: "https://musaffa.com/stock/AAPL/",
 };
 
 describe("assembleHalal", () => {
