@@ -35,12 +35,13 @@ export function HalalIndicator({ info }: { info: HalalInfo }) {
   if (badgeKindFor(info.status) === null) return null;
   return (
     <PreviewCard>
+      {/* Badge + popup often sit inside a row-level <Link>; clicks bubble through the
+          React tree (even from the portaled popup) to the row. Contain them at the two
+          subtree roots — trigger and popup — so HalalCardContent stays Link-agnostic. */}
       <PreviewCardTrigger
         render={
           <button
             type="button"
-            // Badge often sits inside a row-level <Link>; clicks bubble through the
-            // React tree even from the portaled popup, so stop them reaching the row.
             onClick={(e) => e.stopPropagation()}
             className="inline-flex cursor-default items-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
             aria-label="Halal compliance details"
@@ -49,7 +50,10 @@ export function HalalIndicator({ info }: { info: HalalInfo }) {
       >
         <HalalBadge info={info} />
       </PreviewCardTrigger>
-      <PreviewCardPopup className="rounded-xl border border-border/60 bg-background p-3 shadow-lg">
+      <PreviewCardPopup
+        onClick={(e) => e.stopPropagation()}
+        className="rounded-xl border border-border/60 bg-background p-3 shadow-lg"
+      >
         <HalalCardContent info={info} />
       </PreviewCardPopup>
     </PreviewCard>

@@ -4,19 +4,12 @@ import { Gauge } from "#/components/charts/gauge.tsx";
 import { ChartBoundary } from "#/components/ChartBoundary";
 import { purityFraction, type HalalInfo } from "#/lib/halal/types.ts";
 
-const LABEL: Record<HalalInfo["status"], string> = {
-  halal: "Shariah-compliant",
-  doubtful: "Compliance questionable",
-  not_halal: "Not compliant",
-  unknown: "Compliance unknown",
-};
-
-// Semantic gauge fill by status — matches the badge colors (emerald/amber/red).
-const GAUGE_FILL: Record<HalalInfo["status"], string> = {
-  halal: "#10b981",
-  doubtful: "#f59e0b",
-  not_halal: "#ef4444",
-  unknown: "#94a3b8",
+// Per-status label + semantic gauge fill (emerald/amber/red, matching the badge colors).
+const STATUS: Record<HalalInfo["status"], { label: string; fill: string }> = {
+  halal: { label: "Shariah-compliant", fill: "#10b981" },
+  doubtful: { label: "Compliance questionable", fill: "#f59e0b" },
+  not_halal: { label: "Not compliant", fill: "#ef4444" },
+  unknown: { label: "Compliance unknown", fill: "#94a3b8" },
 };
 
 export function HalalCardContent({ info }: { info: HalalInfo }) {
@@ -24,7 +17,7 @@ export function HalalCardContent({ info }: { info: HalalInfo }) {
     <div className="w-64 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">
-          {LABEL[info.status]}
+          {STATUS[info.status].label}
         </span>
         <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wide">
           {info.exchange || info.ticker}
@@ -40,7 +33,7 @@ export function HalalCardContent({ info }: { info: HalalInfo }) {
             centerValue={purityFraction(info.halalPct)}
             formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
             // Solid status color (green/amber/red); theme-aware neutral track.
-            activeFill={GAUGE_FILL[info.status]}
+            activeFill={STATUS[info.status].fill}
             inactiveFill="var(--chart-background)"
             inactiveFillOpacity={0.4}
             defaultLabel=""
@@ -60,9 +53,6 @@ export function HalalCardContent({ info }: { info: HalalInfo }) {
           href={info.musaffaUrl}
           target="_blank"
           rel="noopener noreferrer"
-          // Popup may live inside a row-level <Link>; stop the click bubbling so the
-          // external link opens without the router also navigating the underlying row.
-          onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline-offset-2 hover:underline"
         >
           View on Musaffa ↗
