@@ -510,3 +510,74 @@ html[data-reduce-motion="true"] *::after {
 number-flow-group {
   display: contents;
 }
+
+/* Creator switcher: avatar tabs + search-tab that morphs into a combobox.
+   Built on the .t-tabs pill; the pill expands to full width to become the
+   combobox background (see creator-switcher.tsx). */
+.cs-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  object-fit: cover;
+  display: block;
+}
+.cs-avatar-fallback {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  text-transform: uppercase;
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+/* Combobox overlay sits on top of the full-width pill while open. */
+.cs-combobox {
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 48px;
+  z-index: 2;
+}
+.cs-combobox input {
+  flex: 1 1 auto;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 13px;
+  color: var(--foreground);
+}
+.cs-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 280px;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 30;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--popover);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 12%);
+  padding: 4px;
+}
+.cs-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.cs-option:hover,
+.cs-option[data-active="true"] {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
