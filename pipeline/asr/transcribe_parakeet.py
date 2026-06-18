@@ -21,7 +21,10 @@ def main() -> int:
     if not jobs:
         json.dump({}, sys.stdout)
         return 0
-    model = onnx_asr.load_model(MODEL)
+    # Force CPU EP. The design is CPU/ONNX (no GPU); on macOS onnxruntime would
+    # otherwise auto-select the CoreML EP, which fails to init this model's
+    # external-data weights ("model_path must not be empty"). VM is already CPU-only.
+    model = onnx_asr.load_model(MODEL, providers=["CPUExecutionProvider"])
     out = {}
     for code, path in jobs:
         try:
