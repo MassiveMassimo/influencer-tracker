@@ -41,3 +41,11 @@ public/calls-index.json
 
 # bake-off generated reports
 bakeoff-glm5p2-*.md
+
+# agent/dev-tool scaffolding (local, per-machine)
+.agents/
+.cursor/
+.kiro/
+.qwen/
+skills/
+skills-lock.json

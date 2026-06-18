@@ -505,6 +505,27 @@ Two `ui/*` files are deliberately **not** coss and must stay custom:
 To grab a fresh devl.dev snippet: open the component page and press `c` for code
 (client-rendered — not in the page HTML).
 
+## Icons
+
+**`lucide-react` is the default** — coss-ui ships with it and the `ui/*` primitives
+use it. Reach for it first.
+
+**Iconify is for niche icons lucide lacks** (275k+ icons across all open-source sets).
+Wired via the Tailwind v4 CSS plugin (`@plugin '@iconify/tailwind4';` in `src/styles.css`,
+icon data from the dev-only `@iconify/json`). No JS import, no component — render an
+icon with a dynamic Tailwind class, sized `1em` by default so it inherits `font-size`/
+`text-{color}`:
+
+```tsx
+<span className="icon-[mdi--rocket-launch] text-emerald-500" />
+```
+
+Class shape is `icon-[PREFIX--NAME]` (e.g. prefix `mdi`, name `rocket-launch`). Find
+icons + copy the exact class at
+https://icon-sets.iconify.design (pick an icon → CSS → Tailwind CSS). Only icons whose
+classes appear in the source get emitted to the output CSS — the full `@iconify/json` set
+is a build-time index, not shipped. Both deps are `devDependencies`.
+
 ## Scroll areas (lina)
 
 Any scrollable region (overflow lists, wide tables, drawer bodies) uses the lina
