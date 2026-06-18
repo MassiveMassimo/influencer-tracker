@@ -39,6 +39,9 @@ export function HalalIndicator({ info }: { info: HalalInfo }) {
         render={
           <button
             type="button"
+            // Badge often sits inside a row-level <Link>; clicks bubble through the
+            // React tree even from the portaled popup, so stop them reaching the row.
+            onClick={(e) => e.stopPropagation()}
             className="inline-flex cursor-default items-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
             aria-label="Halal compliance details"
           />

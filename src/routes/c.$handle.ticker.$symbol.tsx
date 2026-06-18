@@ -354,7 +354,7 @@ function TickerPage() {
         <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
           Ticker · @{ds.creator.handle}
         </div>
-        <h1 className="mt-1 flex items-baseline gap-2 font-heading text-2xl">
+        <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
           {symbol}
           <HalalIndicator info={halal} />
           <span className="text-base text-muted-foreground">{calls[0]?.company}</span>

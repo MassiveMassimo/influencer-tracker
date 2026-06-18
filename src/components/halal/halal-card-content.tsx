@@ -51,6 +51,9 @@ export function HalalCardContent({ info }: { info: HalalInfo }) {
           href={info.musaffaUrl}
           target="_blank"
           rel="noopener noreferrer"
+          // Popup may live inside a row-level <Link>; stop the click bubbling so the
+          // external link opens without the router also navigating the underlying row.
+          onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 text-xs font-medium text-foreground underline-offset-2 hover:underline"
         >
           View on Musaffa ↗
