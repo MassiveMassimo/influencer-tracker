@@ -47,14 +47,19 @@ export function HitRateGauge({ ds }: { ds: Dataset }) {
 // Call funnel — used in the overview side pane. Wrap in ChartBoundary at call site.
 export function CallFunnel({ ds }: { ds: Dataset }) {
   const sc = ds.scorecard;
-  if (!sc.funnel || sc.funnel.length === 0) {
+  const funnel = sc.funnel;
+  // Guard degenerate data: an empty funnel, a zero top stage (no posts scraped → every
+  // downstream % divides by that zero → NaN%/Infinity%), or a non-monotonic funnel (a stage
+  // wider than the top, e.g. a corrupted re-score). Show the populate hint instead of garbage.
+  const top = funnel?.[0]?.value ?? 0;
+  if (!funnel || funnel.length === 0 || top <= 0 || funnel.some((s) => s.value > top)) {
     return <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>;
   }
   // Vertical: 5 longer stage labels get their own full-width row instead of
   // colliding inside narrow horizontal cells.
   return (
     <FunnelChart
-      data={sc.funnel}
+      data={funnel}
       color="var(--chart-1)"
       layers={3}
       orientation="vertical"

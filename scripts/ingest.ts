@@ -21,8 +21,26 @@ async function counts(h: string) {
   } catch { return { total: 0, scored: 0 }; }
 }
 
+// Daily ingest is X-only. An X creator's shortcodes are numeric tweet ids; IG reel codes are
+// alphanumeric. If a handle's stored calls are majority non-numeric it is an IG creator wrongly
+// listed in INGEST_HANDLES — X-scraping it hits a same-named X account and clobbers the real
+// (IG) data with an empty/foreign scrape. Skip it loudly rather than corrupt it.
+async function looksInstagram(h: string): Promise<boolean> {
+  try {
+    const rc = JSON.parse(await readFile(`data/creators/${h}/reel-calls.json`, "utf8")) as { shortcode?: unknown }[];
+    const codes = rc.map((x) => String(x.shortcode ?? "")).filter(Boolean);
+    if (!codes.length) return false;
+    const numeric = codes.filter((c) => /^\d+$/.test(c)).length;
+    return numeric / codes.length < 0.5;
+  } catch { return false; }
+}
+
 for (const h of handles) {
   try {
+    if (await looksInstagram(h)) {
+      await notify(blockedMessage(h, "looks like an Instagram creator (non-numeric shortcodes) — skipped X ingest. Remove it from INGEST_HANDLES."));
+      continue;
+    }
     const before = await counts(h);
     const name = JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
     await $`${bun} run pipeline:x --handle ${h} --name ${name} --forward`;   // stage-1: scrape(forward)+extract

@@ -389,6 +389,15 @@ to-date/recent-horizon returns mature for all creators without needing a new rev
 committed baseline — truncated-scrape / data-loss prevention — and runs **before** `score`
 overwrites `dataset.json`.
 
+**Platform guard (X-only ingest).** `ingest.ts` skips any handle whose stored calls are
+majority **non-numeric** shortcodes (`looksInstagram`) — an IG creator wrongly listed in the
+X-only `INGEST_HANDLES`. Without it, X-scraping an IG handle hits a same-named X account and
+clobbers the real IG data with an empty/foreign scrape (this happened to `kevvonz` 2026-06-18:
+twitter.com/kevvonz had 0 tweets → tweet store emptied → funnel divided by 0 → `NaN%/Infinity%`;
+fixed by restoring from committed static + removing it from `INGEST_HANDLES`). The skip sends a
+BLOCKED alert naming the fix. `CallFunnel` (`src/components/AnalyticsCharts.tsx`) independently
+refuses to render a degenerate funnel (zero top stage / non-monotonic) as a second line of defense.
+
 **Telegram messages.** On success: a published-summary per handle. On `guard-no-shrink` or parity
 failure: a BLOCKED alert containing the manual re-run command for that handle. Delivery goes
 through `scripts/notify.ts` `notify()`, which prefers the **Hermes gateway** (`hermes send --to
