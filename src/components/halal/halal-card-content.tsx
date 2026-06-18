@@ -11,6 +11,14 @@ const LABEL: Record<HalalInfo["status"], string> = {
   unknown: "Compliance unknown",
 };
 
+// Semantic gauge fill by status — matches the badge colors (emerald/amber/red).
+const GAUGE_FILL: Record<HalalInfo["status"], string> = {
+  halal: "#10b981",
+  doubtful: "#f59e0b",
+  not_halal: "#ef4444",
+  unknown: "#94a3b8",
+};
+
 export function HalalCardContent({ info }: { info: HalalInfo }) {
   return (
     <div className="w-64 space-y-3">
@@ -31,10 +39,11 @@ export function HalalCardContent({ info }: { info: HalalInfo }) {
             // centerValue must be the 0–1 fraction — Intl style:"percent" multiplies ×100
             centerValue={purityFraction(info.halalPct)}
             formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
-            useGradient
-            activeGradient={["#a855f7", "#06b6d4"]}
-            inactiveGradient={["#334155", "#38bdf8"]}
+            // Solid status color (green/amber/red); theme-aware neutral track.
+            activeFill={GAUGE_FILL[info.status]}
+            inactiveFill="var(--chart-background)"
             inactiveFillOpacity={0.4}
+            defaultLabel=""
             startAngle={140}
             endAngle={400}
             notchCornerRadius={7}
