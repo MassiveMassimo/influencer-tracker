@@ -28,17 +28,11 @@ export function CreatorSwitcher({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
 
-  // Switcher only earns its place with someone to switch to.
-  if (creators.length <= 1) return null;
-
-  const tabs = pickAvatarTabs(creators, selected, 3);
-  const go = (creator: string) =>
-    navigate({ to: "/t/$symbol/$creator", params: { symbol, creator } });
-
   // Position the pill under the active tab; when the combobox is open the pill
   // expands to fill the whole container and becomes the combobox background.
   const positionPill = (animate: boolean) => {
-    const list = listRef.current, pill = pillRef.current;
+    const list = listRef.current,
+      pill = pillRef.current;
     if (!list || !pill) return;
     const apply = (left: number, width: number) => {
       pill.style.transform = `translateX(${left}px)`;
@@ -81,97 +75,123 @@ export function CreatorSwitcher({
     return () => window.removeEventListener("pointerdown", onDown);
   }, [open]);
 
+  // Switcher only earns its place with someone to switch to. Returns after all
+  // hooks so they stay unconditional (effects no-op while refs are null).
+  if (creators.length <= 1) return null;
+
+  const tabs = pickAvatarTabs(creators, selected, 3);
+  const go = (creator: string) =>
+    navigate({ to: "/t/$symbol/$creator", params: { symbol, creator } });
+
   const filtered = creators
-    .filter((c) => c.name.toLowerCase().includes(q.toLowerCase()) || c.handle.toLowerCase().includes(q.toLowerCase()))
+    .filter(
+      (c) =>
+        c.name.toLowerCase().includes(q.toLowerCase()) ||
+        c.handle.toLowerCase().includes(q.toLowerCase()),
+    )
     .sort((a, b) => (b.lastCallDate ?? "").localeCompare(a.lastCallDate ?? ""));
 
+  // Single source of truth for the morph: data-open drives the pill expansion
+  // and the crossfade between the tab-row layer and the combobox layer. Both
+  // layers stay mounted so neither hard-pops; the inactive one is faded out and
+  // made inert (pointer-events/visibility via CSS).
   return (
-    <div className="relative">
-      <div className="t-tabs" role="tablist" ref={listRef}>
+    <div className="cs-root" data-open={open || undefined}>
+      <div className="t-tabs cs-tabs" role="tablist" ref={listRef}>
         <span className="t-tabs-pill" aria-hidden="true" ref={pillRef} />
 
-        {!open && (
-          <>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={selected === null}
-              className="t-tab font-mono"
-              onClick={() => go("all")}
-            >
-              All
-            </button>
-            {tabs.map((c) => (
-              <Tooltip key={c.handle}>
-                <TooltipTrigger
-                  render={
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={selected === c.handle}
-                      aria-label={c.name}
-                      className="t-tab"
-                      onClick={() => go(c.handle)}
-                    >
-                      <Avatar creator={c} />
-                    </button>
-                  }
-                />
-                <TooltipPopup>{c.name}</TooltipPopup>
-              </Tooltip>
-            ))}
-            <button
-              type="button"
-              aria-label="Search creators"
-              className="t-tab"
-              onClick={() => { setQ(""); setOpen(true); }}
-            >
-              <Search size={15} />
-            </button>
-          </>
-        )}
+        {/* Tab-row layer: All + avatar tabs + the search trigger. */}
+        <div className="cs-layer cs-layer-tabs" aria-hidden={open}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={selected === null}
+            tabIndex={open ? -1 : 0}
+            className="t-tab font-mono"
+            onClick={() => go("all")}
+          >
+            All
+          </button>
+          {tabs.map((c) => (
+            <Tooltip key={c.handle}>
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={selected === c.handle}
+                    aria-label={c.name}
+                    tabIndex={open ? -1 : 0}
+                    className="t-tab"
+                    onClick={() => go(c.handle)}
+                  >
+                    <Avatar creator={c} />
+                  </button>
+                }
+              />
+              <TooltipPopup>{c.name}</TooltipPopup>
+            </Tooltip>
+          ))}
+          <button
+            type="button"
+            aria-label="Search creators"
+            tabIndex={open ? -1 : 0}
+            className="t-tab cs-search-tab"
+            onClick={() => {
+              setQ("");
+              setOpen(true);
+            }}
+          >
+            <Search size={15} />
+          </button>
+        </div>
 
-        {open && (
-          <div className="cs-combobox">
-            <Search size={15} className="text-muted-foreground" />
-            <input
-              ref={inputRef}
-              value={q}
-              placeholder="Search creators…"
-              onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
-            />
-          </div>
-        )}
+        {/* Combobox layer: the search icon stays put as the morph anchor and
+            the input grows out of it. */}
+        <div className="cs-layer cs-layer-combobox" aria-hidden={!open}>
+          <Search size={15} className="cs-search-icon text-muted-foreground" />
+          <input
+            ref={inputRef}
+            value={q}
+            tabIndex={open ? 0 : -1}
+            placeholder="Search creators…"
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setOpen(false);
+            }}
+          />
+        </div>
       </div>
 
-      {open && (
-        <div className="cs-panel" role="listbox">
-          {filtered.length === 0 ? (
-            <div className="px-3 py-3 text-sm text-muted-foreground">No creators match.</div>
-          ) : (
-            filtered.map((c) => (
-              <button
-                key={c.handle}
-                type="button"
-                role="option"
-                aria-selected={selected === c.handle}
-                data-active={selected === c.handle}
-                className="cs-option"
-                onClick={() => { setOpen(false); go(c.handle); }}
-              >
-                <Avatar creator={c} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-foreground">{c.name}</span>
-                  <span className="block font-mono text-[11px] text-muted-foreground">
-                    {c.callCount} call{c.callCount === 1 ? "" : "s"} · last {c.lastCallDate ?? "—"}
-                  </span>
+      <div className="cs-panel" role="listbox" data-open={open || undefined}>
+        {filtered.length === 0 ? (
+          <div className="px-3 py-3 text-sm text-muted-foreground">No creators match.</div>
+        ) : (
+          filtered.map((c) => (
+            <button
+              key={c.handle}
+              type="button"
+              role="option"
+              aria-selected={selected === c.handle}
+              data-active={selected === c.handle}
+              tabIndex={open ? 0 : -1}
+              className="cs-option"
+              onClick={() => {
+                setOpen(false);
+                go(c.handle);
+              }}
+            >
+              <Avatar creator={c} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm text-foreground">{c.name}</span>
+                <span className="block font-mono text-[11px] text-muted-foreground">
+                  {c.callCount} call{c.callCount === 1 ? "" : "s"} · last {c.lastCallDate ?? "—"}
                 </span>
-              </button>
-            ))
-          )}
-        </div>
-      )}
+              </span>
+            </button>
+          ))
+        )}
+      </div>
     </div>
   );
 }
