@@ -478,15 +478,26 @@ creator, patch it directly as DB owner:
 
 ## Halal compliance badge
 
-Opt-in (`showHalalStatus` preference, off by default) Shariah-compliance badge on
-tracked tickers: `hugeicons:halal` for compliant, lucide circle-question-mark for
-doubtful; not-halal/unknown render nothing. Hover/tap opens a coss `preview-card`
-with a revenue-purity bklit `Gauge` (solid fill colored by status — emerald/amber/red,
-matching the badge; no center label) + a link to the stock's Musaffa page; the same
-`HalalCardContent` renders as an inline section on `/t/$symbol`. The badge/popup live
-inside row-level `<Link>`s, so `HalalIndicator` + the Musaffa link `stopPropagation` on
-click (React events bubble through the portal's React tree to the row) — without it the
-router hijacks the external link and navigates the row instead.
+Opt-in (`showHalalStatus` preference, off by default) Shariah-compliance UI. Two
+surfaces:
+
+- **Badge + hover popup** (`HalalIndicator`/`HalalBadge` + `HalalCardContent`) on
+  **lists** — creator overview, `/explore`, and the `/t` and creator headings:
+  `hugeicons:halal` for compliant, lucide circle-question-mark for doubtful;
+  not-halal/unknown render nothing. Hover/tap opens a coss `preview-card` with a
+  revenue-purity bklit `Gauge` (solid status fill emerald/amber/red, no center label,
+  always-visible track) + Musaffa link. Badge/popup live inside row-level `<Link>`s, so
+  `HalalIndicator` stops click propagation at the trigger + popup boundary (React events
+  bubble through the portal's React tree to the row; without it the router hijacks the
+  link and navigates the row).
+- **Inline panel** (`HalalPanel`, `src/components/halal/halal-panel.tsx`) on the **stock
+  pages** — `/c/$handle/ticker/$symbol` (between the SPY chart and the calls table) and
+  `/t/$symbol`. No hover popup here. Shows a bklit **donut** (revenue composition
+  halal/doubtful/non-halal, manual center label since bklit's `PieCenter` render-prop
+  only fires on hover) + the two AAOIFI financial screens (interest-bearing debt /
+  securities, green under the ~30% threshold) + sector + Musaffa link. Self-gates on the
+  toggle (renders nothing when off). `unknown` → a muted "Not rated by Musaffa" panel
+  with a lookup link — the entry point for non-compliant/uncovered symbols.
 
 **Live, not baked.** Halal status is dynamic (flips on earnings), so it follows the
 "live for display" path, not the frozen-scoring path. `fetchHalal` (`src/lib/halal-fetch.ts`,

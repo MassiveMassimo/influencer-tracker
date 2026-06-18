@@ -3,7 +3,6 @@
 import { CircleQuestionMark } from "lucide-react";
 import { PieChart } from "#/components/charts/pie-chart.tsx";
 import { PieSlice } from "#/components/charts/pie-slice.tsx";
-import { PieCenter } from "#/components/charts/pie-center.tsx";
 import { ChartBoundary } from "#/components/ChartBoundary";
 import { usePreferences } from "#/lib/preferences.tsx";
 import { musaffaKey, STATUS_META, type HalalInfo } from "#/lib/halal/types.ts";
@@ -96,25 +95,25 @@ export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
-          <ChartBoundary>
-            <PieChart data={data} size={132} innerRadius={46} padAngle={0.03} cornerRadius={3} hoverOffset={4}>
-              {data.map((d, i) => (
-                <PieSlice index={i} key={d.label} />
-              ))}
-              <PieCenter>
-                {() => (
-                  <div className="text-center">
-                    <div className="font-heading text-xl leading-none text-foreground">
-                      {info.halalPct.toFixed(0)}%
-                    </div>
-                    <div className="mt-0.5 text-[9px] uppercase tracking-[0.15em] text-muted-foreground">
-                      halal rev
-                    </div>
-                  </div>
-                )}
-              </PieCenter>
-            </PieChart>
-          </ChartBoundary>
+          {/* Center label overlaid manually: bklit's PieCenter only renders its
+              render-prop on hover, falling back to a "Total" label otherwise. */}
+          <div className="relative" style={{ width: 132, height: 132 }}>
+            <ChartBoundary>
+              <PieChart data={data} size={132} innerRadius={46} padAngle={0.03} cornerRadius={3} hoverOffset={4}>
+                {data.map((d, i) => (
+                  <PieSlice index={i} key={d.label} />
+                ))}
+              </PieChart>
+            </ChartBoundary>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <div className="font-heading text-xl leading-none text-foreground">
+                {info.halalPct.toFixed(0)}%
+              </div>
+              <div className="mt-0.5 text-[9px] uppercase tracking-[0.15em] text-muted-foreground">
+                halal rev
+              </div>
+            </div>
+          </div>
           <div className="w-32 space-y-1.5 text-xs">
             <LegendRow color={SLICE.halal} label="Halal" value={info.halalPct} />
             <LegendRow color={SLICE.doubtful} label="Doubtful" value={info.doubtfulPct} />
