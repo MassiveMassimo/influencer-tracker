@@ -119,7 +119,7 @@ function Explore() {
                 <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-3 md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <Link to="/t/$symbol" params={{ symbol: r.ticker }} className="font-medium text-sm text-foreground no-underline hover:underline">{r.ticker}</Link>
+                      <Link to="/t/$symbol/$creator" params={{ symbol: r.ticker, creator: "all" }} className="font-medium text-sm text-foreground no-underline hover:underline">{r.ticker}</Link>
                       <HalalIndicator info={getHalal(r.ticker)} />
                       <Link to="/c/$handle" params={{ handle: r.handle }} className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground">@{r.handle}</Link>
                     </div>

@@ -437,8 +437,8 @@ function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; hala
   return (
     <li>
       <Link
-        to="/c/$handle/ticker/$symbol"
-        params={{ handle, symbol: call.ticker }}
+        to="/t/$symbol/$creator"
+        params={{ symbol: call.ticker, creator: handle }}
         className="flex items-center gap-4 px-5 py-3 no-underline transition-colors hover:bg-foreground/[0.03]"
       >
         <span className={`size-2 shrink-0 rounded-full ${dot}`} />
