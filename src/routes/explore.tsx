@@ -4,6 +4,9 @@ import { fetchCallsIndex, listCreators } from "../lib/data";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
 import { DataAsOf } from "../components/DataAsOf";
 import { siteUrl } from "#/og/site.ts";
+import { useHalalStatus } from "#/lib/halal-query.ts";
+import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
+import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 
 export const Route = createFileRoute("/explore")({
   loader: async () => {
@@ -44,6 +47,8 @@ function Explore() {
     search: "", handles: [], firstOnly: false, beatSpyOnly: false, horizon: "ex3m", sort: { key: "postDate", dir: -1 },
   });
   const rows = useMemo(() => applyCallFilter(calls, filter, names), [calls, filter, names]);
+  const rowTickers = useMemo(() => rows.map((r) => r.ticker), [rows]);
+  const getHalal = useHalalStatus(rowTickers);
   const onSort = (key: SortKey) =>
     setFilter((f) => ({ ...f, sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 } }));
   const toggleHandle = (h: string) =>
@@ -115,6 +120,7 @@ function Explore() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <Link to="/t/$symbol" params={{ symbol: r.ticker }} className="font-medium text-sm text-foreground no-underline hover:underline">{r.ticker}</Link>
+                      <HalalIndicator info={getHalal(r.ticker) ?? UNKNOWN_INFO} />
                       <Link to="/c/$handle" params={{ handle: r.handle }} className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground">@{r.handle}</Link>
                     </div>
                     {r.summary && <div className="truncate text-xs text-muted-foreground">{r.summary}</div>}
