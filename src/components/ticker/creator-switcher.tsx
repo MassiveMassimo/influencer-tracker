@@ -27,6 +27,10 @@ export function CreatorSwitcher({
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  // Mirror open into a ref so the mount-only resize handler reads the live value
+  // instead of the open === false closure captured at mount.
+  const openRef = useRef(open);
+  openRef.current = open;
 
   // Position the pill under the active tab; when the combobox is open the pill
   // expands to fill the whole container and becomes the combobox background.
@@ -39,7 +43,7 @@ export function CreatorSwitcher({
       pill.style.width = `${width}px`;
     };
     if (!animate) pill.style.transition = "none";
-    if (open) {
+    if (openRef.current) {
       apply(0, list.clientWidth - 6); // inset 3px both sides
     } else {
       const active = list.querySelector<HTMLButtonElement>('[aria-selected="true"]');
