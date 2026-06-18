@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
-import { HalalCardContent } from "#/components/halal/halal-card-content.tsx";
+import { HalalPanel } from "#/components/halal/halal-panel.tsx";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
@@ -285,11 +285,9 @@ function TickerPage() {
         )}
       </section>
 
-      {halal.status !== "unknown" && (
-        <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-4">
-          <HalalCardContent info={halal} />
-        </section>
-      )}
+      {/* Stock-page halal surface: panel self-gates on the preference and renders
+         a muted "Not rated" entry for unknown symbols. */}
+      <HalalPanel info={halal} symbol={symbol} />
 
       {/* Who called it & when. */}
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
