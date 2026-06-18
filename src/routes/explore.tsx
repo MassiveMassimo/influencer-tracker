@@ -4,13 +4,14 @@ import { fetchCallsIndex, listCreators } from "../lib/data";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
 import { DataAsOf } from "../components/DataAsOf";
 import { siteUrl } from "#/og/site.ts";
-import { useHalalStatus } from "#/lib/halal-query.ts";
+import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 
 export const Route = createFileRoute("/explore")({
-  loader: async () => {
+  loader: async ({ context }) => {
     const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
+    await prefetchHalal(context.queryClient, calls.map((c) => c.ticker));
     // The calls-index artifact ships as a plain array with no generatedAt; use the freshest
     // creator's generatedAt as the cross-creator "data as of" (newest scoring run in the set).
     const generatedAt = creators.reduce<string>(

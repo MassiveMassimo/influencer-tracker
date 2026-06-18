@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useHalalStatus } from "#/lib/halal-query.ts";
+import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -65,6 +65,7 @@ export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
       }),
       fetchPrices(params.symbol),
       fetchPrices("SPY"),
+      prefetchHalal(context.queryClient, [params.symbol]),
     ]);
     return { ...ds, bakedOhlc, bakedSpy };
   },

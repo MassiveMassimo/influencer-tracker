@@ -32,14 +32,18 @@ import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
-import { useHalalStatus } from "#/lib/halal-query.ts";
+import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { UNKNOWN_INFO, type HalalInfo } from "#/lib/halal/types.ts";
 
 const CALLS_PER_PAGE = 25;
 
 export const Route = createFileRoute("/c/$handle/")({
-  loader: ({ params }) => fetchDataset(params.handle),
+  loader: async ({ params, context }) => {
+    const ds = await fetchDataset(params.handle);
+    await prefetchHalal(context.queryClient, ds.calls.map((c) => c.ticker));
+    return ds;
+  },
   head: ({ params, loaderData }) => {
     const name = loaderData?.creator.name ?? params.handle;
     const sc = loaderData?.scorecard;

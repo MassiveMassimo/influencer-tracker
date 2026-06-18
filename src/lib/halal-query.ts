@@ -1,5 +1,5 @@
 import * as React from "react";
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { type QueryClient, queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchHalal } from "./halal-fetch.ts";
 import { type HalalInfo } from "./halal/types.ts";
 import { usePreferences } from "./preferences.tsx";
@@ -15,6 +15,17 @@ export function halalQuery(symbols: string[]) {
     staleTime: STALE_MS,
     gcTime: GC_MS,
   });
+}
+
+// SSR-only loader prefetch: bakes halal data into the dehydrated first paint so an
+// opted-in viewer sees badges on the first client render — no post-hydration round
+// trip. Skipped on client navigations (window defined): there useHalalStatus fetches
+// lazily and only when the toggle is on, so opted-out users never trigger a request.
+// The SSR result is itself ISR-cached, so the Musaffa call is amortized per page, not
+// per visit. Fail-open (fetchHalal never throws); the catch is belt-and-suspenders.
+export async function prefetchHalal(queryClient: QueryClient, symbols: string[]): Promise<void> {
+  if (typeof window !== "undefined" || symbols.length === 0) return;
+  await queryClient.ensureQueryData(halalQuery(symbols)).catch(() => undefined);
 }
 
 // Returns a lookup fn. Disabled (no network) unless the opt-in toggle is on.

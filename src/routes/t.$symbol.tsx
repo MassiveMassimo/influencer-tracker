@@ -2,16 +2,17 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { fetchCallsIndex, listCreators } from "../lib/data";
 import { summarizeTicker } from "../lib/call-filter";
 import { siteUrl } from "#/og/site.ts";
-import { useHalalStatus } from "#/lib/halal-query.ts";
+import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { HalalCardContent } from "#/components/halal/halal-card-content.tsx";
 import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 
 export const Route = createFileRoute("/t/$symbol")({
-  loader: async ({ params }) => {
+  loader: async ({ params, context }) => {
     const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
     const summary = summarizeTicker(calls, params.symbol);
     if (summary.callCount === 0) throw notFound();
+    await prefetchHalal(context.queryClient, [summary.symbol]);
     // Only the creators who called this ticker are rendered — project to just those so the
     // whole roster's inlined base64 avatars aren't dehydrated into the SSR HTML.
     const shownHandles = new Set(summary.byCreator.map((b) => b.handle));
