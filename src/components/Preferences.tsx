@@ -36,8 +36,14 @@ function SwitchRow({
 }
 
 function Body() {
-  const { reduceMotion, reduceHaptics, setReduceMotion, setReduceHaptics } =
-    usePreferences();
+  const {
+    reduceMotion,
+    reduceHaptics,
+    showHalalStatus,
+    setReduceMotion,
+    setReduceHaptics,
+    setShowHalalStatus,
+  } = usePreferences();
   const { impact } = useHaptics();
   return (
     <div className="space-y-5">
@@ -64,6 +70,12 @@ function Body() {
             if (!v) impact();
             setReduceHaptics(v);
           }}
+        />
+        <SwitchRow
+          label="Show halal status"
+          description="Badge stocks with their Musaffa Shariah-compliance rating."
+          checked={showHalalStatus}
+          onChange={setShowHalalStatus}
         />
       </div>
     </div>

@@ -476,6 +476,32 @@ unchanged, so nothing breaks. If `db:backfill` trips the count-guard on a drifte
 creator, patch it directly as DB owner:
 `UPDATE creators SET avatar = '/avatars/<h>.<ext>' WHERE handle = '<h>';`
 
+## Halal compliance badge
+
+Opt-in (`showHalalStatus` preference, off by default) Shariah-compliance badge on
+tracked tickers: `hugeicons:halal` for compliant, lucide circle-question-mark for
+doubtful; not-halal/unknown render nothing. Hover/tap opens a coss `preview-card`
+with a revenue-purity bklit `Gauge` + a link to the stock's Musaffa page; the same
+`HalalCardContent` renders as an inline section on `/t/$symbol`.
+
+**Live, not baked.** Halal status is dynamic (flips on earnings), so it follows the
+"live for display" path, not the frozen-scoring path. `fetchHalal` (`src/lib/halal-fetch.ts`,
+a `createServerFn`) queries Musaffa's Typesense `stocks_data` collection
+(`src/lib/halal/musaffa.ts`, port of the VM's `musaffa_client.py`) with the
+server-side `MUSAFFA_API_KEY`; `useHalalStatus` (`src/lib/halal-query.ts`) caches it
+client-side (12h staleTime) and is disabled unless the toggle is on. Fail-open: any
+error / missing key / unmatched symbol → `unknown` → nothing renders.
+
+**Symbol keying gotcha.** Do NOT run `resolveSymbol` before a Musaffa lookup — it
+canonicalizes toward Yahoo (`BRK-B`, `BTC-USD`, `HEIA.AS`). Musaffa keys by US ticker
+with a dot for class shares (`BRK.B`). Use `musaffaKey` (`src/lib/halal/types.ts`):
+uppercase, strip `$`, class-share dash→dot. Crypto/foreign listings won't match →
+`unknown` (correct — Musaffa has no rating for them).
+
+`MUSAFFA_API_KEY` (Typesense search-only key) must be set in local `.env` and Vercel
+prod env. It's read-only and already ships in Musaffa's own web client; kept
+server-side to keep it out of our client bundle.
+
 ## Component provenance
 
 Where the UI came from, so it can be re-synced from canonical sources. The `ui/*`

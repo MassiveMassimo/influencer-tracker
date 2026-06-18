@@ -1,5 +1,5 @@
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
@@ -32,6 +32,9 @@ import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
+import { useHalalStatus } from "#/lib/halal-query.ts";
+import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
+import { UNKNOWN_INFO, type HalalInfo } from "#/lib/halal/types.ts";
 
 const CALLS_PER_PAGE = 25;
 
@@ -304,6 +307,8 @@ function CallsList({
   const current = Math.min(page, pageCount);
   const start = (current - 1) * CALLS_PER_PAGE;
   const visible = calls.slice(start, start + CALLS_PER_PAGE);
+  const allTickers = useMemo(() => calls.map((c) => c.ticker), [calls]);
+  const getHalal = useHalalStatus(allTickers);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
@@ -321,6 +326,7 @@ function CallsList({
             key={`${c.shortcode}:${c.ticker}`}
             handle={handle}
             call={c}
+            halalInfo={getHalal(c.ticker) ?? UNKNOWN_INFO}
           />
         ))}
         {calls.length === 0 && (
@@ -412,7 +418,7 @@ function CallsPagination({
   );
 }
 
-function CallRow({ handle, call }: { handle: string; call: Call }) {
+function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; halalInfo: HalalInfo }) {
   const excess = call.returns.toDate.excess;
   // Status dot: pending when no elapsed return, else beat/lag vs SPY.
   const dot =
@@ -435,6 +441,7 @@ function CallRow({ handle, call }: { handle: string; call: Call }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="shrink-0 font-mono text-sm text-foreground">{call.ticker}</span>
+            <HalalIndicator info={halalInfo} />
             {call.isFirstCall && (
               <span
                 title="Only the earliest call per ticker is scored; later calls on the same ticker are not counted."

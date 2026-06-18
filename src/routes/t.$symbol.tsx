@@ -2,6 +2,10 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { fetchCallsIndex, listCreators } from "../lib/data";
 import { summarizeTicker } from "../lib/call-filter";
 import { siteUrl } from "#/og/site.ts";
+import { useHalalStatus } from "#/lib/halal-query.ts";
+import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
+import { HalalCardContent } from "#/components/halal/halal-card-content.tsx";
+import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 
 export const Route = createFileRoute("/t/$symbol")({
   loader: async ({ params }) => {
@@ -36,11 +40,16 @@ function tone(x: number | null) {
 
 function TickerView() {
   const { summary, names, avatars } = Route.useLoaderData();
+  const getHalal = useHalalStatus([summary.symbol]);
+  const halal = getHalal(summary.symbol) ?? UNKNOWN_INFO;
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header>
         <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Cross-creator · vs SPY</div>
-        <h1 className="mt-1 font-heading text-2xl">{summary.symbol}</h1>
+        <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
+          {summary.symbol}
+          <HalalIndicator info={halal} />
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">{summary.company}</p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label="Creators" value={String(summary.creatorCount)} />
@@ -49,6 +58,12 @@ function TickerView() {
           <Stat label="Avg excess→now" value={signed(summary.avgExToDate)} toneClass={tone(summary.avgExToDate)} />
         </div>
       </header>
+
+      {halal.status !== "unknown" && (
+        <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-4">
+          <HalalCardContent info={halal} />
+        </section>
+      )}
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
         <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[1fr_7rem_6rem_6rem] md:px-5">

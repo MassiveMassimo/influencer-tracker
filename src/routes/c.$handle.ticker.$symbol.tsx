@@ -1,5 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useHalalStatus } from "#/lib/halal-query.ts";
+import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
+import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
@@ -202,6 +205,8 @@ function TickerPage() {
   const ds = Route.useLoaderData();
   const { symbol } = Route.useParams();
   const calls = ds.calls.filter((c) => c.ticker === symbol);
+  const getHalal = useHalalStatus([symbol]);
+  const halal = getHalal(symbol) ?? UNKNOWN_INFO;
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
   const { impact, select } = useHaptics();
@@ -351,6 +356,7 @@ function TickerPage() {
         </div>
         <h1 className="mt-1 flex items-baseline gap-2 font-heading text-2xl">
           {symbol}
+          <HalalIndicator info={halal} />
           <span className="text-base text-muted-foreground">{calls[0]?.company}</span>
         </h1>
       </header>

@@ -6,12 +6,14 @@ export interface Preferences {
   theme: ThemeMode;
   reduceMotion: boolean;
   reduceHaptics: boolean;
+  showHalalStatus: boolean;
 }
 
 const DEFAULTS: Preferences = {
   theme: "auto",
   reduceMotion: false,
   reduceHaptics: false,
+  showHalalStatus: false,
 };
 
 export function readStoredPrefs(): Preferences {
@@ -21,6 +23,7 @@ export function readStoredPrefs(): Preferences {
     theme: t === "light" || t === "dark" || t === "auto" ? t : "auto",
     reduceMotion: window.localStorage.getItem("reduce-motion") === "true",
     reduceHaptics: window.localStorage.getItem("reduce-haptics") === "true",
+    showHalalStatus: window.localStorage.getItem("show-halal") === "true",
   };
 }
 
@@ -48,6 +51,7 @@ interface PreferencesContextValue extends Preferences {
   setTheme: (t: ThemeMode) => void;
   setReduceMotion: (v: boolean) => void;
   setReduceHaptics: (v: boolean) => void;
+  setShowHalalStatus: (v: boolean) => void;
 }
 
 const PreferencesContext = React.createContext<PreferencesContextValue | null>(
@@ -95,9 +99,14 @@ export function PreferencesProvider({
     window.localStorage.setItem("reduce-haptics", String(reduceHaptics));
   }, []);
 
+  const setShowHalalStatus = React.useCallback((showHalalStatus: boolean) => {
+    setPrefs((p) => ({ ...p, showHalalStatus }));
+    window.localStorage.setItem("show-halal", String(showHalalStatus));
+  }, []);
+
   const value = React.useMemo<PreferencesContextValue>(
-    () => ({ ...prefs, setTheme, setReduceMotion, setReduceHaptics }),
-    [prefs, setTheme, setReduceMotion, setReduceHaptics]
+    () => ({ ...prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus }),
+    [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus]
   );
 
   return (
