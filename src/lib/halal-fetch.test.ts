@@ -11,6 +11,9 @@ const AAPL: HalalInfo = {
   exchange: "NASDAQ",
   ticker: "AAPL",
   musaffaUrl: "https://musaffa.com/stock/AAPL/",
+  sector: "Technology",
+  debtRatio: 12,
+  securitiesRatio: 8,
 };
 
 describe("assembleHalal", () => {

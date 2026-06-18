@@ -18,6 +18,11 @@ interface TypesenseDoc {
   nothalal_revenue_percent?: number;
   doubtful_revenue_percent?: number;
   exchange?: string;
+  musaffaSector?: string;
+  sector?: string;
+  // Note: Musaffa's asset field is spelled "intrest" (their typo), kept verbatim.
+  interestbearing_debt_percent?: number;
+  intrestbearing_asset_percent?: number;
 }
 
 function toInfo(doc: TypesenseDoc): HalalInfo {
@@ -31,6 +36,9 @@ function toInfo(doc: TypesenseDoc): HalalInfo {
     exchange,
     ticker,
     musaffaUrl: ticker ? musaffaUrl(ticker) : "",
+    sector: doc.musaffaSector ?? doc.sector ?? "",
+    debtRatio: doc.interestbearing_debt_percent ?? 0,
+    securitiesRatio: doc.intrestbearing_asset_percent ?? 0,
   };
 }
 

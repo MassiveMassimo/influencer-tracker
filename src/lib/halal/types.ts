@@ -10,6 +10,11 @@ export interface HalalInfo {
   exchange: string;
   ticker: string;
   musaffaUrl: string;
+  sector: string;
+  // AAOIFI financial screens (percent of market cap): interest-bearing debt and
+  // interest-bearing securities/assets. Compliant thresholds are ~30% / ~30%.
+  debtRatio: number;
+  securitiesRatio: number;
 }
 
 export const UNKNOWN_INFO: HalalInfo = {
@@ -20,6 +25,9 @@ export const UNKNOWN_INFO: HalalInfo = {
   exchange: "",
   ticker: "",
   musaffaUrl: "",
+  sector: "",
+  debtRatio: 0,
+  securitiesRatio: 0,
 };
 
 const RATING_MAP: Record<string, HalalStatus> = {
@@ -53,6 +61,15 @@ export function musaffaKey(symbol: string): string {
 export function musaffaUrl(ticker: string): string {
   return `https://musaffa.com/stock/${ticker}/`;
 }
+
+// Per-status display label + semantic fill (emerald/amber/red), shared by the
+// popup gauge and the inline panel/donut. Hex equals the badge's Tailwind colors.
+export const STATUS_META: Record<HalalStatus, { label: string; fill: string }> = {
+  halal: { label: "Shariah-compliant", fill: "#10b981" },
+  doubtful: { label: "Compliance questionable", fill: "#f59e0b" },
+  not_halal: { label: "Not compliant", fill: "#ef4444" },
+  unknown: { label: "Compliance unknown", fill: "#94a3b8" },
+};
 
 export function badgeKindFor(status: HalalStatus): "halal" | "doubtful" | null {
   if (status === "halal") return "halal";

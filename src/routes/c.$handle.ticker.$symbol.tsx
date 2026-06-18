@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
-import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
+import { HalalPanel } from "#/components/halal/halal-panel.tsx";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
@@ -356,7 +356,6 @@ function TickerPage() {
         </div>
         <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
           {symbol}
-          <HalalIndicator info={halal} />
           <span className="text-base text-muted-foreground">{calls[0]?.company}</span>
         </h1>
       </header>
@@ -425,6 +424,8 @@ function TickerPage() {
           </ChartBoundary>
         )}
       </section>
+
+      <HalalPanel info={halal} symbol={symbol} />
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
         <div className="border-border/40 border-b px-5 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">

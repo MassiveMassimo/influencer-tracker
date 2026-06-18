@@ -27,6 +27,9 @@ describe("fetchMusaffa", () => {
             doubtful_revenue_percent: 0,
             exchange: "NASDAQ",
             ticker: "AAPL",
+            musaffaSector: "Technology",
+            interestbearing_debt_percent: 12.5,
+            intrestbearing_asset_percent: 8.1,
           },
         },
       ],
@@ -35,6 +38,9 @@ describe("fetchMusaffa", () => {
     expect(out.AAPL.status).toBe("halal");
     expect(out.AAPL.halalPct).toBeCloseTo(95.92);
     expect(out.AAPL.musaffaUrl).toBe("https://musaffa.com/stock/AAPL/");
+    expect(out.AAPL.sector).toBe("Technology");
+    expect(out.AAPL.debtRatio).toBeCloseTo(12.5);
+    expect(out.AAPL.securitiesRatio).toBeCloseTo(8.1);
   });
 
   it("throws MusaffaOutage on 5xx", async () => {

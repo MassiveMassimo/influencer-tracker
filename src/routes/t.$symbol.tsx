@@ -4,7 +4,7 @@ import { summarizeTicker } from "../lib/call-filter";
 import { siteUrl } from "#/og/site.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
-import { HalalCardContent } from "#/components/halal/halal-card-content.tsx";
+import { HalalPanel } from "#/components/halal/halal-panel.tsx";
 
 export const Route = createFileRoute("/t/$symbol")({
   loader: async ({ params, context }) => {
@@ -59,11 +59,7 @@ function TickerView() {
         </div>
       </header>
 
-      {halal.status !== "unknown" && (
-        <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-4">
-          <HalalCardContent info={halal} />
-        </section>
-      )}
+      <HalalPanel info={halal} symbol={summary.symbol} />
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
         <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[1fr_7rem_6rem_6rem] md:px-5">
