@@ -982,8 +982,6 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
   );
 }
 
-function tone(x: number | null) { return toneClass(x); }
-
 function TickerPage() {
   const data = Route.useLoaderData();
   const { symbol, summary, names, avatars, hits, creatorHandle, creatorCalls, firstDate, bakedOhlc, bakedSpy } = data;
@@ -1153,8 +1151,8 @@ function TickerPage() {
                   </div>
                 </div>
                 <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">{b.firstCallDate?.slice(0, 7) ?? "—"}</div>
-                <div className={`text-right font-mono text-sm tabular-nums ${tone(b.ex3m)}`}>{signed(b.ex3m)}</div>
-                <div className={`text-right font-mono text-sm tabular-nums ${tone(b.exToDate)}`}>{signed(b.exToDate)}</div>
+                <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.ex3m)}`}>{signed(b.ex3m)}</div>
+                <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.exToDate)}`}>{signed(b.exToDate)}</div>
               </Link>
             </li>
           ))}

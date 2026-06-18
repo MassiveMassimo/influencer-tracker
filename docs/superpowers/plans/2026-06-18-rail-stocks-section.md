@@ -386,7 +386,7 @@ export function Sparkline({
   width?: number;
   height?: number;
 }) {
-  const gid = useId();
+  const gid = useId().replace(/:/g, ""); // strip colons — invalid in some SVG url(#…) contexts
   if (closes.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
 
   const min = Math.min(...closes), max = Math.max(...closes);
@@ -497,6 +497,15 @@ export const fetch1DSparks = createServerFn({ method: "GET" })
     }
   });
 ```
+
+- [ ] **Step 1b: Verify the real Yahoo spark JSON shape before trusting the parser**
+
+The parser in Task 2 assumes a JSON shape that is **not** verified against the live
+endpoint — a wrong shape fails *silently open* (no sparklines ever, no error). Capture
+one real response and confirm `parseSparkResponse` extracts closes from it:
+
+Run: `curl -s 'https://query1.finance.yahoo.com/v7/finance/spark?symbols=AAPL,MSFT&range=1d&interval=5m&indicators=close' -H 'User-Agent: Mozilla/5.0' | head -c 1500`
+Expected: JSON where each symbol's closes live at `spark.result[i].response[0].indicators.quote[0].close` and a previous close at `spark.result[i].response[0].meta.chartPreviousClose` (or `.previousClose`). If the real shape differs (Yahoo has historically shipped variants), **update `parseSparkResponse` + its fixture in Task 2 to match the captured shape** and re-run `bun test src/lib/spark-parse.test.ts`. Do not proceed until a captured fixture parses to non-empty closes.
 
 - [ ] **Step 2: Create the query options**
 
@@ -774,7 +783,7 @@ git commit -m "feat(rail): wire Stocks section into rail + root loader"
 
 - Rail shows a **Stocks** section under Creators, both in their own independently-scrolling regions.
 - Each stock row: symbol + company + a smoothed, gradient-filled 1D sparkline + colored % chip; clicking opens `/t/<symbol>/all`.
-- Sparklines appear shortly after load (lazy query), with a skeleton placeholder first; first paint is not blocked.
+- Sparklines appear shortly after load (lazy query), with a skeleton placeholder first; first paint is not blocked. **If they never appear**, the Yahoo spark JSON shape differs from the parser's assumption (Task 5 Step 1b) — capture a real response and fix `parseSparkResponse`. (Fail-open means "no sparkline" is the silent failure mode, not a crash.)
 - Call-table sparklines (`/c/<handle>`) now also show the gradient fill + smoothed line.
 - Yahoo-down case: rows render with "—" deltas and no sparkline; nothing crashes.
 - Mobile drawer shows the same Stocks section.

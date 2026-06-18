@@ -60,10 +60,16 @@ One **ticker-primary route** with the selected creator as a **path param**:
   - `prefetchHalal([symbol])` (unchanged).
   - **`firstDate` is the cross-creator earliest call date for this symbol, in BOTH
     modes** — it feeds the `chartQuery` key (`chart-query.ts`), so pinning it
-    creator-independent keeps the chart query identical across creator switches → the
-    chart genuinely stays put (no refetch, no re-animation). This is a deliberate
-    behavior change from today's `/c` loader, which used the creator's earliest call
-    across *all* symbols; the cross-creator window is correct for a ticker-primary page.
+    creator-independent keeps the chart **query key identical** across creator switches.
+    The live chart data (`chartQuery` via TanStack Query) is therefore **not refetched**,
+    and because the chart components key their entrance/crossfade on `timeframe` only,
+    the **charts do not re-animate** on a creator switch. (Caveat, per the opus plan
+    review: a `loaderDeps`-triggered re-run *does* re-call the static `fetchCallsIndex`
+    /`fetchPrices` — those are served from the browser/CDN cache, cheap, and only change
+    array identity, which the view-gating absorbs without a crossfade. The accurate claim
+    is "chart query not refetched + no re-animation", not "zero refetch".) This is a
+    deliberate behavior change from today's `/c` loader, which used the creator's earliest
+    call across *all* symbols; the cross-creator window is correct for a ticker-primary page.
   - **Compute OG fields in the loader and return them** (`{ ogImg, ogTitle, rev }`):
     `head()` does **not** receive `search`/derived state, only `loaderData` (verified:
     every route reads OG inputs from `params`/`loaderData`; none read `search` in
@@ -75,9 +81,11 @@ One **ticker-primary route** with the selected creator as a **path param**:
   lastClose]`). A `creator` that isn't a caller (or a failed `fetchDataset`) **falls
   back to All** (log, drop the detail table + creator markers) — never crashes the route.
 
-`loaderDeps: ({ params }) => ({ creator: params.creator })` so switching creators
-re-runs only the dataset fetch; price/index/halal are cached and the chart query key
-(symbol+timeframe+firstDate) is unchanged.
+`loaderDeps: ({ params }) => ({ creator: params.creator })` — a creator switch re-runs
+the loader (so `fetchDataset` for the newly-selected creator runs; `fetchCallsIndex`
+/`fetchPrices` re-run too but hit the browser/CDN cache). The **chart query key**
+(symbol+timeframe+firstDate) is creator-independent, so the live chart data is not
+refetched and the chart stays mounted without re-animating.
 
 ### OG / head
 
