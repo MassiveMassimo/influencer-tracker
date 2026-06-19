@@ -46,26 +46,37 @@ export function HitRateGauge({ ds }: { ds: Dataset }) {
 
 // Call funnel — used in the overview side pane. Wrap in ChartBoundary at call site.
 export function CallFunnel({ ds }: { ds: Dataset }) {
-  const sc = ds.scorecard;
-  const funnel = sc.funnel;
-  // Guard degenerate data: an empty funnel, a zero top stage (no posts scraped → every
-  // downstream % divides by that zero → NaN%/Infinity%), or a non-monotonic funnel (a stage
-  // wider than the top, e.g. a corrupted re-score). Show the populate hint instead of garbage.
-  const top = funnel?.[0]?.value ?? 0;
-  if (!funnel || funnel.length === 0 || top <= 0 || funnel.some((s) => s.value > top)) {
-    return <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>;
+  const funnel = ds.scorecard.funnel;
+  // The first stage is reels (reach) — a post-level count. For multi-ticker creators one
+  // reel names several stocks, so the ticker-level stages below are wider: that is not a
+  // funnel. Render the call-level conversion (stages 2..n, monotonic by construction:
+  // stocks named ⊇ bullish buys ⊇ unique positions ⊇ beat SPY) and surface reels as
+  // reach context above it.
+  const reels = funnel?.[0];
+  const stages = funnel?.slice(1) ?? [];
+  const top = stages[0]?.value ?? 0;
+  // Guard only genuinely degenerate data: empty, a zero top stage (every downstream % would
+  // divide by zero → NaN%/Infinity%), or a stage wider than the top (corrupted re-score).
+  if (stages.length === 0 || top <= 0 || stages.some((s) => !Number.isFinite(s.value) || s.value > top)) {
+    return <p className="text-sm text-muted-foreground">Not enough calls to chart yet.</p>;
   }
-  // Vertical: 5 longer stage labels get their own full-width row instead of
-  // colliding inside narrow horizontal cells.
   return (
-    <FunnelChart
-      data={funnel}
-      color="var(--chart-1)"
-      layers={3}
-      orientation="vertical"
-      labelLayout="grouped"
-      labelOrientation="horizontal"
-    />
+    <div className="space-y-2">
+      {reels && reels.value > 0 && (
+        <p className="text-xs text-muted-foreground">
+          From {reels.value.toLocaleString()} {reels.label.replace(/\s*\(12mo\)$/, "")} tracked over 12 months
+        </p>
+      )}
+      {/* Vertical: longer stage labels get a full-width row instead of colliding in cells. */}
+      <FunnelChart
+        data={stages}
+        color="var(--chart-1)"
+        layers={3}
+        orientation="vertical"
+        labelLayout="grouped"
+        labelOrientation="horizontal"
+      />
+    </div>
   );
 }
 
