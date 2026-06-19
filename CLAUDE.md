@@ -263,7 +263,13 @@ caps). The split, by granularity:
 - **Display** — `dataset.json` carries `calls` + `scorecard` + `creator` +
   `caveats`. Each `Call` has a baked `spark: number[]` (downsampled closes from
   `postDate` forward, `src/lib/spark.ts`) so the creator-page sparklines
-  (`Sparkline` takes `closes: number[]`) need no OHLC.
+  (`Sparkline` takes `closes: number[]`) need no OHLC. The `scorecard` also carries
+  a baked `cumExcess: {t,v}[]` (`src/lib/cum-excess.ts`) — the equal-weight mean
+  excess-vs-SPY of scored picks over time (to-date generalized to a daily series,
+  endpoint == `avgExcess.toDate`), rendered as the featured native-SVG curve
+  (`CumulativeExcess`) on the creator overview. Rides the `scorecard` jsonb column,
+  so it's DB/parity-neutral; back-filled into existing datasets by
+  `scripts/migrate-cum-excess.ts` (clamps prices to `generatedAt`).
 - **Prices** — baked daily OHLC lives in a shared, deduped per-ticker store
   `data/prices/<symbol>.json` (one file per symbol across **all** creators;
   `score.ts` merges via `src/lib/prices-merge.ts` so a shorter history never
