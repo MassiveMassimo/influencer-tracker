@@ -151,6 +151,7 @@ function AnimatedSliceTranslate({
         }}
         d={hitboxPath}
         fill={fill}
+        initial={false}
         pointerEvents="none"
         style={{
           filter:
@@ -176,6 +177,7 @@ function AnimatedSliceTranslate({
       }}
       d={animatedPath}
       fill={fill}
+      initial={false}
       key={`slice-${animationKey}-${index}`}
       pointerEvents="none"
       style={{
@@ -285,6 +287,7 @@ function AnimatedSliceGrow({
         }}
         d={grownPath}
         fill={fill}
+        initial={false}
         pointerEvents="none"
         style={{
           filter:
@@ -307,6 +310,7 @@ function AnimatedSliceGrow({
       }}
       d={animatedPath}
       fill={fill}
+      initial={false}
       key={`slice-${animationKey}-${index}`}
       pointerEvents="none"
       style={{
@@ -448,6 +452,7 @@ export const PieSlice = memo(function PieSlice({
           }}
           d={hitboxPath}
           fill={fill}
+          initial={false}
           pointerEvents="none"
           style={{
             filter:
@@ -475,6 +480,7 @@ export const PieSlice = memo(function PieSlice({
         }}
         d={hitboxPath}
         fill={fill}
+        initial={false}
         pointerEvents="none"
         style={{
           filter:

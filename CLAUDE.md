@@ -581,7 +581,7 @@ icon with a dynamic Tailwind class, sized `1em` by default so it inherits `font-
 <span className="icon-[mdi--rocket-launch] text-emerald-500" />
 ```
 
-Class shape is `icon-[PREFIX--NAME]` (e.g. prefix `mdi`, name `rocket-launch`). Find
+Class shape is `icon-[<prefix>--<name>]` (e.g. prefix `mdi`, name `rocket-launch`). Find
 icons + copy the exact class at
 https://icon-sets.iconify.design (pick an icon → CSS → Tailwind CSS). Only icons whose
 classes appear in the source get emitted to the output CSS — the full `@iconify/json` set
@@ -654,7 +654,12 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   (threshold 60, static compact pill, breaks on time labels) — a prior resync (31acf9b)
   clobbered this patch because it wasn't listed here; the `date-ticker-utils.ts` helper
   + its test are custom (bklit doesn't ship them) and survive resync, but
-  `date-ticker.tsx` itself must be re-applied.
+  `date-ticker.tsx` itself must be re-applied. Finally, `initial={false}` on every
+  `motion.path` in `pie-slice.tsx` (6 of them) — bklit ships these with an
+  `animate={{ opacity }}` and no `initial`, so motion warns "animate opacity from
+  undefined to 1" on every donut mount (the enter sweep is `d`-driven, not opacity,
+  so skipping the opacity enter is correct); a resync drops the `initial` and the
+  warning returns.
 
 **Ticker headline tracks the crosshair.** Scrubbing the candlestick lifts the hovered
 candle's close to the header price + colored delta (`headlineReadout` in
