@@ -31,5 +31,27 @@
     "avgExcess3m": 0.030225168300201596,
     "generatedAt": "2026-06-14",
     "avatar": "/avatars/thelonginvest.jpg"
+  },
+  {
+    "handle": "roadto100kportfolio",
+    "name": "@roadto100kportfolio",
+    "totalCalls": 244,
+    "firstCalls": 80,
+    "hitRate3m": 0.5,
+    "hitRate3mN": 42,
+    "avgExcess3m": 0.055237997857475865,
+    "generatedAt": "2026-06-18",
+    "avatar": "/avatars/roadto100kportfolio.jpg"
+  },
+  {
+    "handle": "johnnylixf",
+    "name": "Johnny Li",
+    "totalCalls": 164,
+    "firstCalls": 77,
+    "hitRate3m": 0.4489795918367347,
+    "hitRate3mN": 49,
+    "avgExcess3m": 0.044449678149448286,
+    "generatedAt": "2026-06-18",
+    "avatar": "/avatars/johnnylixf.jpg"
   }
 ]
