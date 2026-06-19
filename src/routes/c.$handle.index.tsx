@@ -8,7 +8,7 @@ import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { ChartBoundary } from "../components/ChartBoundary";
-import { ConvictionScatter, HorizonBars } from "../components/AnalyticsCharts";
+import { ConvictionScatter, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
 
 // Funnel pulls motion + @visx; lazy-load it so that chunk stays off the creator
 // route's initial/hydration path (cuts TBT/LCP). The native HTML/SVG HorizonBars
@@ -194,11 +194,13 @@ function Overview() {
       >
         <div className="bg-background p-6">
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Avg excess vs SPY · by horizon
-            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
+            Performance vs SPY · cumulative
+            <span className="ml-1 normal-case tracking-normal opacity-70">(equal-weight, not risk-adjusted)</span>
           </div>
           <div className="mt-3">
-            <HorizonBars ds={ds} />
+            <ChartBoundary>
+              <CumulativeExcess ds={ds} />
+            </ChartBoundary>
           </div>
         </div>
         <div className="bg-background p-6">
@@ -221,12 +223,23 @@ function Overview() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-          Conviction vs return
+      <section className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2">
+        <div className="bg-background p-6">
+          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+            Avg excess vs SPY · by horizon
+            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
+          </div>
+          <div className="mt-3">
+            <HorizonBars ds={ds} />
+          </div>
         </div>
-        <div className="mt-3">
-          <ConvictionScatter ds={ds} />
+        <div className="bg-background p-6">
+          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+            Conviction vs return
+          </div>
+          <div className="mt-3">
+            <ConvictionScatter ds={ds} />
+          </div>
         </div>
       </section>
 

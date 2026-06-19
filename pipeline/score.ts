@@ -6,6 +6,7 @@ import { computeReturns } from "../src/lib/returns";
 import { dedupeFirstCall, buildScorecard, buildFunnel } from "../src/lib/scorecard";
 import { DatasetSchema } from "../src/lib/schema";
 import { buildSpark } from "../src/lib/spark";
+import { buildCumExcess } from "../src/lib/cum-excess";
 import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
 import { resolveSymbol } from "../src/lib/symbol";
 import { quoteTypes, isOutOfScope } from "./symbol-scope";
@@ -73,7 +74,7 @@ export function assembleDataset(
     : undefined;
   const ds: Dataset = {
     creator, generatedAt, spyAnchor: "SPY", calls,
-    scorecard: { ...buildScorecard(calls), funnel },
+    scorecard: { ...buildScorecard(calls), funnel, cumExcess: buildCumExcess(calls, ohlc, spy) },
     caveats: calls.some(c => c.ticker.endsWith("-USD")) ? [...CAVEATS, "crypto-vs-spy"] : CAVEATS,
   };
   DatasetSchema.parse(ds); // fail-closed on a malformed dataset
