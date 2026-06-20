@@ -437,12 +437,14 @@ frozen/insert-only guarantee is preserved — only appends or halts, never rewri
 daily run the service discards local static churn:
 
 ```
-git checkout -- data/ && git clean -fd data/prices/ && git pull --ff-only
+git checkout -- data/ && git clean -fd data/ && git pull --ff-only
 ```
 
-`clean` is scoped to `data/prices/` only — never `data/creators/` (gitignored seeded
-per-creator state). Accepted drift: static panic-fallback JSON, OG cards, and baked `spark`
-go stale between manual redeploys.
+`clean -fd data/` (without `-x`) is safe across all of `data/`: `.gitignore` shields
+seeded per-creator state (`raw/`, `frames/`, `transcripts/`, `cookies.txt`) — `clean`
+only removes untracked non-ignored files such as locally generated `dataset.json` or
+avatar copies that would conflict with newly-tracked remote files. Accepted drift:
+static panic-fallback JSON, OG cards, and baked `spark` go stale between manual redeploys.
 
 **Revalidate (resolves the 3a TODO).** On-demand ISR revalidation is wired via the Nitro→Vercel
 prerender bypass token: `vite.config.ts` sets `nitro.vercel.config.bypassToken =

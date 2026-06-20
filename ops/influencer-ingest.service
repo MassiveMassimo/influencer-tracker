@@ -9,7 +9,9 @@ WorkingDirectory=/home/ubuntu/influencer-tracker
 EnvironmentFile=/home/ubuntu/influencer-tracker/.env
 Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
 RuntimeMaxSec=4h
-# VM static writes are ephemeral (DB is truth) — discard tracked + untracked new-symbol price
-# files, then pull. clean ONLY data/prices (never data/creators — that holds seeded state).
+# VM static writes are ephemeral (DB is truth) — discard all local data churn, then pull.
+# clean -fd data/ (no -x) is safe: .gitignore shields seeded per-creator state (raw/, frames/,
+# transcripts/, cookies.txt) — clean only removes untracked non-ignored files (e.g. locally
+# generated dataset.json or avatar copies that conflict with newly-tracked remote files).
 # flock waits up to 2h for the lock (vs skipping the day if a manual resume holds it).
-ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/prices/ && git pull --ff-only && bun run scripts/ingest.ts'
+ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/ && git pull --ff-only && bun run scripts/ingest.ts'
