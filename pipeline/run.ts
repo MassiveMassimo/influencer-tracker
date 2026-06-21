@@ -1,9 +1,12 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { scrape, downloadReel } from "./scrape";
 import { transcribe } from "./transcribe";
 import { frames } from "./frames";
 import { extract } from "./extract";
 import { prices } from "./prices";
 import { score } from "./score";
+import { transcriptsDir } from "./config";
 
 // Usage: bun run pipeline --handle kevvonz --name "Kevin Hu" [--from <stage>]
 const args = Object.fromEntries(
@@ -22,7 +25,13 @@ for (const stage of stages.slice(start)) {
   console.log(`\n=== ${stage} ===`);
   if (stage === "scrape") {
     const codes = await scrape(handle);
-    for (const c of codes) downloadReel(handle, c);
+    // Skip reels already transcribed: the transcript is the durable artifact, so
+    // raw media is disposable and never re-fetched. Keeps re-runs of an existing
+    // creator to new reels only.
+    for (const c of codes) {
+      if (existsSync(join(transcriptsDir(handle), `${c}.json`))) continue;
+      downloadReel(handle, c);
+    }
   } else if (stage === "transcribe") {
     await transcribe(handle);
   } else if (stage === "frames") {
