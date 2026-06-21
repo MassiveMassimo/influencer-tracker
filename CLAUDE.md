@@ -42,6 +42,13 @@ before pricing. Resume with `--from <stage>`.
 - **X/Twitter** — `bun run pipeline:x --handle <h> --name "<Name>"`
   Stages: `scrape → extract → prices → score`.
 
+**Raw media is disposable.** Per-creator `raw/` (reel mp4/wav) and `frames/` are pipeline
+intermediates — gitignored, never deployed (`.vercelignore`), never read at runtime. The
+durable artifacts are `transcripts/`, `dataset.json`, and `prices/`. `run.ts` skips
+downloading any reel that already has a transcript, so re-running an existing creator
+fetches only new reels and deleting `raw/`+`frames/` is safe (frees ~GBs; only re-fetched
+if a reel was never transcribed).
+
 ## How we scrape
 
 **Instagram** (`pipeline/scrape.ts`, video-first):
