@@ -140,7 +140,11 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
         <span className="font-heading text-2xl tabular-nums">
           {ready ? <NumberFlow format={priceFormat} value={lastClose} willChange /> : priceFmt(lastClose)}
         </span>
-        <span className={`font-mono text-sm tabular-nums ${toneClass(tfChange)}`}>
+        {/* transition-colors: the tone flips rose<->emerald on a zero-cross while
+            NumberFlow glyphs are mid-spin on their own will-change layers; an
+            instant color swap leaves random glyphs holding a stale (old-tone)
+            paint. Animating color repaints the whole subtree each frame. */}
+        <span className={`font-mono text-sm tabular-nums transition-colors ${toneClass(tfChange)}`}>
           {tfChange == null || tfDelta == null ? "—" : ready ? (
             <><NumberFlow format={deltaFormat} value={tfDelta} willChange />{" ("}<NumberFlow format={changeFormat} value={tfChange} willChange />{")"}</>
           ) : `${signedCurrency(tfDelta)} (${signed(tfChange)})`}
@@ -198,11 +202,17 @@ function TickerPage() {
     }
     return hits.map((h) => ({
       date: new Date(h.postDate),
-      icon: "▲",
+      icon: avatars[h.handle] ? (
+        <img
+          src={avatars[h.handle]!}
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+        />
+      ) : "▲",
       title: `${names[h.handle] ?? h.handle} · ${h.postDate}`,
       description: "",
     }));
-  }, [creatorHandle, creatorCalls, hits, names, symbol, select]);
+  }, [creatorHandle, creatorCalls, hits, names, avatars, symbol, select]);
 
   const candles = useMemo(() => ohlc.map((b) => ({ date: new Date(b.date), open: b.o, high: b.h, low: b.l, close: b.c })), [ohlc]);
   const norm = useMemo(() => {
@@ -228,9 +238,14 @@ function TickerPage() {
   }));
   const today = new Date().toISOString().slice(0, 10);
 
+  // Per-creator count when a tab is selected (so switching tabs animates the
+  // NumberFlow), cross-creator total in all-mode.
+  const shownCallCount = creatorHandle
+    ? (summary.byCreator.find((b) => b.handle === creatorHandle)?.callCount ?? creatorCalls.length)
+    : summary.callCount;
   const callsLabel = numberFlowReady ? (
-    <NumberFlow value={summary.callCount} suffix={summary.callCount === 1 ? " call" : " calls"} willChange />
-  ) : `${summary.callCount} ${summary.callCount === 1 ? "call" : "calls"}`;
+    <NumberFlow value={shownCallCount} suffix={shownCallCount === 1 ? " call" : " calls"} willChange />
+  ) : `${shownCallCount} ${shownCallCount === 1 ? "call" : "calls"}`;
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
@@ -265,7 +280,7 @@ function TickerPage() {
           ) : (
             <ChartBoundary>
               <Suspense fallback={<ChartSkeleton />}>
-                <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} onHoverClose={setHoverClose} />
+                <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} onHoverClose={setHoverClose} iconFill={!creatorHandle} />
               </Suspense>
             </ChartBoundary>
           )}
@@ -279,7 +294,7 @@ function TickerPage() {
         ) : (
           <ChartBoundary>
             <Suspense fallback={<ChartSkeleton />}>
-              <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={view.timeframe} />
+              <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={view.timeframe} iconFill={!creatorHandle} />
             </Suspense>
           </ChartBoundary>
         )}
