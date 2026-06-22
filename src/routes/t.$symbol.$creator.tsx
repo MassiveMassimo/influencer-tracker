@@ -97,10 +97,20 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
     const creatorHandle = creatorParam !== "all" && shown.has(creatorParam) ? creatorParam : null;
 
     let creatorCalls: Call[] = [];
+    // Other scored tickers named in the same post, keyed by shortcode. Only this
+    // symbol's posts are openable in the proof viewer, so only their siblings
+    // matter. Scoped to ds.calls (scored bullish) so every link has a live page.
+    const siblings: Record<string, { ticker: string; company: string }[]> = {};
     if (creatorHandle) {
       try {
         const ds = await fetchDataset(creatorHandle);
         creatorCalls = ds.calls.filter((c) => c.ticker === symbol);
+        const codes = new Set(creatorCalls.map((c) => c.shortcode));
+        for (const c of ds.calls) {
+          if (c.ticker !== symbol && codes.has(c.shortcode)) {
+            (siblings[c.shortcode] ??= []).push({ ticker: c.ticker, company: c.company });
+          }
+        }
       } catch (err) {
         console.warn(`[ticker loader] dataset fetch failed for ${creatorHandle}, degrading to All:`, (err as Error)?.message ?? err);
       }
@@ -126,7 +136,7 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
 
     return {
       symbol, company: summary.company, summary, names, avatars, hits,
-      creatorHandle, creatorCalls, firstDate, bakedOhlc, bakedSpy,
+      creatorHandle, creatorCalls, siblings, firstDate, bakedOhlc, bakedSpy,
       og: { img: ogImg, title: ogTitle },
     };
   },
@@ -177,7 +187,7 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
 
 function TickerPage() {
   const data = Route.useLoaderData();
-  const { symbol, summary, names, avatars, hits, creatorHandle, creatorCalls, firstDate, bakedOhlc, bakedSpy } = data;
+  const { symbol, summary, names, avatars, hits, creatorHandle, creatorCalls, siblings, firstDate, bakedOhlc, bakedSpy } = data;
   const getHalal = useHalalStatus([symbol]);
   const halal = getHalal(symbol);
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
@@ -446,7 +456,7 @@ function TickerPage() {
         </section>
       )}
 
-      <ProofViewer call={selectedCall} handle={creatorHandle ?? ""} onClose={() => setSelectedCall(null)} />
+      <ProofViewer call={selectedCall} handle={creatorHandle ?? ""} siblings={siblings} onClose={() => setSelectedCall(null)} />
     </main>
   );
 }

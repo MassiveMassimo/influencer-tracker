@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Dialog } from "@base-ui/react/dialog";
 import {
   Drawer,
@@ -36,9 +37,56 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
+export type SiblingCall = { ticker: string; company: string };
+
+// Other scored tickers named in the same post. Links to each sibling's page for
+// the same creator; `onNavigate` closes the viewer before the route switches.
+function OtherCalls({
+  siblings,
+  handle,
+  onNavigate,
+}: {
+  siblings: SiblingCall[];
+  handle: string;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label>Other stocks in this post</Label>
+      <div className="overflow-hidden rounded-lg border border-border/60">
+        {siblings.map((s, i) => (
+          <Link
+            key={s.ticker}
+            to="/t/$symbol/$creator"
+            params={{ symbol: s.ticker, creator: handle }}
+            onClick={onNavigate}
+            className={`flex items-center justify-between gap-3 px-3 py-2 text-sm transition-colors hover:bg-muted ${i > 0 ? "border-t border-border/60" : ""}`}
+          >
+            <span className="flex min-w-0 items-baseline gap-2">
+              <span className="font-heading shrink-0">{s.ticker}</span>
+              <span className="truncate text-xs text-muted-foreground">{s.company}</span>
+            </span>
+            <span className="shrink-0 text-muted-foreground">↗</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Shared body rendered inside both the desktop dialog and the mobile drawer.
 // `handle` is threaded separately because the Call shape carries only a shortcode.
-function ProofContent({ call, handle }: { call: Call; handle: string }) {
+function ProofContent({
+  call,
+  handle,
+  siblings,
+  onNavigate,
+}: {
+  call: Call;
+  handle: string;
+  siblings: SiblingCall[];
+  onNavigate: () => void;
+}) {
   const p = proof(call.shortcode);
   return (
     <div className="flex flex-col gap-5 md:flex-row md:items-start">
@@ -64,6 +112,7 @@ function ProofContent({ call, handle }: { call: Call; handle: string }) {
           <Label>Quote</Label>
           <p className="text-sm leading-relaxed text-muted-foreground">“{call.quote}”</p>
         </div>
+        {siblings.length > 0 && <OtherCalls siblings={siblings} handle={handle} onNavigate={onNavigate} />}
         <ReportButton handle={handle} shortcode={call.shortcode} ticker={call.ticker} />
       </div>
       <iframe
@@ -93,14 +142,17 @@ function Heading({ call }: { call: Call }) {
 export function ProofViewer({
   call,
   handle,
+  siblings,
   onClose,
 }: {
   call: Call | null;
   handle: string;
+  siblings?: Record<string, SiblingCall[]>;
   onClose: () => void;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const open = call != null;
+  const callSiblings = call ? (siblings?.[call.shortcode] ?? []) : [];
 
   if (isDesktop) {
     return (
@@ -124,7 +176,7 @@ export function ProofViewer({
                 <Dialog.Description className="sr-only">
                   Proof media and context for the {call.ticker} call.
                 </Dialog.Description>
-                <ProofContent call={call} handle={handle} />
+                <ProofContent call={call} handle={handle} siblings={callSiblings} onNavigate={onClose} />
               </>
             )}
           </Dialog.Popup>
@@ -148,7 +200,7 @@ export function ProofViewer({
                 Proof media and context for the {call.ticker} call.
               </DrawerDescription>
             </div>
-            <ProofContent call={call} handle={handle} />
+            <ProofContent call={call} handle={handle} siblings={callSiblings} onNavigate={onClose} />
           </ScrollArea>
         )}
       </DrawerContent>
