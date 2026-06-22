@@ -821,9 +821,13 @@ ships. Curated, not a commit dump. Match the voice + granularity of the existing
 - Group items under `### New` / `### Improved` / `### Fixed` (these are the display labels;
   Keep a Changelog tags `Added`/`Changed`/`Removed`/etc. also work and map to friendly
   wording — unknown tags render as-is).
-- **Features = `- **Title** — one or two plain sentences.`** The route renders the bold
-  title as a heading with the description below it (maestri-style). A plain bullet with no
-  `**Title** —` lead renders as a simple dotted line — fine for small fixes.
+- **Two tiers (maestri-style), chosen by the group tag:**
+  - **Marquee features** — tags `New` / `Improved` (also `Added` / `Changed`) render each
+    item as a **title + paragraph**. Author them `- **Title** — one or two plain sentences.`
+  - **The specific/minor stuff** — every *other* tag (`Fixed`, `Removed`, or a custom
+    `Also` / `Details`) renders as a **compact bulleted list**. Bullets can still lead with
+    a bold `**Title** —`; it renders inline. Use this tier for small fixes and follow-ups,
+    like maestri's "Point Releases" (`BLOCK_TAGS` in `changelog.tsx` is the dividing line).
 - **Big releases get a tagline.** Put a `> one-line headline.` blockquote right under the
   date heading; the route renders it as a gradient **hero card**. Reserve it for genuinely
   notable releases — a hero on every entry dilutes it. No blockquote = no hero.

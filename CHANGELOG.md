@@ -8,6 +8,10 @@ newest first. Spotted something wrong? Every call has a "Report incorrect" butto
 ### Improved
 - **Your movers in the sidebar** — The most recently called tickers now sit in the sidebar with a live one-day mini-chart, so the day's movers are one glance away from anywhere on the site.
 
+### Fixed
+- **Smoother chart loading** — Charts now fade in behind a matching placeholder instead of popping into place.
+- **Steadier first paint** — Removed a brief flash when a chart first appears on screen.
+
 ## 2026-06-19
 
 ### Improved
