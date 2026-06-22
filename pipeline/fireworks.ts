@@ -1,8 +1,8 @@
 import { FIREWORKS_KEY } from "./config";
 
-// Fireworks is OpenAI-compatible; same call shape as groq() so calls.ts/classify
-// can target it by passing this as the `client`. Used for the high-volume X
-// tweet classification (gpt-oss-120b) where Groq's free tier is too rate-limited.
+// Fireworks is OpenAI-compatible; calls.ts/classify target it by passing this as
+// the `client`. Used for all text + vision classification (deepseek-v4-flash text,
+// kimi-k2p5 vision) across both the IG and high-volume X paths.
 const BASE = "https://api.fireworks.ai/inference/v1";
 
 // Text classifier. Bake-off on real TheProfInvestor tweets: deepseek-v4-flash

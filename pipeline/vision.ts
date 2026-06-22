@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { groq } from "./groq";
 
 export interface FrameHint {
   ticker: string | null;
@@ -20,14 +19,14 @@ export function parseHint(content: string): FrameHint {
   }
 }
 
-// OpenAI-compatible POST fn (groq default; fireworks for the X path).
+// OpenAI-compatible POST fn (fireworks).
 type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
 
 // Run the vision model on a single image, returning the ticker/price hint.
 export async function readImage(
   vision: string,
   imgPath: string,
-  client: ChatClient = groq,
+  client: ChatClient,
 ): Promise<FrameHint> {
   const b64 = (await readFile(imgPath)).toString("base64");
   const body = {

@@ -52,7 +52,7 @@ export async function tweetToReelCalls(t: TweetRecord, handle: string, deps: Ext
 
 export async function extractX(handle: string) {
   // Whole X path runs on Fireworks (no Groq throttling at this scale): text via
-  // gpt-oss-120b, image hints via the cheapest serverless VLM (qwen3p6-plus).
+  // deepseek-v4-flash, image hints via kimi-k2p5.
   const deps: ExtractDeps = {
     text: FIREWORKS_MODEL,
     vision: FIREWORKS_VISION_MODEL,
