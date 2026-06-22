@@ -448,6 +448,14 @@ report→override correction loop is now the safety net that makes shipping-then
 vs the default backward backfill walk. The image-download tail skips already-downloaded files
 (`existsSync`).
 
+**Gotcha — the forward anchor lives in disposable `raw/`.** The "newest stored tweet" anchor is
+read from `raw/<handle>/tweets.json` (`loadTweets`), but `raw/` is gitignored and the documented
+"raw media is disposable, delete to free GBs" cleanup purges it. With no `tweets.json`, `--forward`
+logs `forward requested but no prior data` and silently does a **full 12-month backfill** (re-scrape
++ full re-extract, Fireworks $). For X, `tweets.json` is NOT disposable — it's the incremental
+cursor — so don't purge `raw/<handle>/tweets.json` for X creators even though the mp4/img media in
+`raw/` is safe to delete. (Hit 2026-06-22: both X handles full-backfilled after a `raw/` purge.)
+
 **Price reactivity + split safety** (`pipeline/prices.ts`, `src/lib/prices-merge.ts`). A
 front-covered cached series is now extended forward (fetch a ~10-day overlap from the last
 stored bar, insert-only merge) instead of skipped — so to-date returns and recent horizons
