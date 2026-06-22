@@ -3,10 +3,9 @@
 import { useMemo } from "react";
 import type { CumPoint } from "#/lib/types.ts";
 import { AreaChart } from "./area-chart";
-import { chartCssVars, useChartStable, useYScale } from "./chart-context";
+import { useChartStable, useYScale } from "./chart-context";
 import { Grid } from "./grid";
 import { ProfitLossArea } from "./profit-loss-area";
-import { ReferenceArea } from "./reference-area";
 import { ChartTooltip } from "./tooltip/chart-tooltip";
 import { XAxis } from "./x-axis";
 import { YAxis } from "./y-axis";
@@ -57,50 +56,11 @@ function EndReadout() {
   );
 }
 
-// 3-month average readout, pinned to the top-left corner of the ReferenceArea
-// band (band starts at `start`). Consumes the chart scale so it tracks the band.
-function Avg3mLabel({ avg3m, start }: { avg3m?: number; start?: Date }) {
-  const { xScale, innerWidth } = useChartStable();
-  if (!start) return null;
-  const x = Math.max(0, Math.min(innerWidth, xScale(start) ?? 0)) + 6;
-  const hasAvg = avg3m != null && Number.isFinite(avg3m);
-  return (
-    <text x={x} y={12}>
-      <tspan dy="0.85em" fill={chartCssVars.foregroundMuted} fontSize={9} x={x}>
-        3m avg
-      </tspan>
-      {hasAvg ? (
-        <tspan
-          className="tabular-nums"
-          dy="1.3em"
-          fill={signColor(avg3m)}
-          fontSize={13}
-          fontWeight={600}
-          x={x}
-        >
-          {fmtPct(avg3m)}
-        </tspan>
-      ) : null}
-    </text>
-  );
-}
-
-export function CumExcessArea({ pts, avg3m }: { pts: CumPoint[]; avg3m?: number }) {
+export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
   const data = useMemo(
     () => pts.map((p) => ({ date: new Date(`${p.t}T00:00:00Z`), v: p.v })),
     [pts],
   );
-
-  // Start of the most-recent-3-months band: latest data date back 3 months
-  // (anchored to the data, not "now", so it stays reproducible). Omitting x2
-  // extends the band to the plot's right edge (the latest point).
-  const threeMoAgo = useMemo(() => {
-    const last = data.at(-1)?.date;
-    if (!last) return undefined;
-    const d = new Date(last);
-    d.setMonth(d.getMonth() - 3);
-    return d;
-  }, [data]);
 
   return (
     <AreaChart
@@ -116,8 +76,6 @@ export function CumExcessArea({ pts, avg3m }: { pts: CumPoint[]; avg3m?: number 
         highlightRowValues={[0]}
         horizontal
       />
-      {/* Most-recent-3-months window: calls here haven't fully matured to 3m. */}
-      {threeMoAgo ? <ReferenceArea showMarkers strokeStyle="dashed" x1={threeMoAgo} /> : null}
       <ProfitLossArea dataKey="v" />
       <XAxis />
       <YAxis formatValue={fmtAxisPct} numTicks={4} />
@@ -128,7 +86,6 @@ export function CumExcessArea({ pts, avg3m }: { pts: CumPoint[]; avg3m?: number 
           return [{ color: signColor(v), label: "Excess vs SPY", value: fmtPct(v) }];
         }}
       />
-      <Avg3mLabel avg3m={avg3m} start={threeMoAgo} />
       <EndReadout />
     </AreaChart>
   );
