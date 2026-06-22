@@ -1,8 +1,12 @@
-import { useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useState, useSyncExternalStore } from "react";
 import { Link } from "@tanstack/react-router";
 import { CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import GitHubLink from "./GitHubLink";
-import { Preferences } from "./Preferences";
+
+// Lazy so Base UI Dialog + vaul Drawer (only used by the settings modal) stay out
+// of the every-route rail bundle; loaded on first open, then kept mounted so the
+// close transition still plays.
+const Preferences = lazy(() => import("./Preferences").then((m) => ({ default: m.Preferences })));
 import { ScrollArea } from "./ui/scroll-area";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 import { RailStocks } from "./RailStocks";
@@ -39,6 +43,9 @@ export function RailContent({
   onNavigate?: () => void;
 }) {
   const [prefsOpen, setPrefsOpen] = useState(false);
+  // Stays true after the first open so the lazy modal remains mounted and can
+  // play its close transition (gating render on prefsOpen would cut it).
+  const [prefsMounted, setPrefsMounted] = useState(false);
   return (
     <div className="flex h-full flex-col bg-foreground/[0.02]">
       <Link
@@ -150,7 +157,10 @@ export function RailContent({
           <GitHubLink className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground" />
           <button
             type="button"
-            onClick={() => setPrefsOpen(true)}
+            onClick={() => {
+              setPrefsMounted(true);
+              setPrefsOpen(true);
+            }}
             aria-label="Preferences"
             title="Preferences"
             className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground"
@@ -159,7 +169,11 @@ export function RailContent({
           </button>
         </div>
       </div>
-      <Preferences open={prefsOpen} onOpenChange={setPrefsOpen} />
+      {prefsMounted && (
+        <Suspense fallback={null}>
+          <Preferences open={prefsOpen} onOpenChange={setPrefsOpen} />
+        </Suspense>
+      )}
     </div>
   );
 }
