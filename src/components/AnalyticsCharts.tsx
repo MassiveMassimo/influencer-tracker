@@ -37,7 +37,7 @@ export function CumulativeExcess({ ds }: { ds: Dataset }) {
   return (
     <div>
       <Suspense fallback={<AreaChartLoading aspectRatio="auto" className="h-[200px] w-full" label="Loading" />}>
-        <CumExcessArea avg3m={ds.scorecard.avgExcess["3m"]} pts={pts} />
+        <CumExcessArea pts={pts} />
       </Suspense>
       <p className="mt-2 text-xs text-muted-foreground">
         Equal-weight across {nPicks} scored {nPicks === 1 ? "pick" : "picks"} · excess return vs SPY, to date
