@@ -28,15 +28,26 @@ export function useChartPhaseOrchestrator({
   revealSignature = "",
   skipEnterReveal = false,
 }: UseChartPhaseOrchestratorOptions) {
+  // Start a ready chart already in `revealing` so the first painted frame is the
+  // clip-at-0 entrance, not the resting full state. Triggering the reveal from a
+  // post-paint effect (see below) let one frame of the fully-drawn chart paint
+  // first — a flash of the whole graph that then vanished and swept back in,
+  // worst in dev where commits are slow. Static previews skip the reveal.
   const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
-    resolveRestingChartPhase(chartStatus)
+    chartStatus === "ready" && !skipEnterReveal
+      ? "revealing"
+      : resolveRestingChartPhase(chartStatus)
   );
   const [plotData, setPlotData] = useState<Record<string, unknown>[]>(() =>
     chartStatus === "loading" ? skeletonData : targetData
   );
   const [revealEpoch, setRevealEpoch] = useState(0);
   const [concealEpoch, setConcealEpoch] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(() => chartStatus === "ready");
+  // Not loaded until the enter reveal settles (interaction is gated on isLoaded);
+  // only a reveal-skipping ready chart is interactive immediately.
+  const [isLoaded, setIsLoaded] = useState(
+    () => chartStatus === "ready" && skipEnterReveal
+  );
   const prevStatusRef = useRef(chartStatus);
   const phaseRef = useRef(chartPhase);
   phaseRef.current = chartPhase;
