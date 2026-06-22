@@ -131,10 +131,13 @@ The timer fires `influencer-ingest.service`, which:
    (tweets since last run), extract calls via Fireworks, write `reel-calls.json` and
    `calls.review.md`, then immediately auto-invokes `scripts/resume.ts` per handle —
    no human pause.
+   After all handles, `ingest.ts` commits + pushes `data/` once (Vercel auto-deploys the
+   fresh static). A handle BLOCK or a failed push makes the run exit non-zero so the
+   `notify-fail` `OnFailure` dead-man fires even if the Telegram send is down.
 4. Per-handle Telegram messages:
-   - **Published:** handle scored, synced, CDN busted — no action needed.
-   - **BLOCKED:** `guard-no-shrink` or parity check failed; the message includes the
-     manual re-run command for investigation.
+   - **Published:** handle scored; `data/` committed + pushed → Vercel redeploys static — no action needed.
+   - **BLOCKED:** `guard-no-shrink` or score failed (or the push/rebase failed); the message
+     includes the manual re-run command for investigation.
 
 ### Manual resume — BLOCKED investigation / post-override re-score
 
