@@ -3,51 +3,66 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
 
-// Blur-dissolve handoff from the loading skeleton to the real chart. While
-// loading the skeleton sits on top; when the chart is ready it renders
-// underneath and draws itself in (its own clip reveal), and the skeleton fades
-// + blurs out over it — the shimmer melts away to reveal the chart mid-draw.
-// Blur masks the crossfade between two structurally different visuals (shimmer
-// bars vs the real series) so the eye reads one shape resolving into focus
-// rather than a hard swap (Kowalski: blur bridges imperfect crossfades).
-//
-// Both layers are grid-stacked in the same cell, so the box sizes to its
-// content — no fixed height required (works for the fixed-height price charts
-// and the content-height bar panels alike). Reduced motion → opacity-only fade.
+// Two-layer blur crossfade from the loading skeleton to the real chart. The
+// skeleton fades + blurs OUT while the chart fades + blurs IN, both stacked in
+// the same grid cell so they overlap — the eye reads one shape resolving into
+// focus rather than a hard swap (Kowalski: blur bridges imperfect crossfades).
+// Grid-stacking sizes the box to content (works for fixed-height price charts
+// and content-height bar panels alike). AnimatePresence `initial={false}` so
+// the first paint (chart already ready, no skeleton) doesn't fade in — only an
+// actual loading→ready transition crossfades. Reduced motion → opacity only.
 export function ChartHandoff({
   loading,
   skeleton,
   className,
   blur = 8,
+  durationMs = 500,
   children,
 }: {
   loading: boolean;
   skeleton: ReactNode;
   className?: string;
-  /** Peak blur (px) the skeleton reaches as it dissolves. Keep <20 (Safari). */
+  /** Peak blur (px) each layer crosses through. Keep <20 (Safari). */
   blur?: number;
+  /** Crossfade duration (ms). */
+  durationMs?: number;
   children: ReactNode;
 }) {
   const reduce = useReducedMotion();
+  const hidden = reduce
+    ? { opacity: 0 }
+    : { opacity: 0, filter: `blur(${blur}px)` };
+  const shown = { opacity: 1, filter: "blur(0px)" };
+  const transition = {
+    duration: durationMs / 1000,
+    ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
+  };
   return (
     <div className={`grid ${className ?? ""}`}>
-      {!loading && <div className="col-start-1 row-start-1 min-w-0">{children}</div>}
-      <AnimatePresence>
-        {loading && (
+      <AnimatePresence initial={false} mode="sync">
+        {loading ? (
           <motion.div
-            // initial={false}: the skeleton is already on screen during loading,
-            // so it only animates on exit (the dissolve), never on enter.
+            animate={shown}
             className="col-start-1 row-start-1 min-w-0"
-            exit={reduce ? { opacity: 0 } : { opacity: 0, filter: `blur(${blur}px)` }}
+            exit={hidden}
             initial={false}
             key="skeleton"
             style={{ willChange: "opacity, filter" }}
-            // Strong ease-out (built-in easings lack punch); matches the
-            // timeframe ChartCrossfade vibe, slightly longer so it overlaps the
-            // chart's clip-reveal draw-in.
-            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            transition={transition}
           >
             {skeleton}
+          </motion.div>
+        ) : (
+          <motion.div
+            animate={shown}
+            className="col-start-1 row-start-1 min-w-0"
+            exit={hidden}
+            initial={hidden}
+            key="chart"
+            style={{ willChange: "opacity, filter" }}
+            transition={transition}
+          >
+            {children}
           </motion.div>
         )}
       </AnimatePresence>
