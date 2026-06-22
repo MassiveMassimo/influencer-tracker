@@ -47,7 +47,17 @@ export function CreatorSwitcher({
       apply(0, list.clientWidth - 6); // inset 3px both sides
     } else {
       const active = list.querySelector<HTMLButtonElement>('[aria-selected="true"]');
-      if (active) apply(active.offsetLeft, active.offsetWidth);
+      if (active) {
+        // Avatar tabs get a circular indicator (square pill, border-radius 48px)
+        // centered on the tab so it rings the round avatar instead of boxing it
+        // in a wide pill. Text tabs (All) keep the full-width pill.
+        if (active.dataset.avatarTab != null) {
+          const d = active.offsetHeight;
+          apply(active.offsetLeft + (active.offsetWidth - d) / 2, d);
+        } else {
+          apply(active.offsetLeft, active.offsetWidth);
+        }
+      }
     }
     if (!animate) {
       void pill.offsetWidth; // force reflow before re-enabling transition
@@ -127,6 +137,7 @@ export function CreatorSwitcher({
                     aria-label={c.name}
                     tabIndex={open ? -1 : 0}
                     className="t-tab"
+                    data-avatar-tab=""
                     onClick={() => go(c.handle)}
                   >
                     <Avatar creator={c} />

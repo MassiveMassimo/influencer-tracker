@@ -54,7 +54,7 @@ export function CallFunnel({ ds }: { ds: Dataset }) {
         layers={3}
         orientation="vertical"
         labelLayout="grouped"
-        labelOrientation="horizontal"
+        labelOrientation="vertical"
       />
     </div>
   );

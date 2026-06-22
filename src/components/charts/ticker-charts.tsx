@@ -70,18 +70,20 @@ export const PriceCandles = memo(function PriceCandles({
   markers,
   timeframe,
   onHoverClose,
+  iconFill,
 }: {
   candles: Candle[];
   markers: ChartMarker[];
   timeframe: Timeframe;
   onHoverClose?: (close: number | null) => void;
+  iconFill?: boolean;
 }) {
   return (
     <ChartCrossfade timeframe={timeframe}>
       <CandlestickChart data={candles} margin={{ left: 56 }} style={{ height: 320 }} revealSignature={timeframe}>
         <Grid horizontal />
         <Candlestick fadedOpacity={0.25} />
-        <ChartMarkers items={markers} replayKey={timeframe} />
+        <ChartMarkers items={markers} replayKey={timeframe} iconFill={iconFill} />
         <XAxis />
         <YAxis />
         <ChartTooltip />
@@ -95,10 +97,12 @@ export const StockVsSpyLine = memo(function StockVsSpyLine({
   norm,
   markers,
   timeframe,
+  iconFill,
 }: {
   norm: NormPoint[];
   markers: ChartMarker[];
   timeframe: Timeframe;
+  iconFill?: boolean;
 }) {
   // No crossfade wrapper: the chart stays mounted across timeframes and the
   // shell reveal / y-domain tween handle the transition as `norm` changes. Stock
@@ -109,7 +113,7 @@ export const StockVsSpyLine = memo(function StockVsSpyLine({
       <Grid horizontal highlightRowValues={[100]} />
       <MorphArea dataKey="stock" />
       <MorphArea dataKey="spy" stroke="var(--info)" fillOpacity={0} />
-      <ChartMarkers items={markers} replayKey={timeframe} />
+      <ChartMarkers items={markers} replayKey={timeframe} iconFill={iconFill} />
       <XAxis />
       <ChartTooltip />
     </AreaChart>
