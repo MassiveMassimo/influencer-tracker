@@ -14,6 +14,7 @@ import type { Call } from "#/lib/types.ts";
 import type { ChartMarker } from "#/components/charts/markers/index.ts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "#/components/ui/table.tsx";
 import { ChartBoundary } from "../components/ChartBoundary";
+import { AreaChartLoading } from "#/components/charts/area-chart-loading.tsx";
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
@@ -50,7 +51,15 @@ function toneClass(x: number | null) {
   if (x == null) return "text-muted-foreground";
   return x > 0 ? "text-emerald-600 dark:text-emerald-400" : x < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground";
 }
-function ChartSkeleton() { return <div className="h-[320px] w-full animate-pulse rounded-xl bg-muted/40" />; }
+function ChartSkeleton() {
+  return (
+    <AreaChartLoading
+      aspectRatio="auto"
+      className="h-[320px] w-full overflow-hidden rounded-xl"
+      label="Loading"
+    />
+  );
+}
 
 export const Route = createFileRoute("/t/$symbol/$creator")({
   loader: async ({ params, context }) => {
