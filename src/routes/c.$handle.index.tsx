@@ -25,6 +25,7 @@ import { ogRev } from "#/og/og-rev.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { type HalalInfo } from "#/lib/halal/types.ts";
+import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
 
 const CALLS_PER_PAGE = 25;
 
@@ -73,6 +74,7 @@ interface StatTileData {
   label: string;
   segments: StatSegment[];
   tone?: number;
+  help: { body: string; caveat?: string };
 }
 
 // Static formatting that matches NumberFlow's output, for the pre-hydration
@@ -107,18 +109,29 @@ function Overview() {
     {
       label: "Total calls",
       segments: [{ kind: "num", key: "v", value: sc.totalCalls, format: INT_FMT }],
+      help: {
+        body: "Every scored bullish buy call in the tracked window — one per ticker named, so a single post pitching several stocks counts once per stock.",
+        caveat: "Watchlist mentions, bearish/short calls, and 'no position' references aren't scored.",
+      },
     },
     {
       label: "Unique tickers",
       segments: [
         { kind: "num", key: "v", value: sc.uniqueTickers, format: INT_FMT },
       ],
+      help: {
+        body: "Distinct symbols across all scored calls. Lower than total calls when the same stock is pitched more than once.",
+      },
     },
     {
       label: "Calls / week",
       segments: [
         { kind: "num", key: "v", value: sc.callsPerWeek, format: DEC1_FMT },
       ],
+      help: {
+        body: "Posting cadence: distinct-ticker calls divided by the weeks between the first and last call.",
+        caveat: "An average — real posting is bursty, clustering around earnings and market moves.",
+      },
     },
     {
       label: "Hit rate 3m",
@@ -130,6 +143,10 @@ function Overview() {
         { kind: "text", key: "slash", text: "/" },
         { kind: "num", key: "total", value: total3m, format: INT_FMT },
       ],
+      help: {
+        body: "Share of calls that beat SPY over the 3 months after the call (excess return > 0), shown as rate · winners/total. 50% is the coin-flip baseline.",
+        caveat: "Scored on one call per ticker (highest conviction); only calls with a full 3 months elapsed count.",
+      },
     },
     {
       label: "Avg excess 3m",
@@ -142,12 +159,23 @@ function Overview() {
           format: SIGNED_PCT_FMT,
         },
       ],
+      help: {
+        body: "Equal-weight average return vs SPY, 3 months after each call. Positive = beat the market. The curve above plots this over time.",
+        caveat: "Equal-weight and not risk-adjusted; one call per ticker (highest conviction).",
+      },
     },
   ];
 
   const [statsRef, statsInView] = useInView<HTMLElement>();
 
   const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
+
+  // Platform tell mirrors proof(): numeric shortcode ⇒ X tweet id, else IG reel.
+  const isX = /^\d+$/.test(String(ds.calls[0]?.shortcode ?? ""));
+  const profileUrl = isX
+    ? `https://x.com/${ds.creator.handle}`
+    : `https://www.instagram.com/${ds.creator.handle}/`;
+  const platformIcon = isX ? "icon-[ri--twitter-x-fill]" : "icon-[mdi--instagram]";
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
@@ -156,7 +184,17 @@ function Overview() {
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
             Signal accuracy · @{ds.creator.handle}
           </div>
-          <h1 className="mt-1 font-heading text-2xl">{ds.creator.name}</h1>
+          <h1 className="mt-1 font-heading text-2xl">
+            <a
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 text-foreground no-underline"
+            >
+              <span className="group-hover:underline group-hover:underline-offset-2">{ds.creator.name}</span>
+              <span className={`${platformIcon} text-muted-foreground transition-colors group-hover:text-foreground`} aria-hidden />
+            </a>
+          </h1>
         </div>
         <div>
           <DataAsOf iso={ds.generatedAt} />
@@ -229,8 +267,28 @@ function StatTile({
 
   return (
     <div className="bg-background p-4">
-      <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+      <div className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
         {tile.label}
+        <PreviewCard>
+          <PreviewCardTrigger
+            render={
+              <button
+                type="button"
+                aria-label={`What is ${tile.label}?`}
+                className="inline-flex size-3.5 cursor-default items-center justify-center rounded-full text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+              />
+            }
+          >
+            <span className="icon-[lucide--circle-help] size-3.5" aria-hidden />
+          </PreviewCardTrigger>
+          <PreviewCardPopup className="flex-col w-72 normal-case tracking-normal">
+            <div className="font-heading text-sm text-foreground">{tile.label}</div>
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{tile.help.body}</p>
+            {tile.help.caveat && (
+              <p className="mt-2 border-t border-border/50 pt-2 text-[11px] leading-relaxed text-muted-foreground/80">{tile.help.caveat}</p>
+            )}
+          </PreviewCardPopup>
+        </PreviewCard>
       </div>
       <div className={`mt-1.5 font-heading text-xl tabular-nums ${toneCls}`}>
         {tile.segments.map((seg) =>
