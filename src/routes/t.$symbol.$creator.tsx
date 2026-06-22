@@ -349,7 +349,7 @@ function TickerPage() {
           </div>
           <TimeframeTabs value={timeframe} onChange={(tf) => { impact(); setTimeframe(tf); }} onPrefetch={prefetchTimeframe} />
         </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px]">
+        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px]" durationMs={slowmo}>
           {candles.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
@@ -391,7 +391,7 @@ function TickerPage() {
             </PreviewCardPopup>
           </PreviewCard>
         </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px]">
+        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px]" durationMs={slowmo}>
           {norm.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
