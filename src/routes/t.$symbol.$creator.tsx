@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "#
 import { ChartBoundary } from "../components/ChartBoundary";
 import { AreaChartLoading } from "#/components/charts/area-chart-loading.tsx";
 import { CandlestickChartLoading } from "#/components/charts/candlestick-chart-loading.tsx";
+import { ChartHandoff } from "#/components/charts/chart-handoff.tsx";
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
@@ -331,8 +332,8 @@ function TickerPage() {
           </div>
           <TimeframeTabs value={timeframe} onChange={(tf) => { impact(); setTimeframe(tf); }} onPrefetch={prefetchTimeframe} />
         </div>
-        <div className="relative">
-          {showSkeleton ? <CandleSkeleton /> : candles.length === 0 ? (
+        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px]">
+          {candles.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
             <ChartBoundary>
@@ -341,7 +342,7 @@ function TickerPage() {
               </Suspense>
             </ChartBoundary>
           )}
-        </div>
+        </ChartHandoff>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
@@ -373,15 +374,17 @@ function TickerPage() {
             </PreviewCardPopup>
           </PreviewCard>
         </div>
-        {showSkeleton ? <ChartSkeleton /> : norm.length === 0 ? (
-          <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
-        ) : (
-          <ChartBoundary>
-            <Suspense fallback={<ChartSkeleton />}>
-              <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={view.timeframe} iconFill={!creatorHandle} />
-            </Suspense>
-          </ChartBoundary>
-        )}
+        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px]">
+          {norm.length === 0 ? (
+            <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
+          ) : (
+            <ChartBoundary>
+              <Suspense fallback={<ChartSkeleton />}>
+                <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={view.timeframe} iconFill={!creatorHandle} />
+              </Suspense>
+            </ChartBoundary>
+          )}
+        </ChartHandoff>
       </section>
 
       {/* Stock-page halal surface: panel self-gates on the preference and renders
