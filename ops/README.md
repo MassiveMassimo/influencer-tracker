@@ -1,8 +1,11 @@
 # VM ingest ops runbook
 
 Daily automated ingest for influencer-tracker. The systemd timer runs scrape + extract +
-score + sync + parity + revalidate in a single unattended run per handle. No human review
-step — Telegram reports published results or sends a BLOCKED alert on guard/parity failure.
+score per handle, then commits + pushes the refreshed `data/` once (Vercel auto-deploys the
+fresh static — serve path is static, `USE_DB=0`; see CLAUDE.md "Data source" REVERTED banner,
+2026-06-22). No human review step — Telegram reports published results or sends a BLOCKED alert
+on guard/score/push failure. The DB is no longer synced on this path; it backs only the
+correction loop (`/api/report`, overrides).
 
 ---
 
@@ -152,36 +155,28 @@ dead-man fires if it still can't acquire it. Run one handle at a time.
 
 ## 3. What resume does
 
-`scripts/resume.ts` runs these stages in order:
+`scripts/resume.ts` runs these stages in order (static-serve, 2026-06-22):
 
 1. **Guard** — checks that the new `reel-calls.json` did not shrink materially vs the
    prior run. Refuses to continue if it did (data-loss prevention; surface the diff
    and investigate manually).
 2. **Score** — computes forward-return accuracy (1w/1m/3m/to-date vs SPY) for all
-   explicit bullish calls. Rewrites `dataset.json`, `index.json`, and per-symbol
-   files in `data/prices/`.
-3. **Scoped backfill** (`scripts/backfill.ts <handle>`) — upserts only the reviewed
-   creator's calls/prices into Neon (insert-only on prices), then runs
-   `db:materialize` to rebuild the global calls-index artifact from the DB.
-   Scoped to avoid overwriting other creators' live DB rows with today's reset
-   static files.
-4. **Scoped parity check** (`scripts/parity-check.ts <handle>`) — asserts DB
-   reassembly equals static JSON for this creator's dataset and prices. Must print
-   `PARITY OK` before proceeding.
-5. **Revalidate** (`scripts/revalidate-creator.ts`, best-effort) — GETs the affected
-   creator + ticker paths (`/c/<h>`, `/api/dataset/<h>`, `/explore`, `/api/calls-index`,
-   each `/t/<sym>` + `/api/prices/<sym>`) against `VITE_SITE_URL` with header
-   `x-prerender-revalidate: <REVALIDATE_TOKEN>` — Vercel's on-demand prerender bypass.
-   The build bakes the same `REVALIDATE_TOKEN` into each ISR route's prerender config
-   (`vite.config.ts` `nitro.vercel.config.bypassToken`), so the sent token must equal the
-   build-time value. Never throws; if it's skipped or the token is unset, the 6h ISR TTL
-   still refreshes the CDN. (The older `/api/revalidate` POST seam still exists but is an
-   inert 3a stub — it is *not* what resume calls.)
+   explicit bullish calls; applies operator overrides (`db/overrides.ts`, fail-open).
+   Rewrites `dataset.json`, `index.json`, and per-symbol files in `data/prices/`.
+
+That's it — `resume.ts` no longer touches the DB. **Publishing happens at the `ingest.ts`
+level**: after all handles score, it `git add data/ && commit && pull --rebase && push origin
+main`. The push triggers Vercel's auto-deploy, which serves the fresh static (`USE_DB=0`). For a
+**manual** override re-score, run `resume.ts <handle>` then commit + push `data/` yourself to
+publish. (The former DB stages — scoped `backfill` → `db:materialize` → `parity-check` →
+`revalidate-creator` — were removed when the serve path returned to static. The scripts still
+exist for a future `USE_DB=1` revival but are off this path.)
 
 If any step fails, resume exits with a non-zero code. In the automated run, `ingest.ts` catches
-the failure and sends a BLOCKED Telegram alert with the manual re-run command; the
-`notify-fail` systemd unit is the backstop if the process is killed before it can notify.
-In a manual SSH session, failures surface in the terminal only.
+the failure and sends a BLOCKED Telegram alert with the manual re-run command; a failed `push`
+(after a successful commit) also sends a BLOCKED alert. The `notify-fail` systemd unit is the
+backstop if the process is killed before it can notify. In a manual SSH session, failures
+surface in the terminal only.
 
 Every active handle re-scores on every daily run (always-resume), so overrides and
 to-date/recent-horizon returns mature for all creators without needing a new reviewed call.
