@@ -2,7 +2,6 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { creatorDir } from "./config";
-import { groq } from "./groq";
 import type { Direction, ReelCall } from "../src/lib/types";
 
 // A single post can name MULTIPLE stocks (e.g. "loading up on NVDA and AMD,
@@ -64,14 +63,13 @@ const ReplySchema = z.object({ calls: z.array(ClassificationSchema).catch([]) })
 // non-JSON content) so the caller's retry loop re-runs the post; returns the
 // validated per-ticker Classifications otherwise (an empty array is a genuine
 // no-stock reply, handled downstream by toReelCalls). `client` is the OpenAI-compatible
-// POST fn (groq by default, fireworks for the high-volume X path). Both share this
-// prompt/parse so platforms never diverge.
+// POST fn (fireworks). Both platforms share this prompt/parse so they never diverge.
 type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
 
 export async function classify(
   textModel: string,
   body: string,
-  client: ChatClient = groq,
+  client: ChatClient,
 ): Promise<Classification[]> {
   const r = await (await client("/chat/completions", {
     method: "POST", headers: { "Content-Type": "application/json" },
