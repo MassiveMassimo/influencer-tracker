@@ -17,8 +17,15 @@ const LABELS: Record<string, string> = {
 // localStorage (a multi-stock post has one flaggable call per ticker).
 export function ReportButton({ handle, shortcode, ticker }: { handle: string; shortcode: string; ticker: string }) {
   const key = `reported:${shortcode}:${ticker}`;
-  const already = typeof localStorage !== "undefined" && localStorage.getItem(key) === "1";
-  const [state, setState] = useState<"idle" | "open" | "sent">(already ? "sent" : "idle");
+  // Read localStorage once on mount, not every render; guard the throw private
+  // mode / disabled storage raises on access.
+  const [state, setState] = useState<"idle" | "open" | "sent">(() => {
+    try {
+      return localStorage.getItem(key) === "1" ? "sent" : "idle";
+    } catch {
+      return "idle";
+    }
+  });
 
   async function send(reason: string) {
     setState("sent");
