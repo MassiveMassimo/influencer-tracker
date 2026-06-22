@@ -20,6 +20,8 @@ export interface ChartMarkersProps {
    * chart), where the entrance variant would otherwise never fire again.
    */
   replayKey?: string | number;
+  /** Render marker icons edge-to-edge (no 4px inset) — for avatar fills. */
+  iconFill?: boolean;
 }
 
 // Tooltip content for markers
@@ -96,6 +98,7 @@ export function ChartMarkers({
   showLines = true,
   animate = true,
   replayKey,
+  iconFill = false,
 }: ChartMarkersProps) {
   const {
     xScale,
@@ -190,6 +193,7 @@ export function ChartMarkers({
               animate={animate}
               animationDelay={markerDelay}
               containerRef={containerRef}
+              iconFill={iconFill}
               isActive={isActive}
               // replayKey in the key remounts the group on a timeframe switch so
               // the entrance variant fires again (the area chart never unmounts).

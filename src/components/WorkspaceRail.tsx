@@ -59,9 +59,13 @@ export function RailContent({
         </div>
       </Link>
 
-      {/* Mask defaults to --color-background; the rail's bg-foreground/[0.02]
-          overlay is ~background, so the edge fade reads correctly. */}
-      <ScrollArea className="mt-3 min-h-0 flex-1" viewportClassName="px-2 pb-4">
+      {/* Mask matches the rail's bg-foreground/[0.02] composite surface so the
+          edge fade blends in (default --color-background reveals the wrong color). */}
+      <ScrollArea
+        className="mt-3 min-h-0 flex-1"
+        viewportClassName="px-2 pb-4"
+        maskColor="color-mix(in oklab, var(--color-foreground) 2%, var(--color-background))"
+      >
         <nav>
         <ul className="flex flex-col gap-0.5">
           <li>
@@ -132,7 +136,11 @@ export function RailContent({
         </nav>
       </ScrollArea>
 
-      <SectionLabel>Stocks</SectionLabel>
+      {/* px-2 matches the scroll-area viewport inset the Creators label gets, so
+          both section labels (and the rows under them) share the same left edge. */}
+      <div className="px-2">
+        <SectionLabel>Stocks</SectionLabel>
+      </div>
       <RailStocks stocks={stocks} onNavigate={onNavigate} />
 
       <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
