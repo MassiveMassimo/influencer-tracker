@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
+import { ArrowDownRightIcon, ArrowUpRightIcon, ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { listCreators } from "../lib/data";
 import { LOW_CONFIDENCE_N } from "../lib/scorecard";
@@ -43,6 +43,20 @@ function sortCreators(creators: Creator[], key: SortKey, dir: 1 | -1): Creator[]
   });
 }
 
+// Sortable column header. Chevron is dim when inactive (signals sortability),
+// solid when active; rotates 180° for ascending (dir 1) vs descending (dir -1).
+function SortHeader({ label, active, dir, onClick }: { label: string; active: boolean; dir: 1 | -1; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="group flex items-center justify-end gap-0.5 text-right transition-colors hover:text-foreground">
+      {label}
+      <ChevronDownIcon
+        className={`size-3 transition-[rotate,opacity] duration-200 ease-out ${active ? "opacity-100" : "opacity-25 group-hover:opacity-60"} ${active && dir === 1 ? "rotate-180" : ""}`}
+        aria-hidden
+      />
+    </button>
+  );
+}
+
 function Landing() {
   const creators = Route.useLoaderData();
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "hitRate3m", dir: -1 });
@@ -70,9 +84,9 @@ function Landing() {
           <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 border-border/40 border-b px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5 md:tracking-[0.2em]">
             <span className="hidden md:block">#</span>
             <span>Creator</span>
-            <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("hitRate3m")}>Hit 3m</button>
-            <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("avgExcess3m")}>Excess 3m</button>
-            <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("totalCalls")}>Calls</button>
+            <SortHeader label="Hit 3m" active={sort.key === "hitRate3m"} dir={sort.dir} onClick={() => onSort("hitRate3m")} />
+            <SortHeader label="Excess 3m" active={sort.key === "avgExcess3m"} dir={sort.dir} onClick={() => onSort("avgExcess3m")} />
+            <SortHeader label="Calls" active={sort.key === "totalCalls"} dir={sort.dir} onClick={() => onSort("totalCalls")} />
             <span className="hidden text-right md:block">Updated</span>
           </div>
           <ul className="divide-border/40 divide-y">
