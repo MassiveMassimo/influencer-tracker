@@ -796,3 +796,35 @@ time** (and aren't in the function bundle — no route imports `src/og/render.ts
 **Updating data = re-run the pipeline, commit the changed JSON, push.** The deploy
 re-copies datasets and re-renders all OG cards (datasets are frozen-for-reproducibility,
 so co-versioning with code is correct).
+
+## Changelog
+
+`CHANGELOG.md` (repo root) is the single source; the `/changelog` route renders it.
+Update the markdown and push — Vercel auto-deploys and the page updates. **No code
+change is needed to add an entry** (the route parses the md at build).
+
+**When to update.** Add an entry whenever a *notable, user- or operator-facing* change
+merges to `main` — a shipped feature, a behavior change, a fix users would notice, a
+removal. It's a curated log, **not** a commit dump: skip internal refactors, chores, and
+fix-of-a-fix churn (git history already has those). Match the granularity of the existing
+entries.
+
+**How to update.** Follow [Keep a Changelog](https://keepachangelog.com), **date-grouped**
+(this project has no version tags — continuous deploy):
+
+- Newest entry on top. Header is `## YYYY-MM-DD` (a real ISO date — the route formats it
+  to `Mon D, YYYY` and tags the **first/top** entry as "Latest"). Reuse today's date
+  header if one already exists rather than adding a duplicate.
+- Group bullets under `### Added` / `### Changed` / `### Fixed` / `### Removed` /
+  `### Deprecated` / `### Security` (these map to tone colors in `changelog.tsx`; an
+  unrecognized tag still renders, just neutral-colored).
+- Bullets are `- …`; a wrapped bullet's continuation lines are indented and auto-joined.
+  Inline markdown renders: links `[t](url)`, `` `code` ``, `**bold**`, `*italic*`.
+- The `# Changelog` H1 + intro paragraph are ignored by the parser (page header is
+  hard-coded in the route) — leave them.
+
+**Wiring** (rarely touched): `src/lib/changelog.ts` (pure parser, has a test) →
+`src/lib/changelog-data.ts` (the `?raw` import of `CHANGELOG.md`, parsed once) →
+`src/routes/changelog.tsx` (timeline UI). The `?raw` import lives in the lib module on
+purpose — the TanStack route-splitter can't resolve a relative `?raw` from its virtual
+split module.
