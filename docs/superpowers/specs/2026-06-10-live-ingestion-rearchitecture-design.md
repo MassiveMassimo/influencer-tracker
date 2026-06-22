@@ -1,7 +1,15 @@
 # Live Ingestion Re-Architecture — Design
 
+> **PARTIALLY SUPERSEDED 2026-06-22.** The ingest ledger / correction-loop / frozen-pricing parts
+> shipped and remain. The **serve-from-DB path (`USE_DB=1`) was reverted** — it exhausted Neon's
+> free-tier 5 GB/mo egress (HTTP 402, compute suspended) and the project is unwilling to pay. The
+> serve path is back on committed static assets (`USE_DB=0`); the DB is retained only for the
+> correction loop, and the VM daily run commits+pushes `data/` for Vercel to auto-deploy. Read the
+> "serve" sections below as a dormant design, not current behavior. Current state: root `CLAUDE.md`
+> "Data source" REVERTED banner.
+
 **Date:** 2026-06-10
-**Status:** Approved (design); pending implementation plan
+**Status:** Approved (design); serve-from-DB layer reverted 2026-06-22 (see banner)
 **Supersedes:** the static-git-baked dataset model and the "no DB / cron-roadmap" assumption recorded in prior memory. Scope changed: the site is now meant to be **live, public, performant, and continuously fresh**, with a growing creator roster and rich cross-creator features.
 
 ## Goal
