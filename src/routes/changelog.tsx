@@ -37,6 +37,11 @@ const LABEL: Record<string, string> = {
   Security: "Security",
 };
 
+// Two tiers (maestri-style). "Block" tags are the marquee features — rendered as
+// title + paragraph. Every other tag (Fixed, Also, Details, …) renders as a compact
+// bulleted list for the smaller, more specific stuff.
+const BLOCK_TAGS = new Set(["New", "Improved", "Added", "Changed"]);
+
 // A feature item authored as "**Title** — description" renders title + paragraph
 // (maestri-style hierarchy); anything else is a plain bullet.
 const TITLE_RE = /^\*\*(.+?)\*\*\s*[—–-]\s+(.+)$/;
@@ -101,7 +106,7 @@ function Changelog() {
           return (
             <article
               key={e.date}
-              className="grid grid-cols-1 gap-x-6 md:grid-cols-[150px_1fr] md:gap-x-10"
+              className="grid grid-cols-1 gap-x-6 border-border/40 py-10 first:pt-0 md:grid-cols-[150px_1fr] md:gap-x-10 md:py-14 [&:not(:first-child)]:border-t"
             >
               {/* Sticky date column (devl-style). */}
               <aside className="self-start md:sticky md:top-8">
@@ -119,10 +124,9 @@ function Changelog() {
                 )}
               </aside>
 
-              {/* Content column with a subtle timeline spine. */}
-              <div className="mt-3 border-border/50 pb-12 last:pb-0 md:mt-0 md:border-l md:pl-8">
+              <div className="mt-4 min-w-0 md:mt-0">
                 {e.tagline && (
-                  <div className="mb-6 rounded-xl border border-border/60 bg-gradient-to-br from-emerald-500/10 via-foreground/[0.03] to-indigo-500/10 px-5 py-4">
+                  <div className="mb-7 rounded-xl border border-border/60 bg-gradient-to-br from-emerald-500/10 via-foreground/[0.03] to-indigo-500/10 px-5 py-4">
                     <div className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.25em]">
                       <SparklesIcon className="size-3" />
                       Highlight
@@ -134,30 +138,43 @@ function Changelog() {
                 )}
 
                 {e.groups.map((g, gi) => (
-                  <section key={gi} className="mt-6 first:mt-0">
+                  <section key={gi} className="mt-7 first:mt-0">
                     {g.tag && (
                       <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.25em]">
                         {LABEL[g.tag] ?? g.tag}
                       </div>
                     )}
-                    <div className="mt-3 space-y-3.5">
-                      {g.items.map((it, ii) => {
-                        const feature = splitTitle(it);
-                        return feature ? (
-                          <div key={ii}>
-                            <h3 className="font-medium text-foreground text-sm">{renderInline(feature.title)}</h3>
-                            <p className="mt-0.5 text-sm text-muted-foreground leading-relaxed">
-                              {renderInline(feature.body)}
+                    {BLOCK_TAGS.has(g.tag) ? (
+                      // Marquee features — title + paragraph.
+                      <div className="mt-3 space-y-4">
+                        {g.items.map((it, ii) => {
+                          const feature = splitTitle(it);
+                          return feature ? (
+                            <div key={ii}>
+                              <h3 className="font-medium text-foreground text-sm">{renderInline(feature.title)}</h3>
+                              <p className="mt-0.5 text-sm text-muted-foreground leading-relaxed">
+                                {renderInline(feature.body)}
+                              </p>
+                            </div>
+                          ) : (
+                            <p key={ii} className="text-sm text-foreground/85 leading-relaxed">
+                              {renderInline(it)}
                             </p>
-                          </div>
-                        ) : (
-                          <div key={ii} className="flex gap-2 text-sm text-foreground/85 leading-relaxed">
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      // The specific/minor stuff — a compact bulleted list (the bold
+                      // "**Title** —" lead renders inline, like maestri's point releases).
+                      <ul className="mt-3 space-y-2">
+                        {g.items.map((it, ii) => (
+                          <li key={ii} className="flex gap-2.5 text-sm text-foreground/85 leading-relaxed">
                             <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/50" />
                             <span className="min-w-0">{renderInline(it)}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </section>
                 ))}
               </div>
