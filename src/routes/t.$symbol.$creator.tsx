@@ -15,6 +15,7 @@ import type { ChartMarker } from "#/components/charts/markers/index.ts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "#/components/ui/table.tsx";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { AreaChartLoading } from "#/components/charts/area-chart-loading.tsx";
+import { CandlestickChartLoading } from "#/components/charts/candlestick-chart-loading.tsx";
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
@@ -54,6 +55,15 @@ function toneClass(x: number | null) {
 function ChartSkeleton() {
   return (
     <AreaChartLoading
+      aspectRatio="auto"
+      className="h-[320px] w-full overflow-hidden rounded-xl"
+      label="Loading"
+    />
+  );
+}
+function CandleSkeleton() {
+  return (
+    <CandlestickChartLoading
       aspectRatio="auto"
       className="h-[320px] w-full overflow-hidden rounded-xl"
       label="Loading"
@@ -295,11 +305,11 @@ function TickerPage() {
           <TimeframeTabs value={timeframe} onChange={(tf) => { impact(); setTimeframe(tf); }} onPrefetch={prefetchTimeframe} />
         </div>
         <div className="relative">
-          {showSkeleton ? <ChartSkeleton /> : candles.length === 0 ? (
+          {showSkeleton ? <CandleSkeleton /> : candles.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
             <ChartBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
+              <Suspense fallback={<CandleSkeleton />}>
                 <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} onHoverClose={setHoverClose} iconFill={!creatorHandle} />
               </Suspense>
             </ChartBoundary>
