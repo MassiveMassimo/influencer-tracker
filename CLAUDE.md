@@ -325,6 +325,20 @@ complete (2026-06-14): prod runs live on the DB (`USE_DB=1`) and the VM daily in
 enabled** — Plans 1–3b shipped (Plan 4's LLM gate stays shelved; see correction-loop section).
 A prod DB change now surfaces with no redeploy. `USE_DB=0` remains the instant revert.
 
+> **REVERTED 2026-06-22 — serve path is back on static (`USE_DB=0` in prod).** The DB-as-serve-
+> source path burned through Neon's free-tier **5 GB/mo egress** (daily full-DB `materialize`
+> reads + the 418-symbol price SELECT fan-out + multi-MB SSR pulls), tripping HTTP 402 and
+> suspending Neon compute. Rather than pay, the serve path returned to the committed static
+> assets (`data/creators/*/dataset.json`, `data/prices/`, `index.json`) — which the fail-open
+> tier already served. **The DB is retained ONLY for the correction loop** (`/api/report` writes
+> `call_reports`; `apply-override` writes `call_overrides`; `score` reads overrides via
+> `db/overrides.ts`) — all low-traffic, so the free tier holds. The VM daily run no longer
+> backfills/materializes/parity-checks; it commits + pushes the refreshed `data/`, and Vercel
+> auto-deploys the fresh static. The DB-sync code (`db:backfill`/`db:materialize`/`parity-check`/
+> `scripts/revalidate-creator.ts`) is left in place but **off the daily hot path** — usable again
+> if a future plan re-enables `USE_DB=1` (e.g. on a paid tier). Everything below describes that
+> shelved live-DB serve architecture; treat it as dormant, not current, except the correction loop.
+
 - **Schema** (`db/schema.ts`, drizzle + `@neondatabase/serverless` neon-http): `creators`,
   `calls` (PK `(handle, shortcode, ticker)` — a post can name multiple stocks, so the post
   alone isn't unique; `ord` column preserves source file order — `postDate` has ties),
@@ -389,11 +403,12 @@ dead-man, `ops/README.md` with one-time rsync seed + required `.env` keys).
 
 **Fully automated daily run.** The daily timer fires `scripts/ingest.ts`, which runs `scrapeX` +
 `extract-x` for each handle in `INGEST_HANDLES`, then immediately auto-invokes `scripts/resume.ts`
-per handle (no human review of `calls.review.md` in between). `resume.ts` sequence: `guard-no-shrink`
-→ `score` → scoped `backfill.ts <handle>` → `db:materialize` (global artifact rebuild) → scoped
-`parity-check.ts <handle>` → `revalidate-creator`. Scoped to avoid overwriting other creators'
-live DB rows with today's reset static files; `materialize` still rebuilds the global calls-index
-from the full DB.
+per handle (no human review of `calls.review.md` in between). `resume.ts` sequence (static-serve,
+2026-06-22): `guard-no-shrink` → `score`. After all handles, `ingest.ts` commits + pushes the
+refreshed `data/` once, and the push triggers Vercel's auto-deploy → fresh static. (The former
+DB steps — scoped `backfill.ts` → `db:materialize` → `parity-check` → `revalidate-creator` — were
+dropped from the daily path when the serve path returned to static; see the REVERTED banner under
+"Data source".)
 
 Every active handle re-scores on every daily run (always-resume), so operator overrides and
 to-date/recent-horizon returns mature for all creators without needing a new reviewed call.
@@ -440,18 +455,21 @@ mature on each re-run. `detectBasisShift` halts any merge (all three call sites)
 a consistent non-1 close ratio over ≥2 overlapping dates (stock-split restatement signal); the
 frozen/insert-only guarantee is preserved — only appends or halts, never rewrites a scored bar.
 
-**Ephemeral-scratch git policy.** Under `USE_DB=1` the DB is source of truth, so before each
-daily run the service discards local static churn:
+**Git policy (static-serve, 2026-06-22).** `data/` is the source of truth again, so the daily run
+**commits + pushes** the refreshed datasets/index/prices (`ingest.ts`, after all handles) — that
+push is what redeploys Vercel and serves the fresh static. Before each run the service still
+resets to a clean baseline and pulls latest:
 
 ```
 git checkout -- data/ && git clean -fd data/ && git pull --ff-only
 ```
 
-`clean -fd data/` (without `-x`) is safe across all of `data/`: `.gitignore` shields
-seeded per-creator state (`raw/`, `frames/`, `transcripts/`, `cookies.txt`) — `clean`
-only removes untracked non-ignored files such as locally generated `dataset.json` or
-avatar copies that would conflict with newly-tracked remote files. Accepted drift:
-static panic-fallback JSON, OG cards, and baked `spark` go stale between manual redeploys.
+(`git checkout -- data/` reverts tracked files to remote HEAD; `score` then regenerates the
+diff that gets committed.) `clean -fd data/` (without `-x`) is safe across all of `data/`:
+`.gitignore` shields seeded per-creator state (`raw/`, `frames/`, `transcripts/`, `cookies.txt`)
+— `clean` only removes untracked non-ignored files. (Historical note: under the shelved
+`USE_DB=1` model this discard existed *because* the DB, not `data/`, was the source of truth and
+local static churn was throwaway. Now the churn is the product, so it is committed, not discarded.)
 
 **Revalidate (resolves the 3a TODO).** On-demand ISR revalidation is wired via the Nitro→Vercel
 prerender bypass token: `vite.config.ts` sets `nitro.vercel.config.bypassToken =
