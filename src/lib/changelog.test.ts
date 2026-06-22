@@ -10,6 +10,8 @@ describe("parseChangelog", () => {
       "",
       "## 2026-06-22",
       "",
+      "> A big release tagline.",
+      "",
       "### Added",
       "- First item that wraps",
       "  onto a second line.",
@@ -27,6 +29,8 @@ describe("parseChangelog", () => {
     const out = parseChangelog(md);
 
     expect(out.map((e) => e.date)).toEqual(["2026-06-22", "2026-06-19"]);
+    expect(out[0].tagline).toBe("A big release tagline.");
+    expect(out[1].tagline).toBeUndefined();
     expect(out[0].groups.map((g) => g.tag)).toEqual(["Added", "Fixed"]);
     expect(out[0].groups[0].items).toEqual([
       "First item that wraps onto a second line.",

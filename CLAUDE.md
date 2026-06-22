@@ -803,23 +803,32 @@ so co-versioning with code is correct).
 Update the markdown and push — Vercel auto-deploys and the page updates. **No code
 change is needed to add an entry** (the route parses the md at build).
 
-**When to update.** Add an entry whenever a *notable, user- or operator-facing* change
-merges to `main` — a shipped feature, a behavior change, a fix users would notice, a
-removal. It's a curated log, **not** a commit dump: skip internal refactors, chores, and
-fix-of-a-fix churn (git history already has those). Match the granularity of the existing
-entries.
+**Write for visitors, not engineers.** This page is public and read by people checking
+finfluencer accuracy — **not** a release-notes feed for the team. Describe the *benefit*
+("See whether a stock is Shariah-compliant"), never the plumbing. **Omit internal-only
+changes entirely** — DB/serve-path/parity/provider/VM/CI/refactor work means nothing to a
+visitor and reads as noise (the original backfill made this mistake). If a change has no
+visible effect on the site, it does not belong here. Git history is the engineering log.
 
-**How to update.** Follow [Keep a Changelog](https://keepachangelog.com), **date-grouped**
-(this project has no version tags — continuous deploy):
+**When to update.** Add an entry when a *visible* feature, improvement, or noticeable fix
+ships. Curated, not a commit dump. Match the voice + granularity of the existing entries.
+
+**How to update.** Date-grouped (this project has no version tags — continuous deploy):
 
 - Newest entry on top. Header is `## YYYY-MM-DD` (a real ISO date — the route formats it
-  to `Mon D, YYYY` and tags the **first/top** entry as "Latest"). Reuse today's date
-  header if one already exists rather than adding a duplicate.
-- Group bullets under `### Added` / `### Changed` / `### Fixed` / `### Removed` /
-  `### Deprecated` / `### Security` (these map to tone colors in `changelog.tsx`; an
-  unrecognized tag still renders, just neutral-colored).
-- Bullets are `- …`; a wrapped bullet's continuation lines are indented and auto-joined.
-  Inline markdown renders: links `[t](url)`, `` `code` ``, `**bold**`, `*italic*`.
+  to `Mon D, YYYY` and tags the **first/top** entry "Latest"). Reuse today's date header
+  if one exists rather than duplicating it.
+- Group items under `### New` / `### Improved` / `### Fixed` (these are the display labels;
+  Keep a Changelog tags `Added`/`Changed`/`Removed`/etc. also work and map to friendly
+  wording — unknown tags render as-is).
+- **Features = `- **Title** — one or two plain sentences.`** The route renders the bold
+  title as a heading with the description below it (maestri-style). A plain bullet with no
+  `**Title** —` lead renders as a simple dotted line — fine for small fixes.
+- **Big releases get a tagline.** Put a `> one-line headline.` blockquote right under the
+  date heading; the route renders it as a gradient **hero card**. Reserve it for genuinely
+  notable releases — a hero on every entry dilutes it. No blockquote = no hero.
+- Inline markdown renders in titles, bodies, and taglines: `[t](url)`, `` `code` ``,
+  `**bold**`, `*italic*`.
 - The `# Changelog` H1 + intro paragraph are ignored by the parser (page header is
   hard-coded in the route) — leave them.
 
