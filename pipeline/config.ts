@@ -10,6 +10,5 @@ export function transcriptsDir(handle: string) { return join(creatorDir(handle),
 export function framesDir(handle: string) { return join(creatorDir(handle), "frames"); }
 export function pricesDir(handle: string) { return join(creatorDir(handle), "prices"); }
 
-export const GROQ_KEY = process.env.GROQ_API_KEY ?? "";
 export const RETTIWT_KEY = process.env.RETTIWT_API_KEY ?? "";
 export const FIREWORKS_KEY = process.env.FIREWORKS_API_KEY ?? "";
