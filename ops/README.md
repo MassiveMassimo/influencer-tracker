@@ -35,7 +35,7 @@ bun install
 `reel-calls.json`, `raw/`, and `prices/` under `data/creators/<h>/` are gitignored —
 absent on a fresh clone. Rsync them from the Mac (source-of-truth checkout) for each
 existing X creator before the timer fires, or the first scrape starts from empty and
-a `db:sync` will corrupt that creator's stats.
+the commit+push would clobber that creator's stats with a degenerate dataset.
 
 Run this from the Mac for each handle:
 
@@ -50,11 +50,9 @@ Repeat for every handle listed in `INGEST_HANDLES`.
 
 Create `/home/ubuntu/influencer-tracker/.env` with:
 
+Daily-path keys (static-serve, `USE_DB=0`) — the only ones the timer actually needs:
+
 ```
-DATABASE_URL_INGEST=...      # ingest role connection string (INSERT/UPDATE on creators/calls/artifacts, INSERT-only on prices)
-DATABASE_URL_SERVE=...       # serve role connection string (SELECT-only; parity-check reads this)
-DATABASE_URL_REPORT=...      # report role connection string (INSERT-only on call_reports; used by /api/report)
-REPORT_SALT=...              # random >=16 chars; salts the IP dedupe hash — generate: openssl rand -base64 32 | tr -d '/+=' | head -c 40
 FIREWORKS_API_KEY=...        # vision + classification (IG + X)
 RETTIWT_API_KEY=...          # base64 cookie key from throwaway X account
 # Notify path — set EITHER Hermes (preferred on the VM) OR the raw Telegram bot creds:
@@ -64,24 +62,28 @@ HERMES_BIN=/home/ubuntu/.hermes/hermes-agent/venv/bin/hermes   # reuses Hermes's
 # TELEGRAM_CHAT_ID=...
 INGEST_HANDLES=handle1,handle2,...   # comma-separated list of X handles to ingest
 IG_PROXY=socks5://127.0.0.1:1081   # VM-only: route IG scrape+yt-dlp through the iProyal ISP residential relay (no-auth local). Unset on the Mac (scrapes direct). Datacenter IP gets IG accounts locked.
-REVALIDATE_TOKEN=...         # required for instant propagation — see note below
-VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin for revalidate calls
 ```
 
-> **`REVALIDATE_TOKEN` — required for instant propagation.**
-> `revalidate-creator.ts` (resume, step 5) GETs each affected path with
-> `x-prerender-revalidate: <token>` to bust the CDN within ~1 min of an ingest.
-> Without this token set, changes only surface after the 6h ISR TTL (the TTL is still
-> the correctness floor, but operators should not rely on it for timely corrections).
->
-> The token must be **identical** in two places:
-> 1. The **Vercel production** environment (`REVALIDATE_TOKEN` build-time env var —
->    baked into each ISR route's `.prerender-config.json` at build time).
-> 2. This **VM `.env`** — read at runtime by `revalidate-creator.ts`.
->
-> A mismatch causes on-demand revalidation to silently no-op (the 6h TTL still heals,
-> but instant cache-busting is lost). Unset on the VM → `revalidate-creator.ts` logs a
-> warning and exits without error; the resume still completes.
+Correction-loop / dormant-revival keys — NOT used by the daily run. Set only if you
+run a manual DB override (`apply-override`, needs `DATABASE_URL_INGEST`) or ever
+re-enable the `USE_DB=1` serve path:
+
+```
+DATABASE_URL_INGEST=...      # ingest role: apply-override writes call_overrides; backfill/materialize (dormant)
+DATABASE_URL_SERVE=...       # serve role (SELECT-only); parity-check reads this (dormant)
+DATABASE_URL_REPORT=...      # report role (INSERT-only on call_reports); used by Vercel /api/report, not the VM
+REPORT_SALT=...              # random >=16 chars; salts the IP dedupe hash — generate: openssl rand -base64 32 | tr -d '/+=' | head -c 40
+REVALIDATE_TOKEN=...         # dormant: only the USE_DB=1 revalidate-creator path uses it (daily push auto-deploys instead)
+VITE_SITE_URL=https://influencer-tracker-beta.vercel.app   # prod origin (used by the dormant revalidate path)
+```
+
+> **`REVALIDATE_TOKEN` is off the daily path now.** Under static-serve the daily push
+> redeploys Vercel directly (fresh static, no ISR bust needed), so the daily run does
+> **not** call `revalidate-creator.ts`. The token + that script survive only for a
+> future `USE_DB=1` revival, where on-demand ISR busting matters again. If you do revive
+> it, the token must be **identical** in the Vercel production env (baked into each ISR
+> route's `.prerender-config.json` at build) and this VM `.env` (read at runtime); a
+> mismatch silently no-ops the bust (the 6h ISR TTL still heals).
 >
 > Generate: `openssl rand -base64 32 | tr -d '/+=' | head -c 40`
 
@@ -186,27 +188,30 @@ to-date/recent-horizon returns mature for all creators without needing a new rev
 
 ---
 
-## 4. Ephemeral-scratch note
+## 4. Clean-baseline-then-regenerate note
 
-`USE_DB=1` in production means Neon is the source of truth. The VM's static files
-(`dataset.json`, `index.json`, `data/prices/*.json`) are scratch — they get rewritten
-by `score` on every resume and discarded at the top of the next stage-1 run.
+Static-serve (`USE_DB=0`): the committed `data/` files **are** the product. `score`
+rewrites `dataset.json`, `index.json`, and `data/prices/*.json`; `ingest.ts` then
+commits + pushes them, and that push is what redeploys Vercel. The pre-run reset is
+**not** a "discard scratch" step — it just resets to a clean remote baseline so `score`
+regenerates the exact diff that gets committed (no stale local churn carried forward).
 
-Before each stage-1 run the service does:
+Before each run the service does:
 
 ```bash
-git checkout -- data/        # reset all tracked files under data/ to HEAD
-git clean -fd data/prices/   # drop untracked new-symbol price files (scoped — never touches data/creators/)
-git pull --ff-only            # pull latest main
+git checkout -- data/   # reset all tracked files under data/ to remote HEAD
+git clean -fd data/     # drop untracked non-ignored files (safe — .gitignore shields raw/, frames/, transcripts/, cookies.txt)
+git pull --ff-only      # pull latest main
 ```
 
-`data/creators/` is intentionally excluded from the clean: it holds seeded state
-(`reel-calls.json`, `raw/`, `prices/`) that is gitignored and must survive across runs.
+`git clean -fd data/` (no `-x`) is safe across all of `data/`: seeded per-creator state
+(`raw/`, `frames/`, `transcripts/`, `cookies.txt`) is gitignored, so `clean` leaves it
+untouched and only removes untracked non-ignored files.
 
-Accepted drift while `USE_DB=1`: the static panic-fallback JSON, baked OG cards, and
-per-call spark arrays go stale between manual redeploys. This is fine — the live DB
-path serves all normal traffic; the static files are only a fallback and a build-time
-input, not a runtime dependency.
+**Exception — do NOT purge `raw/<handle>/tweets.json` for X creators.** It is the
+incremental forward-scrape cursor (newest stored tweet id); losing it forces a full
+12-month re-backfill (re-scrape + full re-extract, Fireworks $). The mp4/img media in
+`raw/` is still safe to delete; `tweets.json` is not.
 
 ---
 
