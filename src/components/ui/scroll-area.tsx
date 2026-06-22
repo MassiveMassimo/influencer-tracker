@@ -27,6 +27,8 @@ const ScrollArea = React.forwardRef<
      */
     maskHeight?: number;
     maskClassName?: string;
+    /** Extra classes for the scrollbar track (e.g. `w-1.5` for a thinner bar). */
+    scrollbarClassName?: string;
     /**
      * Color the edge-fade mask blends into. Must match the scroll area's own
      * surface background, or the fade reveals the wrong color at the edges.
@@ -35,7 +37,7 @@ const ScrollArea = React.forwardRef<
      */
     maskColor?: string;
   }
->(({ className, children, viewportClassName, maskClassName, maskHeight = 30, maskColor = "var(--color-background)", style, ...props }, ref) => {
+>(({ className, children, viewportClassName, maskClassName, scrollbarClassName, maskHeight = 30, maskColor = "var(--color-background)", style, ...props }, ref) => {
   const [showMask, setShowMask] = React.useState<Mask>({
     top: false,
     bottom: false,
@@ -123,8 +125,8 @@ const ScrollArea = React.forwardRef<
           </ScrollAreaPrimitive.Viewport>
 
           {maskHeight > 0 && <ScrollMask showMask={showMask} className={maskClassName} maskHeight={maskHeight} />}
-          <ScrollBar />
-          <ScrollBar orientation="horizontal" />
+          <ScrollBar className={scrollbarClassName} />
+          <ScrollBar orientation="horizontal" className={scrollbarClassName} />
           <ScrollAreaPrimitive.Corner />
         </ScrollAreaPrimitive.Root>
       )}
