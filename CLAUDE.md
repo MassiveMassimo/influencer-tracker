@@ -273,8 +273,8 @@ caps). The split, by granularity:
   (`Sparkline` takes `closes: number[]`) need no OHLC. The `scorecard` also carries
   a baked `cumExcess: {t,v}[]` (`src/lib/cum-excess.ts`) — the equal-weight mean
   excess-vs-SPY of scored picks over time (to-date generalized to a daily series,
-  endpoint == `avgExcess.toDate`), rendered as the featured native-SVG curve
-  (`CumulativeExcess`) on the creator overview. Rides the `scorecard` jsonb column,
+  endpoint == `avgExcess.toDate`), rendered as the featured curve (`CumulativeExcess`
+  → lazy `CumExcessArea`) on the creator overview. Rides the `scorecard` jsonb column,
   so it's DB/parity-neutral; back-filled into existing datasets by
   `scripts/migrate-cum-excess.ts` (clamps prices to `generatedAt`).
 - **Prices** — baked daily OHLC lives in a shared, deduped per-ticker store
@@ -423,8 +423,7 @@ X-only `INGEST_HANDLES`. Without it, X-scraping an IG handle hits a same-named X
 clobbers the real IG data with an empty/foreign scrape (this happened to `kevvonz` 2026-06-18:
 twitter.com/kevvonz had 0 tweets → tweet store emptied → funnel divided by 0 → `NaN%/Infinity%`;
 fixed by restoring from committed static + removing it from `INGEST_HANDLES`). The skip sends a
-BLOCKED alert naming the fix. `CallFunnel` (`src/components/AnalyticsCharts.tsx`) independently
-refuses to render a degenerate funnel (zero top stage / non-monotonic) as a second line of defense.
+BLOCKED alert naming the fix.
 
 **Telegram messages.** On success: a published-summary per handle. On `guard-no-shrink` or parity
 failure: a BLOCKED alert containing the manual re-run command for that handle. Delivery goes
@@ -592,11 +591,12 @@ Two `ui/*` files are deliberately **not** coss and must stay custom:
 |---|---|
 | `src/components/WorkspaceRail.tsx` (and `MobileNav.tsx`, which reuses its `RailContent`) | devl.dev — https://www.devl.dev/c/layouts/workspace-rail (aesthetic reference) |
 | `src/routes/c.$handle.index.tsx` (`Overview`: `StatTile` strip + `CallsList`) | devl.dev — https://www.devl.dev/c/dashboards/metrics-overview (took the stat-tile strip + recent-activity list; bklit charts dropped into the chart slots) |
-| `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — `@bklit` registry (`https://ui.bklit.com/r/{name}.json`), copy-in. Re-sync: `bunx --bun shadcn@latest add @bklit/<name> --overwrite` (e.g. `area-chart`, `candlestick-chart`, `line-chart`) |
+| `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — `@bklit` registry (`https://ui.bklit.com/r/{name}.json`), copy-in. Re-sync: `bunx --bun shadcn@latest add @bklit/<name> --overwrite` (e.g. `area-chart`, `candlestick-chart`, `line-chart`, `reference-area`). **`reference-area` pulls support files (`background`, `pattern-preset`, `visx-pattern`) and overwrites shared core — last add clobbered the `chart-formatters` intraday patch + dropped a malformed `--chart-brush-border` into `styles.css`; restore patches after any re-add. Its `referenceAreas` context field is optional because the locally-patched shells don't populate it.** |
 | `src/components/ui/*` (accordion/badge/button/card/pagination/separator/spinner/switch/toggle/toggle-group) | coss-ui (`@coss` registry) — Base UI primitives. Re-sync: `bunx --bun shadcn@latest add @coss/<name> --overwrite` |
 | `src/components/ui/drawer.tsx` | vaul (kept; not coss) — mobile drag-to-dismiss + background scale |
 | `src/components/ui/scroll-area.tsx`, `src/components/ui/table.tsx` | lina — github.com/SameerJS6/lina (Base UI `ScrollArea` + edge-fade mask; `table` wraps it). Custom, not coss |
 | `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
+| `charts/cum-excess-area.tsx`, `charts/profit-loss-area.tsx` | app-specific — the creator-overview cumulative-excess curve. `CumExcessArea` composes bklit `AreaChart` + `ReferenceArea` (last-3mo band) + a custom sign-split fill-to-zero `ProfitLossArea` (bklit has no fill-to-baseline primitive). Lazy-loaded by `CumulativeExcess` (keeps motion/@visx/d3 off the route's initial bundle). |
 
 To grab a fresh devl.dev snippet: open the component page and press `c` for code
 (client-rendered — not in the page HTML).
@@ -637,7 +637,10 @@ On a non-default surface, pass `maskColor` (e.g. `maskColor="var(--card)"`) so t
 fade blends into that surface. Tables auto-size: lina's viewport is `size-full`
 (needs a definite-height parent), so `ui/table.tsx` passes `viewportClassName="h-auto"`
 to size to the table; a drawer body needs the drawer at a definite `h-[…]` (not
-`max-h-`) for `flex-1` to bound the scroll area.
+`max-h-`) for `flex-1` to bound the scroll area. Pass `scrollbarClassName` to restyle
+the (desktop-only) scrollbar per-instance — e.g. the two sidebar areas (`WorkspaceRail`
+nav + `RailStocks`) pass `scrollbarClassName="w-1.5"` for a thinner 6px bar (default
+`w-2.5`); `twMerge` lets the `w-*` override win.
 
 ## Conventions
 
@@ -659,7 +662,7 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   context, grid, x-axis, tooltip, series) is shared across `area-chart`,
   `candlestick-chart`, and `line-chart`, so re-sync **all three together** —
   syncing one alone skews the shared core and breaks the others. Time-series
-  charts (candlestick/line/area) need `x` as a `Date`; gauge/funnel are
+  charts (candlestick/line/area) need `x` as a `Date`; gauge/pie are
   categorical. Wrap charts in `ChartBoundary`. The ticker page's charts are
   `React.lazy`-split into `charts/ticker-charts.tsx` so `motion`/`@visx`/`d3`
   load on mount, off the route's initial bundle.
@@ -694,7 +697,13 @@ to size to the table; a drawer body needs the drawer at a definite `h-[…]` (no
   `animate={{ opacity }}` and no `initial`, so motion warns "animate opacity from
   undefined to 1" on every donut mount (the enter sweep is `d`-driven, not opacity,
   so skipping the opacity enter is correct); a resync drops the `initial` and the
-  warning returns.
+  warning returns. Finally, the **chart loading skeletons**: bklit's `area-chart-loading`
+  /`line-chart-loading` ride the chart's built-in `status="loading"`, but
+  `candlestick-chart-loading.tsx` is **custom** (bklit's `CandlestickChart` has no
+  `status="loading"`) — it draws neutral skeleton candles + the shared `Grid` shimmer
+  sweep + the `ChartLoadingLabel` overlay, no bklit-core change, so it survives resyncs.
+  The ticker route's `ChartSkeleton`/`CandleSkeleton` and the creator-overview funnel
+  Suspense fallback use these sweep loaders (not plain `animate-pulse` boxes).
 
 **Ticker headline tracks the crosshair.** Scrubbing the candlestick lifts the hovered
 candle's close to the header price + colored delta (`headlineReadout` in
@@ -763,6 +772,13 @@ stays bundled (tiny, every page) via `import.meta.glob` in `dataset-source.ts`.
 `scripts/migrate-split-prices.ts` restructured the pre-split datasets (drop
 `tickers`, bake `spark`, emit `data/prices/`); future `score` runs emit the
 slim shape directly.
+
+**Dev gotcha — stale `public/datasets/`.** `prebuild.ts` populates `public/` only at
+build, so in dev (`USE_DB=0`) a creator whose `public/datasets/<h>.json` is missing 404s:
+`/api/dataset/<h>` falls to `staticFallback("/datasets/<h>.json", onMiss:"error")` → 404,
+surfacing as a route notFound on `/c/<h>`. Happens after a fresh checkout, a new creator,
+or refreshed `data/`. Fix locally with `bun run scripts/prebuild.ts`, or just
+`cp data/creators/<h>/dataset.json public/datasets/<h>.json` (skips the slow OG re-render).
 
 **OG images are pre-rendered to static PNGs at build** (#1). `prebuild.ts` renders
 home + every creator + every called ticker via `src/og/` (satori + `@resvg/resvg-js`)
