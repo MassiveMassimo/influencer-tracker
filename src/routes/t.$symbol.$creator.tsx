@@ -282,7 +282,19 @@ function TickerPage() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Ticker{creatorHandle ? ` · @${creatorHandle}` : " · all creators"}
+            Ticker{creatorHandle ? (
+              <>
+                {" · "}
+                <Link
+                  to="/c/$handle"
+                  params={{ handle: creatorHandle }}
+                  className="group inline-flex items-center gap-1 no-underline hover:text-foreground"
+                >
+                  <span className="group-hover:underline group-hover:underline-offset-2">@{creatorHandle}</span>
+                  <span className="icon-[lucide--external-link] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+                </Link>
+              </>
+            ) : " · all creators"}
           </div>
           <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
             {symbol}
