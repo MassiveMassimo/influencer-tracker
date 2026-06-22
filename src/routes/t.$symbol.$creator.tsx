@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "#
 import { ChartBoundary } from "../components/ChartBoundary";
 import { AreaChartLoading } from "#/components/charts/area-chart-loading.tsx";
 import { CandlestickChartLoading } from "#/components/charts/candlestick-chart-loading.tsx";
-import { ChartHandoff } from "#/components/charts/chart-handoff.tsx";
+import { ChartHandoff, useChunkReady } from "#/components/charts/chart-handoff.tsx";
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import type { Timeframe } from "#/lib/window-series.ts";
 import { chartQuery } from "#/lib/chart-query.ts";
@@ -30,11 +30,14 @@ import { CreatorSwitcher } from "#/components/ticker/creator-switcher.tsx";
 import { TickerCallTimeline, type TimelineCreator } from "#/components/ticker/call-timeline.tsx";
 import type { SwitcherCreator } from "#/lib/ticker-switcher.ts";
 
+// Shared importer so React.lazy and useChunkReady ride the same cached chunk
+// load — the skeleton holds until the chart chunk is in, then crossfades.
+const importTickerCharts = () => import("#/components/charts/ticker-charts.tsx");
 const PriceCandles = lazy(() =>
-  import("#/components/charts/ticker-charts.tsx").then((m) => ({ default: m.PriceCandles })),
+  importTickerCharts().then((m) => ({ default: m.PriceCandles })),
 );
 const StockVsSpyLine = lazy(() =>
-  import("#/components/charts/ticker-charts.tsx").then((m) => ({ default: m.StockVsSpyLine })),
+  importTickerCharts().then((m) => ({ default: m.StockVsSpyLine })),
 );
 
 function pct(x: number | null) { return x == null ? "—" : `${(x * 100).toFixed(1)}%`; }
@@ -268,7 +271,11 @@ function TickerPage() {
     return ohlc.map((b) => ({ date: new Date(b.date), stock: (b.c / base) * 100, spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null }));
   }, [ohlc, spy]);
 
-  const showSkeleton = ohlc.length === 0;
+  // Hold the skeleton until both the data and the lazy chart chunk are in, so
+  // the loading→chart blur crossfade actually plays on a cold load (chunk
+  // download) instead of hard-cutting once the baked data is already present.
+  const chartChunkReady = useChunkReady(importTickerCharts);
+  const showSkeleton = ohlc.length === 0 || !chartChunkReady;
   const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : null;
   const firstClose = ohlc.length ? ohlc[0].c : null;
   const head = headlineReadout(hoverClose, firstClose, lastClose);
