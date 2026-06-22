@@ -11,6 +11,10 @@ import { type ReactNode, useEffect, useState } from "react";
 // and content-height bar panels alike). AnimatePresence `initial={false}` so
 // the first paint (chart already ready, no skeleton) doesn't fade in — only an
 // actual loading→ready transition crossfades. Reduced motion → opacity only.
+//
+// Once the chart has entered, the layer settles to `filter: none` and drops
+// `will-change` — a lingering `filter` ancestor (even `blur(0px)`) isolates
+// descendant `backdrop-filter`, which kills the crosshair tooltip's frosted bg.
 export function ChartHandoff({
   loading,
   skeleton,
@@ -29,10 +33,18 @@ export function ChartHandoff({
   children: ReactNode;
 }) {
   const reduce = useReducedMotion();
+  const [settled, setSettled] = useState(false);
+  // Re-arm the blur-in entrance whenever we drop back to loading (e.g. a
+  // timeframe switch re-shows the skeleton), so the next reveal crossfades.
+  useEffect(() => {
+    if (loading) setSettled(false);
+  }, [loading]);
+
   const hidden = reduce
     ? { opacity: 0 }
     : { opacity: 0, filter: `blur(${blur}px)` };
   const shown = { opacity: 1, filter: "blur(0px)" };
+  const rest = { opacity: 1, filter: "none" };
   const transition = {
     duration: durationMs / 1000,
     ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
@@ -54,12 +66,13 @@ export function ChartHandoff({
           </motion.div>
         ) : (
           <motion.div
-            animate={shown}
+            animate={settled ? rest : shown}
             className="col-start-1 row-start-1 min-w-0"
             exit={hidden}
             initial={hidden}
             key="chart"
-            style={{ willChange: "opacity, filter" }}
+            onAnimationComplete={() => setSettled(true)}
+            style={settled ? undefined : { willChange: "opacity, filter" }}
             transition={transition}
           >
             {children}
