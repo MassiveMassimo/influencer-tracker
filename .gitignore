@@ -42,6 +42,9 @@ public/calls-index.json
 # bake-off generated reports
 bakeoff-glm5p2-*.md
 
+# throwaway one-off IG probe (uses local session cookie jars, like cookies.txt)
+scripts/probe-ig.ts
+
 # agent/dev-tool scaffolding (local, per-machine)
 .agents/
 .cursor/
