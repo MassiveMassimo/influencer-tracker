@@ -135,8 +135,9 @@ export function ChartMarkers({
     const grouped = new Map<string, ChartMarker[]>();
     for (const marker of items) {
       const dateKey = marker.date.toDateString();
-      const existing = grouped.get(dateKey) || [];
-      grouped.set(dateKey, [...existing, marker]);
+      const existing = grouped.get(dateKey);
+      if (existing) existing.push(marker);
+      else grouped.set(dateKey, [marker]);
     }
     return grouped;
   }, [items]);
@@ -164,6 +165,18 @@ export function ChartMarkers({
       ? Math.min(0.08, STAGGER_WINDOW / (sortedGroups.length - 1))
       : 0;
 
+  // Crosshair date — resolve once per render, not once per marker group per
+  // hover frame (this component re-renders on every scrub via tooltipData).
+  let hoveredDateKey: string | undefined;
+  if (tooltipData) {
+    const point = tooltipData.point;
+    const date =
+      point.date instanceof Date
+        ? point.date
+        : new Date(point.date as string | number);
+    hoveredDateKey = date.toDateString();
+  }
+
   return (
     <>
       {/* SVG markers rendered in chart space */}
@@ -174,16 +187,7 @@ export function ChartMarkers({
           }
 
           const markerX = xScale(markerDate) ?? 0;
-          const isActive = tooltipData
-            ? (() => {
-                const point = tooltipData.point;
-                const date =
-                  point.date instanceof Date
-                    ? point.date
-                    : new Date(point.date as string | number);
-                return date.toDateString() === dateKey;
-              })()
-            : undefined;
+          const isActive = tooltipData ? hoveredDateKey === dateKey : undefined;
 
           // Stagger only — no base wait for the chart draw, leftmost first.
           const markerDelay = animate ? groupIndex * staggerStep : 0;
