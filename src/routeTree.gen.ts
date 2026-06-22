@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as ApiRevalidateRouteImport } from './routes/api/revalidate'
@@ -33,6 +34,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -103,6 +109,7 @@ const ApiOgTHandleSymbolRevRoute = ApiOgTHandleSymbolRevRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRoute
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/calls-index': typeof ApiCallsIndexRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRoute
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/calls-index': typeof ApiCallsIndexRoute
@@ -137,6 +145,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRoute
   '/explore': typeof ExploreRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/calls-index': typeof ApiCallsIndexRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/changelog'
     | '/explore'
     | '/sitemap.xml'
     | '/api/calls-index'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/changelog'
     | '/explore'
     | '/sitemap.xml'
     | '/api/calls-index'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/changelog'
     | '/explore'
     | '/sitemap.xml'
     | '/api/calls-index'
@@ -207,6 +219,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChangelogRoute: typeof ChangelogRoute
   ExploreRoute: typeof ExploreRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiCallsIndexRoute: typeof ApiCallsIndexRoute
@@ -235,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -346,6 +366,7 @@ const CHandleRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChangelogRoute: ChangelogRoute,
   ExploreRoute: ExploreRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiCallsIndexRoute: ApiCallsIndexRoute,
