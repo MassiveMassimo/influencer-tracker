@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SparklesIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { siteUrl } from "#/og/site.ts";
 import { CHANGELOG_ENTRIES } from "#/lib/changelog-data.ts";
@@ -7,9 +8,9 @@ export const Route = createFileRoute("/changelog")({
   head: () => ({
     meta: [
       { title: "Changelog — Signal Tracker" },
-      { name: "description", content: "Notable changes to Signal Tracker, newest first." },
+      { name: "description", content: "What's new on Signal Tracker, newest first." },
       { property: "og:title", content: "Changelog — Signal Tracker" },
-      { property: "og:description", content: "Notable changes to Signal Tracker, newest first." },
+      { property: "og:description", content: "What's new on Signal Tracker, newest first." },
       { property: "og:url", content: siteUrl("/changelog") },
       { property: "og:image", content: siteUrl("/og.png") },
     ],
@@ -25,16 +26,24 @@ function fmtDate(raw: string): string {
   return `${MONTHS[+m[2] - 1]} ${+m[3]}, ${m[1]}`;
 }
 
-// Keep a Changelog tags → semantic tone. Unknown tags fall back to neutral.
-const TONE: Record<string, string> = {
-  Added: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-400",
-  Changed: "bg-indigo-500/12 text-indigo-700 dark:text-indigo-400",
-  Fixed: "bg-amber-500/12 text-amber-700 dark:text-amber-400",
-  Removed: "bg-rose-500/12 text-rose-700 dark:text-rose-400",
-  Deprecated: "bg-amber-500/12 text-amber-700 dark:text-amber-400",
-  Security: "bg-rose-500/12 text-rose-700 dark:text-rose-400",
+// Display labels for the markdown ### tags. Authored tags ("New"/"Improved") pass
+// through; Keep a Changelog tags map to the friendlier wording. Unknown → as-is.
+const LABEL: Record<string, string> = {
+  Added: "New",
+  Changed: "Improved",
+  Fixed: "Fixed",
+  Removed: "Removed",
+  Deprecated: "Deprecated",
+  Security: "Security",
 };
-const TONE_FALLBACK = "bg-foreground/[0.06] text-muted-foreground";
+
+// A feature item authored as "**Title** — description" renders title + paragraph
+// (maestri-style hierarchy); anything else is a plain bullet.
+const TITLE_RE = /^\*\*(.+?)\*\*\s*[—–-]\s+(.+)$/;
+function splitTitle(item: string): { title: string; body: string } | null {
+  const m = TITLE_RE.exec(item);
+  return m ? { title: m[1], body: m[2] } : null;
+}
 
 // Minimal inline-markdown renderer: code, links, bold, italic (no nesting — the
 // changelog never nests inline marks). Cheaper than pulling in a markdown library.
@@ -80,47 +89,76 @@ function Changelog() {
       <header>
         <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Changelog</div>
         <h1 className="mt-1 font-heading text-2xl tracking-tight md:text-3xl">What's new</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Notable changes, newest first.</p>
+        <p className="mt-2 max-w-prose text-sm text-muted-foreground leading-relaxed">
+          New features, improvements, and fixes — newest first. Spot a call we got wrong? Every
+          call has a "Report incorrect" button.
+        </p>
       </header>
 
-      <div className="mt-8">
+      <div className="mt-10">
         {CHANGELOG_ENTRIES.map((e, i) => {
           const latest = i === 0;
-          const isLast = i === CHANGELOG_ENTRIES.length - 1;
           return (
-            <article key={e.date} className="grid grid-cols-[auto_1fr] gap-x-4 md:gap-x-6">
-              {/* Timeline rail: dot + connecting line (line omitted on the last entry). */}
-              <div className="flex flex-col items-center">
-                <span className={`mt-1.5 size-2.5 shrink-0 rounded-full ${latest ? "bg-emerald-500" : "border border-border bg-background"}`} />
-                {!isLast && <span className="my-1 w-px flex-1 bg-border/60" />}
-              </div>
-
-              <div className={`min-w-0 ${isLast ? "" : "pb-10"}`}>
+            <article
+              key={e.date}
+              className="grid grid-cols-1 gap-x-6 md:grid-cols-[150px_1fr] md:gap-x-10"
+            >
+              {/* Sticky date column (devl-style). */}
+              <aside className="self-start md:sticky md:top-8">
                 <div className="flex items-center gap-2">
-                  <time className="font-mono text-xs text-muted-foreground tabular-nums">{fmtDate(e.date)}</time>
-                  {latest && (
-                    <span className="rounded bg-emerald-500/12 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-400">
-                      Latest
-                    </span>
-                  )}
+                  <span className={`size-1.5 shrink-0 rounded-full ${latest ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+                  <time className="font-mono text-xs text-muted-foreground uppercase tracking-[0.15em] tabular-nums">
+                    {fmtDate(e.date)}
+                  </time>
                 </div>
+                {latest && (
+                  <span className="mt-2 ml-3.5 inline-flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 font-mono text-[9px] text-background uppercase tracking-[0.2em]">
+                    <SparklesIcon className="size-2.5" />
+                    Latest
+                  </span>
+                )}
+              </aside>
+
+              {/* Content column with a subtle timeline spine. */}
+              <div className="mt-3 border-border/50 pb-12 last:pb-0 md:mt-0 md:border-l md:pl-8">
+                {e.tagline && (
+                  <div className="mb-6 rounded-xl border border-border/60 bg-gradient-to-br from-emerald-500/10 via-foreground/[0.03] to-indigo-500/10 px-5 py-4">
+                    <div className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.25em]">
+                      <SparklesIcon className="size-3" />
+                      Highlight
+                    </div>
+                    <p className="mt-1.5 font-heading text-lg leading-snug text-foreground">
+                      {renderInline(e.tagline)}
+                    </p>
+                  </div>
+                )}
 
                 {e.groups.map((g, gi) => (
-                  <div key={gi} className="mt-4 first:mt-3">
+                  <section key={gi} className="mt-6 first:mt-0">
                     {g.tag && (
-                      <span className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.2em] ${TONE[g.tag] ?? TONE_FALLBACK}`}>
-                        {g.tag}
-                      </span>
+                      <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.25em]">
+                        {LABEL[g.tag] ?? g.tag}
+                      </div>
                     )}
-                    <ul className="mt-2 space-y-1.5">
-                      {g.items.map((it, ii) => (
-                        <li key={ii} className="flex gap-2 text-sm leading-relaxed text-foreground/85">
-                          <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/50" />
-                          <span className="min-w-0">{renderInline(it)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                    <div className="mt-3 space-y-3.5">
+                      {g.items.map((it, ii) => {
+                        const feature = splitTitle(it);
+                        return feature ? (
+                          <div key={ii}>
+                            <h3 className="font-medium text-foreground text-sm">{renderInline(feature.title)}</h3>
+                            <p className="mt-0.5 text-sm text-muted-foreground leading-relaxed">
+                              {renderInline(feature.body)}
+                            </p>
+                          </div>
+                        ) : (
+                          <div key={ii} className="flex gap-2 text-sm text-foreground/85 leading-relaxed">
+                            <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/50" />
+                            <span className="min-w-0">{renderInline(it)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
                 ))}
               </div>
             </article>

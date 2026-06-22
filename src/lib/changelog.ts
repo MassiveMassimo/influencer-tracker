@@ -9,6 +9,7 @@ export interface ChangelogGroup {
 
 export interface ChangelogEntry {
   date: string; // the "## " heading text (an ISO date, or e.g. "Unreleased")
+  tagline?: string; // optional "> …" blockquote after the date — marks a "big" release
   groups: ChangelogGroup[];
 }
 
@@ -22,6 +23,11 @@ export function parseChangelog(md: string): ChangelogEntry[] {
       entry = { date: line.slice(3).trim(), groups: [] };
       entries.push(entry);
       group = null;
+    } else if (line.startsWith(">")) {
+      // Blockquote after the date = the entry's tagline (hero headline).
+      if (!entry) continue;
+      const text = line.slice(1).trim();
+      if (text) entry.tagline = entry.tagline ? `${entry.tagline} ${text}` : text;
     } else if (line.startsWith("### ")) {
       if (!entry) continue;
       group = { tag: line.slice(4).trim(), items: [] };
