@@ -108,10 +108,11 @@ async function main() {
 
   const index: IndexEntry[] = readJson(join(DATA, "index.json"));
 
-  // Home card only — creator + ticker cards are now rendered on demand by the
-  // /api/og/{c,t}/* routes (dynamic, DB-fresh). See
+  // Static cards: home + changelog (both content-stable). Creator + ticker cards are
+  // rendered on demand by the /api/og/{c,t}/* routes (dynamic, DB-fresh). See
   // docs/superpowers/specs/2026-06-15-dynamic-og-images-design.md.
   await emit({ kind: "home", theme: THEME }, join(OG_DIR, "..", "og.png"));
+  await emit({ kind: "changelog", theme: THEME }, join(OG_DIR, "changelog.png"));
 
   // Per-creator: copy the dataset as a static CDN asset (panic fallback for the API
   // read routes) and collect datasets for the calls-index / llms.txt below.

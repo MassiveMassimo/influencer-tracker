@@ -10,6 +10,7 @@ const H = 630;
 
 export type OgCard =
   | { kind: "home"; theme: OgTheme }
+  | { kind: "changelog"; theme: OgTheme }
   | {
       kind: "creator";
       theme: OgTheme;
@@ -145,6 +146,25 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
       </Frame>
     );
   }
+  if (card.kind === "changelog") {
+    return (
+      <Frame pal={pal} bg={bg}>
+        <TopBar pal={pal} kicker="Changelog" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.fg }}>
+            What's new
+          </div>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.lagoonDeep }}>
+            on Signal Tracker.
+          </div>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 26, color: pal.fgMuted, marginTop: 10 }}>
+            New features, improvements, and fixes.
+          </div>
+        </div>
+        <div style={{ display: "flex" }} />
+      </Frame>
+    );
+  }
   if (card.kind === "creator") {
     return (
       <Frame pal={pal} bg={bg}>
@@ -184,9 +204,11 @@ export async function renderOgPng(card: OgCard): Promise<Buffer> {
   const seed =
     card.kind === "home"
       ? "signal-tracker"
-      : card.kind === "ticker"
-        ? `${card.handle}:${card.symbol}` // separator avoids handle/symbol concat collisions
-        : card.handle;
+      : card.kind === "changelog"
+        ? "changelog"
+        : card.kind === "ticker"
+          ? `${card.handle}:${card.symbol}` // separator avoids handle/symbol concat collisions
+          : card.handle;
   // No-data ticker (null excess) renders neutral-positive (teal); Stat still shows "—".
   const up =
     card.kind === "creator"
