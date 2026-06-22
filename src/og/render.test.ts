@@ -25,6 +25,11 @@ describe("renderOgPng", () => {
     expect(pngSize(buf)).toEqual({ w: OG_WIDTH, h: OG_HEIGHT });
   });
 
+  it("renders the changelog card (dark)", async () => {
+    const buf = await renderOgPng({ kind: "changelog", theme: "dark" });
+    expect(pngSize(buf)).toEqual({ w: OG_WIDTH, h: OG_HEIGHT });
+  });
+
   it("renders a ticker card with null excess", async () => {
     const buf = await renderOgPng({
       kind: "ticker",

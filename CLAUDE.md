@@ -840,4 +840,7 @@ ships. Curated, not a commit dump. Match the voice + granularity of the existing
 `src/lib/changelog-data.ts` (the `?raw` import of `CHANGELOG.md`, parsed once) →
 `src/routes/changelog.tsx` (timeline UI). The `?raw` import lives in the lib module on
 purpose — the TanStack route-splitter can't resolve a relative `?raw` from its virtual
-split module.
+split module. The page has its own baked **OG card** (`kind: "changelog"` in
+`src/og/render.tsx`, emitted to `public/og/changelog.png` by `prebuild.ts` alongside the
+home card) — static + content-stable, so it's baked, not rendered on demand like the
+creator/ticker cards.
