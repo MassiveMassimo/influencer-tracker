@@ -1,7 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
-
-// Mock groq so config.ts (which uses Bun-only import.meta.dir) is never loaded.
-vi.mock("./groq", () => ({ groq: vi.fn(), discoverModels: vi.fn() }));
+import { describe, it, expect } from "vitest";
 
 import { parseHint } from "./vision";
 
