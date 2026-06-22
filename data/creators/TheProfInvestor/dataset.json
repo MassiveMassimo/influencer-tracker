@@ -3,7 +3,7 @@
     "handle": "TheProfInvestor",
     "name": "The Prof Investor"
   },
-  "generatedAt": "2026-06-21",
+  "generatedAt": "2026-06-22",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -111431,10 +111431,80 @@
           "excess": null
         }
       }
+    },
+    {
+      "shortcode": "2068823365071335870",
+      "postDate": "2026-06-21",
+      "ticker": "VRT",
+      "company": "",
+      "isFirstCall": false,
+      "conviction": 1,
+      "quote": "A top conviction idea for me. And I dont say it lightly. Every. And best part- I own it. The breakout target = 420",
+      "summary": "The creator expresses strong bullish conviction on VRT, stating it's a top idea, owns it, and sets a breakout target of 420 with a stop at 305.",
+      "onScreenPrice": 333.05,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2067651293783716035",
+      "postDate": "2026-06-18",
+      "ticker": "TSM",
+      "company": "Taiwan Semiconductor Manufacturing Company",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "You job is to buy 15-20% corrections on leading stocks.",
+      "summary": "The creator advises buying 15-20% corrections on leading AI stocks like TSM, believing AI has not topped.",
+      "onScreenPrice": null,
+      "spark": [
+        462.1
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 1938,
+    "totalCalls": 1940,
     "uniqueTickers": 277,
     "hitRate": {
       "1m": 0.44583333333333336,
@@ -112048,15 +112118,15 @@
     "funnel": [
       {
         "label": "Tweets (12mo)",
-        "value": 3814
+        "value": 120
       },
       {
         "label": "Named a stock",
-        "value": 4164
+        "value": 4174
       },
       {
         "label": "Bullish buy call",
-        "value": 1938
+        "value": 1940
       },
       {
         "label": "First call (unique ticker)",
