@@ -96,17 +96,17 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
     // Selected creator: valid only if it actually called this symbol; else All.
     const creatorHandle = creatorParam !== "all" && shown.has(creatorParam) ? creatorParam : null;
 
-    let creatorCalls: Call[] = [];
-    if (creatorHandle) {
-      try {
-        const ds = await fetchDataset(creatorHandle);
-        creatorCalls = ds.calls.filter((c) => c.ticker === symbol);
-      } catch (err) {
-        console.warn(`[ticker loader] dataset fetch failed for ${creatorHandle}, degrading to All:`, (err as Error)?.message ?? err);
-      }
-    }
+    // The creator dataset is independent of the chart/price/halal fetches —
+    // run it in the same Promise.all instead of serially ahead of them.
+    const datasetPromise = creatorHandle
+      ? fetchDataset(creatorHandle).catch((err) => {
+          console.warn(`[ticker loader] dataset fetch failed for ${creatorHandle}, degrading to All:`, (err as Error)?.message ?? err);
+          return null;
+        })
+      : Promise.resolve(null);
 
-    const [, bakedOhlc, bakedSpy] = await Promise.all([
+    const [ds, , bakedOhlc, bakedSpy] = await Promise.all([
+      datasetPromise,
       context.queryClient.ensureQueryData(chartQuery(symbol, "1Y", firstDate)).catch((err) => {
         console.warn("[ticker loader] live-Yahoo prefetch failed, using baked fallback:", (err as Error)?.message ?? err);
         return undefined;
@@ -115,6 +115,7 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
       fetchPrices("SPY"),
       prefetchHalal(context.queryClient, [symbol]),
     ]);
+    const creatorCalls: Call[] = ds ? ds.calls.filter((c) => c.ticker === symbol) : [];
 
     // OG (computed here — head() has no access to derived state).
     const ogImg = creatorHandle
