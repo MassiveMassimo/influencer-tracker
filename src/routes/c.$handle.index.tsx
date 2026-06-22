@@ -8,6 +8,7 @@ import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { ChartBoundary } from "../components/ChartBoundary";
+import { AreaChartLoading } from "../components/charts/area-chart-loading";
 import { ConvictionScatter, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
 
 // Funnel pulls motion + @visx; lazy-load it so that chunk stays off the creator
@@ -205,7 +206,13 @@ function Overview() {
           <div className="mt-4">
             <ChartBoundary>
               <Suspense
-                fallback={<div className="h-[240px] w-full animate-pulse rounded-md bg-muted/40" />}
+                fallback={
+                  <AreaChartLoading
+                    aspectRatio="auto"
+                    className="h-[240px] w-full overflow-hidden rounded-md"
+                    label="Loading"
+                  />
+                }
               >
                 <CallFunnel ds={ds} />
               </Suspense>
