@@ -153,10 +153,6 @@ function Overview() {
   ];
 
   const [statsRef, statsInView] = useInView<HTMLElement>();
-  // Defer the Gauge/Funnel mount until their section scrolls in, so the bklit
-  // enter animation plays on reveal, not unseen below the fold (and the @visx
-  // chunk loads only when needed). bklit has no native in-view trigger.
-  const [chartsRef, chartsInView] = useInView<HTMLElement>();
 
   const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
 
@@ -190,7 +186,6 @@ function Overview() {
 
       <section
         className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-[1fr_320px]"
-        ref={chartsRef}
       >
         <div className="bg-background p-6">
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
@@ -212,11 +207,7 @@ function Overview() {
               <Suspense
                 fallback={<div className="h-[240px] w-full animate-pulse rounded-md bg-muted/40" />}
               >
-                {chartsInView ? (
-                  <CallFunnel ds={ds} />
-                ) : (
-                  <div className="h-[240px] w-full" />
-                )}
+                <CallFunnel ds={ds} />
               </Suspense>
             </ChartBoundary>
           </div>

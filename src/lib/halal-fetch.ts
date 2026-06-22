@@ -42,7 +42,7 @@ export function assembleHalal(
 }
 
 const InputSchema = z.object({
-  symbols: z.array(z.string().min(1).max(40)).max(300),
+  symbols: z.array(z.string().min(1).max(40)).max(2000),
 });
 
 export const fetchHalal = createServerFn({ method: "GET" })
