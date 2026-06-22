@@ -35,6 +35,11 @@ async function looksInstagram(h: string): Promise<boolean> {
   } catch { return false; }
 }
 
+// Tracks any handle BLOCK or a failed publish so the process can exit non-zero at the end —
+// otherwise systemd sees success and the OnFailure=notify-fail.service dead-man never fires
+// (notify() itself is best-effort, so a notify outage would otherwise hide every failure).
+let failed = false;
+
 for (const h of handles) {
   try {
     if (await looksInstagram(h)) {
@@ -53,24 +58,38 @@ for (const h of handles) {
     await notify(publishedMessage(h, after.total - before.total, after.scored - before.scored));
   } catch (e) {
     // scrape / extract / guard-no-shrink / score failure — surfaced, not silently published.
+    failed = true;
     await notify(blockedMessage(h, (e as Error).message));
   }
 }
 
 // Static-serve model: data/ is the source of truth (serve path reads committed static under
 // USE_DB=0). Commit the refreshed datasets/index/prices once and push so Vercel rebuilds and
-// serves the fresh static. Best-effort: pull --rebase to absorb any concurrent push, then push.
-// A no-op (nothing changed) or a transient push race is non-fatal — the next daily run retries.
+// serves the fresh static.
 await $`git add data/`.nothrow();
 const dirty = (await $`git status --porcelain data/`.text()).trim();
 if (dirty) {
   // Identity inline so the commit never depends on the VM's global git config.
   await $`git -c user.name=ingest-bot -c user.email=ingest@imos-vm commit -m ${"data: daily ingest refresh"}`.nothrow();
-  await $`git pull --rebase origin main`.nothrow();
-  const pushed = await $`git push origin main`.nothrow();
-  if (pushed.exitCode !== 0) {
-    await notify(blockedMessage("ingest", `data committed but push failed:\n${pushed.stderr.toString().slice(0, 400)}`));
+  // Absorb any concurrent push to main. A rebase CONFLICT must be aborted, not left half-applied:
+  // a mid-rebase working tree wedges the next run's `git pull --ff-only` (ExecStartPre). Abort
+  // leaves the data commit intact locally; the next run retries the publish cleanly.
+  const rebased = await $`git pull --rebase origin main`.nothrow();
+  if (rebased.exitCode !== 0) {
+    await $`git rebase --abort`.nothrow();
+    failed = true;
+    await notify(blockedMessage("ingest", `rebase onto origin/main conflicted (aborted); data committed but NOT pushed:\n${rebased.stderr.toString().slice(0, 400)}`));
+  } else {
+    const pushed = await $`git push origin main`.nothrow();
+    if (pushed.exitCode !== 0) {
+      failed = true;
+      await notify(blockedMessage("ingest", `data committed but push failed:\n${pushed.stderr.toString().slice(0, 400)}`));
+    }
   }
 } else {
   console.log("[ingest] no data/ changes to publish");
 }
+
+// Surface any handle BLOCK / publish failure to systemd so OnFailure=notify-fail.service fires
+// as the independent backstop (notify() above is best-effort and could itself be down).
+if (failed) process.exit(1);
