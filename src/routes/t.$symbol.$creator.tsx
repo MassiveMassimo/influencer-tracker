@@ -74,12 +74,6 @@ function CandleSkeleton() {
 }
 
 export const Route = createFileRoute("/t/$symbol/$creator")({
-  // TEMP test hook: `?slowmo` (default 2000ms, or `?slowmo=N`) holds the chart
-  // loading skeleton for N ms before the real chart swaps in, so the
-  // loading→chart blur dissolve is watchable. No param → no effect. Remove when
-  // done testing. Read via search (SSR-consistent) to avoid a hydration flip.
-  validateSearch: (s: Record<string, unknown>): { slowmo?: number } =>
-    s.slowmo === undefined ? {} : { slowmo: Number(s.slowmo) || 2000 },
   loader: async ({ params, context }) => {
     const symbol = params.symbol.toUpperCase();
     const creatorParam = params.creator;
@@ -198,17 +192,6 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
 
 function TickerPage() {
   const data = Route.useLoaderData();
-  // TEMP: artificial loading hold for the `?slowmo` test (see route validateSearch).
-  const { slowmo } = Route.useSearch();
-  const [slowmoElapsed, setSlowmoElapsed] = useState(false);
-  useEffect(() => {
-    if (!slowmo) return;
-    // Warm the lazy chart chunk during the hold so the dissolve reveals the real
-    // chart (not a second Suspense skeleton while the chunk fetches).
-    void import("#/components/charts/ticker-charts.tsx");
-    const t = window.setTimeout(() => setSlowmoElapsed(true), slowmo);
-    return () => window.clearTimeout(t);
-  }, [slowmo]);
   const { symbol, summary, names, avatars, hits, creatorHandle, creatorCalls, siblings, firstDate, bakedOhlc, bakedSpy } = data;
   const getHalal = useHalalStatus([symbol]);
   const halal = getHalal(symbol);
@@ -285,7 +268,7 @@ function TickerPage() {
     return ohlc.map((b) => ({ date: new Date(b.date), stock: (b.c / base) * 100, spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null }));
   }, [ohlc, spy]);
 
-  const showSkeleton = ohlc.length === 0 || (!!slowmo && !slowmoElapsed);
+  const showSkeleton = ohlc.length === 0;
   const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : null;
   const firstClose = ohlc.length ? ohlc[0].c : null;
   const head = headlineReadout(hoverClose, firstClose, lastClose);
@@ -349,7 +332,7 @@ function TickerPage() {
           </div>
           <TimeframeTabs value={timeframe} onChange={(tf) => { impact(); setTimeframe(tf); }} onPrefetch={prefetchTimeframe} />
         </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px]" durationMs={slowmo}>
+        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px]">
           {candles.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
@@ -391,7 +374,7 @@ function TickerPage() {
             </PreviewCardPopup>
           </PreviewCard>
         </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px]" durationMs={slowmo}>
+        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px]">
           {norm.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
