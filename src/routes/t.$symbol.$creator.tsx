@@ -188,11 +188,22 @@ function TickerPage() {
   const ohlc: LiveBar[] = view.ohlc;
   const spy: LiveBar[] = view.spy;
 
+  // Visible window = the timeframe-windowed price series' date span (ohlc is
+  // ascending, "YYYY-MM-DD"). Calls/markers are scoped to it so the chart, the
+  // markers, and the count all reflect the same (timeframe × creator) slice.
+  // No price data → keep everything (fail-open). String compare is correct
+  // since both sides are ISO dates, and avoids TZ pitfalls of `new Date`.
+  const winStart = ohlc.length ? ohlc[0].date : null;
+  const winEnd = ohlc.length ? ohlc[ohlc.length - 1].date : null;
+  const inWindow = (postDate: string) =>
+    winStart == null || winEnd == null || (postDate >= winStart && postDate <= winEnd);
+
   // Markers: selected creator's calls (clickable → proof) or all-mode call
-  // dates (non-clickable, cross-creator).
+  // dates (non-clickable, cross-creator), filtered to the visible window so
+  // out-of-window calls don't bleed off the axis.
   const callMarkers: ChartMarker[] = useMemo(() => {
     if (creatorHandle) {
-      return creatorCalls.map((c) => ({
+      return creatorCalls.filter((c) => inWindow(c.postDate)).map((c) => ({
         date: new Date(c.postDate),
         icon: "▲",
         title: `${symbol} · ${c.postDate}`,
@@ -200,7 +211,7 @@ function TickerPage() {
         onClick: () => { select(); setSelectedCall(c); },
       }));
     }
-    return hits.map((h) => ({
+    return hits.filter((h) => inWindow(h.postDate)).map((h) => ({
       date: new Date(h.postDate),
       icon: avatars[h.handle] ? (
         <img
@@ -212,7 +223,7 @@ function TickerPage() {
       title: `${names[h.handle] ?? h.handle} · ${h.postDate}`,
       description: "",
     }));
-  }, [creatorHandle, creatorCalls, hits, names, avatars, symbol, select]);
+  }, [creatorHandle, creatorCalls, hits, names, avatars, symbol, select, winStart, winEnd]);
 
   const candles = useMemo(() => ohlc.map((b) => ({ date: new Date(b.date), open: b.o, high: b.h, low: b.l, close: b.c })), [ohlc]);
   const norm = useMemo(() => {
@@ -238,11 +249,11 @@ function TickerPage() {
   }));
   const today = new Date().toISOString().slice(0, 10);
 
-  // Per-creator count when a tab is selected (so switching tabs animates the
-  // NumberFlow), cross-creator total in all-mode.
-  const shownCallCount = creatorHandle
-    ? (summary.byCreator.find((b) => b.handle === creatorHandle)?.callCount ?? creatorCalls.length)
-    : summary.callCount;
+  // Count exactly the calls visible in the chart right now: the same source the
+  // markers come from (creator-scoped or all), filtered to the visible window.
+  // Reacts to both the creator tab and the timeframe, and stays in lockstep with
+  // the rendered markers (label === markers shown).
+  const shownCallCount = (creatorHandle ? creatorCalls : hits).filter((c) => inWindow(c.postDate)).length;
   const callsLabel = numberFlowReady ? (
     <NumberFlow value={shownCallCount} suffix={shownCallCount === 1 ? " call" : " calls"} willChange />
   ) : `${shownCallCount} ${shownCallCount === 1 ? "call" : "calls"}`;
