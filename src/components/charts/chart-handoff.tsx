@@ -1,18 +1,19 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 // Blur-dissolve handoff from the loading skeleton to the real chart. While
-// loading the skeleton sits on top; when data arrives the chart renders
+// loading the skeleton sits on top; when the chart is ready it renders
 // underneath and draws itself in (its own clip reveal), and the skeleton fades
 // + blurs out over it — the shimmer melts away to reveal the chart mid-draw.
 // Blur masks the crossfade between two structurally different visuals (shimmer
 // bars vs the real series) so the eye reads one shape resolving into focus
 // rather than a hard swap (Kowalski: blur bridges imperfect crossfades).
 //
-// Reduced motion → opacity-only fade, no blur. The container must carry a
-// definite height (both layers are absolute inset-0), e.g. className="h-[320px]".
+// Both layers are grid-stacked in the same cell, so the box sizes to its
+// content — no fixed height required (works for the fixed-height price charts
+// and the content-height bar panels alike). Reduced motion → opacity-only fade.
 export function ChartHandoff({
   loading,
   skeleton,
@@ -29,15 +30,14 @@ export function ChartHandoff({
 }) {
   const reduce = useReducedMotion();
   return (
-    <div className={`relative ${className ?? ""}`}>
-      {!loading && <div className="absolute inset-0">{children}</div>}
+    <div className={`grid ${className ?? ""}`}>
+      {!loading && <div className="col-start-1 row-start-1 min-w-0">{children}</div>}
       <AnimatePresence>
         {loading && (
           <motion.div
             // initial={false}: the skeleton is already on screen during loading,
             // so it only animates on exit (the dissolve), never on enter.
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            className="absolute inset-0"
+            className="col-start-1 row-start-1 min-w-0"
             exit={reduce ? { opacity: 0 } : { opacity: 0, filter: `blur(${blur}px)` }}
             initial={false}
             key="skeleton"
@@ -53,4 +53,26 @@ export function ChartHandoff({
       </AnimatePresence>
     </div>
   );
+}
+
+// Resolves true once a lazy chunk's importer has loaded. Lets a Suspense-only
+// chart (no data gate) drive ChartHandoff: hold the skeleton until the chunk is
+// ready, then render the (now-synchronous) lazy component and dissolve the
+// skeleton over its entrance. `load` must be a stable module-scope importer —
+// the same one passed to React.lazy, so the dynamic import is shared/cached.
+export function useChunkReady(load: () => Promise<unknown>): boolean {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    // Resolve on failure too: a failed chunk falls through to the real Suspense
+    // boundary / error path rather than wedging on the skeleton forever.
+    load().then(
+      () => alive && setReady(true),
+      () => alive && setReady(true),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [load]);
+  return ready;
 }
