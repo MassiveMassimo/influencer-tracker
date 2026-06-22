@@ -53,7 +53,7 @@ function OtherCalls({
   return (
     <div className="space-y-1.5">
       <Label>Other stocks in this post</Label>
-      <div className="overflow-hidden rounded-lg border border-border/60">
+      <ScrollArea className="rounded-lg border border-border/60" viewportClassName="max-h-72" scrollbarClassName="w-1.5">
         {siblings.map((s, i) => (
           <Link
             key={s.ticker}
@@ -69,7 +69,7 @@ function OtherCalls({
             <span className="shrink-0 text-muted-foreground">↗</span>
           </Link>
         ))}
-      </div>
+      </ScrollArea>
     </div>
   );
 }
