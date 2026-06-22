@@ -8,7 +8,7 @@ import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { ChartBoundary } from "../components/ChartBoundary";
-import { ConvictionScatter, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
+import { ConvictionBars, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
 import {
   Pagination,
   PaginationContent,
@@ -239,10 +239,11 @@ function Overview() {
         </div>
         <div className="bg-background p-6">
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Conviction vs return
+            Avg excess vs SPY · by conviction
+            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
           </div>
           <div className="mt-3">
-            <ConvictionScatter ds={ds} />
+            <ConvictionBars ds={ds} />
           </div>
         </div>
       </section>
