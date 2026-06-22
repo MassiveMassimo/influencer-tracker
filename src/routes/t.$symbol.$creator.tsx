@@ -9,6 +9,7 @@ import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { fetchCallsIndex, fetchDataset, fetchPrices, listCreators } from "../lib/data";
 import { summarizeTicker } from "../lib/call-filter";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
+import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import type { Call } from "#/lib/types.ts";
 import type { ChartMarker } from "#/components/charts/markers/index.ts";
@@ -330,7 +331,34 @@ function TickerPage() {
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="mb-4 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Stock vs SPY · rebased to 100 · markers are call dates</div>
+        <div className="mb-4 flex items-start justify-between gap-2 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          <span>Stock vs SPY · rebased to 100 · markers are call dates</span>
+          <PreviewCard>
+            <PreviewCardTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label="How to read this chart"
+                  className="inline-flex size-3.5 shrink-0 cursor-default items-center justify-center rounded-full text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+                />
+              }
+            >
+              <span className="icon-[lucide--circle-help] size-3.5" aria-hidden />
+            </PreviewCardTrigger>
+            <PreviewCardPopup className="flex-col w-72 normal-case tracking-normal">
+              <div className="font-heading text-sm text-foreground">How to read this</div>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                Both lines start at 100 on the left edge — imagine $100 invested in the stock and $100 in
+                SPY at the start of the window. Each line tracks how that $100 grows. When the stock line
+                sits above SPY, the stock beat the market over the window.
+              </p>
+              <p className="mt-2 border-t border-border/50 pt-2 text-[11px] leading-relaxed text-muted-foreground/80">
+                Rebased per timeframe: switching the timeframe resets both to 100 at the new window's
+                start. Markers are the creator's call dates.
+              </p>
+            </PreviewCardPopup>
+          </PreviewCard>
+        </div>
         {showSkeleton ? <ChartSkeleton /> : norm.length === 0 ? (
           <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
         ) : (

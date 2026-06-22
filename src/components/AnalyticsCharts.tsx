@@ -27,8 +27,10 @@ const CONV_BUCKETS = [
 ];
 
 function convictionRows(ds: Dataset): CategoryBarRow[] {
+  // Same scored population as the horizon panel + cumulative curve (first call
+  // per ticker, elapsed) so the two panels' numbers reconcile.
   const pts = ds.calls
-    .filter((c) => c.returns.toDate.excess != null)
+    .filter((c) => c.isFirstCall && c.returns.toDate.excess != null)
     .map((c) => ({ conviction: c.conviction, excess: c.returns.toDate.excess! }));
   return CONV_BUCKETS.flatMap((b) => {
     const inB = pts.filter((p) => b.test(p.conviction));
