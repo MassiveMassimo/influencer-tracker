@@ -3,18 +3,16 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
 
-// Two-layer blur crossfade from the loading skeleton to the real chart. The
-// skeleton fades + blurs OUT while the chart fades + blurs IN, both stacked in
-// the same grid cell so they overlap — the eye reads one shape resolving into
-// focus rather than a hard swap (Kowalski: blur bridges imperfect crossfades).
-// Grid-stacking sizes the box to content (works for fixed-height price charts
-// and content-height bar panels alike). AnimatePresence `initial={false}` so
-// the first paint (chart already ready, no skeleton) doesn't fade in — only an
-// actual loading→ready transition crossfades. Reduced motion → opacity only.
-//
-// Once the chart has entered, the layer settles to `filter: none` and drops
-// `will-change` — a lingering `filter` ancestor (even `blur(0px)`) isolates
-// descendant `backdrop-filter`, which kills the crosshair tooltip's frosted bg.
+// Blur-dissolve handoff from the loading skeleton to the chart. The chart is the
+// PERSISTENT layer and renders plain — no filter/transform/opacity wrapper — so
+// its descendant `backdrop-filter` (the crosshair tooltip's frosted bg) keeps
+// working. Any isolating ancestor, including a no-op `filter: blur(0px)`, makes
+// backdrop-filter sample an empty backdrop: you get the bg tint with no actual
+// blur of the graphics behind it. The skeleton is the ONLY animated layer — it
+// stacks on top in the same grid cell and fades + blurs OUT, masking the chart's
+// own entrance sweep beneath it (Kowalski: blur bridges imperfect transitions).
+// `initial={false}` so a chart that's already ready on first paint shows no
+// skeleton flash. Reduced motion → fade only. Grid-stacking sizes to content.
 export function ChartHandoff({
   loading,
   skeleton,
@@ -26,56 +24,34 @@ export function ChartHandoff({
   loading: boolean;
   skeleton: ReactNode;
   className?: string;
-  /** Peak blur (px) each layer crosses through. Keep <20 (Safari). */
+  /** Peak blur (px) the skeleton crosses through on exit. Keep <20 (Safari). */
   blur?: number;
-  /** Crossfade duration (ms). */
+  /** Dissolve duration (ms). */
   durationMs?: number;
   children: ReactNode;
 }) {
   const reduce = useReducedMotion();
-  const [settled, setSettled] = useState(false);
-  // Re-arm the blur-in entrance whenever we drop back to loading (e.g. a
-  // timeframe switch re-shows the skeleton), so the next reveal crossfades.
-  useEffect(() => {
-    if (loading) setSettled(false);
-  }, [loading]);
-
-  const hidden = reduce
+  const exitTo = reduce
     ? { opacity: 0 }
     : { opacity: 0, filter: `blur(${blur}px)` };
-  const shown = { opacity: 1, filter: "blur(0px)" };
-  const rest = { opacity: 1, filter: "none" };
   const transition = {
     duration: durationMs / 1000,
     ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
   };
   return (
     <div className={`grid ${className ?? ""}`}>
-      <AnimatePresence initial={false} mode="sync">
-        {loading ? (
+      <div className="col-start-1 row-start-1 min-w-0">{children}</div>
+      <AnimatePresence initial={false}>
+        {loading && (
           <motion.div
-            animate={shown}
-            className="col-start-1 row-start-1 min-w-0"
-            exit={hidden}
+            className="col-start-1 row-start-1 z-10 min-w-0"
+            exit={exitTo}
             initial={false}
             key="skeleton"
             style={{ willChange: "opacity, filter" }}
             transition={transition}
           >
             {skeleton}
-          </motion.div>
-        ) : (
-          <motion.div
-            animate={settled ? rest : shown}
-            className="col-start-1 row-start-1 min-w-0"
-            exit={hidden}
-            initial={hidden}
-            key="chart"
-            onAnimationComplete={() => setSettled(true)}
-            style={settled ? undefined : { willChange: "opacity, filter" }}
-            transition={transition}
-          >
-            {children}
           </motion.div>
         )}
       </AnimatePresence>
