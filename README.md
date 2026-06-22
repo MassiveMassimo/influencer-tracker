@@ -1,25 +1,28 @@
 # Influencer Signal Tracker
 
-Scores Instagram finfluencer stock calls against real forward prices (vs SPY) and
-visualizes accuracy. Multi-creator: adding a creator needs no code change — just run
-the pipeline with a new handle.
+Scores Instagram **and X/Twitter** finfluencer stock calls against real forward prices
+(vs SPY) and visualizes accuracy. Multi-creator and platform-agnostic: both pipelines emit
+the same `ReelCall` contract, so adding a creator needs no code change — just run the
+pipeline with a new handle.
 
 ## Setup
 
 ```bash
 bun install
-bunx playwright install chromium
-cp .env.example .env   # then set GROQ_API_KEY
+bunx playwright install chromium   # Instagram scrape only
+cp .env.example .env   # then set FIREWORKS_API_KEY (vision + extract) and RETTIWT_API_KEY (X)
 ```
 
 ## Run the pipeline for a creator
 
 ```bash
-bun run pipeline --handle <handle> --name "<Name>"
+bun run pipeline   --handle <handle> --name "<Name>"   # Instagram (video-first)
+bun run pipeline:x --handle <handle> --name "<Name>"   # X/Twitter (text-first)
 ```
 
-This scrapes → transcribes (Groq Whisper) → reads on-screen tickers (Groq vision) →
-extracts explicit bullish calls (Groq LLM), then PAUSES.
+The Instagram pipeline scrapes → transcribes (self-hosted Parakeet ASR) → reads on-screen
+tickers (Fireworks vision) → extracts explicit bullish calls (Fireworks LLM), then PAUSES.
+The X pipeline scrapes tweets → extracts (Fireworks), then PAUSES.
 
 - Log into Instagram in the launched Chromium window when it opens (the scrape needs
   an authenticated session; cookies persist in `.chrome-profile/`).
