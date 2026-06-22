@@ -1,5 +1,5 @@
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
@@ -8,15 +8,7 @@ import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { ChartBoundary } from "../components/ChartBoundary";
-import { AreaChartLoading } from "../components/charts/area-chart-loading";
 import { ConvictionScatter, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
-
-// Funnel pulls motion + @visx; lazy-load it so that chunk stays off the creator
-// route's initial/hydration path (cuts TBT/LCP). The native HTML/SVG HorizonBars
-// + ConvictionScatter have no heavy deps and stay eager.
-const CallFunnel = lazy(() =>
-  import("../components/AnalyticsCharts").then((m) => ({ default: m.CallFunnel })),
-);
 import {
   Pagination,
   PaginationContent,
@@ -185,39 +177,15 @@ function Overview() {
         </NumberFlowGroup>
       </section>
 
-      <section
-        className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-[1fr_320px]"
-      >
-        <div className="bg-background p-6">
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Performance vs SPY · cumulative
-            <span className="ml-1 normal-case tracking-normal opacity-70">(equal-weight, not risk-adjusted)</span>
-          </div>
-          <div className="mt-3">
-            <ChartBoundary>
-              <CumulativeExcess ds={ds} />
-            </ChartBoundary>
-          </div>
+      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
+        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          Performance vs SPY · cumulative
+          <span className="ml-1 normal-case tracking-normal opacity-70">(equal-weight, not risk-adjusted)</span>
         </div>
-        <div className="bg-background p-6">
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Call funnel
-          </div>
-          <div className="mt-4">
-            <ChartBoundary>
-              <Suspense
-                fallback={
-                  <AreaChartLoading
-                    aspectRatio="auto"
-                    className="h-[240px] w-full overflow-hidden rounded-md"
-                    label="Loading"
-                  />
-                }
-              >
-                <CallFunnel ds={ds} />
-              </Suspense>
-            </ChartBoundary>
-          </div>
+        <div className="mt-3">
+          <ChartBoundary>
+            <CumulativeExcess ds={ds} />
+          </ChartBoundary>
         </div>
       </section>
 
