@@ -428,7 +428,11 @@ a {
 .t-tabs-pill {
   position: absolute;
   top: 3px;
-  left: 0;
+  /* 3px mirrors the container padding (like top): the pill is driven by
+     translateX(offsetLeft), and offsetLeft is content-box-relative, so the
+     resting origin must clear the left padding or the pill sits flush to the
+     edge when the first tab is active. */
+  left: 3px;
   height: 30px;
   width: 0;
   background: var(--background);
