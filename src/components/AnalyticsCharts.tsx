@@ -2,17 +2,19 @@
 // shared CategoryBars chart; the cumulative-excess curve is the bklit AreaChart.
 import { lazy, Suspense } from "react";
 import { AreaChartLoading } from "#/components/charts/area-chart-loading";
+import { ChartHandoff, useChunkReady } from "#/components/charts/chart-handoff";
 import type { CategoryBarRow } from "#/components/charts/category-bars";
 import type { CumPoint, Dataset, Horizon } from "../lib/types";
 
 // Lazy so the charts' motion/@visx/d3 deps land in their own chunk, off the
-// creator route's initial/hydration path.
-const CumExcessArea = lazy(() =>
-  import("#/components/charts/cum-excess-area").then((m) => ({ default: m.CumExcessArea })),
-);
-const CategoryBars = lazy(() =>
-  import("#/components/charts/category-bars").then((m) => ({ default: m.CategoryBars })),
-);
+// creator route's initial/hydration path. Named importers (not inline) so the
+// same loader feeds both React.lazy and useChunkReady (one shared import).
+const importCumExcess = () =>
+  import("#/components/charts/cum-excess-area").then((m) => ({ default: m.CumExcessArea }));
+const importCategoryBars = () =>
+  import("#/components/charts/category-bars").then((m) => ({ default: m.CategoryBars }));
+const CumExcessArea = lazy(importCumExcess);
+const CategoryBars = lazy(importCategoryBars);
 
 const HORIZONS: Horizon[] = ["1w", "1m", "3m", "toDate"];
 const HLABEL: Record<Horizon, string> = { "1w": "1w", "1m": "1m", "3m": "3m", toDate: "to date" };
@@ -68,14 +70,21 @@ function BarsFallback({ rows }: { rows: number }) {
 export function CumulativeExcess({ ds }: { ds: Dataset }) {
   const pts: CumPoint[] = ds.scorecard.cumExcess ?? [];
   const nPicks = ds.calls.filter((c) => c.isFirstCall && c.returns.toDate.excess != null).length;
+  const ready = useChunkReady(importCumExcess);
   if (pts.length < 2) {
     return <p className="py-6 text-sm text-muted-foreground">Not enough elapsed calls to chart yet.</p>;
   }
   return (
     <div>
-      <Suspense fallback={<AreaChartLoading aspectRatio="auto" className="h-[200px] w-full" label="Loading" />}>
-        <CumExcessArea pts={pts} />
-      </Suspense>
+      <ChartHandoff
+        className="h-[200px]"
+        loading={!ready}
+        skeleton={<AreaChartLoading aspectRatio="auto" className="h-[200px] w-full" label="Loading" />}
+      >
+        <Suspense fallback={null}>
+          <CumExcessArea pts={pts} />
+        </Suspense>
+      </ChartHandoff>
       <p className="mt-2 text-xs text-muted-foreground">
         Equal-weight across {nPicks} scored {nPicks === 1 ? "pick" : "picks"} · excess return vs SPY, to date
       </p>
@@ -90,22 +99,28 @@ export function HorizonBars({ ds }: { ds: Dataset }) {
     label: HLABEL[h],
     value: ds.scorecard.avgExcess[h],
   }));
+  const ready = useChunkReady(importCategoryBars);
   return (
-    <Suspense fallback={<BarsFallback rows={rows.length} />}>
-      <CategoryBars rows={rows} />
-    </Suspense>
+    <ChartHandoff loading={!ready} skeleton={<BarsFallback rows={rows.length} />}>
+      <Suspense fallback={null}>
+        <CategoryBars rows={rows} />
+      </Suspense>
+    </ChartHandoff>
   );
 }
 
 // Avg excess vs SPY by conviction bucket — does conviction pay off?
 export function ConvictionBars({ ds }: { ds: Dataset }) {
   const rows = convictionRows(ds);
+  const ready = useChunkReady(importCategoryBars);
   if (rows.length === 0) {
     return <p className="py-6 text-sm text-muted-foreground">No elapsed calls yet.</p>;
   }
   return (
-    <Suspense fallback={<BarsFallback rows={rows.length} />}>
-      <CategoryBars rows={rows} />
-    </Suspense>
+    <ChartHandoff loading={!ready} skeleton={<BarsFallback rows={rows.length} />}>
+      <Suspense fallback={null}>
+        <CategoryBars rows={rows} />
+      </Suspense>
+    </ChartHandoff>
   );
 }
