@@ -8,11 +8,11 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "#/components/ui/drawer.tsx";
-import { type CreatorRef, RailContent } from "./WorkspaceRail";
+import { type CreatorRef, type RailStock, RailContent } from "./WorkspaceRail";
 
 // Mobile-only top bar (hidden at md+). Hosts the menu trigger and app mark; the
 // rail content lives in a left drawer with vaul's background scale-down.
-export function MobileNav({ creators }: { creators: CreatorRef[] }) {
+export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks: RailStock[] }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -37,7 +37,7 @@ export function MobileNav({ creators }: { creators: CreatorRef[] }) {
           <DrawerDescription className="sr-only">
             Primary navigation and tracked creators
           </DrawerDescription>
-          <RailContent creators={creators} onNavigate={() => setOpen(false)} />
+          <RailContent creators={creators} stocks={stocks} onNavigate={() => setOpen(false)} />
         </DrawerContent>
       </Drawer>
 

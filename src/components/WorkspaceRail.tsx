@@ -5,6 +5,10 @@ import GitHubLink from "./GitHubLink";
 import { Preferences } from "./Preferences";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
+import { RailStocks } from "./RailStocks";
+import type { RailStock } from "#/lib/rail-stocks.ts";
+
+export type { RailStock } from "#/lib/rail-stocks.ts";
 
 export interface CreatorRef {
   handle: string;
@@ -15,10 +19,10 @@ export interface CreatorRef {
 
 // Left workspace rail (devl workspace-rail aesthetic): app mark + name, primary
 // nav, and a creators section. Wraps all routes via __root.
-export function WorkspaceRail({ creators }: { creators: CreatorRef[] }) {
+export function WorkspaceRail({ creators, stocks }: { creators: CreatorRef[]; stocks: RailStock[] }) {
   return (
     <aside className="h-svh border-r border-border/60">
-      <RailContent creators={creators} />
+      <RailContent creators={creators} stocks={stocks} />
     </aside>
   );
 }
@@ -27,9 +31,11 @@ export function WorkspaceRail({ creators }: { creators: CreatorRef[] }) {
 // onNavigate lets the drawer close itself when a link is followed.
 export function RailContent({
   creators,
+  stocks,
   onNavigate,
 }: {
   creators: CreatorRef[];
+  stocks: RailStock[];
   onNavigate?: () => void;
 }) {
   const [prefsOpen, setPrefsOpen] = useState(false);
@@ -125,6 +131,9 @@ export function RailContent({
         </ul>
         </nav>
       </ScrollArea>
+
+      <SectionLabel>Stocks</SectionLabel>
+      <RailStocks stocks={stocks} onNavigate={onNavigate} />
 
       <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
         <BackendHealth creators={creators} />

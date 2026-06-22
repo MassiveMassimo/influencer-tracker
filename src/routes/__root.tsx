@@ -9,7 +9,8 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { WorkspaceRail } from '../components/WorkspaceRail'
 import { MobileNav } from '../components/MobileNav'
-import { listCreators } from '../lib/data'
+import { listCreators, fetchCallsIndex } from '../lib/data'
+import { topStocksByLastCall } from '../lib/rail-stocks'
 import { PreferencesProvider } from '#/lib/preferences.tsx'
 import { HapticsProvider } from '#/lib/haptics.tsx'
 import { Analytics } from '#/lib/analytics.tsx'
@@ -21,7 +22,10 @@ import appCss from '../styles.css?url'
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  loader: () => listCreators(),
+  loader: async () => {
+    const [creators, index] = await Promise.all([listCreators(), fetchCallsIndex()])
+    return { creators, stocks: topStocksByLastCall(index) }
+  },
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -59,7 +63,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 })
 
 function RootComponent() {
-  const creators = Route.useLoaderData()
+  const { creators, stocks } = Route.useLoaderData()
   return (
     <PreferencesProvider>
       <HapticsProvider>
@@ -86,10 +90,10 @@ function RootComponent() {
           className="grid min-h-svh grid-cols-1 bg-background text-foreground md:grid-cols-[260px_1fr]"
         >
           <div className="sticky top-0 hidden h-svh self-start md:block">
-            <WorkspaceRail creators={creators} />
+            <WorkspaceRail creators={creators} stocks={stocks} />
           </div>
           <div className="min-w-0">
-            <MobileNav creators={creators} />
+            <MobileNav creators={creators} stocks={stocks} />
             <Outlet />
           </div>
         </div>
