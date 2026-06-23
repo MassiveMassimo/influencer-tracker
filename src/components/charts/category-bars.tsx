@@ -62,11 +62,14 @@ export function CategoryBars({
           </div>
           <div className="relative h-5 flex-1 overflow-hidden rounded bg-muted/50">
             <motion.div
-              animate={{ scaleX: 1 }}
+              animate={{ width: `${(Math.abs(r.value) / max) * 100}%` }}
               className={`h-full rounded ${barCls(r.value)}`}
-              initial={reduce ? false : { scaleX: 0 }}
-              style={{ width: `${(Math.abs(r.value) / max) * 100}%`, transformOrigin: "left" }}
-              transition={{ delay: i * step, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              initial={reduce ? false : { width: "0%" }}
+              transition={
+                reduce
+                  ? { duration: 0 }
+                  : { delay: i * step, duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+              }
             />
           </div>
           <div className={`w-16 shrink-0 text-right tabular-nums ${toneCls(r.value)}`}>

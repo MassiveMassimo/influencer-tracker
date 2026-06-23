@@ -9,6 +9,7 @@ import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { fetchCallsIndex, fetchDataset, fetchPrices, listCreators } from "../lib/data";
 import { summarizeTicker } from "../lib/call-filter";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
+import { TextSwap } from "#/components/text-swap.tsx";
 import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import type { Call } from "#/lib/types.ts";
@@ -320,9 +321,9 @@ function TickerPage() {
             ) : " · all creators"}
           </div>
           <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
-            {symbol}
+            <TextSwap value={symbol} />
             <HalalIndicator info={halal} />
-            <span className="text-base text-muted-foreground">{data.company}</span>
+            <TextSwap value={data.company} className="text-base text-muted-foreground" />
           </h1>
         </div>
         <CreatorSwitcher symbol={symbol} creators={switcherCreators} selected={creatorHandle} />
