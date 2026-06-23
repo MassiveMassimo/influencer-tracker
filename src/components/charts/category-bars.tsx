@@ -4,6 +4,7 @@ import NumberFlow, { type Format } from "@number-flow/react";
 import { motion, useReducedMotion } from "motion/react";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { useInView } from "#/lib/use-in-view.ts";
+import { EASE_OUT } from "#/lib/ease.ts";
 
 export type CategoryBarRow = {
   key: string;
@@ -63,16 +64,16 @@ export function CategoryBars({
           <div className="relative h-5 flex-1 overflow-hidden rounded bg-muted/50">
             <motion.div
               animate={{ width: `${(Math.abs(r.value) / max) * 100}%` }}
-              className={`h-full rounded transition-colors duration-500 motion-reduce:transition-none ${barCls(r.value)}`}
+              className={`h-full rounded transition-colors duration-200 motion-reduce:transition-none ${barCls(r.value)}`}
               initial={reduce ? false : { width: "0%" }}
               transition={
                 reduce
                   ? { duration: 0 }
-                  : { delay: i * step, duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+                  : { delay: i * step, duration: 0.3, ease: EASE_OUT }
               }
             />
           </div>
-          <div className={`w-16 shrink-0 text-right tabular-nums transition-colors duration-500 motion-reduce:transition-none ${toneCls(r.value)}`}>
+          <div className={`w-16 shrink-0 text-right tabular-nums transition-colors duration-200 motion-reduce:transition-none ${toneCls(r.value)}`}>
             {ready ? (
               <NumberFlow
                 format={format}

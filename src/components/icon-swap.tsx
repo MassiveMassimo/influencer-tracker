@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { EASE_OUT } from "#/lib/ease.ts";
 
 // An iconify icon that (a) slides smoothly to its new x when a preceding element
 // changes width — via motion `layout="position"` — instead of hard-jumping, and
@@ -12,10 +13,11 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 // The glyphs are grid-stacked (one cell) so the cross-fade never shifts layout,
 // and `layout="position"` animates only position, never size (the icon is a fixed
 // 1em square). `initial={false}` keeps the first paint static.
-const TRANSITION = { duration: 0.25, ease: "easeInOut" } as const;
+// Entrance/exit of the glyph: ease-out so it feels responsive, not soft.
+const TRANSITION = { duration: 0.25, ease: EASE_OUT } as const;
 // Snappier than motion's default layout spring so the slide keeps up with the
 // 150ms text swap that drives it.
-const LAYOUT_TRANSITION = { duration: 0.18, ease: [0.23, 1, 0.32, 1] } as const;
+const LAYOUT_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
 
 export function IconSwap({
   icon,
