@@ -20,6 +20,7 @@ import {
 } from "../components/ui/pagination";
 import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
+import { TextSwap } from "#/components/text-swap.tsx";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
@@ -191,7 +192,7 @@ function Overview() {
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 text-foreground no-underline"
             >
-              <span className="group-hover:underline group-hover:underline-offset-2">{ds.creator.name}</span>
+              <TextSwap value={ds.creator.name} className="group-hover:underline group-hover:underline-offset-2" />
               <span className={`${platformIcon} text-muted-foreground transition-colors group-hover:text-foreground`} aria-hidden />
             </a>
           </h1>
