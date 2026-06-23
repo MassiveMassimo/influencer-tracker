@@ -9,7 +9,8 @@ import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { fetchCallsIndex, fetchDataset, fetchPrices, listCreators } from "../lib/data";
 import { summarizeTicker } from "../lib/call-filter";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
-import { TextSwap } from "#/components/text-swap.tsx";
+import { TextSwap, useTextSwap } from "#/components/text-swap.tsx";
+import type { HalalInfo } from "#/lib/halal/types.ts";
 import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import type { Call } from "#/lib/types.ts";
@@ -194,6 +195,32 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
   );
 }
 
+// Owns the symbol swap so its swap re-render reaches the sibling HalalIndicator,
+// letting motion re-measure and slide the badge to its new x (rather than jump)
+// when the symbol width changes. Isolated in its own component so only the heading
+// re-renders on a swap, not the whole ticker page (charts stay put). The company
+// re-positions behind its own fade, so it stays a plain TextSwap.
+function StockHeading({
+  symbol,
+  company,
+  halal,
+}: {
+  symbol: string;
+  company: string;
+  halal: HalalInfo;
+}) {
+  const { ref, display } = useTextSwap(symbol);
+  return (
+    <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
+      <span className="t-text-swap" ref={ref}>
+        {display}
+      </span>
+      <HalalIndicator info={halal} />
+      <TextSwap value={company} className="text-base text-muted-foreground" />
+    </h1>
+  );
+}
+
 function TickerPage() {
   const data = Route.useLoaderData();
   const { symbol, summary, names, avatars, hits, creatorHandle, creatorCalls, siblings, firstDate, bakedOhlc, bakedSpy } = data;
@@ -320,11 +347,7 @@ function TickerPage() {
               </>
             ) : " · all creators"}
           </div>
-          <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
-            <TextSwap value={symbol} />
-            <HalalIndicator info={halal} />
-            <TextSwap value={data.company} className="text-base text-muted-foreground" />
-          </h1>
+          <StockHeading symbol={symbol} company={data.company} halal={halal} />
         </div>
         <CreatorSwitcher symbol={symbol} creators={switcherCreators} selected={creatorHandle} />
       </header>
