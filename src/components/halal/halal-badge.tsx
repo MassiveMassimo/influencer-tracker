@@ -40,7 +40,13 @@ export function HalalBadge({ info }: { info: HalalInfo }) {
 // `mode="popLayout"` takes the exiting badge out of flow so neighbours reflow in
 // one step; `initial={false}` keeps it inert on first mount (list rows never
 // toggle in place, so they don't animate).
-const BADGE_TRANSITION = { duration: 0.25, ease: "easeInOut" } as const;
+// Presence (blur+scale) at 0.25s; the `layout` slide is snappier so it keeps up
+// with the 150ms text swap that drives the badge's reposition.
+const BADGE_TRANSITION = {
+  duration: 0.25,
+  ease: "easeInOut",
+  layout: { duration: 0.18, ease: [0.23, 1, 0.32, 1] },
+} as const;
 
 export function HalalIndicator({ info }: { info: HalalInfo }) {
   const reduce = useReducedMotion();
