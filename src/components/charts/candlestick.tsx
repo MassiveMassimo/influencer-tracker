@@ -6,6 +6,15 @@ import { memo, useMemo } from "react";
 import { useChart } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
 import { transitionWithDelay } from "./motion-utils";
+import { EASE_OUT } from "#/lib/ease.ts";
+
+// Steady-state candles morph their geometry (lengthen/shorten, move up/down)
+// when `data` changes without a remount — i.e. switching ticker/creator pages,
+// which keeps the chart mounted and only swaps the OHLC. Both symbols over the
+// same timeframe share trading days, so each candle keeps its key (the bar's
+// time) and motion tweens its rects from the old geometry to the new. Matched to
+// the area morph (0.4s, strong ease-out) so both charts read as one transition.
+const MORPH_TRANSITION = { duration: 0.4, ease: EASE_OUT } as const;
 
 const DEFAULT_POSITIVE = "url(#candlestick-positive)";
 const DEFAULT_NEGATIVE = "url(#candlestick-negative)";
@@ -192,6 +201,76 @@ const CandlestickBody = memo(function CandlestickBody({
   );
 });
 
+// Morphing twin of CandlestickBody: same shapes, but x/y/width/height animate so
+// the candle slides + stretches to its new size on a data swap. Fill is a plain
+// prop (gradient url()s can't tween), so a sign flip recolors instantly while the
+// shape morphs — the TradingView convention. On first mount motion seeds initial
+// from the target, so the steady-state branch appears without a spurious morph.
+const MorphCandleBody = memo(function MorphCandleBody({
+  geometry,
+}: {
+  geometry: CandleGeometry;
+}) {
+  const {
+    wickLeft,
+    wickTop,
+    wickHeight,
+    wickFill,
+    bodyLeft,
+    bodyTop,
+    bodyHeight,
+    candleWidth,
+    bodySolidFill,
+    bodyPattern,
+    insideStrokeWidth,
+  } = geometry;
+
+  return (
+    <>
+      <motion.rect
+        animate={{ x: wickLeft, y: wickTop, height: wickHeight }}
+        fill={wickFill}
+        transition={MORPH_TRANSITION}
+        width={WICK_WIDTH}
+      />
+      <motion.rect
+        animate={{ x: bodyLeft, y: bodyTop, width: candleWidth, height: bodyHeight }}
+        fill={bodySolidFill}
+        rx={1}
+        ry={1}
+        stroke={bodySolidFill}
+        strokeWidth={1}
+        transition={MORPH_TRANSITION}
+      />
+      {bodyPattern ? (
+        <motion.rect
+          animate={{ x: bodyLeft, y: bodyTop, width: candleWidth, height: bodyHeight }}
+          fill={bodyPattern}
+          rx={1}
+          ry={1}
+          transition={MORPH_TRANSITION}
+        />
+      ) : null}
+      {insideStrokeWidth > 0 ? (
+        <motion.rect
+          animate={{
+            x: bodyLeft + insideStrokeWidth / 2,
+            y: bodyTop + insideStrokeWidth / 2,
+            width: candleWidth - insideStrokeWidth,
+            height: bodyHeight - insideStrokeWidth,
+          }}
+          fill="none"
+          rx={1}
+          ry={1}
+          stroke={bodySolidFill}
+          strokeWidth={insideStrokeWidth}
+          transition={MORPH_TRANSITION}
+        />
+      ) : null}
+    </>
+  );
+});
+
 const CandlestickBodies = memo(function CandlestickBodies({
   geometries,
   fadedOpacity,
@@ -216,7 +295,7 @@ const CandlestickBodies = memo(function CandlestickBodies({
           )}
           style={{ transition: "opacity 0.15s ease-in-out" }}
         >
-          <CandlestickBody geometry={geometry} />
+          <MorphCandleBody geometry={geometry} />
         </g>
       ))}
     </>
