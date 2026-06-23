@@ -8,6 +8,7 @@ import {
   PreviewCardPopup,
 } from "#/components/ui/preview-card.tsx";
 import { badgeKindFor, type HalalInfo } from "#/lib/halal/types.ts";
+import { EASE_OUT } from "#/lib/ease.ts";
 import { HalalCardContent } from "./halal-card-content.tsx";
 
 export function HalalBadge({ info }: { info: HalalInfo }) {
@@ -44,8 +45,8 @@ export function HalalBadge({ info }: { info: HalalInfo }) {
 // with the 150ms text swap that drives the badge's reposition.
 const BADGE_TRANSITION = {
   duration: 0.25,
-  ease: "easeInOut",
-  layout: { duration: 0.18, ease: [0.23, 1, 0.32, 1] },
+  ease: EASE_OUT,
+  layout: { duration: 0.18, ease: EASE_OUT },
 } as const;
 
 export function HalalIndicator({ info }: { info: HalalInfo }) {

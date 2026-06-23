@@ -4,6 +4,7 @@ import { curveLinear } from "@visx/curve";
 import { area as d3area, line as d3line } from "d3-shape";
 import { animate } from "motion/react";
 import { useEffect, useId, useMemo, useRef } from "react";
+import { EASE_OUT } from "#/lib/ease.ts";
 import { useChartStable, useYScale } from "./chart-context";
 
 // Sign-split filled area: fills between the series and a baseline (default 0),
@@ -35,7 +36,7 @@ const SAMPLES = 240;
 // Matched to MorphArea / the candlestick crossfade so all chart transitions read
 // as one motion.
 const MORPH_DURATION = 0.4;
-const MORPH_EASE: [number, number, number, number] = [0.23, 1, 0.32, 1];
+const MORPH_EASE = EASE_OUT;
 
 // Resample a polyline to exactly `n` points by walking it at even index
 // fractions, so a switch between series of different lengths tweens cleanly.
