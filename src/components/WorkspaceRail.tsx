@@ -168,7 +168,7 @@ export function RailContent({
       <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
         <BackendHealth creators={creators} />
         <div className="flex items-center gap-1.5">
-          <GitHubLink className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground" />
+          <GitHubLink className="grid place-items-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground" />
           <button
             type="button"
             onClick={() => {
@@ -177,7 +177,7 @@ export function RailContent({
             }}
             aria-label="Preferences"
             title="Preferences"
-            className="grid place-items-center rounded-full border border-border/60 bg-background p-2 text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-foreground/[0.05] hover:text-foreground"
+            className="grid place-items-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground"
           >
             <SettingsIcon className="size-4" />
           </button>
