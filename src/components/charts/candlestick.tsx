@@ -1,7 +1,7 @@
 "use client";
 
 import type { Transition } from "motion/react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { memo, useMemo } from "react";
 import { useChart } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
@@ -10,11 +10,21 @@ import { EASE_OUT } from "#/lib/ease.ts";
 
 // Steady-state candles morph their geometry (lengthen/shorten, move up/down)
 // when `data` changes without a remount — i.e. switching ticker/creator pages,
-// which keeps the chart mounted and only swaps the OHLC. Both symbols over the
-// same timeframe share trading days, so each candle keeps its key (the bar's
-// time) and motion tweens its rects from the old geometry to the new. Matched to
-// the area morph (0.4s, strong ease-out) so both charts read as one transition.
-const MORPH_TRANSITION = { duration: 0.4, ease: EASE_OUT } as const;
+// which keeps the chart mounted and only swaps the OHLC. Each candle slot is
+// keyed by its ordinal position in the window (not the bar's date), so the Nth
+// candle morphs to the Nth candle across the swap even when the two symbols'
+// calendars differ — e.g. a crypto symbol (trades weekends) ↔ an equity. Matched
+// to the area morph (0.4s, strong ease-out) so both charts read as one
+// transition. Reduced-motion users get SNAP_TRANSITION (instant), matching the
+// rest of the app's motion components (icon-swap, halal-badge, …).
+//
+// Known limitation, shared with the area chart: the candle yScale snaps on the
+// data swap while bodies tween, so the y-axis/grid jump a frame ahead of the
+// candles. Animating the shared domain (per use-animated-y-domains) would force a
+// per-frame re-render of every candle + axis, costing more than it buys; left as
+// a deliberate tradeoff.
+const MORPH_TRANSITION: Transition = { duration: 0.4, ease: EASE_OUT };
+const SNAP_TRANSITION: Transition = { duration: 0 };
 
 const DEFAULT_POSITIVE = "url(#candlestick-positive)";
 const DEFAULT_NEGATIVE = "url(#candlestick-negative)";
@@ -134,6 +144,10 @@ function geometryDimOpacity(
   return 1;
 }
 
+// Static (snap-positioned) candle. Used only by the hover-highlight overlay,
+// which wants the highlighted candle to track the crosshair instantly, not tween.
+// Shares its exact shape set (wick + body + optional pattern + inside stroke) with
+// the morphing MorphCandleBody below — keep the two in sync if either changes.
 const CandlestickBody = memo(function CandlestickBody({
   geometry,
 }: {
@@ -204,12 +218,21 @@ const CandlestickBody = memo(function CandlestickBody({
 // Morphing twin of CandlestickBody: same shapes, but x/y/width/height animate so
 // the candle slides + stretches to its new size on a data swap. Fill is a plain
 // prop (gradient url()s can't tween), so a sign flip recolors instantly while the
-// shape morphs — the TradingView convention. On first mount motion seeds initial
-// from the target, so the steady-state branch appears without a spurious morph.
+// shape morphs — the TradingView convention.
+//
+// `initial={false}` is load-bearing: SVG geometry attrs (x/y/width/height) are
+// NOT seeded from the animate target on mount the way transforms are — without
+// it motion animates each rect from 0/0/0/0, so a freshly-mounted candle would
+// grow from a zero-size box in the top-left. This component only mounts after the
+// enter sweep (the `!isLoaded` AnimatedCandle branch handles first paint), so
+// suppressing its mount animation is exactly right; it tweens only on later
+// data-swap updates.
 const MorphCandleBody = memo(function MorphCandleBody({
   geometry,
+  transition,
 }: {
   geometry: CandleGeometry;
+  transition: Transition;
 }) {
   const {
     wickLeft,
@@ -230,25 +253,28 @@ const MorphCandleBody = memo(function MorphCandleBody({
       <motion.rect
         animate={{ x: wickLeft, y: wickTop, height: wickHeight }}
         fill={wickFill}
-        transition={MORPH_TRANSITION}
+        initial={false}
+        transition={transition}
         width={WICK_WIDTH}
       />
       <motion.rect
         animate={{ x: bodyLeft, y: bodyTop, width: candleWidth, height: bodyHeight }}
         fill={bodySolidFill}
+        initial={false}
         rx={1}
         ry={1}
         stroke={bodySolidFill}
         strokeWidth={1}
-        transition={MORPH_TRANSITION}
+        transition={transition}
       />
       {bodyPattern ? (
         <motion.rect
           animate={{ x: bodyLeft, y: bodyTop, width: candleWidth, height: bodyHeight }}
           fill={bodyPattern}
+          initial={false}
           rx={1}
           ry={1}
-          transition={MORPH_TRANSITION}
+          transition={transition}
         />
       ) : null}
       {insideStrokeWidth > 0 ? (
@@ -260,11 +286,12 @@ const MorphCandleBody = memo(function MorphCandleBody({
             height: bodyHeight - insideStrokeWidth,
           }}
           fill="none"
+          initial={false}
           rx={1}
           ry={1}
           stroke={bodySolidFill}
           strokeWidth={insideStrokeWidth}
-          transition={MORPH_TRANSITION}
+          transition={transition}
         />
       ) : null}
     </>
@@ -276,17 +303,25 @@ const CandlestickBodies = memo(function CandlestickBodies({
   fadedOpacity,
   legendHoveredIndex,
   hoveredTime,
+  morphTransition,
 }: {
   geometries: CandleGeometry[];
   fadedOpacity: number;
   legendHoveredIndex: number | null;
   hoveredTime: number | null;
+  morphTransition: Transition;
 }) {
   return (
     <>
-      {geometries.map((geometry) => (
+      {geometries.map((geometry, index) => (
+        // Keyed by ordinal position, not bar time: candles are always in
+        // chronological order and only the tail count changes between symbols, so
+        // index keys are stable AND let the Nth candle persist (and morph) across
+        // a swap even when calendars differ. Dimming still keys on geometry.time
+        // inside geometryDimOpacity, so hover behaviour is unaffected.
         <g
-          key={geometry.time}
+          // biome-ignore lint/suspicious/noArrayIndexKey: chronological, no reorder
+          key={index}
           opacity={geometryDimOpacity(
             geometry,
             fadedOpacity,
@@ -295,7 +330,7 @@ const CandlestickBodies = memo(function CandlestickBodies({
           )}
           style={{ transition: "opacity 0.15s ease-in-out" }}
         >
-          <MorphCandleBody geometry={geometry} />
+          <MorphCandleBody geometry={geometry} transition={morphTransition} />
         </g>
       ))}
     </>
@@ -396,6 +431,11 @@ export function Candlestick({
     hoveredCandleIndex,
   } = useChart();
   const { hoveredIndex: legendHoveredIndex } = useChartLegendHover();
+  // Reads the OS prefers-reduced-motion (matching icon-swap/halal-badge/
+  // category-bars). NOTE: the app's manual data-reduce-motion toggle only zeroes
+  // CSS transitions, not motion's JS-driven animate — a repo-wide gap, not unique
+  // to this chart.
+  const reduce = useReducedMotion();
 
   const candleWidth = Math.min(bandWidth ?? columnWidth * 0.8, columnWidth);
 
@@ -480,7 +520,9 @@ export function Candlestick({
   const staggerDelayMs =
     data.length > 0 ? (animationDuration * 0.6) / data.length : 0;
 
-  if (animate && !isLoaded) {
+  // Reduced motion skips the enter sweep entirely (render the steady bodies
+  // straight away); the steady morph is snapped to 0s below.
+  if (animate && !isLoaded && !reduce) {
     return (
       <g className="chart-candlesticks">
         {geometries.map((geometry, index) => (
@@ -503,6 +545,7 @@ export function Candlestick({
         geometries={geometries}
         hoveredTime={showHoverFade ? hoveredTime : null}
         legendHoveredIndex={legendHoveredIndex}
+        morphTransition={reduce ? SNAP_TRANSITION : MORPH_TRANSITION}
       />
       {highlightGeometry ? (
         <g>

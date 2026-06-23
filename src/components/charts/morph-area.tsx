@@ -2,7 +2,7 @@
 
 import { curveNatural } from "@visx/curve";
 import { area as d3area, line as d3line } from "d3-shape";
-import { animate } from "motion/react";
+import { animate, useReducedMotion } from "motion/react";
 import { useEffect, useId, useMemo, useRef } from "react";
 import { chartCssVars, useChartStable, useYScale } from "./chart-context";
 
@@ -71,6 +71,7 @@ export function MorphArea({
 }: MorphAreaProps) {
   const { renderData, xScale, innerHeight, xAccessor } = useChartStable();
   const yScale = useYScale(yAxisId);
+  const reduce = useReducedMotion();
 
   const strokeRef = useRef<SVGPathElement>(null);
   const fillRef = useRef<SVGPathElement>(null);
@@ -123,9 +124,10 @@ export function MorphArea({
     };
 
     const from = displayedRef.current;
-    if (!from) {
-      // First paint: draw straight to target, seed the displayed shape. The
-      // shell's reveal still wipes/fades the whole group in on mount.
+    if (!from || reduce) {
+      // First paint, or reduced motion: draw straight to target and seed the
+      // displayed shape — no tween. (The shell's reveal still fades the group in
+      // on mount.) Matches the rest of the app's reduced-motion handling.
       paint(points);
       displayedRef.current = points;
       return;
@@ -146,7 +148,7 @@ export function MorphArea({
       },
     });
     return () => controls.stop();
-  }, [points, areaGen]);
+  }, [points, areaGen, reduce]);
 
   const reactId = useId();
   const gradientId = `morph-area-fill-${dataKey}-${reactId}`;
