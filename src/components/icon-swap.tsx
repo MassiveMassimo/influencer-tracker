@@ -13,6 +13,9 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 // and `layout="position"` animates only position, never size (the icon is a fixed
 // 1em square). `initial={false}` keeps the first paint static.
 const TRANSITION = { duration: 0.25, ease: "easeInOut" } as const;
+// Snappier than motion's default layout spring so the slide keeps up with the
+// 150ms text swap that drives it.
+const LAYOUT_TRANSITION = { duration: 0.18, ease: [0.23, 1, 0.32, 1] } as const;
 
 export function IconSwap({
   icon,
@@ -26,7 +29,7 @@ export function IconSwap({
     return <span aria-hidden className={`${icon} ${className ?? ""}`} />;
   }
   return (
-    <motion.span className="inline-grid" layout="position">
+    <motion.span className="inline-grid" layout="position" transition={LAYOUT_TRANSITION}>
       <AnimatePresence initial={false} mode="popLayout">
         <motion.span
           animate={{ scale: 1, filter: "blur(0px)", opacity: 1 }}
