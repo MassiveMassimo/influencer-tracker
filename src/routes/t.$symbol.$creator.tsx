@@ -344,7 +344,10 @@ function TickerPage() {
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
             <ChartBoundary>
-              <Suspense fallback={<CandleSkeleton />}>
+              {/* ChartHandoff's overlay skeleton (gated on the same chunk via
+                  useChunkReady) is the single loading UI — null here avoids a
+                  redundant second skeleton beneath it. */}
+              <Suspense fallback={null}>
                 <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} onHoverClose={setHoverClose} iconFill={!creatorHandle} />
               </Suspense>
             </ChartBoundary>
@@ -386,7 +389,8 @@ function TickerPage() {
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
             <ChartBoundary>
-              <Suspense fallback={<ChartSkeleton />}>
+              {/* See note above: overlay skeleton is the single loading UI. */}
+              <Suspense fallback={null}>
                 <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={view.timeframe} iconFill={!creatorHandle} />
               </Suspense>
             </ChartBoundary>
