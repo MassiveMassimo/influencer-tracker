@@ -1,6 +1,7 @@
 "use client";
 
 import { CircleQuestionMark } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   PreviewCard,
   PreviewCardTrigger,
@@ -31,9 +32,21 @@ export function HalalBadge({ info }: { info: HalalInfo }) {
   return null;
 }
 
+// Blur + scale presence animation for the badge, matching IconSwap: when the
+// badge appears/disappears between items (e.g. navigating to a stock Musaffa
+// doesn't rate) it fades in/out instead of popping, and `layout="position"` lets
+// it — and any following sibling that also opts into layout — slide rather than
+// jump when a preceding element (the ticker/symbol) changes width.
+// `mode="popLayout"` takes the exiting badge out of flow so neighbours reflow in
+// one step; `initial={false}` keeps it inert on first mount (list rows never
+// toggle in place, so they don't animate).
+const BADGE_TRANSITION = { duration: 0.25, ease: "easeInOut" } as const;
+
 export function HalalIndicator({ info }: { info: HalalInfo }) {
-  if (badgeKindFor(info.status) === null) return null;
-  return (
+  const reduce = useReducedMotion();
+  const show = badgeKindFor(info.status) !== null;
+
+  const indicator = (
     <PreviewCard>
       {/* Badge + popup often sit inside a row-level <Link>; clicks bubble through the
           React tree (even from the portaled popup) to the row. Contain them at the two
@@ -57,5 +70,27 @@ export function HalalIndicator({ info }: { info: HalalInfo }) {
         <HalalCardContent info={info} />
       </PreviewCardPopup>
     </PreviewCard>
+  );
+
+  if (reduce) {
+    return show ? indicator : null;
+  }
+
+  return (
+    <AnimatePresence initial={false} mode="popLayout">
+      {show && (
+        <motion.span
+          animate={{ scale: 1, filter: "blur(0px)", opacity: 1 }}
+          className="inline-flex"
+          exit={{ scale: 0.25, filter: "blur(2px)", opacity: 0 }}
+          initial={{ scale: 0.25, filter: "blur(2px)", opacity: 0 }}
+          key="badge"
+          layout="position"
+          transition={BADGE_TRANSITION}
+        >
+          {indicator}
+        </motion.span>
+      )}
+    </AnimatePresence>
   );
 }

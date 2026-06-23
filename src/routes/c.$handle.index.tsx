@@ -21,6 +21,7 @@ import {
 import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { TextSwap } from "#/components/text-swap.tsx";
+import { IconSwap } from "#/components/icon-swap.tsx";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
@@ -183,7 +184,7 @@ function Overview() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Signal accuracy · @{ds.creator.handle}
+            Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
           </div>
           <h1 className="mt-1 font-heading text-2xl">
             <a
@@ -193,7 +194,7 @@ function Overview() {
               className="group inline-flex items-center gap-2 text-foreground no-underline"
             >
               <TextSwap value={ds.creator.name} className="group-hover:underline group-hover:underline-offset-2" />
-              <span className={`${platformIcon} text-muted-foreground transition-colors group-hover:text-foreground`} aria-hidden />
+              <IconSwap icon={platformIcon} className="text-muted-foreground transition-colors group-hover:text-foreground" />
             </a>
           </h1>
         </div>
