@@ -1,19 +1,27 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
-// Blur + slide text swap for headings that change in place (e.g. switching
-// creators keeps the same <h1> node and only swaps its text). Ports the
-// Transitions.dev "text states swap" recipe to motion's AnimatePresence: the old
-// value exits up (blur + fade), the new value enters from below. `initial={false}`
-// so the first render paints statically — only later value changes animate.
+// Faithful port of the Transitions.dev "text states swap" recipe: ONE element
+// runs a three-phase swap on value change — exit up (blur + fade), swap the text
+// and jump below with no transition, then release to animate back to rest. Pure
+// CSS transitions (`.t-text-swap` in styles.css) so it stays GPU-composited and
+// crisp; 150ms ease-in-out, 4px travel, 2px blur — identical to the reference.
 //
-// `mode="popLayout"` pops the exiting value out of layout flow immediately, so a
-// following sibling (e.g. a platform icon) reflows to the new text width in ONE
-// step instead of collapsing to zero between exit and enter — that's what lets a
-// `layout`-animated icon slide smoothly to its new x. The wrapper is `relative`
-// so the popped (absolutely-positioned) exiting value stays put while it fades.
-const TRANSITION = { duration: 0.15, ease: "easeInOut" } as const;
+// Single element means the width changes exactly once, at the swap midpoint while
+// the text is invisible — so a following sibling that opts into motion `layout`
+// (the platform icon, the halal badge) slides to its new x with no collapse and
+// no overlapping ghost. Reduced motion (OS or the manual Preferences toggle) skips
+// the phased dance and swaps instantly.
+const DUR_MS = 150;
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
+    document.documentElement.getAttribute("data-reduce-motion") === "true"
+  );
+}
 
 export function TextSwap({
   value,
@@ -22,26 +30,36 @@ export function TextSwap({
   value: string;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
-  if (reduce) {
-    return <span className={className}>{value}</span>;
-  }
+  const ref = useRef<HTMLSpanElement>(null);
+  const [display, setDisplay] = useState(value);
+
+  useEffect(() => {
+    if (display === value) {
+      return;
+    }
+    const el = ref.current;
+    if (!el || prefersReducedMotion()) {
+      setDisplay(value);
+      return;
+    }
+    // Phase 1: exit the current text (up + blur + fade).
+    el.classList.add("is-exit");
+    const timer = window.setTimeout(() => {
+      // Phase 2: swap text and jump below with no transition.
+      setDisplay(value);
+      el.classList.remove("is-exit");
+      el.classList.add("is-enter-start");
+      void el.offsetWidth; // force reflow so phase 3 animates from below
+      // Phase 3: release — animates back to rest via the default transition.
+      el.classList.remove("is-enter-start");
+    }, DUR_MS);
+    return () => window.clearTimeout(timer);
+  }, [value, display]);
+
   return (
-    <motion.span className="relative inline-block" layout="position">
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
-          animate={{ y: 0, filter: "blur(0px)", opacity: 1 }}
-          className={`inline-block ${className ?? ""}`}
-          exit={{ y: -4, filter: "blur(2px)", opacity: 0 }}
-          initial={{ y: 4, filter: "blur(2px)", opacity: 0 }}
-          key={value}
-          style={{ willChange: "transform, filter, opacity" }}
-          transition={TRANSITION}
-        >
-          {value}
-        </motion.span>
-      </AnimatePresence>
-    </motion.span>
+    <span className={`t-text-swap ${className ?? ""}`} ref={ref}>
+      {display}
+    </span>
   );
 }
 
