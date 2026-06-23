@@ -20,7 +20,7 @@ import {
 } from "../components/ui/pagination";
 import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
-import { TextSwap } from "#/components/text-swap.tsx";
+import { TextSwap, useTextSwap } from "#/components/text-swap.tsx";
 import { IconSwap } from "#/components/icon-swap.tsx";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
@@ -98,6 +98,41 @@ function toneClass(x: number) {
 
 function ageDays(iso: string) {
   return Math.round((Date.now() - new Date(iso + "T00:00:00Z").getTime()) / 86400000);
+}
+
+// Owns the name swap so its swap re-render reaches the sibling IconSwap, letting
+// motion re-measure and slide the platform icon to its new x (rather than jump)
+// when the name width changes. IconSwap also cross-fades the glyph on a platform
+// change (X <-> IG).
+function CreatorHeading({
+  name,
+  platformIcon,
+  profileUrl,
+}: {
+  name: string;
+  platformIcon: string;
+  profileUrl: string;
+}) {
+  const { ref, display } = useTextSwap(name);
+  return (
+    <a
+      href={profileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group inline-flex items-center gap-2 text-foreground no-underline"
+    >
+      <span
+        className="t-text-swap group-hover:underline group-hover:underline-offset-2"
+        ref={ref}
+      >
+        {display}
+      </span>
+      <IconSwap
+        icon={platformIcon}
+        className="text-muted-foreground transition-colors group-hover:text-foreground"
+      />
+    </a>
+  );
 }
 
 function Overview() {
@@ -187,15 +222,7 @@ function Overview() {
             Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
           </div>
           <h1 className="mt-1 font-heading text-2xl">
-            <a
-              href={profileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 text-foreground no-underline"
-            >
-              <TextSwap value={ds.creator.name} className="group-hover:underline group-hover:underline-offset-2" />
-              <IconSwap icon={platformIcon} className="text-muted-foreground transition-colors group-hover:text-foreground" />
-            </a>
+            <CreatorHeading name={ds.creator.name} platformIcon={platformIcon} profileUrl={profileUrl} />
           </h1>
         </div>
         <div>

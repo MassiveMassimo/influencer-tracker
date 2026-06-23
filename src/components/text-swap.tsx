@@ -9,10 +9,15 @@ import { useEffect, useRef, useState } from "react";
 // crisp; 150ms ease-in-out, 4px travel, 2px blur — identical to the reference.
 //
 // Single element means the width changes exactly once, at the swap midpoint while
-// the text is invisible — so a following sibling that opts into motion `layout`
-// (the platform icon, the halal badge) slides to its new x with no collapse and
-// no overlapping ghost. Reduced motion (OS or the manual Preferences toggle) skips
-// the phased dance and swaps instantly.
+// the text is invisible. The hook is exposed separately from the component so a
+// heading can run the swap itself and, in the SAME render, re-render a following
+// sibling that opts into motion `layout` (the platform icon, the halal badge) —
+// that re-render is what lets motion re-measure and slide the sibling to its new
+// x instead of jumping. (A self-contained <TextSwap> only re-renders itself, so a
+// motion sibling would never get re-measured.)
+//
+// Reduced motion (OS or the manual Preferences toggle) skips the dance and swaps
+// instantly.
 const DUR_MS = 150;
 
 function prefersReducedMotion(): boolean {
@@ -23,13 +28,10 @@ function prefersReducedMotion(): boolean {
   );
 }
 
-export function TextSwap({
-  value,
-  className,
-}: {
-  value: string;
-  className?: string;
-}) {
+// Drives the three-phase swap. Returns the ref to attach to the swapping span and
+// the text it should currently render. State updates here re-render the caller, so
+// call it in the component that also renders any `layout`-animated sibling.
+export function useTextSwap(value: string) {
   const ref = useRef<HTMLSpanElement>(null);
   const [display, setDisplay] = useState(value);
 
@@ -56,6 +58,17 @@ export function TextSwap({
     return () => window.clearTimeout(timer);
   }, [value, display]);
 
+  return { ref, display };
+}
+
+export function TextSwap({
+  value,
+  className,
+}: {
+  value: string;
+  className?: string;
+}) {
+  const { ref, display } = useTextSwap(value);
   return (
     <span className={`t-text-swap ${className ?? ""}`} ref={ref}>
       {display}
