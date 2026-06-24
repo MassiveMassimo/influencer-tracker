@@ -32,6 +32,7 @@ import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
 import { CreatorSwitcher } from "#/components/ticker/creator-switcher.tsx";
 import { CompareTable } from "#/components/ticker/call-timeline.tsx";
+import { signed, toneClass } from "#/lib/returns-format.ts";
 import type { SwitcherCreator } from "#/lib/ticker-switcher.ts";
 
 // Shared importer so React.lazy and useChunkReady ride the same cached chunk
@@ -45,7 +46,6 @@ const StockVsSpyLine = lazy(() =>
 );
 
 function pct(x: number | null) { return x == null ? "—" : `${(x * 100).toFixed(1)}%`; }
-function signed(x: number | null) { return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`; }
 function priceFmt(x: number | null) {
   if (x == null) return "—";
   const d = x >= 1 ? 2 : 4;
@@ -56,10 +56,6 @@ function signedCurrency(x: number | null) {
   const d = Math.abs(x) >= 1 ? 2 : 4;
   const s = x > 0 ? "+" : x < 0 ? "-" : "";
   return `${s}$${Math.abs(x).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
-}
-function toneClass(x: number | null) {
-  if (x == null) return "text-muted-foreground";
-  return x > 0 ? "text-emerald-600 dark:text-emerald-400" : x < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground";
 }
 function ChartSkeleton() {
   return (

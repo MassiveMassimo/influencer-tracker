@@ -831,6 +831,21 @@ number-flow-group {
     font-size: 0.5625rem;
   }
 }
+@keyframes ticker-stick-fade {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ticker-stick-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .t-ticker-header {
   animation: ticker-stick-bar linear both;
   animation-timeline: scroll(root block);
@@ -851,11 +866,23 @@ number-flow-group {
   animation-timeline: scroll(root block);
   animation-range: 0 88px;
 }
+.t-stick-fade {
+  animation: ticker-stick-fade linear both;
+  animation-timeline: scroll(root block);
+  animation-range: 0 64px;
+}
+.t-stick-rise {
+  animation: ticker-stick-rise linear both;
+  animation-timeline: scroll(root block);
+  animation-range: 48px 112px;
+}
 @media (prefers-reduced-motion: reduce) {
   .t-ticker-header,
   .t-ticker-title,
   .t-ticker-pad,
-  .t-ticker-label {
+  .t-ticker-label,
+  .t-stick-fade,
+  .t-stick-rise {
     animation: none;
   }
 }
