@@ -659,6 +659,13 @@ nav + `RailStocks`) pass `scrollbarClassName="w-1.5"` for a thinner 6px bar (def
   The `#/` alias maps to `src/`.
 - The X path reuses `pipeline/prices.ts`/`pipeline/score.ts`/`src/lib/scorecard.ts`/
   the dashboard unchanged — keep new platforms emitting the `ReelCall` shape, don't fork them.
+- **Crossfades blur, and overlap.** Any crossfade (one element/layer swapping for
+  another) animates `filter: blur()` alongside opacity — outgoing sharpens *out*
+  to a few px of blur as it fades, incoming resolves *from* blur to `blur(0)` as it
+  fades in — and the enter/exit run concurrently (both layers transition at once,
+  no sequential "exit fully, then enter"), so the swap reads as a soft dissolve, not
+  a hard cut. Reference: the `CreatorSwitcher` tab↔combobox layer swap (`.cs-layer*`
+  in `styles.css`). Honor `prefers-reduced-motion` (kill the transition, snap).
 - Secrets in `.env` (gitignored): `GROQ_API_KEY`, `RETTIWT_API_KEY`,
   `FIREWORKS_API_KEY` (X text classification). Groq
   free-tier is rate-limited; `pipeline/groq.ts` backs off on 429 — expect slow

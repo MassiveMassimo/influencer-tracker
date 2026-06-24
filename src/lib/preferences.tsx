@@ -16,6 +16,15 @@ const DEFAULTS: Preferences = {
   showHalalStatus: false,
 };
 
+// True while the theme view-transition is animating. A click during that window
+// can bounce focus to <body>, and Base UI's dialog closes on focus-out — so the
+// Preferences dialog uses this to veto the spurious close. See ThemePicker.
+let themeTransitioning = false;
+export const isThemeTransitioning = () => themeTransitioning;
+export const setThemeTransitioning = (v: boolean) => {
+  themeTransitioning = v;
+};
+
 export function readStoredPrefs(): Preferences {
   if (typeof window === "undefined") return DEFAULTS;
   const t = window.localStorage.getItem("theme");

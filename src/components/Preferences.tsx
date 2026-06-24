@@ -9,7 +9,7 @@ import {
 import { Switch } from "#/components/ui/switch.tsx";
 import { Separator } from "#/components/ui/separator.tsx";
 import { ThemePicker } from "./ThemePicker";
-import { usePreferences } from "#/lib/preferences.tsx";
+import { usePreferences, isThemeTransitioning } from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
 
@@ -91,9 +91,17 @@ export function Preferences({
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
+  // A theme switch runs a ~1s view transition; a click in that window can bounce
+  // focus to <body>, and Base UI closes the dialog on focus-out. Veto the close
+  // while the transition is animating (intentional closes after it work fine).
+  const handleOpenChange = (o: boolean) => {
+    if (!o && isThemeTransitioning()) return;
+    onOpenChange(o);
+  };
+
   if (isDesktop) {
     return (
-      <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Root open={open} onOpenChange={handleOpenChange}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
           <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
@@ -117,7 +125,7 @@ export function Preferences({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground>
+    <Drawer open={open} onOpenChange={handleOpenChange} shouldScaleBackground>
       <DrawerContent className="h-[70vh]">
         <div className="px-5 pt-2 pb-8">
           <DrawerTitle className="mb-4 text-base font-medium">Preferences</DrawerTitle>
