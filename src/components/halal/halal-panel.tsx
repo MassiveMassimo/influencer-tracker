@@ -7,7 +7,7 @@ import { ChartBoundary } from "#/components/ChartBoundary";
 import { usePreferences } from "#/lib/preferences.tsx";
 import { musaffaKey, STATUS_META, type HalalInfo } from "#/lib/halal/types.ts";
 
-const SLICE = { halal: "#10b981", doubtful: "#f59e0b", notHalal: "#ef4444" } as const;
+const SLICE = { halal: "var(--color-emerald-500)", doubtful: "var(--color-amber-500)", notHalal: "var(--color-red-500)" } as const;
 
 // AAOIFI financial screens are compliant under ~30% of market cap.
 const SCREEN_THRESHOLD = 30;

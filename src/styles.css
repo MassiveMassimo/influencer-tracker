@@ -428,11 +428,11 @@ a {
 .t-tabs-pill {
   position: absolute;
   top: 3px;
-  /* 3px mirrors the container padding (like top): the pill is driven by
-     translateX(offsetLeft), and offsetLeft is content-box-relative, so the
-     resting origin must clear the left padding or the pill sits flush to the
-     edge when the first tab is active. */
-  left: 3px;
+  /* left:0, not 3px — offsetLeft is measured from the offsetParent's border
+     edge, so it already includes the container's left padding. Adding 3px here
+     double-counts it and shifts every pill right, eating the right padding on
+     the last tab. */
+  left: 0;
   height: 30px;
   width: 0;
   background: var(--background);
@@ -572,7 +572,7 @@ number-flow-group {
 }
 .cs-layer-combobox {
   position: absolute;
-  inset: 3px;
+  inset: 1px;
   gap: 6px;
   padding: 0 10px;
   border-radius: 48px;
@@ -615,6 +615,31 @@ number-flow-group {
   transform: scale(1);
   filter: blur(0);
   pointer-events: auto;
+}
+/* Input-mode pill: 1px inset on all sides (horizontal via JS, vertical here). */
+.cs-root[data-open] .t-tabs-pill {
+  top: 1px;
+  height: calc(100% - 2px);
+}
+/* Light mode: darken the container in input mode so the pill reads as an
+   inset border rather than floating. zinc-200, one step darker than the
+   zinc-100 (--muted) resting container. */
+.cs-root[data-open] .cs-tabs {
+  background: var(--color-zinc-200);
+}
+/* Dark mode normal pill: zinc-700, one step lighter than the zinc-800
+   (--muted) container so the indicator is visible against it. */
+.dark .t-tabs-pill {
+  background: var(--color-zinc-700);
+}
+/* Dark mode input mode: the container gets a gradient (zinc-700 → zinc-800)
+   so it reads as a bordered surface, and the pill uses zinc-700 to stay
+   lighter against the gradient. */
+.dark .cs-root[data-open] .cs-tabs {
+  background: linear-gradient(to bottom, var(--color-zinc-700), var(--muted));
+}
+.dark .cs-root[data-open] .t-tabs-pill {
+  background: var(--color-zinc-900);
 }
 /* The search icon is the shared anchor: it occupies the same left edge in both
    layers, so the crossfade reads as one icon staying put while the row swaps. */
