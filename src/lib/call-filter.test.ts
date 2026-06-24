@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { applyCallFilter, summarizeTicker, type CallFilter } from "./call-filter";
+import { applyCallFilter, normalizeQuery, summarizeTicker, type CallFilter } from "./call-filter";
 import type { CallIndexEntry } from "./call-index";
 
 const NAMES: Record<string, string> = { alice: "Alice Smith", bob: "Bob Jones" };
@@ -59,4 +59,21 @@ test("summarizeTicker emits lastCallDate = max postDate per creator", () => {
   expect(alice.firstCallDate).toBe("2026-05-03");
   expect(alice.lastCallDate).toBe("2026-06-10");
   expect(bob.lastCallDate).toBe("2026-05-20");
+});
+
+test("search matches shortcode (typed post id)", () => {
+  const rows = applyCallFilter(ROWS, { ...BASE, search: "2" }, NAMES);
+  expect(rows.map((r) => r.shortcode)).toEqual(["2"]);
+});
+
+test("normalizeQuery extracts tweet id from x.com URL", () => {
+  expect(normalizeQuery("https://x.com/cas10n4s4/status/1799887766/")).toBe("1799887766");
+});
+
+test("normalizeQuery extracts reel code from instagram URL", () => {
+  expect(normalizeQuery("https://www.instagram.com/reel/AbC-1_2/")).toBe("abc-1_2");
+});
+
+test("normalizeQuery passes through a plain query", () => {
+  expect(normalizeQuery("NVDA")).toBe("NVDA");
 });
