@@ -325,10 +325,11 @@ function TickerPage() {
   ) : `${shownCallCount} ${shownCallCount === 1 ? "call" : "calls"}`;
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
-      <header className="t-ticker-header sticky top-12 z-20 -mx-4 flex flex-col gap-3 border-b border-transparent bg-background/80 px-4 backdrop-blur-md sm:flex-row sm:items-end sm:justify-between md:top-0">
+    <main className="space-y-6 py-8 md:py-10">
+      <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
+        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center gap-3 px-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          <div className="font-mono text-[9px] text-muted-foreground uppercase tracking-[0.3em]">
             Ticker{creatorHandle ? (
               <>
                 {" · "}
@@ -346,7 +347,10 @@ function TickerPage() {
           <StockHeading symbol={symbol} company={data.company} halal={halal} />
         </div>
         <CreatorSwitcher symbol={symbol} creators={switcherCreators} selected={creatorHandle} />
+        </div>
       </header>
+
+      <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
 
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
         <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -466,6 +470,7 @@ function TickerPage() {
       )}
 
       <ProofViewer call={selectedCall} handle={creatorHandle ?? ""} siblings={siblings} onClose={() => setSelectedCall(null)} />
+      </div>
     </main>
   );
 }

@@ -172,10 +172,16 @@ reference it); safe to drop in a later cleanup.
 ## Proof embeds
 
 Each call links to its source via `shortcode`: numeric ⇒ X tweet embed, otherwise
-⇒ IG reel embed (`/reel/<code>/embed`). On the ticker page, tapping a call row
-opens `ProofViewer` (`src/components/proof-viewer.tsx`) — a Base UI dialog on
+⇒ IG reel embed (`/reel/<code>/embed`). On the ticker page **and `/explore`**, tapping
+a call row opens `ProofViewer` (`src/components/proof-viewer.tsx`) — a Base UI dialog on
 desktop and a vaul drawer on mobile (switched via `useMediaQuery`, 768px) — that
-shows the embed + summary + quote. No local media is needed for display.
+shows the embed + summary + quote. No local media is needed for display. `ProofViewer`'s
+`call` prop is a structural `ProofCall` (just the fields it reads), so both a full `Call`
+(ticker page) and a slim `CallIndexEntry` (explore) satisfy it; the quote block is
+conditional because the index omits `quote` (the embed shows the verbatim post anyway).
+On `/explore` the ticker/`@handle` stay links (stopPropagation) while the rest of the row
+is the proof trigger; search also matches `shortcode` and `normalizeQuery` turns a pasted
+X/IG post URL into its bare id so a remembered link finds its call.
 
 ## Correction loop
 
