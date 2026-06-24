@@ -327,9 +327,9 @@ function TickerPage() {
   return (
     <main className="space-y-6 py-8 md:py-10">
       <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
-        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center gap-3 px-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="t-ticker-pad mx-auto flex w-full max-w-6xl flex-col justify-center gap-3 px-4 sm:flex-row sm:items-center sm:justify-between md:px-10">
         <div>
-          <div className="font-mono text-[9px] text-muted-foreground uppercase tracking-[0.3em]">
+          <div className="t-ticker-label font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
             Ticker{creatorHandle ? (
               <>
                 {" · "}
