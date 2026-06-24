@@ -581,8 +581,10 @@ primitives are pulled from **coss-ui** (`@coss` registry, `https://coss.com/ui/r
 Re-sync a primitive by re-running that add with `--overwrite`.
 
 Two `ui/*` files are deliberately **not** coss and must stay custom:
-- `scroll-area.tsx` / `table.tsx` — lina edge-fade mask (coss's scroll-area has no
-  mask; `table` wraps lina for the horizontal fade). Keep on re-sync.
+- `scroll-area.tsx` / `table.tsx` — custom split: the **styled scrollbar** is the
+  Base UI `ScrollArea` (coss's has no scrollbar styling we want), the **edge fade**
+  is chanhdai's pure-CSS `scroll-fade-effect` utility (see Scroll areas section).
+  `table` wraps it for the horizontal fade. Keep on re-sync.
 - `drawer.tsx` — vaul (drag-to-dismiss + background scale). coss/Base UI's Drawer
   supports the same via `Drawer.SwipeArea` + the Indent parts
   (`Drawer.Provider`/`IndentBackground`/`Indent`); a swap is feasible but unbaked.
@@ -594,7 +596,7 @@ Two `ui/*` files are deliberately **not** coss and must stay custom:
 | `src/components/charts/*` + `AnalyticsCharts.tsx` | bklit-ui — `@bklit` registry (`https://ui.bklit.com/r/{name}.json`), copy-in. Re-sync: `bunx --bun shadcn@latest add @bklit/<name> --overwrite` (e.g. `area-chart`, `candlestick-chart`, `line-chart`, `reference-area`). **`reference-area` pulls support files (`background`, `pattern-preset`, `visx-pattern`) and overwrites shared core — last add clobbered the `chart-formatters` intraday patch + dropped a malformed `--chart-brush-border` into `styles.css`; restore patches after any re-add. Its `referenceAreas` context field is optional because the locally-patched shells don't populate it.** |
 | `src/components/ui/*` (accordion/badge/button/card/pagination/separator/spinner/switch/toggle/toggle-group) | coss-ui (`@coss` registry) — Base UI primitives. Re-sync: `bunx --bun shadcn@latest add @coss/<name> --overwrite` |
 | `src/components/ui/drawer.tsx` | vaul (kept; not coss) — mobile drag-to-dismiss + background scale |
-| `src/components/ui/scroll-area.tsx`, `src/components/ui/table.tsx` | lina — github.com/SameerJS6/lina (Base UI `ScrollArea` + edge-fade mask; `table` wraps it). Custom, not coss |
+| `src/components/ui/scroll-area.tsx`, `src/components/ui/table.tsx` | Base UI `ScrollArea` (styled scrollbar) + chanhdai `scroll-fade-effect` (chanhdai.com/components/scroll-fade-effect, `@ncdai`; CSS-only edge fade in `styles.css`). `table` wraps it. Custom, not coss |
 | `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
 | `charts/cum-excess-area.tsx`, `charts/profit-loss-area.tsx` | app-specific — the creator-overview cumulative-excess curve. `CumExcessArea` composes bklit `AreaChart` + `ReferenceArea` (last-3mo band) + a custom sign-split fill-to-zero `ProfitLossArea` (bklit has no fill-to-baseline primitive). Lazy-loaded by `CumulativeExcess` (keeps motion/@visx/d3 off the route's initial bundle). |
 
@@ -622,19 +624,25 @@ https://icon-sets.iconify.design (pick an icon → CSS → Tailwind CSS). Only i
 classes appear in the source get emitted to the output CSS — the full `@iconify/json` set
 is a build-time index, not shipped. Both deps are `devDependencies`.
 
-## Scroll areas (lina)
+## Scroll areas
 
-Any scrollable region (overflow lists, wide tables, drawer bodies) uses the lina
-`ScrollArea` (`src/components/ui/scroll-area.tsx`), **not** raw `overflow-*`. lina
-adds an adaptive edge-fade mask that appears only when content is scrollable and
-native-feeling touch scrolling. Wired into: the ticker calls table (`ui/table.tsx`,
-horizontal), the proof-viewer drawer body, and the `WorkspaceRail` nav.
+Any scrollable region (overflow lists, wide tables, drawer bodies) uses
+`ScrollArea` (`src/components/ui/scroll-area.tsx`), **not** raw `overflow-*`. It's a
+custom split: the **styled scrollbar** is the Base UI `ScrollArea` (desktop only;
+native scroll on touch via `useTouchPrimary`), and the **edge fade** is chanhdai's
+pure-CSS `scroll-fade-effect` (`@ncdai`). Wired into: the ticker calls table
+(`ui/table.tsx`, horizontal), the proof-viewer drawer body, and the `WorkspaceRail` nav.
 
-**The mask must always match the surface background**, or the fade reveals the
-wrong color at the edges. The mask color is the CSS var `--scroll-mask-color`,
-defaulting to `var(--color-background)` (correct for any `bg-background` surface).
-On a non-default surface, pass `maskColor` (e.g. `maskColor="var(--card)"`) so the
-fade blends into that surface. Tables auto-size: lina's viewport is `size-full`
+**The fade is scroll-driven CSS, no JS** — `scroll-fade-effect-y`/`-x` utilities in
+`styles.css` apply a `mask-image` whose fade-band height/width animates with scroll
+position via `animation-timeline: scroll(self)`. It masks content to **transparent**
+(the surface behind shows through), so there is no mask-color to match — pass
+`orientation="horizontal"` for an x-axis fade (default vertical), nothing else. The
+`@property`/`@keyframes`/`@utility` block lives at the end of `styles.css`; re-sync from
+the chanhdai registry (`@ncdai/scroll-fade-effect`) if upstream changes. **Firefox has no
+`animation-timeline: scroll()` yet** (Safari 26+ and Chromium do), so it falls back to
+the `@property` initial state: no leading fade, a static trailing fade — acceptable
+degradation. Tables auto-size: the Base UI viewport is `size-full`
 (needs a definite-height parent), so `ui/table.tsx` passes `viewportClassName="h-auto"`
 to size to the table; a drawer body needs the drawer at a definite `h-[…]` (not
 `max-h-`) for `flex-1` to bound the scroll area. Pass `scrollbarClassName` to restyle
@@ -670,7 +678,7 @@ nav + `RailStocks`) pass `scrollbarClassName="w-1.5"` for a thinner 6px bar (def
   registry doesn't ship them): the intraday time-of-day axis/crosshair labels
   (`intradayAwareFmt`/`isIntradaySeries`/`intradayTimeFmt` in `chart-formatters.ts`,
   wired into the `dateLabels` memo in `time-series-chart-shell.tsx` +
-  `candlestick-chart.tsx` so 1D charts label "09:30" not a date); the lina
+  `candlestick-chart.tsx` so 1D charts label "09:30" not a date); the custom
   edge-fade `scroll-area`/`table`; the `StockVsSpyLine` area wiring in
   `ticker-charts.tsx` (`AreaChart` with a filled stock `MorphArea` + a fill-less
   SPY `MorphArea` at `fillOpacity={0}`); the `morph-area.tsx` vertex-lerp path

@@ -66,13 +66,10 @@ export function RailContent({
         </div>
       </Link>
 
-      {/* Mask matches the rail's bg-foreground/[0.02] composite surface so the
-          edge fade blends in (default --color-background reveals the wrong color). */}
       <ScrollArea
         className="mt-3 min-h-0 flex-1"
         viewportClassName="px-2 pb-4"
         scrollbarClassName="w-1.5"
-        maskColor="color-mix(in oklab, var(--color-foreground) 2%, var(--color-background))"
       >
         <nav>
         <ul className="flex flex-col gap-0.5">

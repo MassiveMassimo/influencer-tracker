@@ -31,7 +31,6 @@ export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavi
       className="min-h-0 flex-1"
       viewportClassName="px-2 pb-2"
       scrollbarClassName="w-1.5"
-      maskColor="color-mix(in oklab, var(--color-foreground) 2%, var(--color-background))"
     >
       <ul className="flex flex-col gap-0.5">
         {stocks.map((s) => {
