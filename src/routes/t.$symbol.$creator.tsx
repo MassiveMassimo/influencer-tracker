@@ -29,7 +29,7 @@ import type { LiveBar } from "#/lib/chart-fetch.ts";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
 import { CreatorSwitcher } from "#/components/ticker/creator-switcher.tsx";
-import { TickerCallTimeline, type TimelineCreator } from "#/components/ticker/call-timeline.tsx";
+import { CompareTable } from "#/components/ticker/call-timeline.tsx";
 import type { SwitcherCreator } from "#/lib/ticker-switcher.ts";
 
 // Shared importer so React.lazy and useChunkReady ride the same cached chunk
@@ -211,7 +211,7 @@ function StockHeading({
 }) {
   const { ref, display } = useTextSwap(symbol);
   return (
-    <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
+    <h1 className="t-ticker-title mt-1 flex items-center gap-2 font-heading text-2xl">
       <span className="t-text-swap" ref={ref}>
         {display}
       </span>
@@ -313,10 +313,6 @@ function TickerPage() {
     handle: b.handle, name: names[b.handle] ?? b.handle, avatar: avatars[b.handle] ?? null,
     lastCallDate: b.lastCallDate, callCount: b.callCount,
   }));
-  const timelineCreators: TimelineCreator[] = summary.byCreator.map((b) => ({
-    handle: b.handle, name: names[b.handle] ?? b.handle, avatar: avatars[b.handle] ?? null,
-    calls: hits.filter((h) => h.handle === b.handle).map((h) => ({ postDate: h.postDate, isFirstCall: h.isFirstCall })),
-  }));
   const today = new Date().toISOString().slice(0, 10);
 
   // Count exactly the calls visible in the chart right now: the same source the
@@ -330,7 +326,7 @@ function TickerPage() {
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <header className="t-ticker-header sticky top-12 z-20 -mx-4 flex flex-col gap-3 border-b border-transparent bg-background/80 px-4 backdrop-blur-md sm:flex-row sm:items-end sm:justify-between md:top-0">
         <div>
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
             Ticker{creatorHandle ? (
@@ -427,45 +423,16 @@ function TickerPage() {
       <HalalPanel info={halal} symbol={symbol} />
 
       {/* Who called it & when. */}
-      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-        <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[1fr_7rem_6rem_6rem] md:px-5">
-          <span>Creator</span>
-          <span className="hidden text-right md:block">First call</span>
-          <span className="text-right">Excess 3m</span>
-          <span className="text-right">Excess→now</span>
-        </div>
-        <ul className="divide-y divide-border/40">
-          {summary.byCreator.map((b) => (
-            <li key={b.handle}>
-              <Link
-                to="/t/$symbol/$creator"
-                params={{ symbol, creator: b.handle }}
-                aria-current={creatorHandle === b.handle ? "true" : undefined}
-                className={`grid grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:grid-cols-[1fr_7rem_6rem_6rem] md:px-5 ${creatorHandle === b.handle ? "bg-foreground/[0.04]" : ""}`}
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  {avatars[b.handle] ? (
-                    <img src={avatars[b.handle]} alt="" className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/60" />
-                  ) : (
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-[10px] uppercase ring-1 ring-border/60">{b.handle.slice(0, 2)}</div>
-                  )}
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-sm text-foreground">{names[b.handle] ?? b.handle}</div>
-                    <div className="truncate font-mono text-xs text-muted-foreground">{b.callCount} call{b.callCount === 1 ? "" : "s"}</div>
-                  </div>
-                </div>
-                <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">{b.firstCallDate?.slice(0, 7) ?? "—"}</div>
-                <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.ex3m)}`}>{signed(b.ex3m)}</div>
-                <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.exToDate)}`}>{signed(b.exToDate)}</div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <div className="border-border/40 border-t px-4 py-4 md:px-5">
-          <div className="mb-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em]">Call timeline · ★ = first call · hover to compare</div>
-          <TickerCallTimeline creators={timelineCreators} rangeStart={firstDate} rangeEnd={today} />
-        </div>
-      </section>
+      <CompareTable
+        rows={summary.byCreator}
+        names={names}
+        avatars={avatars}
+        hits={hits}
+        symbol={symbol}
+        creatorHandle={creatorHandle}
+        rangeStart={firstDate}
+        rangeEnd={today}
+      />
 
       {/* Detail table only when a specific creator is selected. */}
       {creatorHandle && (

@@ -1,10 +1,15 @@
+import * as React from "react";
 import { CheckIcon } from "lucide-react";
 // Uses the raw Base UI primitive (not the coss ui/toggle-group pill button) so
 // the preview-card layout — flex-col card + full-size SVG illustration — isn't
 // overridden by coss's fixed-height/centered/svg-shrinking toggle styling.
 import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { Toggle } from "@base-ui/react/toggle";
-import { usePreferences, type ThemeMode } from "#/lib/preferences.tsx";
+import {
+  usePreferences,
+  setThemeTransitioning,
+  type ThemeMode,
+} from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import { cn } from "#/lib/utils.ts";
 
@@ -54,18 +59,46 @@ const OPTIONS: { value: ThemeMode; label: string; node: React.ReactNode }[] = [
 ];
 
 export function ThemePicker() {
-  const { theme, setTheme } = usePreferences();
+  const { theme, setTheme, reduceMotion } = usePreferences();
   const { impact } = useHaptics();
+  // While the 1s blurred-circle reveal plays, disable the *other* options.
+  // Starting a second transition mid-reveal aborts the first (InvalidStateError)
+  // and the snapshot teardown drops focus to <body>, tripping the dialog's
+  // focus-outside dismiss. Keeping the selected (focused) button enabled means
+  // focus never escapes the dialog.
+  const [pending, setPending] = React.useState(false);
+
+  const change = (next: ThemeMode) => {
+    impact();
+    // Blurred-circle reveal via the View Transitions API (chanhdai.com
+    // "Circle Blur"); the animation is pure CSS on ::view-transition-new(root)
+    // in styles.css. setTheme mutates <html> synchronously inside the callback.
+    const start = (
+      document as Document & {
+        startViewTransition?: (cb: () => void) => { finished: Promise<unknown> };
+      }
+    ).startViewTransition;
+    if (reduceMotion || typeof start !== "function") {
+      setTheme(next);
+      return;
+    }
+    setPending(true);
+    setThemeTransitioning(true);
+    start
+      .call(document, () => setTheme(next))
+      .finished.catch(() => {})
+      .finally(() => {
+        setPending(false);
+        setThemeTransitioning(false);
+      });
+  };
 
   return (
     <ToggleGroup
       value={[theme]}
       onValueChange={(v: string[]) => {
         const next = v[0] as ThemeMode | undefined;
-        if (next && next !== theme) {
-          setTheme(next);
-          impact();
-        }
+        if (next && next !== theme) change(next);
       }}
       className="grid grid-cols-3 gap-3"
     >
@@ -74,9 +107,14 @@ export function ThemePicker() {
           key={o.value}
           value={o.value}
           aria-label={o.label}
+          // Lock the other options during the reveal; the selected one stays
+          // enabled so focus never leaves the dialog. See `pending` above.
+          disabled={pending && o.value !== theme}
           className={cn(
             "group relative flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-2 transition-all",
-            "hover:border-border data-[pressed]:border-primary data-[pressed]:ring-2 data-[pressed]:ring-primary/30"
+            "hover:border-border data-[pressed]:border-primary data-[pressed]:ring-2 data-[pressed]:ring-primary/30",
+            // Locked during the reveal but visually unchanged (no fade).
+            "disabled:pointer-events-none"
           )}
         >
           <div className="aspect-[4/3] w-full overflow-hidden rounded-md ring-1 ring-border/40">
