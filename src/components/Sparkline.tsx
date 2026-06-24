@@ -30,7 +30,7 @@ export function Sparkline({
   const area = `${line} L${pts.at(-1)!.x.toFixed(2)},${baseline} L${pts[0].x.toFixed(2)},${baseline} Z`;
 
   const color =
-    excess == null ? "var(--muted-foreground)" : excess >= 0 ? "rgb(16 185 129)" : "rgb(244 63 94)";
+    excess == null ? "var(--muted-foreground)" : excess >= 0 ? "var(--color-emerald-500)" : "var(--color-red-500)";
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
