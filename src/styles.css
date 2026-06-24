@@ -821,6 +821,16 @@ number-flow-group {
     font-size: 1.125rem;
   }
 }
+@keyframes ticker-stick-pad {
+  to {
+    padding-inline: 1.25rem;
+  }
+}
+@keyframes ticker-stick-label {
+  to {
+    font-size: 0.5625rem;
+  }
+}
 .t-ticker-header {
   animation: ticker-stick-bar linear both;
   animation-timeline: scroll(root block);
@@ -831,9 +841,21 @@ number-flow-group {
   animation-timeline: scroll(root block);
   animation-range: 0 88px;
 }
+.t-ticker-pad {
+  animation: ticker-stick-pad linear both;
+  animation-timeline: scroll(root block);
+  animation-range: 0 88px;
+}
+.t-ticker-label {
+  animation: ticker-stick-label linear both;
+  animation-timeline: scroll(root block);
+  animation-range: 0 88px;
+}
 @media (prefers-reduced-motion: reduce) {
   .t-ticker-header,
-  .t-ticker-title {
+  .t-ticker-title,
+  .t-ticker-pad,
+  .t-ticker-label {
     animation: none;
   }
 }
