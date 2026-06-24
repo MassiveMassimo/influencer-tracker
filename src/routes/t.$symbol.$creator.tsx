@@ -12,6 +12,8 @@ import { ProofViewer } from "#/components/proof-viewer.tsx";
 import { TextSwap, useTextSwap } from "#/components/text-swap.tsx";
 import type { HalalInfo } from "#/lib/halal/types.ts";
 import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
+import { TocMinimap } from "#/components/toc-minimap.tsx";
+import { usePreferences } from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import type { Call } from "#/lib/types.ts";
 import type { ChartMarker } from "#/components/charts/markers/index.ts";
@@ -231,6 +233,7 @@ function TickerPage() {
   const { impact, select } = useHaptics();
   const queryClient = useQueryClient();
   const numberFlowReady = useNumberFlowReady();
+  const { showHalalStatus } = usePreferences();
   const [hoverClose, setHoverClose] = useState<number | null>(null);
 
   const query = useQuery(chartQuery(symbol, timeframe, firstDate));
@@ -326,6 +329,15 @@ function TickerPage() {
 
   return (
     <main className="space-y-6 py-8 md:py-10">
+      <TocMinimap
+        items={[
+          { title: "Price", url: "#price", depth: 2 },
+          { title: "vs SPY", url: "#vs-spy", depth: 2 },
+          ...(showHalalStatus ? [{ title: "Halal", url: "#halal", depth: 2 }] : []),
+          { title: "Calls", url: "#calls", depth: 2 },
+        ]}
+        className="fixed top-1/2 right-3 hidden -translate-y-1/2 2xl:flex"
+      />
       <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
         <div className="t-ticker-pad mx-auto flex w-full max-w-6xl flex-col justify-center gap-3 px-4 sm:flex-row sm:items-center sm:justify-between md:px-10">
         <div>
@@ -352,7 +364,7 @@ function TickerPage() {
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
 
-      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
+      <section id="price" className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
         <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex w-full flex-col items-start gap-1 sm:w-auto">
             <div className="flex w-full items-start justify-between gap-3 sm:w-auto sm:justify-start">
@@ -379,7 +391,7 @@ function TickerPage() {
         </ChartHandoff>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
+      <section id="vs-spy" className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
         <div className="mb-4 flex items-start justify-between gap-2 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
           <span>Stock vs SPY · rebased to 100 · markers are call dates</span>
           <PreviewCard>
@@ -423,20 +435,28 @@ function TickerPage() {
       </section>
 
       {/* Stock-page halal surface: panel self-gates on the preference and renders
-         a muted "Not rated" entry for unknown symbols. */}
-      <HalalPanel info={halal} symbol={symbol} />
+         a muted "Not rated" entry for unknown symbols. Wrapper id only when the
+         preference is on (panel renders) so the TOC anchor never dangles and the
+         space-y gap doesn't double on an empty div. */}
+      {showHalalStatus && (
+        <div id="halal">
+          <HalalPanel info={halal} symbol={symbol} />
+        </div>
+      )}
 
       {/* Who called it & when. */}
-      <CompareTable
-        rows={summary.byCreator}
-        names={names}
-        avatars={avatars}
-        hits={hits}
-        symbol={symbol}
-        creatorHandle={creatorHandle}
-        rangeStart={firstDate}
-        rangeEnd={today}
-      />
+      <div id="calls">
+        <CompareTable
+          rows={summary.byCreator}
+          names={names}
+          avatars={avatars}
+          hits={hits}
+          symbol={symbol}
+          creatorHandle={creatorHandle}
+          rangeStart={firstDate}
+          rangeEnd={today}
+        />
+      </div>
 
       {/* Detail table only when a specific creator is selected. */}
       {creatorHandle && (

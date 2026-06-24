@@ -595,6 +595,16 @@ Two `ui/*` files are deliberately **not** coss and must stay custom:
   supports the same via `Drawer.SwipeArea` + the Indent parts
   (`Drawer.Provider`/`IndentBackground`/`Indent`); a swap is feasible but unbaked.
 
+**chanhdai (`@ncdai`)** — several copy-in components come from chanhdai.com's
+registry (`https://chanhdai.com/r/{name}.json` — fetch the JSON directly; the site
+is a SPA so the component-page HTML carries no source). In use: `scroll-fade-effect`
+(edge fades, above), `toc-minimap` (section minimap on the stock + creator pages),
+`github-stars` (`GitHubLink.tsx` star count), `theme-toggle-effect` (the
+View-Transitions "Circle Blur" theme reveal in `ThemePicker.tsx` + `styles.css`).
+Each is adapted to the project's **Base UI** stack rather than copied verbatim — e.g.
+`toc-minimap` rides our `preview-card`, not the upstream radix `hover-card`, and drops
+the `@soundcn` open-sound.
+
 | Local file(s) | Source |
 |---|---|
 | `src/components/WorkspaceRail.tsx` (and `MobileNav.tsx`, which reuses its `RailContent`) | devl.dev — https://www.devl.dev/c/layouts/workspace-rail (aesthetic reference) |
@@ -603,6 +613,9 @@ Two `ui/*` files are deliberately **not** coss and must stay custom:
 | `src/components/ui/*` (accordion/badge/button/card/pagination/separator/spinner/switch/toggle/toggle-group) | coss-ui (`@coss` registry) — Base UI primitives. Re-sync: `bunx --bun shadcn@latest add @coss/<name> --overwrite` |
 | `src/components/ui/drawer.tsx` | vaul (kept; not coss) — mobile drag-to-dismiss + background scale |
 | `src/components/ui/scroll-area.tsx`, `src/components/ui/table.tsx` | Base UI `ScrollArea` (styled scrollbar) + chanhdai `scroll-fade-effect` (chanhdai.com/components/scroll-fade-effect, `@ncdai`; CSS-only edge fade in `styles.css`). `table` wraps it. Custom, not coss |
+| `src/components/toc-minimap.tsx` | chanhdai `toc-minimap` (chanhdai.com/components/toc-minimap, `@ncdai`) — section minimap (bar stack → hover reveals TOC list, `IntersectionObserver` active-tracking). Ported onto Base UI `preview-card`, `@soundcn` sound dropped. Rendered fixed in the right gutter, `2xl`+ only, on `/t/$symbol/$creator` + `/c/$handle`; sections keyed by `id` on each `<section>` (items built per-page so conditional sections — e.g. the halal panel — never dangle). |
+| `src/components/GitHubLink.tsx` | chanhdai `github-stars` (chanhdai.com/components/github-stars, `@ncdai`) — repo star count, formatted + full-count tooltip |
+| `src/components/ThemePicker.tsx` (+ `styles.css`, `src/lib/preferences.tsx`) | chanhdai `theme-toggle-effect` (chanhdai.com/components/theme-toggle-effect, `@ncdai`) — View-Transitions "Circle Blur" theme reveal; pure-CSS on `::view-transition-new(root)` |
 | `proof-viewer`, `CaveatsBanner`, `ChartBoundary` | app-specific, hand-built |
 | `charts/cum-excess-area.tsx`, `charts/profit-loss-area.tsx` | app-specific — the creator-overview cumulative-excess curve. `CumExcessArea` composes bklit `AreaChart` + `ReferenceArea` (last-3mo band) + a custom sign-split fill-to-zero `ProfitLossArea` (bklit has no fill-to-baseline primitive). Lazy-loaded by `CumulativeExcess` (keeps motion/@visx/d3 off the route's initial bundle). |
 

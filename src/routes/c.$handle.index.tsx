@@ -28,6 +28,7 @@ import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { type HalalInfo } from "#/lib/halal/types.ts";
 import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
+import { TocMinimap } from "#/components/toc-minimap.tsx";
 
 const CALLS_PER_PAGE = 25;
 
@@ -216,6 +217,15 @@ function Overview() {
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
+      <TocMinimap
+        items={[
+          { title: "Overview", url: "#overview", depth: 2 },
+          { title: "Performance", url: "#performance", depth: 2 },
+          { title: "Analytics", url: "#analytics", depth: 2 },
+          { title: "Calls", url: "#calls", depth: 2 },
+        ]}
+        className="fixed top-1/2 right-3 hidden -translate-y-1/2 2xl:flex"
+      />
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
@@ -234,6 +244,7 @@ function Overview() {
       </header>
 
       <section
+        id="overview"
         className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 sm:grid-cols-3 lg:grid-cols-5"
         ref={statsRef}
       >
@@ -244,7 +255,7 @@ function Overview() {
         </NumberFlowGroup>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
+      <section id="performance" className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
         <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
           Performance vs SPY · cumulative
           <span className="ml-1 normal-case tracking-normal opacity-70">(equal-weight, not risk-adjusted)</span>
@@ -256,7 +267,7 @@ function Overview() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2">
+      <section id="analytics" className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2">
         <div className="bg-background p-6">
           <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
             Avg excess vs SPY · by horizon
@@ -360,7 +371,7 @@ function CallsList({
   const getHalal = useHalalStatus(allTickers);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+    <section id="calls" className="overflow-hidden rounded-2xl border border-border/60 bg-background">
       <div className="flex items-center justify-between border-border/40 border-b px-5 py-3">
         <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
           Calls
