@@ -17,19 +17,21 @@ export function TimeframeTabs({
   const pillRef = useRef<HTMLSpanElement>(null);
 
   // Position the pill under the active tab. On mount/resize, snap without transition.
+  // Uses getBoundingClientRect for subpixel precision (offsetLeft rounds to integers).
   const positionPill = (animate: boolean) => {
     const list = listRef.current, pill = pillRef.current;
     if (!list || !pill) return;
     const active = list.querySelector<HTMLButtonElement>('[aria-selected="true"]');
     if (!active) return;
+    const left = active.getBoundingClientRect().left - list.getBoundingClientRect().left;
     if (!animate) {
       pill.style.transition = "none";
-      pill.style.transform = `translateX(${active.offsetLeft}px)`;
+      pill.style.transform = `translateX(${left}px)`;
       pill.style.width = `${active.offsetWidth}px`;
       void pill.offsetWidth; // force reflow
       pill.style.transition = "";
     } else {
-      pill.style.transform = `translateX(${active.offsetLeft}px)`;
+      pill.style.transform = `translateX(${left}px)`;
       pill.style.width = `${active.offsetWidth}px`;
     }
   };
