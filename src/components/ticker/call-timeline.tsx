@@ -59,6 +59,10 @@ const LEAD = (
 const GRID =
   "md:grid md:grid-cols-[1fr_7rem_6rem_6rem] md:gap-2 md:px-5";
 
+// Width of the hover-highlight band (px); dots within HALF brighten.
+const BAND_PX = 56;
+const HALF_BAND_PX = BAND_PX / 2;
+
 export function CompareTable({
   rows,
   names,
@@ -79,7 +83,7 @@ export function CompareTable({
   rangeEnd: string;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [hover, setHover] = useState<{ ms: number } | null>(null);
+  const [hover, setHover] = useState<{ ms: number; pct: number; bandPct: number } | null>(null);
   const ready = useNumberFlowReady();
   const reduce = useReducedMotion();
 
@@ -88,6 +92,9 @@ export function CompareTable({
   const pctMV = useMotionValue(0);
   const pctSpring = useSpring(pctMV, { stiffness: 550, damping: 42, mass: 0.45 });
   const left = useTransform(pctSpring, (v) => `${v}%`);
+  // bklit `showHighlight` analog: a brighter band of the dashed baseline that
+  // springs along with the crosshair. Dots inside HALF_BAND_PX brighten too.
+  const bandLeft = useTransform(pctSpring, (v) => `calc(${v}% - ${HALF_BAND_PX}px)`);
 
   const startMs = Date.parse(rangeStart);
   const endMs = Date.parse(rangeEnd);
@@ -144,7 +151,7 @@ export function CompareTable({
     pctMV.set(pct);
     // Jump (skip the glide) when first appearing or for reduced-motion users.
     if (reduce || hover === null) pctSpring.jump(pct);
-    setHover({ ms });
+    setHover({ ms, pct, bandPct: (BAND_PX / rect.width) * 100 });
   };
 
   return (
@@ -194,18 +201,40 @@ export function CompareTable({
                     <div className="relative hidden h-8 flex-1 md:ml-6 md:block">
                       {/* Dashed baseline, mirrors the charts' dashed axis line. */}
                       <div className="-translate-y-1/2 absolute top-1/2 right-0 left-0 border-foreground/15 border-t border-dashed" />
-                      {creatorCalls.map((c, i) => (
-                        <span
-                          key={`${c.postDate}-${i}`}
-                          className={`-translate-x-1/2 -translate-y-1/2 absolute top-1/2 rounded-full ${
-                            c.isFirstCall
-                              ? "size-2 bg-foreground ring-2 ring-background"
-                              : "size-1.5 border border-foreground/40 bg-background"
-                          }`}
-                          style={{ left: `${timelineXPercent(Date.parse(c.postDate), startMs, endMs)}%` }}
-                          title={`${c.postDate}${c.isFirstCall ? " · first call" : ""}`}
+                      {/* showHighlight band — a brighter slice of the baseline that
+                          springs with the crosshair; fades in/out on hover. Clipped
+                          to the track so it can't spill past the left/right ends. */}
+                      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                        <motion.div
+                          className={`-translate-y-1/2 absolute top-1/2 h-px rounded-full bg-foreground/40 transition-opacity duration-200 ${hover ? "opacity-100" : "opacity-0"}`}
+                          style={{ left: bandLeft, width: BAND_PX }}
                         />
-                      ))}
+                      </div>
+                      {creatorCalls.map((c, i) => {
+                        const dotPct = timelineXPercent(Date.parse(c.postDate), startMs, endMs);
+                        // Proximity to the crosshair: 0 at the band edge, 1 dead
+                        // centre — drives the highlight overlay's opacity so the
+                        // dot fades in as the indicator line crosses it.
+                        const t =
+                          hover && hover.bandPct > 0
+                            ? Math.max(0, 1 - Math.abs(dotPct - hover.pct) / (hover.bandPct / 2))
+                            : 0;
+                        return (
+                          <span key={`${c.postDate}-${i}`} title={c.postDate}>
+                            <span
+                              className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 size-1.5 rounded-full border border-foreground/40 bg-background"
+                              style={{ left: `${dotPct}%` }}
+                            />
+                            {/* Highlight overlay — opacity tracks proximity directly
+                                (no transition, so peak opacity lands exactly under
+                                the crosshair, not lagging behind it). */}
+                            <span
+                              className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 size-2 rounded-full bg-foreground ring-2 ring-background"
+                              style={{ left: `${dotPct}%`, opacity: t }}
+                            />
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                   <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
