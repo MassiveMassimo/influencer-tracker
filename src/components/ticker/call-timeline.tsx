@@ -4,6 +4,7 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } fro
 import { useMemo, useRef, useState } from "react";
 import type { TickerCreatorRow } from "#/lib/call-filter.ts";
 import { timelineTicks, timelineXPercent } from "#/lib/call-timeline-layout.ts";
+import { signed, toneClass } from "#/lib/returns-format.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 
 const YEAR_FMT: Format = { useGrouping: false };
@@ -27,24 +28,9 @@ function DateChip({ ms, ready }: { ms: number; ready: boolean }) {
   );
 }
 
-// Local presentation helpers (the route keeps its own copies; duplicating these
-// one-liners avoids a circular import — the route imports this component).
-function signed(x: number | null) {
-  return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
-}
-function toneClass(x: number | null) {
-  if (x == null) return "text-muted-foreground";
-  return x > 0
-    ? "text-emerald-600 dark:text-emerald-400"
-    : x < 0
-      ? "text-rose-600 dark:text-rose-400"
-      : "text-muted-foreground";
-}
-
 interface Hit {
   handle: string;
   postDate: string;
-  isFirstCall: boolean;
 }
 
 // The avatar + fixed-width name block before the inline dot track. Mirrored by
@@ -58,6 +44,14 @@ const LEAD = (
 
 const GRID =
   "md:grid md:grid-cols-[1fr_7rem_6rem_6rem] md:gap-2 md:px-5";
+
+// Column template shared by the header + every row.
+const COLS = "grid-cols-[1fr_5rem_5rem] md:grid-cols-[1fr_7rem_6rem_6rem]";
+
+// The dot-track region: flex-1 after the lead, nudged clear of the name. The
+// header label, row dots, crosshair overlay, and ruler all reuse this so they
+// stay column-aligned — change the offset here, not in four places.
+const TRACK = "flex-1 md:ml-6";
 
 // Width of the hover-highlight band (px); dots within HALF brighten.
 const BAND_PX = 56;
@@ -96,32 +90,32 @@ export function CompareTable({
   // springs along with the crosshair. Dots inside HALF_BAND_PX brighten too.
   const bandLeft = useTransform(pctSpring, (v) => `calc(${v}% - ${HALF_BAND_PX}px)`);
 
-  const startMs = Date.parse(rangeStart);
-  const endMs = Date.parse(rangeEnd);
+  const { startMs, endMs } = useMemo(
+    () => ({ startMs: Date.parse(rangeStart), endMs: Date.parse(rangeEnd) }),
+    [rangeStart, rangeEnd],
+  );
   const ticks = timelineTicks(startMs, endMs);
 
-  const callsByHandle = new Map<string, Hit[]>();
-  for (const h of hits) {
-    const a = callsByHandle.get(h.handle);
-    if (a) a.push(h);
-    else callsByHandle.set(h.handle, [h]);
-  }
-
-  // Unique call-date columns across all creators, sorted by x, as snap targets.
-  // The median gap between columns gates + sizes the magnet so dense timelines
-  // (many calls) don't snap — see onMove.
-  const { targets, medianGapPct } = useMemo(() => {
+  // Per-creator dot positions (postDate + baked x%), the unique date columns as
+  // snap targets, and the median gap that gates + sizes the magnet. Computed
+  // once per data change so the pointermove hot path does no Date.parse / mapping.
+  const { dotsByHandle, targets, medianGapPct } = useMemo(() => {
+    const dotsByHandle = new Map<string, { postDate: string; pct: number }[]>();
     const byMs = new Map<number, number>();
     for (const h of hits) {
       const ms = Date.parse(h.postDate);
-      if (!byMs.has(ms)) byMs.set(ms, timelineXPercent(ms, startMs, endMs));
+      const pct = timelineXPercent(ms, startMs, endMs);
+      const a = dotsByHandle.get(h.handle);
+      if (a) a.push({ postDate: h.postDate, pct });
+      else dotsByHandle.set(h.handle, [{ postDate: h.postDate, pct }]);
+      if (!byMs.has(ms)) byMs.set(ms, pct);
     }
     const ts = [...byMs.entries()]
       .map(([ms, pct]) => ({ ms, pct }))
       .sort((a, b) => a.pct - b.pct);
-    if (ts.length < 2) return { targets: ts, medianGapPct: 100 };
+    if (ts.length < 2) return { dotsByHandle, targets: ts, medianGapPct: 100 };
     const gaps = ts.slice(1).map((t, i) => t.pct - ts[i].pct).sort((a, b) => a - b);
-    return { targets: ts, medianGapPct: gaps[Math.floor(gaps.length / 2)] };
+    return { dotsByHandle, targets: ts, medianGapPct: gaps[Math.floor(gaps.length / 2)] };
   }, [hits, startMs, endMs]);
 
   // Pointer x → percent of the (md-only) dot-track region, read off the overlay
@@ -156,11 +150,11 @@ export function CompareTable({
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-      <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[1fr_7rem_6rem_6rem] md:px-5">
+      <div className={`grid ${COLS} items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:px-5`}>
         <div className="flex items-center gap-3">
           <div className="hidden size-8 shrink-0 md:block" />
           <span className="md:w-36 md:shrink-0">Creator</span>
-          <span className="hidden flex-1 md:ml-6 md:block">Call timeline</span>
+          <span className={`hidden md:block ${TRACK}`}>Call timeline</span>
         </div>
         <span className="hidden text-right md:block">First call</span>
         <span className="text-right">Excess 3m</span>
@@ -170,14 +164,15 @@ export function CompareTable({
       <div className="relative" onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
         <ul className="divide-y divide-border/40">
           {rows.map((b) => {
-            const creatorCalls = callsByHandle.get(b.handle) ?? [];
+            const dots = dotsByHandle.get(b.handle) ?? [];
             return (
               <li key={b.handle}>
                 <Link
                   to="/t/$symbol/$creator"
                   params={{ symbol, creator: b.handle }}
+                  resetScroll={false}
                   aria-current={creatorHandle === b.handle ? "true" : undefined}
-                  className={`grid grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:grid-cols-[1fr_7rem_6rem_6rem] md:px-5 ${creatorHandle === b.handle ? "bg-foreground/[0.04]" : ""}`}
+                  className={`grid ${COLS} items-center gap-2 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:px-5 ${creatorHandle === b.handle ? "bg-foreground/[0.04]" : ""}`}
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     {avatars[b.handle] ? (
@@ -198,7 +193,7 @@ export function CompareTable({
                       </div>
                     </div>
                     {/* Inline dot track (md+). Same lead+offset as the overlay/ruler. */}
-                    <div className="relative hidden h-8 flex-1 md:ml-6 md:block">
+                    <div className={`relative hidden h-8 md:block ${TRACK}`}>
                       {/* Dashed baseline, mirrors the charts' dashed axis line. */}
                       <div className="-translate-y-1/2 absolute top-1/2 right-0 left-0 border-foreground/15 border-t border-dashed" />
                       {/* showHighlight band — a brighter slice of the baseline that
@@ -206,12 +201,11 @@ export function CompareTable({
                           to the track so it can't spill past the left/right ends. */}
                       <div className="pointer-events-none absolute inset-0 overflow-hidden">
                         <motion.div
-                          className={`-translate-y-1/2 absolute top-1/2 h-px rounded-full bg-foreground/40 transition-opacity duration-200 ${hover ? "opacity-100" : "opacity-0"}`}
+                          className={`-translate-y-1/2 absolute top-1/2 h-px bg-gradient-to-r from-transparent via-foreground to-transparent transition-opacity duration-200 ${hover ? "opacity-100" : "opacity-0"}`}
                           style={{ left: bandLeft, width: BAND_PX }}
                         />
                       </div>
-                      {creatorCalls.map((c, i) => {
-                        const dotPct = timelineXPercent(Date.parse(c.postDate), startMs, endMs);
+                      {dots.map(({ postDate, pct: dotPct }, i) => {
                         // Proximity to the crosshair: 0 at the band edge, 1 dead
                         // centre — drives the highlight overlay's opacity so the
                         // dot fades in as the indicator line crosses it.
@@ -220,7 +214,7 @@ export function CompareTable({
                             ? Math.max(0, 1 - Math.abs(dotPct - hover.pct) / (hover.bandPct / 2))
                             : 0;
                         return (
-                          <span key={`${c.postDate}-${i}`} title={c.postDate}>
+                          <span key={`${postDate}-${i}`} title={postDate}>
                             <span
                               className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 size-1.5 rounded-full border border-foreground/40 bg-background"
                               style={{ left: `${dotPct}%` }}
@@ -253,7 +247,7 @@ export function CompareTable({
         <div className={`pointer-events-none absolute inset-0 hidden px-4 ${GRID}`}>
           <div className="flex gap-3">
             {LEAD}
-            <div ref={trackRef} className="relative h-full flex-1 md:ml-6">
+            <div ref={trackRef} className={`relative h-full ${TRACK}`}>
               {/* Faint full-height gridlines aligned with the month-axis ticks. */}
               {ticks.map((t) => (
                 <div
@@ -282,7 +276,7 @@ export function CompareTable({
       <div className={`hidden border-border/40 border-t px-4 py-3 md:px-5 ${GRID}`}>
         <div className="flex gap-3">
           {LEAD}
-          <div className="relative h-4 flex-1 md:ml-6">
+          <div className={`relative h-4 ${TRACK}`}>
             {ticks.map((t) => (
               <span
                 key={t.pct}

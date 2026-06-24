@@ -96,7 +96,7 @@ export function CreatorSwitcher({
 
   const tabs = pickAvatarTabs(creators, selected, 3);
   const go = (creator: string) =>
-    navigate({ to: "/t/$symbol/$creator", params: { symbol, creator } });
+    navigate({ to: "/t/$symbol/$creator", params: { symbol, creator }, resetScroll: false });
 
   const filtered = creators
     .filter(

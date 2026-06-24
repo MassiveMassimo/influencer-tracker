@@ -216,7 +216,7 @@ function Overview() {
   const platformIcon = isX ? "icon-[ri--twitter-x-fill]" : "icon-[mdi--instagram]";
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
+    <main className="space-y-6 py-8 md:py-10">
       <TocMinimap
         items={[
           { title: "Overview", url: "#overview", depth: 2 },
@@ -226,22 +226,41 @@ function Overview() {
         ]}
         className="fixed top-1/2 right-3 hidden -translate-y-1/2 2xl:flex"
       />
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
+      <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
+        <div className="t-ticker-pad mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
+          <div>
+            <div className="t-ticker-label font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+              Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
+            </div>
+            <h1 className="t-ticker-title mt-1 font-heading text-2xl">
+              <CreatorHeading name={ds.creator.name} platformIcon={platformIcon} profileUrl={profileUrl} />
+            </h1>
           </div>
-          <h1 className="mt-1 font-heading text-2xl">
-            <CreatorHeading name={ds.creator.name} platformIcon={platformIcon} profileUrl={profileUrl} />
-          </h1>
-        </div>
-        <div>
-          <DataAsOf iso={ds.generatedAt} />
-          {ageDays(ds.generatedAt) > 30 && (
-            <span className="ml-2 font-mono text-[10px] text-amber-600 uppercase tracking-[0.2em] dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
-          )}
+          <div className="grid justify-items-end">
+            <div className="t-stick-fade col-start-1 row-start-1 text-right">
+              <DataAsOf iso={ds.generatedAt} />
+              {ageDays(ds.generatedAt) > 30 && (
+                <span className="ml-2 font-mono text-[10px] text-amber-600 uppercase tracking-[0.2em] dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
+              )}
+            </div>
+            {/* Accuracy stats migrate into the bar as the overview row scrolls
+                away (scroll-driven crossfade with the date above). aria-hidden:
+                duplicates the still-mounted stat tiles for sighted scrollers. */}
+            <div aria-hidden className="t-stick-rise col-start-1 row-start-1 flex items-center gap-5 font-mono opacity-0">
+              <span className="flex flex-col items-end gap-0.5">
+                <span className="text-[8px] text-muted-foreground uppercase tracking-[0.2em]">Hit rate 3m</span>
+                <span className="text-sm text-foreground tabular-nums">{formatNum(sc.hitRate["3m"], PCT_FMT)}</span>
+              </span>
+              <span className="flex flex-col items-end gap-0.5">
+                <span className="text-[8px] text-muted-foreground uppercase tracking-[0.2em]">Avg excess 3m</span>
+                <span className={`text-sm tabular-nums ${sc.avgExcess["3m"] > 0 ? "text-emerald-600 dark:text-emerald-400" : sc.avgExcess["3m"] < 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>{formatNum(sc.avgExcess["3m"], SIGNED_PCT_FMT)}</span>
+              </span>
+            </div>
+          </div>
         </div>
       </header>
+
+      <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
 
       <section
         id="overview"
@@ -291,6 +310,7 @@ function Overview() {
       <CallsList handle={handle} calls={calls} ds={ds} />
 
       <CaveatsBanner caveats={ds.caveats} />
+      </div>
     </main>
   );
 }
