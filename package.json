@@ -11,6 +11,9 @@
     "build": "bun run scripts/prebuild.ts && vite build",
     "preview": "vite preview",
     "test": "bun test",
+    "test:perf": "playwright test",
+    "test:perf:render": "playwright test --project=render-dev",
+    "test:perf:page": "playwright test --project=page-prod",
     "typecheck": "tsc --noEmit",
     "pipeline": "bun run pipeline/run.ts",
     "pipeline:x": "bun run pipeline/run-x.ts",
@@ -69,6 +72,7 @@
   "devDependencies": {
     "@iconify/json": "^2.2.489",
     "@iconify/tailwind4": "^1.2.3",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/typography": "^0.5.20",
     "@tanstack/devtools-vite": "0.8.0",
     "@testing-library/dom": "^10.4.1",
@@ -87,6 +91,7 @@
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react-doctor": "^0.5.8",
+    "react-scan": "^0.5.7",
     "typescript": "^6.0.3",
     "vite": "^8.0.16",
     "vitest": "^4.1.9"

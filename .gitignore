@@ -26,6 +26,8 @@ data/creators/*/*
 data/symbol-types.json
 .chrome-profile
 playwright-report
+test-results
+perf/.report
 
 # og image previews (local)
 .og-preview/
