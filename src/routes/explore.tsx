@@ -2,10 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { fetchCallsIndex, listCreators } from "../lib/data";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
+import type { CallIndexEntry } from "../lib/call-index";
 import { DataAsOf } from "../components/DataAsOf";
 import { siteUrl } from "#/og/site.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
+import { ProofViewer } from "#/components/proof-viewer.tsx";
 
 export const Route = createFileRoute("/explore")({
   loader: async ({ context }) => {
@@ -49,6 +51,19 @@ function Explore() {
   const rows = useMemo(() => applyCallFilter(calls, filter, names), [calls, filter, names]);
   const allTickers = useMemo(() => calls.map((c) => c.ticker), [calls]);
   const getHalal = useHalalStatus(allTickers);
+  // Selected call → proof viewer. Index rows carry no `quote` (slim asset), so the
+  // viewer shows the embed + summary; siblings = other tickers in the same post.
+  const [selected, setSelected] = useState<CallIndexEntry | null>(null);
+  const siblings = selected
+    ? {
+        [selected.shortcode]: calls.reduce<{ ticker: string; company: string }[]>((acc, c) => {
+          if (c.handle === selected.handle && c.shortcode === selected.shortcode && c.ticker !== selected.ticker) {
+            acc.push({ ticker: c.ticker, company: c.company });
+          }
+          return acc;
+        }, []),
+      }
+    : undefined;
   const onSort = (key: SortKey) =>
     setFilter((f) => ({ ...f, sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 } }));
   const toggleHandle = (h: string) =>
@@ -116,12 +131,24 @@ function Explore() {
           ) : (
             rows.slice(0, 500).map((r) => (
               <li key={`${r.handle}:${r.shortcode}:${r.ticker}`}>
-                <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-3 md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View proof for ${r.ticker} call by @${r.handle}`}
+                  onClick={() => setSelected(r)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(r);
+                    }
+                  }}
+                  className="grid cursor-pointer grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-3 transition-colors hover:bg-muted/50 md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5"
+                >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <Link to="/t/$symbol/$creator" params={{ symbol: r.ticker, creator: "all" }} className="font-medium text-sm text-foreground no-underline hover:underline">{r.ticker}</Link>
+                      <Link to="/t/$symbol/$creator" params={{ symbol: r.ticker, creator: "all" }} onClick={(e) => e.stopPropagation()} className="font-medium text-sm text-foreground no-underline hover:underline">{r.ticker}</Link>
                       <HalalIndicator info={getHalal(r.ticker)} />
-                      <Link to="/c/$handle" params={{ handle: r.handle }} className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground">@{r.handle}</Link>
+                      <Link to="/c/$handle" params={{ handle: r.handle }} onClick={(e) => e.stopPropagation()} className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground">@{r.handle}</Link>
                     </div>
                     {r.summary && <div className="truncate text-xs text-muted-foreground">{r.summary}</div>}
                   </div>
@@ -140,6 +167,13 @@ function Explore() {
           </div>
         )}
       </section>
+
+      <ProofViewer
+        call={selected}
+        handle={selected?.handle ?? ""}
+        siblings={siblings}
+        onClose={() => setSelected(null)}
+      />
     </main>
   );
 }

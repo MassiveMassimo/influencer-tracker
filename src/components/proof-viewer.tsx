@@ -10,7 +10,18 @@ import {
 import { ScrollArea } from "#/components/ui/scroll-area.tsx";
 import { ReportButton } from "#/components/report-button.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
-import type { Call } from "#/lib/types.ts";
+
+// The viewer only reads these fields. `Call` (ticker page) satisfies it; so does a
+// slim cross-creator `CallIndexEntry` (explore) — which has no `quote`, so the quote
+// block is conditional. The embed itself shows the verbatim post, so a missing quote
+// is no real loss.
+export type ProofCall = {
+  shortcode: string;
+  ticker: string;
+  postDate: string;
+  summary?: string;
+  quote?: string;
+};
 
 // Calls carry only a shortcode. X tweet ids are numeric snowflakes; IG reel
 // codes are alphanumeric. Map each to its no-script iframe embed + canonical URL.
@@ -82,7 +93,7 @@ function ProofContent({
   siblings,
   onNavigate,
 }: {
-  call: Call;
+  call: ProofCall;
   handle: string;
   siblings: SiblingCall[];
   onNavigate: () => void;
@@ -108,10 +119,12 @@ function ProofContent({
             <p className="text-sm leading-relaxed text-foreground">{call.summary}</p>
           </div>
         )}
-        <div className="space-y-1">
-          <Label>Quote</Label>
-          <p className="text-sm leading-relaxed text-muted-foreground">“{call.quote}”</p>
-        </div>
+        {call.quote && (
+          <div className="space-y-1">
+            <Label>Quote</Label>
+            <p className="text-sm leading-relaxed text-muted-foreground">“{call.quote}”</p>
+          </div>
+        )}
         {siblings.length > 0 && <OtherCalls siblings={siblings} handle={handle} onNavigate={onNavigate} />}
         <ReportButton handle={handle} shortcode={call.shortcode} ticker={call.ticker} />
       </div>
@@ -126,7 +139,7 @@ function ProofContent({
   );
 }
 
-function Heading({ call }: { call: Call }) {
+function Heading({ call }: { call: ProofCall }) {
   return (
     <>
       <span className="font-heading text-lg">{call.ticker}</span>
@@ -145,7 +158,7 @@ export function ProofViewer({
   siblings,
   onClose,
 }: {
-  call: Call | null;
+  call: ProofCall | null;
   handle: string;
   siblings?: Record<string, SiblingCall[]>;
   onClose: () => void;

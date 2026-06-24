@@ -12,6 +12,16 @@ export interface CallFilter {
   sort: { key: SortKey; dir: 1 | -1 };
 }
 
+// If the query is a pasted X/IG post URL, reduce it to the bare shortcode so it matches
+// against `r.shortcode` — lets a user paste the link to a post they saw and find its call.
+// Otherwise the query is returned untouched.
+export function normalizeQuery(q: string): string {
+  const m =
+    q.match(/(?:x|twitter)\.com\/\w+\/status\/(\d+)/i) ?? // tweet
+    q.match(/instagram\.com\/(?:reel|reels|p)\/([\w-]+)/i); // reel/post
+  return m ? m[1].toLowerCase() : q;
+}
+
 // Nulls always sort last regardless of direction (a missing metric is not "worst").
 function cmpNullable(a: number | null, b: number | null, dir: 1 | -1): number {
   if (a == null && b == null) return 0;
@@ -25,7 +35,7 @@ export function applyCallFilter(
   f: CallFilter,
   names: Record<string, string>,
 ): CallIndexEntry[] {
-  const q = f.search.trim().toLowerCase();
+  const q = normalizeQuery(f.search.trim()).toLowerCase();
   const handleSet = f.handles.length ? new Set(f.handles) : null;
   const filtered = rows.filter((r) => {
     if (handleSet && !handleSet.has(r.handle)) return false;
@@ -35,7 +45,8 @@ export function applyCallFilter(
       if (ex == null || ex <= 0) return false;
     }
     if (q) {
-      const hay = `${r.ticker} ${r.company} ${r.summary ?? ""} ${names[r.handle] ?? ""} ${r.handle}`.toLowerCase();
+      // `shortcode` included so a pasted/typed post id (see normalizeQuery) matches.
+      const hay = `${r.ticker} ${r.company} ${r.summary ?? ""} ${names[r.handle] ?? ""} ${r.handle} ${r.shortcode}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
