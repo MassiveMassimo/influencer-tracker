@@ -13,6 +13,15 @@ import type { Direction, ReelCall } from "../src/lib/types";
 // said only "tells viewers to buy/hold" dropped ~49% of real buys: price targets).
 // The context/index/competitor exclusion keeps the stored set clean (those would
 // never be scored anyway — only isExplicitBuy && bullish is).
+// Bake-off 2026-06-24 (thelonginvest, deepseek-v4-flash): added the retrospective
+// track-record rule below. The recurring failure was a "first to call X at $Y" / "my
+// best buy was X at $Y" recap read as live calls — it flooded the scored set with false
+// buys at historical entry prices while the actual forward picks were dropped. The rule
+// also encodes three discriminators surfaced in review: (1) PRECEDENCE — a current
+// position/add/hold wins over a historical-entry brag in the same line; (2) attributed
+// third-party ratings (analyst PTs) are not the creator's call unless endorsed; (3) the
+// forward-pick rule never overrides the watchlist/index exclusions. Regression-pinned by
+// the labeled eval in calls.eval.test.ts (gated on FIREWORKS_API_KEY && RUN_LLM_EVAL).
 export const CLASSIFY_SYS =
   "You analyze a stock influencer's post (a video transcript or a tweet). A single post may " +
   "discuss MULTIPLE stocks. Emit ONE entry per distinct ticker the creator expresses a view on or " +
@@ -23,6 +32,27 @@ export const CLASSIFY_SYS =
   "watchlist/no-position mentions. Do NOT emit tickers named only as market context, an index/benchmark, " +
   "or a competitor the creator is not recommending. Use the provided text and on-screen/image hints " +
   "(the hints are authoritative for the exact ticker symbol). " +
+  // Retrospective track-record brags are NOT current calls. Without this, a recap
+  // tweet ("first to share $PLTR at $7", "my safest buy was $UNH at $241") flooded
+  // the scored set with false buys at historical entry prices while the actual
+  // forward picks ("my next buy is $X/$Y") were dropped. See the bake-off note above.
+  "CRITICAL — distinguish the creator's CURRENT view from a RETROSPECTIVE TRACK-RECORD claim. " +
+  "A line bragging about a PAST entry or a past correct call is NOT a current call and its price is a " +
+  "historical entry, not a recommendation: e.g. 'first to share/call/be bullish on $X at $Y', " +
+  "'I told you to buy $X at $Y', 'my safest/smartest/best buy was $X at $Y', 'called $X at $Y', " +
+  "'nailed $X'. For such tickers set isExplicitBuy=false (emit as a neutral mention, or omit). " +
+  "PRECEDENCE: a CURRENT position, add, or hold statement makes the ticker a current bullish call even " +
+  "when the SAME line also cites a historical entry price — e.g. 'held $NVDA since $90 and still adding', " +
+  "'I want $X to hit $92 next', '$X is going to $22' → isExplicitBuy=true (the current action wins over " +
+  "the historical-price brag). " +
+  "A forward-looking pick list the creator presents as their CURRENT picks is also a current call " +
+  "(isExplicitBuy=true) even without a per-ticker thesis — e.g. after 'so what's next?' a list '$A $B $C', " +
+  "'these are my buys here', or 'my next buy is $X/$Y'. " +
+  "A rating or price target the creator ATTRIBUTES to a third party (e.g. 'JPM raises $UNH PT to $466') is " +
+  "NOT the creator's call unless the creator endorses or acts on it ('…and I agree, buying here') — " +
+  "attribution-only → isExplicitBuy=false, endorsed/acted-on → true. " +
+  "None of these override the watchlist/no-position or index/benchmark/market-context exclusions: " +
+  "'on my radar'/'watching, no position yet' stay isExplicitBuy=false, and $SPY/$QQQ etc. stay excluded. " +
   'Reply ONLY JSON: {"calls":[{"ticker":string,"company":string|null,"direction":"bullish"|"bearish"|"neutral",' +
   '"isExplicitBuy":boolean,"conviction":number,"quote":string,"onScreenPrice":number|null,"summary":string}]}. ' +
   "Use an empty array [] if the post names no specific stock the creator has a view on. One entry per ticker; " +
