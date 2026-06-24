@@ -4,6 +4,21 @@ import { Search } from "lucide-react";
 import { pickAvatarTabs, type SwitcherCreator } from "#/lib/ticker-switcher.ts";
 import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "#/components/ui/tooltip.tsx";
 
+// Sum offsetLeft up the offsetParent chain to `container`. offsetLeft is
+// layout-only — CSS transforms (e.g. .cs-layer-tabs scale(0.96) during the
+// open/close transition) don't affect it, so the pill position is stable
+// even when measured mid-transition. getBoundingClientRect() would capture
+// the scaled-down visual position and shift the pill.
+function offsetLeftTo(el: HTMLElement, container: HTMLElement): number {
+  let left = 0;
+  let current: HTMLElement | null = el;
+  while (current && current !== container) {
+    left += current.offsetLeft;
+    current = current.offsetParent as HTMLElement | null;
+  }
+  return left;
+}
+
 function Avatar({ creator, dimmed }: { creator: SwitcherCreator; dimmed?: boolean }) {
   const dim = dimmed ? "grayscale transition-[filter] duration-200" : "transition-[filter] duration-200";
   return creator.avatar ? (
@@ -35,6 +50,12 @@ export function CreatorSwitcher({
 
   // Position the pill under the active tab; when the combobox is open the pill
   // expands to fill the whole container and becomes the combobox background.
+  // Always measure with offsetLeftTo (layout-only, transform-immune): the
+  // .cs-layer-tabs layer animates scale(0.96)→1 on close, and selecting from
+  // search updates `selected` via an async navigation that re-positions the
+  // pill mid-transition. getBoundingClientRect() would capture the scaled
+  // position (origin right center → pill drifts right); offsetLeft ignores the
+  // transform.
   const positionPill = (animate: boolean) => {
     const list = listRef.current,
       pill = pillRef.current;
@@ -45,18 +66,16 @@ export function CreatorSwitcher({
     };
     if (!animate) pill.style.transition = "none";
     if (openRef.current) {
-      apply(0, list.clientWidth - 6); // inset 3px both sides
+      apply(1, list.clientWidth - 2); // inset 1px both sides
     } else {
       const active = list.querySelector<HTMLButtonElement>('[aria-selected="true"]');
       if (active) {
-        // Avatar tabs get a circular indicator (square pill, border-radius 48px)
-        // centered on the tab so it rings the round avatar instead of boxing it
-        // in a wide pill. Text tabs (All) keep the full-width pill.
+        const left = offsetLeftTo(active, list);
         if (active.dataset.avatarTab != null) {
           const d = active.offsetHeight;
-          apply(active.offsetLeft + (active.offsetWidth - d) / 2, d);
+          apply(left + (active.offsetWidth - d) / 2, d);
         } else {
-          apply(active.offsetLeft, active.offsetWidth);
+          apply(left, active.offsetWidth);
         }
       }
     }
