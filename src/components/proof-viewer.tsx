@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Dialog } from "@base-ui/react/dialog";
@@ -165,7 +166,13 @@ export function ProofViewer({
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const open = call != null;
-  const callSiblings = call ? (siblings?.[call.shortcode] ?? []) : [];
+  // Retain the last call's content through the close animation. `open` drives the exit
+  // transition, but the body is rendered off `shown` — which lags one render behind on
+  // close — so the dialog fades out with its content intact instead of flashing empty.
+  const [shown, setShown] = useState<{ call: ProofCall; handle: string; siblings: SiblingCall[] } | null>(null);
+  useEffect(() => {
+    if (call) setShown({ call, handle, siblings: siblings?.[call.shortcode] ?? [] });
+  }, [call, handle, siblings]);
 
   if (isDesktop) {
     return (
@@ -173,11 +180,11 @@ export function ProofViewer({
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
           <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
-            {call && (
+            {shown && (
               <>
                 <div className="mb-4 flex items-baseline justify-between gap-3">
                   <Dialog.Title render={<h2 className="flex items-baseline" />}>
-                    <Heading call={call} />
+                    <Heading call={shown.call} />
                   </Dialog.Title>
                   <Dialog.Close
                     aria-label="Close"
@@ -187,9 +194,9 @@ export function ProofViewer({
                   </Dialog.Close>
                 </div>
                 <Dialog.Description className="sr-only">
-                  Proof media and context for the {call.ticker} call.
+                  Proof media and context for the {shown.call.ticker} call.
                 </Dialog.Description>
-                <ProofContent call={call} handle={handle} siblings={callSiblings} onNavigate={onClose} />
+                <ProofContent call={shown.call} handle={shown.handle} siblings={shown.siblings} onNavigate={onClose} />
               </>
             )}
           </Dialog.Popup>
@@ -201,19 +208,19 @@ export function ProofViewer({
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()} shouldScaleBackground>
       <DrawerContent className="h-[92vh]">
-        {call && (
+        {shown && (
           <ScrollArea className="min-h-0 flex-1" viewportClassName="px-5 pt-2 pb-8">
             <div className="mb-4">
               <DrawerTitle asChild>
                 <h2 className="flex items-baseline">
-                  <Heading call={call} />
+                  <Heading call={shown.call} />
                 </h2>
               </DrawerTitle>
               <DrawerDescription className="sr-only">
-                Proof media and context for the {call.ticker} call.
+                Proof media and context for the {shown.call.ticker} call.
               </DrawerDescription>
             </div>
-            <ProofContent call={call} handle={handle} siblings={callSiblings} onNavigate={onClose} />
+            <ProofContent call={shown.call} handle={shown.handle} siblings={shown.siblings} onNavigate={onClose} />
           </ScrollArea>
         )}
       </DrawerContent>
