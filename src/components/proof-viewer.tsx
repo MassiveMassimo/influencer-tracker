@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useRef } from "react";
 import { X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Dialog } from "@base-ui/react/dialog";
@@ -166,13 +166,13 @@ export function ProofViewer({
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const open = call != null;
-  // Retain the last call's content through the close animation. `open` drives the exit
-  // transition, but the body is rendered off `shown` — which lags one render behind on
-  // close — so the dialog fades out with its content intact instead of flashing empty.
-  const [shown, setShown] = useState<{ call: ProofCall; handle: string; siblings: SiblingCall[] } | null>(null);
-  useEffect(() => {
-    if (call) setShown({ call, handle, siblings: siblings?.[call.shortcode] ?? [] });
-  }, [call, handle, siblings]);
+  // Retain the last call's content through the close animation (same latch as
+  // chart-markers' `lastActive`). `open` drives the exit transition, but the body
+  // renders off `shown`, so it stays mounted and fades out intact instead of
+  // flashing empty.
+  const lastShown = useRef<{ call: ProofCall; handle: string; siblings: SiblingCall[] } | null>(null);
+  if (call) lastShown.current = { call, handle, siblings: siblings?.[call.shortcode] ?? [] };
+  const shown = lastShown.current;
 
   if (isDesktop) {
     return (
