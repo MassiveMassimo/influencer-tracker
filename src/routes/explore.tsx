@@ -54,16 +54,20 @@ function Explore() {
   // Selected call → proof viewer. Index rows carry no `quote` (slim asset), so the
   // viewer shows the embed + summary; siblings = other tickers in the same post.
   const [selected, setSelected] = useState<CallIndexEntry | null>(null);
-  const siblings = selected
-    ? {
-        [selected.shortcode]: calls.reduce<{ ticker: string; company: string }[]>((acc, c) => {
-          if (c.handle === selected.handle && c.shortcode === selected.shortcode && c.ticker !== selected.ticker) {
-            acc.push({ ticker: c.ticker, company: c.company });
+  const siblings = useMemo(
+    () =>
+      selected
+        ? {
+            [selected.shortcode]: calls.reduce<{ ticker: string; company: string }[]>((acc, c) => {
+              if (c.handle === selected.handle && c.shortcode === selected.shortcode && c.ticker !== selected.ticker) {
+                acc.push({ ticker: c.ticker, company: c.company });
+              }
+              return acc;
+            }, [])
           }
-          return acc;
-        }, []),
-      }
-    : undefined;
+        : undefined,
+    [selected, calls],
+  );
   const onSort = (key: SortKey) =>
     setFilter((f) => ({ ...f, sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 } }));
   const toggleHandle = (h: string) =>
