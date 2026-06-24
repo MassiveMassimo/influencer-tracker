@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 
 export interface FrameHint {
   ticker: string | null;
@@ -41,4 +42,29 @@ export async function readImage(
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   })).json() as { choices: { message: { content: string } }[] };
   return parseHint(r.choices[0].message.content);
+}
+
+// Disk-cached wrapper. Vision OCR is deterministic per image (temp 0) and the source
+// images are immutable pipeline intermediates, so the hint is cached in a sidecar
+// `<img>.hint.json`. A re-extract (e.g. a CLASSIFY_SYS prompt change) then reuses the
+// OCR instead of re-billing the vision model — vision is ~⅔ of extract cost, so a
+// text-only re-classify shouldn't pay for it twice. The cache lives beside the image in
+// the gitignored raw/frames dirs; deleting it just forces a re-OCR. extract filters image
+// files by extension, so the `.hint.json` sidecar is never itself treated as an image.
+export async function readImageCached(
+  vision: string,
+  imgPath: string,
+  client: ChatClient,
+): Promise<FrameHint> {
+  const cachePath = `${imgPath}.hint.json`;
+  if (existsSync(cachePath)) {
+    try {
+      return JSON.parse(await readFile(cachePath, "utf8")) as FrameHint;
+    } catch {
+      // Corrupt cache — fall through and re-OCR.
+    }
+  }
+  const hint = await readImage(vision, imgPath, client);
+  await writeFile(cachePath, JSON.stringify(hint));
+  return hint;
 }

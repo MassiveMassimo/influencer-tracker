@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { rawDir, creatorDir } from "../config";
 import { fireworks, FIREWORKS_MODEL, FIREWORKS_VISION_MODEL } from "../fireworks";
 import { classify, toReelCalls, writeCalls, type Classification } from "../calls";
-import { readImage, type FrameHint } from "../vision";
+import { readImageCached, type FrameHint } from "../vision";
 import type { TweetRecord } from "./scrape-x";
 import type { ReelCall } from "../../src/lib/types";
 
@@ -57,7 +57,7 @@ export async function extractX(handle: string) {
     text: FIREWORKS_MODEL,
     vision: FIREWORKS_VISION_MODEL,
     classifyFn: (m, b) => classify(m, b, fireworks),
-    readImageFn: (m, p) => readImage(m, p, fireworks),
+    readImageFn: (m, p) => readImageCached(m, p, fireworks),
   };
   const tweets: TweetRecord[] = JSON.parse(await readFile(join(rawDir(handle), "tweets.json"), "utf8"));
 
