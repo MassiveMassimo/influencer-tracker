@@ -98,7 +98,16 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
     const avatars = Object.fromEntries(roster.map((c) => [c.handle, c.avatar] as const));
 
     // Selected creator: valid only if it actually called this symbol; else All.
-    const creatorHandle = creatorParam !== "all" && shown.has(creatorParam) ? creatorParam : null;
+    // A single-caller symbol collapses "all" to that creator so the header,
+    // markers, and detail table reflect the one real view instead of a generic
+    // cross-creator mode with no one to switch to.
+    const soleCreator = shown.size === 1 ? [...shown][0]! : null;
+    const creatorHandle =
+      creatorParam !== "all" && shown.has(creatorParam)
+        ? creatorParam
+        : creatorParam === "all" && soleCreator
+          ? soleCreator
+          : null;
 
     // The creator dataset is independent of the chart/price/halal fetches —
     // run it in the same Promise.all instead of serially ahead of them.
