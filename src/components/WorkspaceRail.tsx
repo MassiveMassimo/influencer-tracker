@@ -375,13 +375,13 @@ function RailSectionTrigger({
   }, [searchOpen]);
   return (
     <AccordionPrimitive.Header className="relative flex items-center border-t border-border/60">
-      <AccordionPrimitive.Trigger className="flex flex-1 cursor-pointer items-center gap-1.5 px-3 py-3 outline-none transition-colors hover:bg-foreground/[0.03] focus-visible:-outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
+      <AccordionPrimitive.Trigger className="group flex flex-1 cursor-pointer items-center gap-1.5 px-3 py-3 outline-none focus-visible:-outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
         <ChevronDownIcon
-          className="size-3.5 shrink-0 text-muted-foreground/60 transition-transform duration-200"
+          className="size-3.5 shrink-0 text-muted-foreground/60 transition-[transform,color] duration-200 group-hover:text-foreground"
           data-slot="accordion-indicator"
         />
         <span
-          className={`font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.25em] transition-[opacity,filter] duration-200 ${
+          className={`font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.25em] transition-[opacity,filter,color] duration-200 group-hover:text-foreground ${
             searchOpen ? "opacity-0 blur-[2px]" : "opacity-100 blur-0"
           }`}
         >
