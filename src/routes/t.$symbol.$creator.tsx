@@ -217,14 +217,40 @@ function StockHeading({
   halal: HalalInfo;
 }) {
   const { ref, display } = useTextSwap(symbol);
+  // h1 hidden on mobile — MobileNav already shows the symbol + company there.
   return (
-    <h1 className="t-ticker-title mt-1 flex items-center gap-2 font-heading text-2xl">
+    <h1 className="t-ticker-title mt-1 hidden items-center gap-2 font-heading text-2xl md:flex">
       <span className="t-text-swap" ref={ref}>
         {display}
       </span>
       <HalalIndicator info={halal} />
       <TextSwap value={company} className="text-base text-muted-foreground" />
     </h1>
+  );
+}
+
+// Scope label that morphs (text-swap) when the creator changes. One stable span
+// holds the swap; `display` lags during the 150ms swap so its children (the
+// creator Link/icon, or plain "all creators") render the OLD scope until the
+// text is hidden, then snap to the new one. `creatorHandle ?? "all"` is the swap
+// value — a real handle is never literally "all" (it's the no-creator sentinel).
+function TickerScope({ creatorHandle }: { creatorHandle: string | null }) {
+  const { ref, display } = useTextSwap(creatorHandle ?? "all");
+  return (
+    <span className="t-text-swap" ref={ref}>
+      {display === "all" ? (
+        "all creators"
+      ) : (
+        <Link
+          to="/c/$handle"
+          params={{ handle: display }}
+          className="group inline-flex items-center gap-1 no-underline hover:text-foreground"
+        >
+          <span className="group-hover:underline group-hover:underline-offset-2">@{display}</span>
+          <span className="icon-[lucide--external-link] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+        </Link>
+      )}
+    </span>
   );
 }
 
@@ -344,26 +370,14 @@ function TickerPage() {
         className="fixed top-1/2 right-3 hidden -translate-y-1/2 2xl:flex"
       />
       <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
-        <div className="t-ticker-pad mx-auto flex w-full max-w-6xl flex-col justify-center gap-3 px-4 sm:flex-row sm:items-center sm:justify-between md:px-10">
-        <div>
-          <div className="t-ticker-label font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Ticker{creatorHandle ? (
-              <>
-                {" · "}
-                <Link
-                  to="/c/$handle"
-                  params={{ handle: creatorHandle }}
-                  className="group inline-flex items-center gap-1 no-underline hover:text-foreground"
-                >
-                  <span className="group-hover:underline group-hover:underline-offset-2">@{creatorHandle}</span>
-                  <span className="icon-[lucide--external-link] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
-                </Link>
-              </>
-            ) : " · all creators"}
+        <div className="t-ticker-pad mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
+          <div className="max-sm:min-w-0">
+            <div className="t-ticker-label font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em] max-sm:truncate">
+              <TickerScope creatorHandle={creatorHandle} />
+            </div>
+            <StockHeading symbol={symbol} company={data.company} halal={halal} />
           </div>
-          <StockHeading symbol={symbol} company={data.company} halal={halal} />
-        </div>
-        <CreatorSwitcher symbol={symbol} creators={switcherCreators} selected={creatorHandle} />
+          <CreatorSwitcher symbol={symbol} creators={switcherCreators} selected={creatorHandle} />
         </div>
       </header>
 
@@ -380,7 +394,7 @@ function TickerPage() {
           </div>
           <TimeframeTabs value={timeframe} onChange={(tf) => { impact(); setTimeframe(tf); }} onPrefetch={prefetchTimeframe} />
         </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px]">
+        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px] max-sm:-mx-6">
           {candles.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (
@@ -425,7 +439,7 @@ function TickerPage() {
             </PreviewCardPopup>
           </PreviewCard>
         </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px]">
+        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px] max-sm:-mx-6">
           {norm.length === 0 ? (
             <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
           ) : (

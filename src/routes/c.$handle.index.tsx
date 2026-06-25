@@ -204,6 +204,17 @@ function Overview() {
     },
   ];
 
+  // Condensed stats that ride into the sticky bar as the overview row scrolls
+  // away. Static formatting (decorative, aria-hidden — the live tiles below own
+  // NumberFlow). Same five metrics as the tiles, one primary value each.
+  const statBar: { label: string; text: string; tone?: number }[] = [
+    { label: "Total calls", text: formatNum(sc.totalCalls, INT_FMT) },
+    { label: "Unique tickers", text: formatNum(sc.uniqueTickers, INT_FMT) },
+    { label: "Calls / week", text: formatNum(sc.callsPerWeek, DEC1_FMT) },
+    { label: "Hit rate 3m", text: formatNum(sc.hitRate["3m"], PCT_FMT), tone: sc.hitRate["3m"] - 0.5 },
+    { label: "Avg excess 3m", text: formatNum(sc.avgExcess["3m"], SIGNED_PCT_FMT), tone: sc.avgExcess["3m"] },
+  ];
+
   const [statsRef, statsInView] = useInView<HTMLElement>();
 
   const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
@@ -216,7 +227,7 @@ function Overview() {
   const platformIcon = isX ? "icon-[ri--twitter-x-fill]" : "icon-[mdi--instagram]";
 
   return (
-    <main className="space-y-6 py-8 md:py-10">
+    <main className="t-creator-main space-y-6 py-8 md:py-10">
       <TocMinimap
         items={[
           { title: "Overview", url: "#overview", depth: 2 },
@@ -226,9 +237,12 @@ function Overview() {
         ]}
         className="fixed top-1/2 right-3 hidden -translate-y-1/2 2xl:flex"
       />
-      <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
-        <div className="t-ticker-pad mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
-          <div>
+      <header className="t-ticker-header t-creator-bar sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
+        <div className="t-ticker-pad relative mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
+          {/* Identity — shown only at md+ (below md MobileNav owns it, so no
+              doubling). Persistent: stays put on scroll while the date/stats
+              crossfade plays in the right zone. */}
+          <div className="shrink-0 max-md:hidden">
             <div className="t-ticker-label font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
               Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
             </div>
@@ -236,25 +250,41 @@ function Overview() {
               <CreatorHeading name={ds.creator.name} platformIcon={platformIcon} profileUrl={profileUrl} />
             </h1>
           </div>
-          <div className="grid justify-items-end">
-            <div className="t-stick-fade col-start-1 row-start-1 text-right">
+          {/* Right zone — flex-1 so the stats scroll inside the remaining width
+              instead of reserving their content width and squeezing the name.
+              Date (top) crossfades to the stat summary on scroll; both are
+              absolutely stacked so neither sizes the zone. */}
+          <div className="relative min-w-0 flex-1 self-stretch">
+            <div className="t-stick-fade absolute inset-y-0 right-0 flex items-center justify-end text-right max-md:hidden">
               <DataAsOf iso={ds.generatedAt} />
               {ageDays(ds.generatedAt) > 30 && (
                 <span className="ml-2 font-mono text-[10px] text-amber-600 uppercase tracking-[0.2em] dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
               )}
             </div>
-            {/* Accuracy stats migrate into the bar as the overview row scrolls
-                away (scroll-driven crossfade with the date above). aria-hidden:
-                duplicates the still-mounted stat tiles for sighted scrollers. */}
-            <div aria-hidden className="t-stick-rise col-start-1 row-start-1 flex items-center gap-5 font-mono opacity-0">
-              <span className="flex flex-col items-end gap-0.5">
-                <span className="text-[8px] text-muted-foreground uppercase tracking-[0.2em]">Hit rate 3m</span>
-                <span className="text-sm text-foreground tabular-nums">{formatNum(sc.hitRate["3m"], PCT_FMT)}</span>
-              </span>
-              <span className="flex flex-col items-end gap-0.5">
-                <span className="text-[8px] text-muted-foreground uppercase tracking-[0.2em]">Avg excess 3m</span>
-                <span className={`text-sm tabular-nums ${sc.avgExcess["3m"] > 0 ? "text-emerald-600 dark:text-emerald-400" : sc.avgExcess["3m"] < 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>{formatNum(sc.avgExcess["3m"], SIGNED_PCT_FMT)}</span>
-              </span>
+            {/* Persistent stat summary (the overview tiles scroll away → this
+                stays). aria-hidden: duplicates the still-mounted tiles. Scrolls
+                horizontally with an edge fade when the five don't fit. */}
+            {/* Two nested layers because they each own an `animation`, which can't
+                share one element: the OUTER runs the scroll-driven opacity rise
+                (root timeline); the INNER is the scroll container running the edge
+                fade (self timeline). Putting both on one element made the rise win
+                and froze the mask. */}
+            <div aria-hidden className="t-stick-rise absolute inset-0 opacity-0">
+              {/* ms-auto on the first stat right-aligns the row when it fits, but
+                  collapses to 0 on overflow so scroll-to-start still reaches the
+                  first stat. */}
+              <div className="t-stat-scroll flex size-full items-center overflow-x-auto scroll-fade-effect-x">
+                {/* pe matches the fade width so when the row fits (right-aligned)
+                    the right fade lands on empty padding, not the last stat. */}
+                <div className="flex w-full items-center gap-4 pe-4 font-mono md:gap-5 [&>:first-child]:ms-auto">
+                  {statBar.map((s) => (
+                    <span key={s.label} className="flex shrink-0 flex-col items-end gap-0.5">
+                      <span className="whitespace-nowrap text-[8px] text-muted-foreground uppercase tracking-[0.2em]">{s.label}</span>
+                      <span className={`text-sm tabular-nums ${s.tone !== undefined ? toneClass(s.tone) : "text-foreground"}`}>{s.text}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
