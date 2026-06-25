@@ -4,7 +4,7 @@ import { curveNatural } from "@visx/curve";
 import { area as d3area, line as d3line } from "d3-shape";
 import { animate, useReducedMotion } from "motion/react";
 import { useEffect, useId, useMemo, useRef } from "react";
-import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
+import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
 import { chartCssVars, useChartStable, useYScale } from "./chart-context";
 
 // An area series that morphs its shape between data sets (e.g. timeframe
@@ -75,7 +75,7 @@ export function MorphArea({
   // Touch devices snap to the target shape — no per-frame path morph on a
   // timeframe switch (treated like reduced motion).
   const prefersReduced = useReducedMotion();
-  const isTouch = useTouchPrimary();
+  const isTouch = useTouchPrimaryEager();
   const reduce = prefersReduced === true || isTouch;
 
   const strokeRef = useRef<SVGPathElement>(null);
