@@ -9,7 +9,7 @@ import { buildSpark } from "../src/lib/spark";
 import { buildCumExcess } from "../src/lib/cum-excess";
 import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
 import { resolveSymbol } from "../src/lib/symbol";
-import { quoteTypes, isOutOfScope } from "./symbol-scope";
+import { symbolMeta, isOutOfScope } from "./symbol-scope";
 import { getWriteDb } from "../db/client";
 import { loadOverrides } from "../db/overrides";
 import { applyOverrides } from "./overrides";
@@ -28,6 +28,11 @@ export function assembleDataset(
   // derivative (not a stock pick). Injected so this stays a pure fn — score()
   // resolves it from Yahoo quoteType (symbol-scope.ts); default keeps all (tests).
   isInScope: (sym: string) => boolean = () => true,
+  // Company-name resolver, keyed by canonical symbol. Yahoo's name is authoritative
+  // and consistent; the LLM's `company` is an optional field it omits ~half the time.
+  // Injected to keep this pure — score() backs it with Yahoo (symbol-scope.ts);
+  // default returns undefined, so tests keep the LLM-supplied company.
+  nameFor: (sym: string) => string | undefined = () => undefined,
 ): Dataset {
   const spy = ohlc["SPY"] ?? [];
   const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
@@ -54,13 +59,13 @@ export function assembleDataset(
     const prevIdx = seenPostSym.get(key);
     if (prevIdx !== undefined) {
       if (c.conviction > calls[prevIdx]!.conviction) {
-        calls[prevIdx] = { ...calls[prevIdx]!, conviction: c.conviction, quote: c.quote, summary: c.summary, company: c.company };
+        calls[prevIdx] = { ...calls[prevIdx]!, conviction: c.conviction, quote: c.quote, summary: c.summary, company: nameFor(sym) || c.company };
       }
       continue;
     }
     seenPostSym.set(key, calls.length);
     calls.push({
-      shortcode: c.shortcode, postDate: c.postDate, ticker: sym, company: c.company,
+      shortcode: c.shortcode, postDate: c.postDate, ticker: sym, company: nameFor(sym) || c.company,
       isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
       spark: buildSpark(bars, c.postDate),
       returns: computeReturns(bars, spy, c.postDate),
@@ -109,11 +114,12 @@ export async function score(handle: string, name: string, today = new Date().toI
   // Resolve scope (Yahoo quoteType, cached) for every priced symbol, then drop
   // out-of-scope ones from scoring. SPY is the benchmark, never a scored call.
   const symbols = Object.keys(ohlc).filter(s => s !== "SPY");
-  const types = await quoteTypes(symbols);
-  const outOfScope = new Set(symbols.filter(s => isOutOfScope(types[s])));
-  for (const s of outOfScope) console.warn(`OUT-OF-SCOPE ${s}: ${types[s]} — not a stock pick, excluded from scoring`);
+  const meta = await symbolMeta(symbols);
+  const outOfScope = new Set(symbols.filter(s => isOutOfScope(meta[s]?.type)));
+  for (const s of outOfScope) console.warn(`OUT-OF-SCOPE ${s}: ${meta[s]?.type} — not a stock pick, excluded from scoring`);
   const ds = assembleDataset({ handle, name }, corrected, ohlc, today,
-    { reelsScraped, reelsWithTicker: corrected.length }, postNoun, sym => !outOfScope.has(sym));
+    { reelsScraped, reelsWithTicker: corrected.length }, postNoun,
+    sym => !outOfScope.has(sym), sym => meta[sym]?.name || undefined);
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
   // Write deduped per-ticker prices to a shared store (one file per symbol across
   // all creators) for the ticker-page fallback. Merge so a creator with a shorter

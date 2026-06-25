@@ -103,6 +103,23 @@ test("two raw crypto tickers collapse to one canonical first-call (gate before d
   expect(firsts[0].shortcode).toBe("early");
 });
 
+test("nameFor resolver overrides company per canonical symbol; falls back to LLM company", () => {
+  const nvdaBars = [bar("2026-06-01", 100), bar("2026-06-08", 120)];
+  const amdBars = [bar("2026-06-01", 50), bar("2026-06-08", 55)];
+  const calls: ReelCall[] = [
+    { shortcode: "p1", postDate: "2026-06-01", ticker: "NVDA", company: "", // LLM left it blank
+      direction: "bullish", isExplicitBuy: true, conviction: 0.9, quote: "q", onScreenPrice: null, summary: "s" },
+    { shortcode: "p1", postDate: "2026-06-01", ticker: "AMD", company: "AMD", // LLM-supplied, no Yahoo name
+      direction: "bullish", isExplicitBuy: true, conviction: 0.8, quote: "q", onScreenPrice: null, summary: "s" },
+  ];
+  const nameFor = (sym: string) => (sym === "NVDA" ? "NVIDIA" : undefined);
+  const ds = assembleDataset({ handle: "h", name: "n" }, calls,
+    { NVDA: nvdaBars, AMD: amdBars, SPY: spyBars }, "2026-06-09", undefined, "Reels", undefined, nameFor);
+  const byTicker = Object.fromEntries(ds.calls.map(c => [c.ticker, c.company]));
+  expect(byTicker.NVDA).toBe("NVIDIA");   // Yahoo name wins over blank
+  expect(byTicker.AMD).toBe("AMD");        // no Yahoo name → LLM company kept
+});
+
 test("one post naming multiple stocks scores one call per ticker (same shortcode)", () => {
   const nvdaBars = [bar("2026-06-01", 100), bar("2026-06-08", 120)];
   const amdBars = [bar("2026-06-01", 50), bar("2026-06-08", 55)];
