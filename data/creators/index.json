@@ -35,12 +35,12 @@
   {
     "handle": "roadto100kportfolio",
     "name": "@roadto100kportfolio",
-    "totalCalls": 244,
-    "firstCalls": 80,
-    "hitRate3m": 0.5,
-    "hitRate3mN": 42,
-    "avgExcess3m": 0.055237997857475865,
-    "generatedAt": "2026-06-18",
+    "totalCalls": 214,
+    "firstCalls": 66,
+    "hitRate3m": 0.5294117647058824,
+    "hitRate3mN": 34,
+    "avgExcess3m": 0.0678958294063921,
+    "generatedAt": "2026-06-25",
     "avatar": "/avatars/roadto100kportfolio.jpg"
   },
   {
