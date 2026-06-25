@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { memo, type ReactNode, useEffect } from "react";
 import type { Timeframe } from "#/lib/window-series.ts";
+import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
 import { useChart } from "./chart-context.tsx";
 import { CandlestickChart } from "./candlestick-chart.tsx";
 import { Candlestick } from "./candlestick.tsx";
@@ -32,6 +33,9 @@ function ChartCrossfade({
   timeframe: Timeframe;
   children: ReactNode;
 }) {
+  // Touch devices hard-cut between timeframes (duration 0) — no two-chart
+  // opacity dissolve to composite on a slow mobile GPU.
+  const isTouch = useTouchPrimary();
   return (
     <div className="relative h-[320px]">
       <AnimatePresence>
@@ -43,7 +47,7 @@ function ChartCrossfade({
           key={timeframe}
           // Strong custom ease-out (built-in easings lack punch) for a snappy
           // crossfade between timeframes.
-          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          transition={isTouch ? { duration: 0 } : { duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
           {children}
         </motion.div>
