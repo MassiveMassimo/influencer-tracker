@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "./ui/scroll-area";
 import { Sparkline } from "./Sparkline";
 import { sparks1dQuery } from "#/lib/spark-query.ts";
+import { useHalalStatus } from "#/lib/halal-query.ts";
+import { HalalBadge } from "#/components/halal/halal-badge.tsx";
 import type { RailStock } from "#/lib/rail-stocks.ts";
 
 function pctChip(changePct: number | null) {
@@ -21,6 +23,8 @@ function pctChip(changePct: number | null) {
 export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavigate?: () => void }) {
   const symbols = stocks.map((s) => s.symbol);
   const { data } = useQuery(sparks1dQuery(symbols));
+  // Opt-in halal badge (renders null when the toggle is off / symbol unrated).
+  const getHalal = useHalalStatus(symbols);
 
   if (stocks.length === 0) {
     return <div className="px-2 py-1.5 text-muted-foreground/60 text-xs">No stocks yet</div>;
@@ -45,7 +49,10 @@ export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavi
                 activeProps={{ className: "flex w-full items-center gap-2 rounded-md px-2 py-1.5 bg-foreground/[0.06] no-underline" }}
               >
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium text-sm text-foreground">{s.symbol}</div>
+                  <div className="flex items-center gap-1">
+                    <span className="truncate font-medium text-sm text-foreground">{s.symbol}</span>
+                    <HalalBadge info={getHalal(s.symbol)} />
+                  </div>
                   <div className="truncate text-[11px] text-muted-foreground">{s.company}</div>
                 </div>
                 {spark ? (
