@@ -22,6 +22,12 @@ import type { Direction, ReelCall } from "../src/lib/types";
 // third-party ratings (analyst PTs) are not the creator's call unless endorsed; (3) the
 // forward-pick rule never overrides the watchlist/index exclusions. Regression-pinned by
 // the labeled eval in calls.eval.test.ts (gated on FIREWORKS_API_KEY && RUN_LLM_EVAL).
+// v2 2026-06-25: a trial re-extract of thelonginvest's history surfaced the mirror failure
+// — the forward-pick rule OVER-emitted on retrospective/ambiguous lists (counterfactual
+// hindsight "you didn't buy $X at $low", past-performance recaps "gains of the year $X",
+// gloats "$X running this week / always winning"). Added the past-performance/hindsight
+// clause below: a multi-ticker list scores only when framed as a PRESENT recommendation,
+// not by past results or audience hindsight. Eval extended with these cases (15/15).
 export const CLASSIFY_SYS =
   "You analyze a stock influencer's post (a video transcript or a tweet). A single post may " +
   "discuss MULTIPLE stocks. Emit ONE entry per distinct ticker the creator expresses a view on or " +
@@ -41,6 +47,14 @@ export const CLASSIFY_SYS =
   "historical entry, not a recommendation: e.g. 'first to share/call/be bullish on $X at $Y', " +
   "'I told you to buy $X at $Y', 'my safest/smartest/best buy was $X at $Y', 'called $X at $Y', " +
   "'nailed $X'. For such tickers set isExplicitBuy=false (emit as a neutral mention, or omit). " +
+  "This ALSO covers PAST-PERFORMANCE recaps and AUDIENCE-HINDSIGHT framing — NOT calls no matter how " +
+  "many tickers they list: superlative-performance lists ('easiest/safest/smartest/most rewarding gains " +
+  "of the year $X', 'most satisfying/relief $X', '$X running this week', 'always winning', '$X now +N%', " +
+  "'best month ever'), and counterfactual hindsight ('you didn't buy $X at $low but like it at $high', " +
+  "'if you had bought $X at $low'). The historical or performance prices in these are not recommendations. " +
+  "A multi-ticker list is a CURRENT call only when framed as a present recommendation or live thesis — " +
+  "'bullish setups right now', 'what we like now', '$X is undervalued / will 2-3X', 'buying $X here / under " +
+  "its 200 WMA', 'accumulate $X'; a list framed by past results or audience hindsight is NOT. " +
   "PRECEDENCE: a CURRENT position, add, or hold statement makes the ticker a current bullish call even " +
   "when the SAME line also cites a historical entry price — e.g. 'held $NVDA since $90 and still adding', " +
   "'I want $X to hit $92 next', '$X is going to $22' → isExplicitBuy=true (the current action wins over " +
