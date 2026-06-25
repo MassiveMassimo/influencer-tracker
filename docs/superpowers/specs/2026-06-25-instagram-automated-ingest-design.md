@@ -91,14 +91,18 @@ slow and a large bot footprint.
   (`transcriptsDir(handle)/*.json`). Transcripts are the durable per-reel artifact;
   they survive the documented `raw/`+`frames/` cleanup (unlike X's anchor, which
   lives in the purgeable `raw/tweets.json` — IG's anchor is *more* robust).
-- **Stop rule:** reels render newest-first, so once a scroll round surfaces only
-  already-known shortcodes (no new codes for N rounds), we have caught up — break.
-  Keep the existing 12-month cutoff and stagnant-break as fallbacks.
-- **Pinned-reel caveat:** pinned reels can appear at the top out of date order, so
-  do not stop on the *first* known code; require a run of known-only rounds *after*
-  at least one new code (or none-new across the whole first screen → nothing new
-  today, exit fast). Extract the stop decision into a pure helper so it is unit-
-  testable without a browser (mirrors X's forward-anchor helper).
+- **Stop rule:** reels render newest-first, so after `patience` (=3) consecutive
+  scroll rounds that surface no new shortcodes, we have caught up — break. This
+  fires whether or not new reels were seen, so a **zero-new-reels day exits
+  promptly** instead of scrolling to the cutoff (the common daily case). Keep the
+  12-month cutoff and the stagnant-break as fallbacks.
+- **Pinned-reel handling:** pinned reels (≤3, all in the first scroll round) are
+  cleared because genuinely-new reels sit immediately below the pins in
+  chronological order — a new round resets the known-only counter before `patience`
+  is reached. `patience:3` gives margin past the pins. The only thing this can miss
+  is an *old* gap reel buried under ≥3 known rounds, which is a backfill concern,
+  not a freshness one — acceptable. Extract the stop decision into a pure helper so
+  it is unit-testable without a browser (mirrors X's forward-anchor helper).
 - **Fallback:** no transcripts present (fresh VM seed) → no anchor → full 12-month
   backfill, exactly like X's first run. One-time, acceptable.
 
