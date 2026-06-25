@@ -24,12 +24,12 @@
   {
     "handle": "thelonginvest",
     "name": "The Long Invest",
-    "totalCalls": 2663,
-    "firstCalls": 126,
-    "hitRate3m": 0.4326923076923077,
-    "hitRate3mN": 104,
-    "avgExcess3m": 0.05762832300011732,
-    "generatedAt": "2026-06-24",
+    "totalCalls": 2199,
+    "firstCalls": 120,
+    "hitRate3m": 0.425531914893617,
+    "hitRate3mN": 94,
+    "avgExcess3m": 0.021232094028015052,
+    "generatedAt": "2026-06-25",
     "avatar": "/avatars/thelonginvest.jpg"
   },
   {
