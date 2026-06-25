@@ -757,6 +757,13 @@ number-flow-group {
   opacity: 0;
   transition: none;
 }
+/* Ticker scope label: flex + min-w-0 so the inner @handle text can truncate
+   with an ellipsis. Two-class selector outranks the unlayered .t-text-swap
+   display:inline-block (a layered Tailwind `flex` utility would lose to it). */
+.t-text-swap.t-scope {
+  display: flex;
+  min-width: 0;
+}
 @media (prefers-reduced-motion: reduce) {
   .t-text-swap {
     transition: none !important;

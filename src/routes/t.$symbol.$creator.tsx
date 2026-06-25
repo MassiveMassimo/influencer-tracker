@@ -237,17 +237,17 @@ function StockHeading({
 function TickerScope({ creatorHandle }: { creatorHandle: string | null }) {
   const { ref, display } = useTextSwap(creatorHandle ?? "all");
   return (
-    <span className="t-text-swap" ref={ref}>
+    <span className="t-text-swap t-scope" ref={ref}>
       {display === "all" ? (
         "all creators"
       ) : (
         <Link
           to="/c/$handle"
           params={{ handle: display }}
-          className="group inline-flex items-center gap-1 no-underline hover:text-foreground"
+          className="group flex min-w-0 items-center gap-1 no-underline hover:text-foreground"
         >
-          <span className="group-hover:underline group-hover:underline-offset-2">@{display}</span>
-          <span className="icon-[lucide--external-link] opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+          <span className="min-w-0 truncate group-hover:underline group-hover:underline-offset-2">@{display}</span>
+          <span className="icon-[lucide--external-link] shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
         </Link>
       )}
     </span>
