@@ -227,3 +227,37 @@ incremental forward-scrape cursor (newest stored tweet id); losing it forces a f
 - To inspect a failed run: `journalctl -u influencer-ingest.service -n 100 --no-pager`
 - To trigger a manual test run: `sudo systemctl start influencer-ingest.service` — runs the
   same `ExecStart` (same `flock`); it does NOT skip the lock.
+
+---
+
+## Instagram daily ingest (separate timer)
+
+`influencer-ingest-ig.{service,timer}` refresh the IG creators (`INGEST_HANDLES_IG`)
+daily at 14:00 UTC — staggered 1h after the X ingest so the two pushes do not race.
+The service runs `scripts/ingest-ig.ts` under `xvfb-run` (headful Chrome needs a
+display) with `IG_PROXY` set (residential egress; the burner is never seen from the
+datacenter IP). It scrapes forward-incrementally (only reels newer than the durable
+transcript anchor), auto-resumes past the review pause (ship-then-correct), and
+commits+pushes `data/` once.
+
+**Required `.env` keys:** `INGEST_HANDLES_IG=kevvonz,roadto100kportfolio,johnnylixf`,
+`IG_PROXY=socks5://127.0.0.1:1081` (already set).
+
+**Session death is manual to recover:** when IG expires/challenges the `imtiddies`
+session, the run sends a BLOCKED alert (carrying the VNC-re-auth + re-run steps) and
+the creator stays at last-good data. Re-login the `.chrome-profile` via VNC through the
+proxy, then re-run the handle.
+
+**Operator caveats (load-bearing):**
+- **Stop the timer during VNC re-auth.** The unattended run and a VNC Chrome share the
+  one `.chrome-profile`; two Chromes on the same profile collide on `SingletonLock` (the
+  flock guards only the script, not the profile). Before re-authing:
+  `sudo systemctl stop influencer-ingest-ig.timer`, re-login, then `start` it again.
+- **The forward anchor is VM-local.** `knownShortcodes()` reads `transcripts/`, which is
+  gitignored (so `git clean -fd data/` never wipes it — that is *why* the ExecStartPre
+  clean is safe). A fresh VM seed with no transcripts → one-time full 12-month backfill.
+- **First run on an unseeded profile blocks ~6 min** waiting for a manual login it can't
+  get under xvfb, then throws. Seed the session once via VNC before enabling the timer.
+
+Install (one-time): copy both units into `/etc/systemd/system/`,
+`sudo systemctl daemon-reload && sudo systemctl enable --now influencer-ingest-ig.timer`.

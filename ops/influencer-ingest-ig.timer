@@ -1,0 +1,9 @@
+[Unit]
+Description=daily influencer-tracker Instagram ingest
+[Timer]
+# 1h after the X ingest (13:00 UTC). Repo mutation is serialized by the shared flock in the
+# service unit; this stagger just means IG usually acquires it immediately. Defense-in-depth.
+OnCalendar=*-*-* 14:00:00 UTC
+Persistent=true
+[Install]
+WantedBy=timers.target
