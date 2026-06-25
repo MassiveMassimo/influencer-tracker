@@ -428,11 +428,13 @@ function RailSectionTrigger({
     document.addEventListener("pointerdown", onDown);
     return () => document.removeEventListener("pointerdown", onDown);
   }, [searchOpen, region, onCloseSearch]);
-  // Keep the active option scrolled into view as it changes.
+  // Keep the active option scrolled into view as it changes. (region is stable for
+  // the component's life, so activeIndex is the only meaningful dep.)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (activeIndex < 0) return;
     document.getElementById(optionId(activeIndex))?.scrollIntoView({ block: "nearest" });
-  });
+  }, [activeIndex]);
   const optionCount = () =>
     document.querySelectorAll(`[data-rail-section="${region}"] [role="option"]`).length;
   // Combobox keyboard model: focus stays on the input, arrows move the active
