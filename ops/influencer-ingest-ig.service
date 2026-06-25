@@ -1,0 +1,21 @@
+[Unit]
+Description=influencer-tracker daily ingest (Instagram, forward incremental, headful via xvfb)
+OnFailure=notify-fail.service
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/influencer-tracker
+EnvironmentFile=/home/ubuntu/influencer-tracker/.env
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+# IG scrape downloads + transcribes new reels (Parakeet CPU) — allow generous wall time.
+RuntimeMaxSec=4h
+# SHARED lock with the X ingest (/tmp/influencer-ingest.lock, NOT a separate -ig lock): both
+# timers mutate the same git repo (checkout/clean/pull/commit/push), so they must serialize to
+# avoid a torn .git index or discarding an unpushed commit. The 14:00 stagger then just means IG
+# normally waits 0s; the lock is the correctness guarantee, the stagger is defense-in-depth. The
+# fragile browser run is still isolated as its OWN process/unit — a hang can't corrupt the X run.
+# clean -fd data/ (no -x) is safe: .gitignore shields seeded per-creator state (raw/, frames/,
+# transcripts/, cookies.txt). xvfb-run gives the headful Chrome a virtual display; IG_PROXY
+# (from .env) routes egress through the residential relay so the burner is never seen from the
+# datacenter IP (scrape() aborts loudly if the proxy egress check fails).
+ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/ && git pull --ff-only && xvfb-run -a bun run scripts/ingest-ig.ts'
