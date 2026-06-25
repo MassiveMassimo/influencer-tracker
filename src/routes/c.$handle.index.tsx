@@ -1,6 +1,6 @@
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
@@ -110,12 +110,16 @@ function ageDays(iso: string) {
 // motion re-measure and slide the platform icon to its new x (rather than jump)
 // when the name width changes. IconSwap also cross-fades the glyph on a platform
 // change (X <-> IG).
+const rootApi = getRouteApi("__root__");
+
 function CreatorHeading({
   name,
+  avatar,
   platformIcon,
   profileUrl,
 }: {
   name: string;
+  avatar?: string;
   platformIcon: string;
   profileUrl: string;
 }) {
@@ -125,8 +129,15 @@ function CreatorHeading({
       href={profileUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="group inline-flex items-center gap-2 text-foreground no-underline"
+      className="group inline-flex items-center gap-2.5 text-foreground no-underline"
     >
+      {avatar && (
+        <img
+          src={avatar}
+          alt=""
+          className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+        />
+      )}
       <span
         className="t-text-swap group-hover:underline group-hover:underline-offset-2"
         ref={ref}
@@ -145,6 +156,9 @@ function Overview() {
   const ds = Route.useLoaderData();
   const { handle } = Route.useParams();
   const sc = ds.scorecard;
+  // Avatar isn't in dataset.json (handle+name only); read it from the root
+  // loader's creators (sourced from index.json) by handle.
+  const avatar = rootApi.useLoaderData().creators.find((c) => c.handle === handle)?.avatar;
 
   const total3m = sc.hitRateN["3m"];
   const made3m = Math.round(sc.hitRate["3m"] * total3m);
@@ -247,7 +261,7 @@ function Overview() {
               Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
             </div>
             <h1 className="t-ticker-title mt-1 font-heading text-2xl">
-              <CreatorHeading name={ds.creator.name} platformIcon={platformIcon} profileUrl={profileUrl} />
+              <CreatorHeading name={ds.creator.name} avatar={avatar} platformIcon={platformIcon} profileUrl={profileUrl} />
             </h1>
           </div>
           {/* Right zone — flex-1 so the stats scroll inside the remaining width
