@@ -12,7 +12,7 @@
 
 - **Worktree:** all work happens in the `ig-ingest` worktree at `../influencer-tracker-ig-ingest`; never edit on `main`. Build/typecheck/test in the worktree; VM deploy + verification after merge to `main`.
 - **Tests:** `bun test`. Typecheck: `bunx tsc --noEmit`. The `#/` alias maps to `src/`.
-- **Cadence:** daily, IG timer staggered to **14:00 UTC** (X timer is 13:00 UTC) so the two git pushes do not race.
+- **Cadence:** daily, IG timer at **14:00 UTC** (X timer is 13:00 UTC). The two share **one flock** (`/tmp/influencer-ingest.lock`) so repo mutation always serializes; the stagger is defense-in-depth, not the guarantee.
 - **Isolation:** do not modify `scripts/ingest.ts`, `pipeline/run-x.ts`, or `pipeline/x/*` (the X path stays untouched). `scripts/resume.ts` gains only an additive, default-preserving platform argument.
 - **Ship-then-correct:** no human review gate before publish; the report→override loop is the safety net (same posture as X).
 - **Burner security:** `imtiddies` `cookies.txt` + `.chrome-profile` are credential-equivalent — stay gitignored and `chmod 600` on the VM. Never log cookie bytes.
@@ -33,25 +33,26 @@ The IG scrape scrolls the `/reels/` page back 12 months every run. For a daily i
 - Consumes: `transcriptsDir` from `pipeline/config.ts`.
 - Produces:
   - `knownShortcodes(handle: string): Set<string>` — shortcodes that already have a transcript on disk (the forward anchor).
-  - `forwardCaughtUp(args: { sawAnyNew: boolean; knownOnlyRounds: number; patience: number }): boolean` — true when the forward scroll has reached already-harvested reels.
+  - `forwardCaughtUp(args: { knownOnlyRounds: number; patience: number }): boolean` — true when the forward scroll has gone `patience` consecutive rounds finding no new reels (caught up, OR nothing new today).
+
+**Design note (why no `sawAnyNew` gate):** an earlier draft required "saw ≥1 new reel first" to guard against pinned reels. That broke the common case — on a zero-new-reels day `sawAnyNew` never becomes true, so the run would never conclude "caught up" and would scroll toward the 12-month cutoff (the exact slow/high-footprint behavior this feature prevents, every quiet day). Instead: stop after `patience` consecutive known-only rounds regardless. Pinned reels (≤3 on IG, all in scroll round 1) are cleared because genuinely-new reels sit immediately below the pins in chronological order, so a *new* round resets the counter before `patience` is reached; `patience:3` gives comfortable margin past the pins. The only thing this can "miss" is an *old* gap reel buried below ≥3 known rounds — acceptable for a daily forward run (old reels are a backfill concern, not a freshness one).
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
 // pipeline/scrape-forward.test.ts
 import { test, expect } from "bun:test";
-import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { forwardCaughtUp } from "./scrape-forward";
 
-test("forwardCaughtUp: stops only after a new code then patience known-only rounds", () => {
-  // not yet seen anything new -> never stop (pinned-reel guard)
-  expect(forwardCaughtUp({ sawAnyNew: false, knownOnlyRounds: 9, patience: 2 })).toBe(false);
-  // saw new, but not enough known-only rounds yet
-  expect(forwardCaughtUp({ sawAnyNew: true, knownOnlyRounds: 1, patience: 2 })).toBe(false);
-  // saw new and patience reached -> caught up
-  expect(forwardCaughtUp({ sawAnyNew: true, knownOnlyRounds: 2, patience: 2 })).toBe(true);
+test("forwardCaughtUp: stops after `patience` consecutive known-only rounds", () => {
+  // Not enough known-only rounds yet -> keep scrolling (clears pinned reels, reaches new ones).
+  expect(forwardCaughtUp({ knownOnlyRounds: 2, patience: 3 })).toBe(false);
+  // patience reached -> caught up. Fires whether or not new reels were seen, so a zero-new
+  // day exits promptly instead of scrolling toward the 12-month cutoff.
+  expect(forwardCaughtUp({ knownOnlyRounds: 3, patience: 3 })).toBe(true);
+  expect(forwardCaughtUp({ knownOnlyRounds: 5, patience: 3 })).toBe(true);
 });
 ```
 
@@ -79,16 +80,12 @@ export function knownShortcodes(handle: string): Set<string> {
 }
 
 // Decide whether a forward-incremental scroll has caught up to already-harvested reels.
-// Reels render newest-first, so once we have seen at least one NEW code and then go
-// `patience` consecutive rounds finding no further new codes, everything below is already
-// harvested — stop. Requiring a new code first avoids stopping on pinned reels (old codes
-// pinned to the top, out of date order).
-export function forwardCaughtUp(args: {
-  sawAnyNew: boolean;
-  knownOnlyRounds: number;
-  patience: number;
-}): boolean {
-  return args.sawAnyNew && args.knownOnlyRounds >= args.patience;
+// Reels render newest-first; new reels sit immediately below the (≤3) pinned ones, so a new
+// round resets `knownOnlyRounds` before `patience`. After `patience` consecutive rounds with
+// no new codes, everything below is already harvested (or there was nothing new today) — stop.
+// No "saw new first" gate: that would never fire on a zero-new day and scroll the full year.
+export function forwardCaughtUp(args: { knownOnlyRounds: number; patience: number }): boolean {
+  return args.knownOnlyRounds >= args.patience;
 }
 ```
 
@@ -202,18 +199,20 @@ with:
   // catch up to already-harvested reels. Forward mode keeps the daily scroll footprint
   // small — both a speed win and a lower bot signature at daily cadence.
   const known = opts.forward ? knownShortcodes(handle) : new Set<string>();
-  const countNew = () => [...seen.keys()].filter((c) => !known.has(c)).length;
-  let stagnant = 0, sawAnyNew = false, knownOnlyRounds = 0;
+  const countNew = () => { let n = 0; for (const c of seen.keys()) if (!known.has(c)) n++; return n; };
+  let stagnant = 0, knownOnlyRounds = 0;
   while (stagnant < 4) {
     const before = seen.size;
-    const newBefore = countNew();
+    const newBefore = opts.forward ? countNew() : 0;
     await page.mouse.wheel(0, 1200 + jitter(0, 800));
     await sleep(jitter(1500, 3500));
-    if (countNew() > newBefore) { sawAnyNew = true; knownOnlyRounds = 0; }
-    else knownOnlyRounds++;
-    if (opts.forward && forwardCaughtUp({ sawAnyNew, knownOnlyRounds, patience: 2 })) {
-      console.log(`>>> forward scrape: caught up to known reels (${countNew()} new)`);
-      break;
+    if (opts.forward) {
+      // A round that surfaced ≥1 not-yet-known reel resets the counter; otherwise it climbs.
+      knownOnlyRounds = countNew() > newBefore ? 0 : knownOnlyRounds + 1;
+      if (forwardCaughtUp({ knownOnlyRounds, patience: 3 })) {
+        console.log(`>>> forward scrape: caught up to known reels`);
+        break;
+      }
     }
     const oldest = Math.min(...[...seen.values()].filter(Boolean), Date.now());
     if (oldest < cutoff) break;
@@ -267,7 +266,7 @@ git commit -m "feat(scrape): --forward incremental mode for the IG pipeline"
 ```ts
 // scripts/shortcodes.test.ts
 import { test, expect } from "bun:test";
-import { majorityNumeric } from "./shortcodes";
+import { majorityNumeric, loadShortcodes } from "./shortcodes";
 
 test("majorityNumeric: X tweet ids vs IG reel codes", () => {
   expect(majorityNumeric(["2068305592083423341", "1973870591154565292"])).toBe(true);
@@ -276,6 +275,13 @@ test("majorityNumeric: X tweet ids vs IG reel codes", () => {
   expect(majorityNumeric(["123456", "DVwrHDSEWGm", "DOPcBQAD6Qo"])).toBe(false);
   // empty -> false (no signal; do not skip)
   expect(majorityNumeric([])).toBe(false);
+});
+
+test("loadShortcodes: missing reel-calls.json -> [] (handle then treated as IG, the safe direction)", async () => {
+  const codes = await loadShortcodes(`__no_such_handle_${Date.now()}`);
+  expect(codes).toEqual([]);
+  // A fresh checkout with no reel-calls.json must NOT be mistaken for an X handle and skipped.
+  expect(majorityNumeric(codes)).toBe(false);
 });
 ```
 
@@ -423,8 +429,50 @@ Mirror `scripts/ingest.ts`, but for IG: read `INGEST_HANDLES_IG`, skip X-looking
 
 **Interfaces:**
 - Consumes: `majorityNumeric`, `loadShortcodes` (Task 3); `notify`, `notifyConfigured`, `publishedMessage`, `blockedMessage` from `scripts/notify.ts`; the `pipeline` npm script (IG `run.ts`); `scripts/resume.ts <handle> ig` (Task 4).
+- Produces (via the notify edit below): `blockedMessage(handle, reason, recovery?)` — optional 3rd arg overriding the recovery line; default unchanged (X resume command), so `ingest.ts` is unaffected.
 
-- [ ] **Step 1: Write the script**
+- [ ] **Step 1: Add an optional `recovery` arg to `blockedMessage` (default-preserving)**
+
+`blockedMessage` (`scripts/notify.ts:7-12`) hardcodes the **X** recovery command (`resume.ts <handle>`, no platform arg). An IG alert reusing it verbatim would hand the operator a wrong-platform re-run. Add an optional override; X callers pass nothing and are byte-identical.
+
+Replace `scripts/notify.ts:7-12`:
+
+```ts
+export function blockedMessage(handle: string, reason: string): string {
+  return [
+    `🚫 ${handle}: ingest BLOCKED — ${reason}`,
+    `Investigate, then: ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${handle}"`,
+  ].join("\n");
+}
+```
+
+with:
+
+```ts
+export function blockedMessage(handle: string, reason: string, recovery?: string): string {
+  const fix = recovery ?? `ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${handle}"`;
+  return [`🚫 ${handle}: ingest BLOCKED — ${reason}`, `Investigate, then: ${fix}`].join("\n");
+}
+```
+
+- [ ] **Step 2: Test the default + override**
+
+```ts
+// scripts/notify.test.ts
+import { test, expect } from "bun:test";
+import { blockedMessage } from "./notify";
+
+test("blockedMessage: default keeps the X resume command; override replaces it", () => {
+  expect(blockedMessage("foo", "why")).toContain("scripts/resume.ts foo");
+  const ig = blockedMessage("bar", "session died", "RE-AUTH VIA VNC then re-run");
+  expect(ig).toContain("RE-AUTH VIA VNC then re-run");
+  expect(ig).not.toContain("scripts/resume.ts");
+});
+```
+
+Run: `bun test scripts/notify.test.ts` → PASS (after the Step 1 edit; write the test first and watch it fail on the override branch if you prefer strict TDD).
+
+- [ ] **Step 3: Write the script**
 
 ```ts
 // scripts/ingest-ig.ts
@@ -441,6 +489,13 @@ if (!handles.length) { console.error("INGEST_HANDLES_IG unset"); process.exit(1)
 
 // Shell out through THIS bun's absolute path, never a bare PATH-dependent `bun`.
 const bun = process.execPath;
+
+// IG recovery differs from X: a BLOCK is usually a dead/challenged session, which needs a manual
+// VNC re-login before any re-run. Pass this as blockedMessage's recovery override so the alert
+// carries the right steps (the default command is X-only).
+const igRecovery = (h: string) =>
+  `If the IG session died/challenged, re-login the .chrome-profile via VNC (through the proxy) first, then:\n` +
+  `ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bash -c 'INGEST_HANDLES_IG=${h} xvfb-run -a bun run scripts/ingest-ig.ts'"`;
 
 if (!notifyConfigured()) {
   console.error("No notify path configured (set HERMES_BIN or TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) — refusing to run blind");
@@ -463,7 +518,7 @@ for (const h of handles) {
     // Inverse of ingest.ts's looksInstagram: skip an X creator wrongly listed here. Scraping IG
     // for a numeric-shortcode (X) handle would hit instagram.com/<h> and clobber real X data.
     if (majorityNumeric(await loadShortcodes(h))) {
-      await notify(blockedMessage(h, "looks like an X creator (numeric shortcodes) — skipped IG ingest. Remove it from INGEST_HANDLES_IG."));
+      await notify(blockedMessage(h, "looks like an X creator (numeric shortcodes) — skipped IG ingest. Remove it from INGEST_HANDLES_IG.", "Edit INGEST_HANDLES_IG in the VM .env to drop this handle."));
       continue;
     }
     const before = await counts(h);
@@ -481,7 +536,7 @@ for (const h of handles) {
     // scrape (incl. "IG session rejected … re-login via VNC" + proxy-egress abort) / extract /
     // guard / score failure — surfaced, never silently published.
     failed = true;
-    await notify(blockedMessage(h, (e as Error).message));
+    await notify(blockedMessage(h, (e as Error).message, igRecovery(h)));
   }
 }
 
@@ -511,12 +566,12 @@ if (dirty) {
 if (failed) process.exit(1);
 ```
 
-- [ ] **Step 2: Typecheck**
+- [ ] **Step 4: Typecheck + notify test**
 
-Run: `bunx tsc --noEmit`
-Expected: exit 0.
+Run: `bunx tsc --noEmit && bun test scripts/notify.test.ts`
+Expected: tsc exit 0; notify test PASS.
 
-- [ ] **Step 3: Smoke-check the guard path offline (no network)**
+- [ ] **Step 5: Smoke-check the guard path offline (no network)**
 
 Run (asserts the script refuses with no handles, proving arg wiring without scraping):
 
@@ -526,11 +581,11 @@ INGEST_HANDLES_IG="" bun run scripts/ingest-ig.ts; echo "exit=$?"
 
 Expected: prints `INGEST_HANDLES_IG unset` and `exit=1`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add scripts/ingest-ig.ts
-git commit -m "feat(ingest): scripts/ingest-ig.ts daily Instagram entrypoint"
+git add scripts/ingest-ig.ts scripts/notify.ts scripts/notify.test.ts
+git commit -m "feat(ingest): scripts/ingest-ig.ts daily Instagram entrypoint + IG-aware blockedMessage"
 ```
 
 ---
@@ -559,12 +614,16 @@ EnvironmentFile=/home/ubuntu/influencer-tracker/.env
 Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
 # IG scrape downloads + transcribes new reels (Parakeet CPU) — allow generous wall time.
 RuntimeMaxSec=4h
-# Separate lock from the X ingest so the fragile browser run never blocks/clobbers X.
+# SHARED lock with the X ingest (/tmp/influencer-ingest.lock, NOT a separate -ig lock): both
+# timers mutate the same git repo (checkout/clean/pull/commit/push), so they must serialize to
+# avoid a torn .git index or discarding an unpushed commit. The 14:00 stagger then just means IG
+# normally waits 0s; the lock is the correctness guarantee, the stagger is defense-in-depth. The
+# fragile browser run is still isolated as its OWN process/unit — a hang can't corrupt the X run.
 # clean -fd data/ (no -x) is safe: .gitignore shields seeded per-creator state (raw/, frames/,
 # transcripts/, cookies.txt). xvfb-run gives the headful Chrome a virtual display; IG_PROXY
 # (from .env) routes egress through the residential relay so the burner is never seen from the
 # datacenter IP (scrape() aborts loudly if the proxy egress check fails).
-ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest-ig.lock bash -c 'git checkout -- data/ && git clean -fd data/ && git pull --ff-only && xvfb-run -a bun run scripts/ingest-ig.ts'
+ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/ && git pull --ff-only && xvfb-run -a bun run scripts/ingest-ig.ts'
 ```
 
 - [ ] **Step 2: Write the timer unit**
@@ -574,7 +633,8 @@ ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest-ig.lock bash -c 'git che
 [Unit]
 Description=daily influencer-tracker Instagram ingest
 [Timer]
-# Staggered 1h after the X ingest (13:00 UTC) so the two git pushes do not race.
+# 1h after the X ingest (13:00 UTC). Repo mutation is serialized by the shared flock in the
+# service unit; this stagger just means IG usually acquires it immediately. Defense-in-depth.
 OnCalendar=*-*-* 14:00:00 UTC
 Persistent=true
 [Install]
@@ -600,8 +660,20 @@ commits+pushes `data/` once.
 `IG_PROXY=socks5://127.0.0.1:1081` (already set).
 
 **Session death is manual to recover:** when IG expires/challenges the `imtiddies`
-session, the run sends a BLOCKED alert and the creator stays at last-good data.
-Re-login the `.chrome-profile` via VNC through the proxy, then the next run recovers.
+session, the run sends a BLOCKED alert (carrying the VNC-re-auth + re-run steps) and
+the creator stays at last-good data. Re-login the `.chrome-profile` via VNC through the
+proxy, then re-run the handle.
+
+**Operator caveats (load-bearing):**
+- **Stop the timer during VNC re-auth.** The unattended run and a VNC Chrome share the
+  one `.chrome-profile`; two Chromes on the same profile collide on `SingletonLock` (the
+  flock guards only the script, not the profile). Before re-authing:
+  `sudo systemctl stop influencer-ingest-ig.timer`, re-login, then `start` it again.
+- **The forward anchor is VM-local.** `knownShortcodes()` reads `transcripts/`, which is
+  gitignored (so `git clean -fd data/` never wipes it — that is *why* the ExecStartPre
+  clean is safe). A fresh VM seed with no transcripts → one-time full 12-month backfill.
+- **First run on an unseeded profile blocks ~6 min** waiting for a manual login it can't
+  get under xvfb, then throws. Seed the session once via VNC before enabling the timer.
 
 Install (one-time): copy both units into `/etc/systemd/system/`,
 `sudo systemctl daemon-reload && sudo systemctl enable --now influencer-ingest-ig.timer`.
@@ -665,7 +737,7 @@ Expected: timer is enabled and lists a next-fire at 14:00 UTC.
 Run one handle by hand under the same env the service uses, watching for the forward scrape, auto-resume, and a clean (or BLOCKED) outcome — without waiting for the timer:
 
 ```bash
-ssh ubuntu@imos-vm 'cd ~/influencer-tracker && flock -w 60 /tmp/influencer-ingest-ig.lock bash -c "INGEST_HANDLES_IG=roadto100kportfolio xvfb-run -a /home/ubuntu/.bun/bin/bun run scripts/ingest-ig.ts" 2>&1 | tail -40'
+ssh ubuntu@imos-vm 'cd ~/influencer-tracker && flock -w 60 /tmp/influencer-ingest.lock bash -c "INGEST_HANDLES_IG=roadto100kportfolio xvfb-run -a /home/ubuntu/.bun/bin/bun run scripts/ingest-ig.ts" 2>&1 | tail -40'
 ```
 
 Expected: forward scrape logs the egress IP + "caught up to known reels" (or harvests new reels), resume runs guard+score, and it prints a published summary (or a BLOCKED alert if the session needs VNC re-auth — in which case follow the runbook and re-run).
@@ -697,11 +769,24 @@ git branch -d ig-ingest   # only after the merge is on origin/main
 - Session-death / proxy-egress → BLOCKED alert, last-good data → Task 5 try/catch (errors already thrown by `scrape.ts`). ✓
 - guard-no-shrink before score → Task 4 (reused in resume). ✓
 - Platform guard (skip X handle) → Tasks 3, 5. ✓
-- Daily staggered timer, xvfb, IG_PROXY, own flock, exit-nonzero dead-man → Task 6. ✓
+- Daily timer (14:00), xvfb, IG_PROXY, **shared** flock, exit-nonzero dead-man → Task 6. ✓
 - Cost (text-only re-extract, no cursor) → no code (YAGNI), documented. ✓
 - Security (cookies/profile perms, gitignore) → Task 7 Step 4. ✓
 - Testing (guard, forward helper, resume default) → Tasks 1, 3, 4. ✓
 
 **Placeholder scan:** none — every code step has complete, copy-pasteable code.
 
-**Type consistency:** `scrape(handle, months, {forward})` defined in Task 2, called identically in `run.ts`; `forwardCaughtUp`/`knownShortcodes` defined Task 1, imported Task 2; `majorityNumeric`/`loadShortcodes` defined Task 3, used Task 5; `pipelineFor` defined Task 4, used in `resume.ts`. Consistent.
+**Type consistency:** `scrape(handle, months, {forward})` defined in Task 2, called identically in `run.ts`; `forwardCaughtUp`/`knownShortcodes` defined Task 1, imported Task 2; `majorityNumeric`/`loadShortcodes` defined Task 3, used Task 5; `pipelineFor` defined Task 4, used in `resume.ts`; `blockedMessage(handle, reason, recovery?)` extended Task 5 Step 1, used in Task 5 + unchanged-default for `ingest.ts`. Consistent.
+
+---
+
+## Opus review resolution (2026-06-25)
+
+A pre-implementation Opus review returned NO-GO. Disposition:
+
+- **C1 (claimed `pipeline:x`/`run-x.ts` missing) — REJECTED, false positive.** Verified `pipeline/run-x.ts` exists, is tracked (commit `61179ce`), is present in the `ig-ingest` worktree, and is not gitignored. The reviewer's `git log` claim was wrong. The X path and `pipeline:x` resolve everywhere; no change.
+- **C2 (forward-scroll bugs) — ACCEPTED, fixed.** (a) The `sawAnyNew` gate meant a zero-new-reels day never concluded "caught up" and would scroll toward the 12-month cutoff (the common daily case) — removed the gate (Task 1: `forwardCaughtUp` now keys only on `knownOnlyRounds >= patience`). (b) `patience` raised 2→3 to clear pinned reels before concluding caught-up (Task 1/2). `countNew()` made an O(n) counter, not a per-round filter rebuild (Task 2).
+- **S2 (push race) — ACCEPTED, fixed.** Both timers now share `/tmp/influencer-ingest.lock` (Task 6); repo mutation always serializes. Stagger is now defense-in-depth.
+- **N4→should-fix (IG alert carried X recovery command) — ACCEPTED, fixed.** `blockedMessage` gains an optional `recovery` arg (default unchanged); `ingest-ig.ts` passes IG-specific recovery (VNC re-auth + IG re-run) (Task 5 Steps 1-2).
+- **S1/S3/S4 (docs) — ACCEPTED.** ops README now states the VM-local anchor/gitignore invariant, the stop-the-timer-during-VNC-re-auth profile-lock caveat, and the fresh-profile first-run wait (Task 6 Step 3).
+- **S5/N1-N3 (nits) — noted.** `"forward" in args` threading verified against `run.ts`'s parser; line-number cites match on text (drift-tolerant).
