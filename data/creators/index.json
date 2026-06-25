@@ -13,18 +13,18 @@
   {
     "handle": "TheProfInvestor",
     "name": "The Prof Investor",
-    "totalCalls": 1945,
+    "totalCalls": 1946,
     "firstCalls": 277,
     "hitRate3m": 0.481651376146789,
     "hitRate3mN": 218,
     "avgExcess3m": 0.11423228089674976,
-    "generatedAt": "2026-06-24",
+    "generatedAt": "2026-06-25",
     "avatar": "/avatars/TheProfInvestor.jpg"
   },
   {
     "handle": "thelonginvest",
     "name": "The Long Invest",
-    "totalCalls": 2199,
+    "totalCalls": 2215,
     "firstCalls": 120,
     "hitRate3m": 0.425531914893617,
     "hitRate3mN": 94,

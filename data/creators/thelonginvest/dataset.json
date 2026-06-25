@@ -126816,10 +126816,586 @@
           "excess": -0.7730950665783909
         }
       }
+    },
+    {
+      "shortcode": "2069735500580077576",
+      "postDate": "2026-06-24",
+      "ticker": "ZETA",
+      "company": "Zeta Global",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ZETA why did Goldman spell $37 wrong? Wave 3 target is $37",
+      "summary": "The creator is bullish on ZETA, expecting a wave 3 target of $37, and suggests Goldman will upgrade at $28.",
+      "onScreenPrice": null,
+      "spark": [
+        18.84
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069758201583566866",
+      "postDate": "2026-06-24",
+      "ticker": "ZETA",
+      "company": "Zeta Global",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "$ZETA $28 is rookie numbers",
+      "summary": "The post claims that ZETA at $28 is undervalued and will go much higher, dismissing institutional actions as lagging indicators.",
+      "onScreenPrice": null,
+      "spark": [
+        18.84
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069868624777531738",
+      "postDate": "2026-06-24",
+      "ticker": "ZETA",
+      "company": "Zeta Global",
+      "isFirstCall": false,
+      "conviction": 0.7,
+      "quote": "The $ZETA partnership with $PLTR ... available on sale right now",
+      "summary": "The creator highlights ZETA's partnership with PLTR and suggests it is currently undervalued and a good buying opportunity.",
+      "onScreenPrice": null,
+      "spark": [
+        18.84
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069868624777531738",
+      "postDate": "2026-06-24",
+      "ticker": "PLTR",
+      "company": "Palantir",
+      "isFirstCall": false,
+      "conviction": 0.7,
+      "quote": "The $ZETA partnership with $PLTR ... available on sale right now",
+      "summary": "The creator mentions PLTR's partnership with ZETA and indicates it is a good buy at current prices.",
+      "onScreenPrice": null,
+      "spark": [
+        113.5
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069868624777531738",
+      "postDate": "2026-06-24",
+      "ticker": "GRRR",
+      "company": "Gorilla Technology",
+      "isFirstCall": false,
+      "conviction": 0.7,
+      "quote": "The $GRRR $2.5 Billion deal ... available on sale right now",
+      "summary": "The creator points out GRRR's $2.5 billion deal and suggests the stock is on sale, implying a bullish view.",
+      "onScreenPrice": null,
+      "spark": [
+        16.89
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069780342911664269",
+      "postDate": "2026-06-24",
+      "ticker": "ASTS",
+      "company": "AST SpaceMobile",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "$ASTS Support has now been tested. This is where the Bulls need to enter.",
+      "summary": "The post states that ASTS support has been tested and bulls need to enter, indicating a bullish entry point.",
+      "onScreenPrice": 70.39,
+      "spark": [
+        68.01
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "ASTS",
+      "company": "AST SpaceMobile",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ASTS at $69 is a buy",
+      "summary": "The creator recommends buying ASTS at $69, stating it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 69,
+      "spark": [
+        68.01
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "ZETA",
+      "company": "Zeta Global",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ZETA at $19 is a buy",
+      "summary": "The creator recommends buying ZETA at $19, noting it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 19,
+      "spark": [
+        18.84
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "ADUR",
+      "company": "Aduro Clean Technologies Inc.",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ADUR at $15 is a buy",
+      "summary": "The creator recommends buying ADUR at $15, stating it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 15,
+      "spark": [
+        14.05
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "ZVRA",
+      "company": "Zevra Therapeutics",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ZVRA at $13 is a buy",
+      "summary": "The creator recommends buying ZVRA at $13, noting it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 13,
+      "spark": [
+        13.08
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "BABA",
+      "company": "Alibaba Group Holding",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$BABA at $101 is a buy",
+      "summary": "The creator recommends buying BABA at $101, stating it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 101,
+      "spark": [
+        99.8
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "ETH-USD",
+      "company": "Ethereum USD",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ETH at $1600 is a buy",
+      "summary": "The creator recommends buying ETH at $1600, noting it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 1600,
+      "spark": [
+        1620
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "DCTH",
+      "company": "Delcath Systems",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$DCTH at $13 is a buy",
+      "summary": "The creator recommends buying DCTH at $13, stating it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 13,
+      "spark": [
+        12.24
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "GRRR",
+      "company": "Gorilla Technology",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$GRRR at $16 is a buy",
+      "summary": "The creator recommends buying GRRR at $16, noting it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 16,
+      "spark": [
+        16.89
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069804429604180241",
+      "postDate": "2026-06-24",
+      "ticker": "NVO",
+      "company": "Novo Nordisk A/S",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$NVO at $46 is a buy",
+      "summary": "The creator recommends buying NVO at $46, stating it is not following the US market and is not in a parabolic move, part of a protective portfolio.",
+      "onScreenPrice": 46,
+      "spark": [
+        47.41
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
+    },
+    {
+      "shortcode": "2069861133708636525",
+      "postDate": "2026-06-24",
+      "ticker": "ASTS",
+      "company": "AST SpaceMobile",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "$ASTS can 23 X from here, just to reach the lower end of the valuation of Starlink right now.",
+      "summary": "The post claims ASTS can increase 23x to match Starlink's lower valuation, implying significant upside.",
+      "onScreenPrice": null,
+      "spark": [
+        68.01
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0,
+          "excess": 0
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 2199,
+    "totalCalls": 2215,
     "uniqueTickers": 120,
     "hitRate": {
       "1m": 0.49122807017543857,
@@ -127433,15 +128009,15 @@
     "funnel": [
       {
         "label": "Tweets (12mo)",
-        "value": 8207
+        "value": 8236
       },
       {
         "label": "Named a stock",
-        "value": 5626
+        "value": 5657
       },
       {
         "label": "Bullish buy call",
-        "value": 2199
+        "value": 2215
       },
       {
         "label": "First call (unique ticker)",
