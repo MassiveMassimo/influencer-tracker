@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { rawDir, creatorDir } from "./config";
 import { saveAvatar } from "./avatar";
+import { knownShortcodes, forwardCaughtUp } from "./scrape-forward";
 
 (chromium as any).use(stealth());
 
@@ -89,7 +90,8 @@ async function seedCookies(ctx: any, handle: string): Promise<boolean> {
 // ISP relay); unset on the Mac so it scrapes direct. Playwright SOCKS5 must be no-auth.
 const IG_PROXY = process.env.IG_PROXY;
 
-export async function scrape(handle: string, months = 12, userDataDir = ".chrome-profile") {
+export async function scrape(handle: string, months = 12, opts: { forward?: boolean } = {}) {
+  const userDataDir = ".chrome-profile";
   const cutoff = Date.now() - months * 30 * 86400_000;
   const ctx = await (chromium as any).launchPersistentContext(userDataDir, {
     headless: false,
@@ -147,12 +149,25 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
   console.log(">>> Login detected. Harvesting reels...");
 
   await page.goto(`https://www.instagram.com/${handle}/reels/`, { waitUntil: "domcontentloaded" });
-  // Human-like scroll until we pass the cutoff date or stop finding new reels.
-  let stagnant = 0;
+  // Human-like scroll until we pass the cutoff, stop finding new reels, or (forward mode)
+  // catch up to already-harvested reels. Forward mode keeps the daily scroll footprint
+  // small — both a speed win and a lower bot signature at daily cadence.
+  const known = opts.forward ? knownShortcodes(handle) : new Set<string>();
+  const countNew = () => { let n = 0; for (const c of seen.keys()) if (!known.has(c)) n++; return n; };
+  let stagnant = 0, knownOnlyRounds = 0;
   while (stagnant < 4) {
     const before = seen.size;
+    const newBefore = opts.forward ? countNew() : 0;
     await page.mouse.wheel(0, 1200 + jitter(0, 800));
     await sleep(jitter(1500, 3500));
+    if (opts.forward) {
+      // A round that surfaced ≥1 not-yet-known reel resets the counter; otherwise it climbs.
+      knownOnlyRounds = countNew() > newBefore ? 0 : knownOnlyRounds + 1;
+      if (forwardCaughtUp({ knownOnlyRounds, patience: 3 })) {
+        console.log(`>>> forward scrape: caught up to known reels`);
+        break;
+      }
+    }
     const oldest = Math.min(...[...seen.values()].filter(Boolean), Date.now());
     if (oldest < cutoff) break;
     stagnant = seen.size === before ? stagnant + 1 : 0;

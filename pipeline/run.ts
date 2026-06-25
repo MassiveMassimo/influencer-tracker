@@ -24,7 +24,7 @@ const start = args.from ? stages.indexOf(args.from) : 0;
 for (const stage of stages.slice(start)) {
   console.log(`\n=== ${stage} ===`);
   if (stage === "scrape") {
-    const codes = await scrape(handle);
+    const codes = await scrape(handle, 12, { forward: "forward" in args });
     // Skip reels already transcribed: the transcript is the durable artifact, so
     // raw media is disposable and never re-fetched. Keeps re-runs of an existing
     // creator to new reels only.
