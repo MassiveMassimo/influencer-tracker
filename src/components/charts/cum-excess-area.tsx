@@ -37,7 +37,7 @@ export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
       aspectRatio="auto"
       className="h-[200px]"
       data={data}
-      margin={{ top: 16, right: 0, bottom: 24, left: 44 }}
+      margin={{ top: 16, right: 16, bottom: 24, left: 44 }}
     >
       {/* Break-even baseline (== SPY), mirrors the native dashed "0% · SPY" line. */}
       <Grid
