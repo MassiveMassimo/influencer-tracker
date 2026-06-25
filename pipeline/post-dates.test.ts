@@ -30,6 +30,6 @@ test("save then load round-trips; missing file -> {}", async () => {
     await savePostDates(handle, { ABC123: "2026-03-11" });
     expect(await loadPostDates(handle)).toEqual({ ABC123: "2026-03-11" });
   } finally {
-    rmSync(pjoin(DATA, "creators", handle), { recursive: true, force: true });
+    rmSync(pjoin(DATA, handle), { recursive: true, force: true });
   }
 });
