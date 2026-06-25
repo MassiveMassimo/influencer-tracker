@@ -826,6 +826,10 @@ build, so in dev (`USE_DB=0`) a creator whose `public/datasets/<h>.json` is miss
 surfacing as a route notFound on `/c/<h>`. Happens after a fresh checkout, a new creator,
 or refreshed `data/`. Fix locally with `bun run scripts/prebuild.ts`, or just
 `cp data/creators/<h>/dataset.json public/datasets/<h>.json` (skips the slow OG re-render).
+The `cp` shortcut only refreshes the per-creator dataset — `public/calls-index.json` (the
+cross-creator rail/sidebar + `/explore` source, also a prebuild artifact) stays stale, so
+list/rail surfaces still show old data until you regenerate it too (re-run `prebuild.ts`,
+or rebuild just that file via `buildCallsIndex` over the datasets).
 
 **OG images are pre-rendered to static PNGs at build** (#1). `prebuild.ts` renders
 home + every creator + every called ticker via `src/og/` (satori + `@resvg/resvg-js`)

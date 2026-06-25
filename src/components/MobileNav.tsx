@@ -11,6 +11,7 @@ import {
 import { type CreatorRef, type RailStock, RailContent } from "./WorkspaceRail";
 import { useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
+import { profileUrl, platformIcon } from "#/lib/platform.ts";
 
 // Mobile-only top bar (hidden at md+). Hosts the menu trigger and a contextual
 // mark: creator avatar + name on a creator page, a mono ticker badge + company
@@ -29,12 +30,8 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
   const getHalal = useHalalStatus(sym ? [sym] : []);
   // Platform icon + profile link for the creator mark (mirrors the desktop
   // CreatorHeading). platform is derived in __root from the calls-index.
-  const profileUrl =
-    creator?.platform === "instagram"
-      ? `https://www.instagram.com/${creator.handle}/`
-      : `https://x.com/${creator?.handle}`;
-  const platformIcon =
-    creator?.platform === "instagram" ? "icon-[mdi--instagram]" : "icon-[ri--twitter-x-fill]";
+  const creatorHref = creator ? profileUrl(creator.platform, creator.handle) : "";
+  const creatorIcon = platformIcon(creator?.platform);
 
   return (
     <div className="sticky top-0 z-30 flex items-center gap-2.5 border-b border-border/60 bg-background/80 px-3 py-2 backdrop-blur-md md:hidden">
@@ -65,7 +62,7 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
       <div className="flex min-w-0 items-center gap-2">
         {creator ? (
           <a
-            href={profileUrl}
+            href={creatorHref}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex min-w-0 items-center gap-2 no-underline"
@@ -80,7 +77,7 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
             <span className="flex min-w-0 flex-col">
               <span className="flex items-center gap-1.5">
                 <span className="truncate font-medium text-sm text-foreground leading-tight group-hover:underline group-hover:underline-offset-2">{creator.name}</span>
-                <span className={`${platformIcon} shrink-0 text-muted-foreground transition-colors group-hover:text-foreground`} aria-hidden />
+                <span className={`${creatorIcon} shrink-0 text-muted-foreground transition-colors group-hover:text-foreground`} aria-hidden />
               </span>
               <span className="truncate font-mono text-[10px] text-muted-foreground leading-tight">@{creator.handle}</span>
             </span>
