@@ -27,11 +27,17 @@ export function RailStocks({
   onNavigate,
   query = "",
   searchOpen = false,
+  activeIndex = -1,
+  setActiveIndex,
+  onSelect,
 }: {
   stocks: RailStock[];
   onNavigate?: () => void;
   query?: string;
   searchOpen?: boolean;
+  activeIndex?: number;
+  setActiveIndex?: (i: number) => void;
+  onSelect?: () => void;
 }) {
   // Spark/halal queries stay keyed to the displayed top-20 — search must never
   // grow this fan-out (the whole reason the rail list is capped).
@@ -75,16 +81,29 @@ export function RailStocks({
       {shown.length === 0 ? (
         <div className="px-2 py-1.5 text-muted-foreground/60 text-xs">No matches</div>
       ) : (
-      <ul className="flex flex-col gap-0.5">
-        {shown.map((s) => {
+      <ul id="rail-stocks-results" role="listbox" aria-label="Stocks" className="flex flex-col gap-0.5">
+        {shown.map((s, i) => {
           const spark = data?.[s.symbol];
+          const active = activeIndex === i;
           return (
-            <li key={s.symbol}>
+            <li
+              key={s.symbol}
+              id={`stocks-opt-${i}`}
+              role="option"
+              aria-selected={active}
+              onMouseEnter={() => setActiveIndex?.(i)}
+            >
               <Link
                 to="/t/$symbol/$creator"
                 params={{ symbol: s.symbol, creator: "all" }}
-                onClick={onNavigate}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 no-underline transition-colors hover:bg-foreground/[0.03]"
+                onClick={() => {
+                  onNavigate?.();
+                  onSelect?.();
+                }}
+                tabIndex={searchOpen ? -1 : undefined}
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 no-underline transition-colors hover:bg-foreground/[0.03] ${
+                  active ? "bg-foreground/[0.06]" : ""
+                }`}
                 activeProps={{ className: "flex w-full items-center gap-2 rounded-md px-2 py-1.5 bg-foreground/[0.06] no-underline" }}
               >
                 <div className="min-w-0 flex-1">
