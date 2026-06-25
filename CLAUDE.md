@@ -118,12 +118,25 @@ clean primary listing" type — e.g. a foreign ETF like VFV queried without its 
 suffix; a real primary-listed equity never returns it). Deny-list + **fail-open**: a
 genuinely-unknown `quoteType` is kept, since silently dropping a real call is worse
 than scoring a stray fund. The decision is injected into `assembleDataset` as a pure
-predicate (default keeps all, so it stays unit-testable). `quoteTypes()` caches each
-lookup to `data/symbol-types.json` (gitignored, regenerable; static per symbol so
+predicate (default keeps all, so it stays unit-testable). `symbolMeta()` caches each
+lookup to `data/symbol-meta.json` (gitignored, regenerable; static per symbol so
 scoring stays reproducible without committing it). This removes the index-ETF
 over-flag class deterministically — no human review, no false alarms; the residual
 extraction errors (false-negatives, ticker confusion between two equities) are an
 LLM-quality problem, not a scope one.
+
+**Company name is Yahoo-derived, not LLM-trusted.** The classifier's `company` field
+is optional and the LLM omitted it on ~50% of calls (and supplied drifting variants —
+"Nvidia"/"Nvidia Corp" — on the rest). So the same `quote()` that resolves `quoteType`
+in `symbolMeta()` also captures the display name (`displayName ?? longName ??
+shortName`), and `score.ts` injects a `nameFor(sym)` resolver into `assembleDataset`
+(mirrors the `isInScope` injection — pure/testable, defaults to undefined so unit tests
+keep the LLM company). Final `company = nameFor(sym) || c.company || ""` — Yahoo's name
+wins (authoritative + one stable name per ticker site-wide), LLM company is the
+fallback, ticker the last resort (UI renders ticker when blank). Display-only, not a
+scored figure, so restating it never touches return reproducibility. One-time
+`scripts/backfill-company.ts` applied the same resolver to already-committed datasets
+(reuses `symbolMeta`, no drift vs the pipeline); future `score` runs derive it directly.
 
 **LLM providers — provider matrix.** `classify(model, body, client)` and
 `readImage(model, path, client)` take the OpenAI-compatible POST fn as `client`,
