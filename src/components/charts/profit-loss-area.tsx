@@ -2,8 +2,9 @@
 
 import { curveLinear } from "@visx/curve";
 import { area as d3area, line as d3line } from "d3-shape";
-import { animate } from "motion/react";
+import { animate, useReducedMotion } from "motion/react";
 import { useEffect, useId, useMemo, useRef } from "react";
+import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
 import { EASE_OUT } from "#/lib/ease.ts";
 import { useChartStable, useYScale } from "./chart-context";
 
@@ -89,6 +90,11 @@ export function ProfitLossArea({
 }: ProfitLossAreaProps) {
   const { renderData, xScale, innerHeight, xAccessor } = useChartStable();
   const yScale = useYScale(yAxisId);
+  // Snap to the target shape under reduced motion or on touch — no morph/reveal.
+  // Mirrors candlestick.tsx / morph-area.tsx so the perf gate stays consistent.
+  const prefersReduced = useReducedMotion();
+  const isTouch = useTouchPrimary();
+  const reduce = prefersReduced === true || isTouch;
 
   const uid = useId();
   const fillId = `pnl-area-fill-${dataKey}-${uid}`;
@@ -149,8 +155,8 @@ export function ProfitLossArea({
     };
 
     const from = displayedRef.current;
-    if (!from) {
-      // First paint: draw straight to target (the shell's reveal wipes it in).
+    if (!from || reduce) {
+      // First paint, or reduced motion / touch: draw straight to target (no tween).
       paint(points);
       displayedRef.current = points;
       return;
@@ -171,7 +177,7 @@ export function ProfitLossArea({
       },
     });
     return () => controls.stop();
-  }, [points, areaGen]);
+  }, [points, areaGen, reduce]);
 
   return (
     <>
