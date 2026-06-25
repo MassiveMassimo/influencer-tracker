@@ -1,6 +1,6 @@
-import { lazy, Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDownIcon, CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
+import { ChevronDownIcon, CompassIcon, HomeIcon, LineChartIcon, SearchIcon, SettingsIcon, UsersIcon, X } from "lucide-react";
 import GitHubLink from "./GitHubLink";
 
 // Lazy so Base UI Dialog + vaul Drawer (only used by the settings modal) stay out
@@ -65,6 +65,20 @@ function useRailSections() {
   return { open, update, hydrated };
 }
 
+// Per-section search box state (one instance per accordion section). Substring
+// filtering over the already-loaded ≤20 rows — no index/library warranted at
+// this scale (mirrors creator-switcher / call-filter).
+function useSectionSearch() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const openSearch = useCallback(() => setOpen(true), []);
+  const close = useCallback(() => {
+    setOpen(false);
+    setQuery("");
+  }, []);
+  return { open, query, setQuery, openSearch, close };
+}
+
 // Shared rail body, rendered in the desktop aside and inside the mobile drawer.
 // onNavigate lets the drawer close itself when a link is followed.
 export function RailContent({
@@ -84,6 +98,19 @@ export function RailContent({
   const { reduceMotion } = usePreferences();
   const creatorsOpen = open.includes("creators");
   const stocksOpen = open.includes("stocks");
+
+  const creatorSearch = useSectionSearch();
+  const stockSearch = useSectionSearch();
+  // Opening a section's search also expands it, so the filtered rows are visible.
+  const expand = (key: string) => {
+    if (!open.includes(key)) update([...open, key]);
+  };
+  const cq = creatorSearch.query.trim().toLowerCase();
+  const shownCreators = cq
+    ? creators.filter(
+        (c) => c.handle.toLowerCase().includes(cq) || c.name.toLowerCase().includes(cq),
+      )
+    : creators;
   return (
     <div className="flex h-full flex-col bg-foreground/[0.02]">
       <Link
@@ -106,7 +133,7 @@ export function RailContent({
 
       {/* Primary nav — fixed above the collapsible sections (Changelog moved to
           Preferences). */}
-      <nav className="shrink-0 px-2 pt-3">
+      <nav className="shrink-0 px-2 py-3">
         <ul className="flex flex-col gap-0.5">
           <li>
             <Link
@@ -149,7 +176,7 @@ export function RailContent({
         multiple
         value={open}
         onValueChange={(v) => update(v as string[])}
-        className={`grid min-h-0 flex-1 ${
+        className={`grid content-start min-h-0 flex-1 ${
           hydrated && !reduceMotion
             ? "transition-[grid-template-rows] duration-200 ease-in-out"
             : ""
@@ -161,7 +188,17 @@ export function RailContent({
         }}
       >
         <AccordionPrimitive.Item value="creators" className="contents">
-          <RailSectionTrigger>Creators</RailSectionTrigger>
+          <RailSectionTrigger
+            label="Creators"
+            searchOpen={creatorSearch.open}
+            query={creatorSearch.query}
+            onQueryChange={creatorSearch.setQuery}
+            onOpenSearch={() => {
+              creatorSearch.openSearch();
+              expand("creators");
+            }}
+            onCloseSearch={creatorSearch.close}
+          />
           <div className="flex min-h-0 flex-col overflow-hidden">
             <ScrollArea
               className="min-h-0 flex-1"
@@ -173,8 +210,12 @@ export function RailContent({
                   <li className="px-2 py-1.5 text-muted-foreground/60 text-xs">
                     No creators yet
                   </li>
+                ) : shownCreators.length === 0 ? (
+                  <li className="px-2 py-1.5 text-muted-foreground/60 text-xs">
+                    No matches
+                  </li>
                 ) : (
-                  creators.map((c) => (
+                  shownCreators.map((c) => (
                     <li key={c.handle}>
                       <Link
                         to="/c/$handle"
@@ -206,9 +247,24 @@ export function RailContent({
         </AccordionPrimitive.Item>
 
         <AccordionPrimitive.Item value="stocks" className="contents">
-          <RailSectionTrigger>Stocks</RailSectionTrigger>
+          <RailSectionTrigger
+            label="Stocks"
+            searchOpen={stockSearch.open}
+            query={stockSearch.query}
+            onQueryChange={stockSearch.setQuery}
+            onOpenSearch={() => {
+              stockSearch.openSearch();
+              expand("stocks");
+            }}
+            onCloseSearch={stockSearch.close}
+          />
           <div className="flex min-h-0 flex-col overflow-hidden">
-            <RailStocks stocks={stocks} onNavigate={onNavigate} />
+            <RailStocks
+              stocks={stocks}
+              onNavigate={onNavigate}
+              query={stockSearch.query}
+              searchOpen={stockSearch.open}
+            />
           </div>
         </AccordionPrimitive.Item>
       </AccordionPrimitive.Root>
@@ -292,20 +348,73 @@ function BackendHealth({ creators }: { creators: CreatorRef[] }) {
   );
 }
 
-// Collapsible section header: a Base UI accordion trigger styled to match the
-// rail's mono section labels, with a chevron that rotates when the section opens.
-function RailSectionTrigger({ children }: { children: React.ReactNode }) {
+// Collapsible section header: a Base UI accordion trigger (chevron rotates on
+// open) with an inline search box. The label crossfades to a text input (blur +
+// opacity, the project's layer-swap convention); the chevron + right control
+// stay put. Input lives outside the Trigger button (invalid to nest) as an
+// absolute overlay; reduced motion is handled globally via data-reduce-motion.
+function RailSectionTrigger({
+  label,
+  searchOpen,
+  query,
+  onQueryChange,
+  onOpenSearch,
+  onCloseSearch,
+}: {
+  label: string;
+  searchOpen: boolean;
+  query: string;
+  onQueryChange: (v: string) => void;
+  onOpenSearch: () => void;
+  onCloseSearch: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (searchOpen) inputRef.current?.focus();
+  }, [searchOpen]);
   return (
-    <AccordionPrimitive.Header className="mt-4 px-2">
-      <AccordionPrimitive.Trigger className="flex w-full cursor-pointer items-center justify-between rounded-md py-1 outline-none focus-visible:ring-[3px] focus-visible:ring-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
-        <span className="font-mono text-[9px] text-muted-foreground/70 uppercase tracking-[0.25em]">
-          {children}
-        </span>
+    <AccordionPrimitive.Header className="relative flex items-center border-t border-border/60">
+      <AccordionPrimitive.Trigger className="flex flex-1 cursor-pointer items-center gap-1.5 px-3 py-3 outline-none transition-colors hover:bg-foreground/[0.03] focus-visible:-outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
         <ChevronDownIcon
-          className="size-3 shrink-0 text-muted-foreground/60 transition-transform duration-200"
+          className="size-3.5 shrink-0 text-muted-foreground/60 transition-transform duration-200"
           data-slot="accordion-indicator"
         />
+        <span
+          className={`font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.25em] transition-[opacity,filter] duration-200 ${
+            searchOpen ? "opacity-0 blur-[2px]" : "opacity-100 blur-0"
+          }`}
+        >
+          {label}
+        </span>
       </AccordionPrimitive.Trigger>
+
+      {/* Search input — crossfades over the label; chevron + right control stay
+          put. Always mounted for the transition; inert when closed. */}
+      <input
+        ref={inputRef}
+        type="text"
+        value={query}
+        onChange={(e) => onQueryChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") onCloseSearch();
+        }}
+        placeholder={`Search ${label.toLowerCase()}…`}
+        tabIndex={searchOpen ? 0 : -1}
+        aria-hidden={!searchOpen}
+        className={`absolute inset-y-0 left-9 right-10 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/50 transition-[opacity,filter] duration-200 ${
+          searchOpen ? "opacity-100 blur-0" : "pointer-events-none opacity-0 blur-[2px]"
+        }`}
+      />
+
+      {/* Right control: search opens the box, × closes + clears it. */}
+      <button
+        type="button"
+        onClick={() => (searchOpen ? onCloseSearch() : onOpenSearch())}
+        aria-label={searchOpen ? `Clear ${label} search` : `Search ${label}`}
+        className="grid shrink-0 place-items-center px-3 py-3 text-muted-foreground/60 transition-colors hover:text-foreground"
+      >
+        {searchOpen ? <X className="size-3.5" /> : <SearchIcon className="size-3.5" />}
+      </button>
     </AccordionPrimitive.Header>
   );
 }

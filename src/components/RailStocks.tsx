@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "./ui/scroll-area";
@@ -5,7 +6,8 @@ import { Sparkline } from "./Sparkline";
 import { sparks1dQuery } from "#/lib/spark-query.ts";
 import { useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalBadge } from "#/components/halal/halal-badge.tsx";
-import type { RailStock } from "#/lib/rail-stocks.ts";
+import { fetchCallsIndex } from "#/lib/data.ts";
+import { topStocksByLastCall, type RailStock } from "#/lib/rail-stocks.ts";
 
 function pctChip(changePct: number | null) {
   if (changePct == null) return <span className="font-mono text-[10px] text-muted-foreground tabular-nums">—</span>;
@@ -20,15 +22,49 @@ function pctChip(changePct: number | null) {
 // Rail Stocks list: static rows from the loader; 1D sparklines lazy-fetched in one
 // batched query (does not block SSR). Own lina ScrollArea so it scrolls
 // independently of the Creators list.
-export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavigate?: () => void }) {
+export function RailStocks({
+  stocks,
+  onNavigate,
+  query = "",
+  searchOpen = false,
+}: {
+  stocks: RailStock[];
+  onNavigate?: () => void;
+  query?: string;
+  searchOpen?: boolean;
+}) {
+  // Spark/halal queries stay keyed to the displayed top-20 — search must never
+  // grow this fan-out (the whole reason the rail list is capped).
   const symbols = stocks.map((s) => s.symbol);
   const { data } = useQuery(sparks1dQuery(symbols));
   // Opt-in halal badge (renders null when the toggle is off / symbol unrated).
   const getHalal = useHalalStatus(symbols);
 
+  // Full ticker universe for search — lazily fetched only once search is opened,
+  // reusing the CDN-cached calls-index /explore already loads. No added payload
+  // on a normal page view.
+  const { data: fullIndex } = useQuery({
+    queryKey: ["rail-calls-index"],
+    queryFn: fetchCallsIndex,
+    staleTime: 60 * 60 * 1000,
+    enabled: searchOpen,
+  });
+  const allStocks = useMemo(
+    () => (fullIndex ? topStocksByLastCall(fullIndex, Number.POSITIVE_INFINITY) : stocks),
+    [fullIndex, stocks],
+  );
+
   if (stocks.length === 0) {
     return <div className="px-2 py-1.5 text-muted-foreground/60 text-xs">No stocks yet</div>;
   }
+
+  const q = query.trim().toLowerCase();
+  // Default view = top-20; searching filters the full universe (capped to 50 rows).
+  const shown = q
+    ? allStocks
+        .filter((s) => s.symbol.toLowerCase().includes(q) || s.company.toLowerCase().includes(q))
+        .slice(0, 50)
+    : stocks;
 
   return (
     <ScrollArea
@@ -36,8 +72,11 @@ export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavi
       viewportClassName="px-2 pb-2"
       scrollbarClassName="w-1.5"
     >
+      {shown.length === 0 ? (
+        <div className="px-2 py-1.5 text-muted-foreground/60 text-xs">No matches</div>
+      ) : (
       <ul className="flex flex-col gap-0.5">
-        {stocks.map((s) => {
+        {shown.map((s) => {
           const spark = data?.[s.symbol];
           return (
             <li key={s.symbol}>
@@ -57,6 +96,10 @@ export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavi
                 </div>
                 {spark ? (
                   <Sparkline closes={spark.closes} excess={spark.changePct} width={48} height={18} />
+                ) : q ? (
+                  // Search hits outside the top-20 have no prefetched spark — show
+                  // nothing rather than a pulse that would never resolve.
+                  <span className="block h-[18px] w-12" />
                 ) : (
                   <span className="block h-[18px] w-12 animate-pulse rounded bg-foreground/[0.06]" />
                 )}
@@ -66,6 +109,7 @@ export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavi
           );
         })}
       </ul>
+      )}
     </ScrollArea>
   );
 }
