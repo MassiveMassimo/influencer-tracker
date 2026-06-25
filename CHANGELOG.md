@@ -3,6 +3,11 @@
 What's new on Signal Tracker — new features, improvements, and fixes. Entries are
 newest first. Spotted something wrong? Every call has a "Report incorrect" button.
 
+## 2026-06-25
+
+### Improved
+- **Search creators and stocks from the sidebar** — The sidebar's Creators and Stocks lists are now searchable across the entire database, not just the names shown. Type a handle, name, or ticker to jump straight to anyone tracked.
+
 ## 2026-06-24
 
 ### Improved
