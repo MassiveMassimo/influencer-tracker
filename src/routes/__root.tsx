@@ -11,6 +11,7 @@ import { WorkspaceRail } from '../components/WorkspaceRail'
 import { MobileNav } from '../components/MobileNav'
 import { listCreators, fetchCallsIndex } from '../lib/data'
 import { topStocksByLastCall } from '../lib/rail-stocks'
+import { platformOf, type Platform } from '../lib/platform'
 import { PreferencesProvider } from '#/lib/preferences.tsx'
 import { HapticsProvider } from '#/lib/haptics.tsx'
 import { Analytics } from '#/lib/analytics.tsx'
@@ -27,10 +28,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // Platform is a per-creator constant (a handle is scraped from one source);
     // derive it from the first indexed shortcode (numeric ⇒ X tweet id, else IG)
     // so MobileNav can show the platform icon + profile link without the dataset.
-    const platformByHandle = new Map<string, "x" | "instagram">()
+    const platformByHandle = new Map<string, Platform>()
     for (const e of index) {
       if (!platformByHandle.has(e.handle)) {
-        platformByHandle.set(e.handle, /^\d+$/.test(e.shortcode) ? "x" : "instagram")
+        platformByHandle.set(e.handle, platformOf(e.shortcode))
       }
     }
     const creatorsWithPlatform = creators.map((c) => ({

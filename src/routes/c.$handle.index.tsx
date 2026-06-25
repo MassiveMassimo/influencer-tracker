@@ -29,6 +29,11 @@ import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { type HalalInfo } from "#/lib/halal/types.ts";
 import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
 import { TocMinimap } from "#/components/toc-minimap.tsx";
+import {
+  platformOf,
+  profileUrl as profileLink,
+  platformIcon as platformIconClass,
+} from "#/lib/platform.ts";
 
 const CALLS_PER_PAGE = 25;
 
@@ -205,26 +210,21 @@ function Overview() {
   ];
 
   // Condensed stats that ride into the sticky bar as the overview row scrolls
-  // away. Static formatting (decorative, aria-hidden — the live tiles below own
-  // NumberFlow). Same five metrics as the tiles, one primary value each.
-  const statBar: { label: string; text: string; tone?: number }[] = [
-    { label: "Total calls", text: formatNum(sc.totalCalls, INT_FMT) },
-    { label: "Unique tickers", text: formatNum(sc.uniqueTickers, INT_FMT) },
-    { label: "Calls / week", text: formatNum(sc.callsPerWeek, DEC1_FMT) },
-    { label: "Hit rate 3m", text: formatNum(sc.hitRate["3m"], PCT_FMT), tone: sc.hitRate["3m"] - 0.5 },
-    { label: "Avg excess 3m", text: formatNum(sc.avgExcess["3m"], SIGNED_PCT_FMT), tone: sc.avgExcess["3m"] },
-  ];
+  // away — derived from `tiles` (single source) so the two can't drift. Takes
+  // each tile's first numeric segment; decorative/aria-hidden (the live tiles
+  // below own NumberFlow).
+  const statBar = tiles.map((t) => {
+    const seg = t.segments.find((s): s is Extract<StatSegment, { kind: "num" }> => s.kind === "num")!;
+    return { label: t.label, text: formatNum(seg.value, seg.format), tone: t.tone };
+  });
 
   const [statsRef, statsInView] = useInView<HTMLElement>();
 
   const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
 
-  // Platform tell mirrors proof(): numeric shortcode ⇒ X tweet id, else IG reel.
-  const isX = /^\d+$/.test(String(ds.calls[0]?.shortcode ?? ""));
-  const profileUrl = isX
-    ? `https://x.com/${ds.creator.handle}`
-    : `https://www.instagram.com/${ds.creator.handle}/`;
-  const platformIcon = isX ? "icon-[ri--twitter-x-fill]" : "icon-[mdi--instagram]";
+  const platform = platformOf(String(ds.calls[0]?.shortcode ?? ""));
+  const profileUrl = profileLink(platform, ds.creator.handle);
+  const platformIcon = platformIconClass(platform);
 
   return (
     <main className="t-creator-main space-y-6 py-8 md:py-10">

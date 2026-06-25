@@ -926,6 +926,7 @@ number-flow-group {
     transform: translateY(-100%);
   }
   to {
+    /* 49px = MobileNav height (py-2 + border): the bar rests flush below it. */
     transform: translateY(49px);
   }
 }

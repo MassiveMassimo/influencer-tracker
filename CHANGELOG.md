@@ -3,6 +3,20 @@
 What's new on Signal Tracker — new features, improvements, and fixes. Entries are
 newest first. Spotted something wrong? Every call has a "Report incorrect" button.
 
+## 2026-06-24
+
+### Improved
+- **Smoother creator and stock switching** — Switching between creators or tickers on a stock page now animates in place instead of redrawing abruptly.
+- **Compare creators side by side** — The stock page now lines up each creator's calls on one grid, so you can see who called a ticker and how those calls did against each other.
+- **Proof on the Explore page** — Tap any row on Explore to open the original post — reel or tweet — right there, the same way you already can on a stock page. You can also paste a post's link into search to jump straight to its call.
+- **Stats that follow you** — A creator's hit rate and average return now stay pinned in the header as you scroll past the top of their page.
+- **Circle-blur theme switch** — Flipping between light and dark now sweeps across the screen with a soft blur instead of snapping.
+
+### Fixed
+- **See other tickers from the same post** — When a post pitches several stocks, the proof view now links the sibling tickers so you can hop between them.
+- **Sort arrows on the leaderboard** — Sortable columns now show which way they're sorted.
+- **Single-caller stock pages** — A ticker only one creator has called now opens straight to that creator's view instead of an empty "all creators" mode.
+
 ## 2026-06-22
 
 ### Improved
