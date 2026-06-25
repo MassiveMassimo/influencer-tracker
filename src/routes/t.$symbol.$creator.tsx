@@ -6,6 +6,7 @@ import { HalalPanel } from "#/components/halal/halal-panel.tsx";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
+import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
 import { fetchCallsIndex, fetchDataset, fetchPrices, listCreators } from "../lib/data";
 import { summarizeTicker } from "../lib/call-filter";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
@@ -177,15 +178,20 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
   lastClose: number | null; tfChange: number | null; tfDelta: number | null; usingFallback: boolean;
 }) {
   const ready = useNumberFlowReady();
+  // Touch devices render the plain static text instead of NumberFlow — no enter
+  // spin and, more importantly, no per-frame roll while scrubbing the crosshair
+  // (the price still tracks the crosshair as text).
+  const isTouch = useTouchPrimary();
+  const useNumber = ready && !isTouch;
   // Spin in from 0 once the element is registered (mirrors the creator-page
   // StatTile enter). rAF defers the flip a frame past `ready` so NumberFlow
   // renders value=0 first, then animates to the real figure.
   const [revealed, setRevealed] = useState(false);
   useEffect(() => {
-    if (!ready) return;
+    if (!useNumber) return;
     const id = requestAnimationFrame(() => setRevealed(true));
     return () => cancelAnimationFrame(id);
-  }, [ready]);
+  }, [useNumber]);
   if (lastClose == null) return null;
   const priceFormat: Format = { style: "currency", currency: "USD", minimumFractionDigits: lastClose >= 1 ? 2 : 4, maximumFractionDigits: lastClose >= 1 ? 2 : 4 };
   const deltaFormat: Format = { style: "currency", currency: "USD", signDisplay: "exceptZero", minimumFractionDigits: lastClose >= 1 ? 2 : 4, maximumFractionDigits: lastClose >= 1 ? 2 : 4 };
@@ -194,14 +200,14 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
     <div className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
       <NumberFlowGroup>
         <span className="font-heading text-2xl tabular-nums">
-          {ready ? <NumberFlow format={priceFormat} value={revealed ? lastClose : 0} willChange /> : priceFmt(lastClose)}
+          {useNumber ? <NumberFlow format={priceFormat} value={revealed ? lastClose : 0} willChange /> : priceFmt(lastClose)}
         </span>
         {/* transition-colors: the tone flips rose<->emerald on a zero-cross while
             NumberFlow glyphs are mid-spin on their own will-change layers; an
             instant color swap leaves random glyphs holding a stale (old-tone)
             paint. Animating color repaints the whole subtree each frame. */}
         <span className={`font-mono text-sm tabular-nums transition-colors ${toneClass(tfChange)}`}>
-          {tfChange == null || tfDelta == null ? "—" : ready ? (
+          {tfChange == null || tfDelta == null ? "—" : useNumber ? (
             <><NumberFlow format={deltaFormat} value={revealed ? tfDelta : 0} willChange />{" ("}<NumberFlow format={changeFormat} value={revealed ? tfChange : 0} willChange />{")"}</>
           ) : `${signedCurrency(tfDelta)} (${signed(tfChange)})`}
         </span>
