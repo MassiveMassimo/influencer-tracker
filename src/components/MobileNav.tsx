@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LineChartIcon, MenuIcon } from "lucide-react";
-import { useParams } from "@tanstack/react-router";
+import { useMatch, useParams } from "@tanstack/react-router";
 import {
   Drawer,
   DrawerContent,
@@ -24,7 +24,11 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
   const { handle, symbol } = useParams({ strict: false }) as { handle?: string; symbol?: string };
   const creator = handle ? creators.find((c) => c.handle === handle) : undefined;
   const sym = symbol?.toUpperCase();
-  const stock = !creator && sym ? stocks.find((s) => s.symbol === sym) : undefined;
+  // Company name comes from the ticker route's loader (Yahoo-derived, same source
+  // as the desktop heading) — not the rail `stocks` list, which is capped at the
+  // top 20 by last-call and silently drops the company for every other ticker.
+  const tickerMatch = useMatch({ from: "/t/$symbol/$creator", shouldThrow: false });
+  const company = tickerMatch?.loaderData?.company;
   // Halal badge between the symbol and company (opt-in; renders nothing when the
   // toggle is off or the symbol is unrated). Reads the route loader's prefetch.
   const getHalal = useHalalStatus(sym ? [sym] : []);
@@ -88,8 +92,8 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
               {sym}
             </span>
             <HalalIndicator info={getHalal(sym)} />
-            {stock?.company && (
-              <span className="truncate text-sm text-muted-foreground">{stock.company}</span>
+            {company && (
+              <span className="truncate text-sm text-muted-foreground">{company}</span>
             )}
           </>
         ) : (
