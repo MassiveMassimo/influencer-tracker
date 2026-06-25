@@ -67,17 +67,23 @@ function useRailSections() {
 }
 
 // Per-section search box state (one instance per accordion section). Substring
-// filtering over the already-loaded ≤20 rows — no index/library warranted at
-// this scale (mirrors creator-switcher / call-filter).
+// filtering; `activeIndex` is the combobox active-descendant (-1 = none, focus
+// rests on the input). Typing or closing resets the active option.
 function useSectionSearch() {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQueryState] = useState("");
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const setQuery = useCallback((v: string) => {
+    setQueryState(v);
+    setActiveIndex(-1);
+  }, []);
   const openSearch = useCallback(() => setOpen(true), []);
   const close = useCallback(() => {
     setOpen(false);
-    setQuery("");
+    setQueryState("");
+    setActiveIndex(-1);
   }, []);
-  return { open, query, setQuery, openSearch, close };
+  return { open, query, setQuery, activeIndex, setActiveIndex, openSearch, close };
 }
 
 // Shared rail body, rendered in the desktop aside and inside the mobile drawer.
@@ -199,6 +205,8 @@ export function RailContent({
               expand("creators");
             }}
             onCloseSearch={creatorSearch.close}
+            activeIndex={creatorSearch.activeIndex}
+            setActiveIndex={creatorSearch.setActiveIndex}
           />
           <div data-rail-section="creators" className="flex min-h-0 flex-col overflow-hidden">
             <ScrollArea
@@ -206,7 +214,12 @@ export function RailContent({
               viewportClassName="px-2 pb-2"
               scrollbarClassName="w-1.5"
             >
-              <ul className="flex flex-col gap-0.5">
+              <ul
+                id="rail-creators-results"
+                role="listbox"
+                aria-label="Creators"
+                className="flex flex-col gap-0.5"
+              >
                 {creators.length === 0 ? (
                   <li className="px-2 py-1.5 text-muted-foreground/60 text-xs">
                     No creators yet
@@ -216,31 +229,48 @@ export function RailContent({
                     No matches
                   </li>
                 ) : (
-                  shownCreators.map((c) => (
-                    <li key={c.handle}>
-                      <Link
-                        to="/c/$handle"
-                        params={{ handle: c.handle }}
-                        onClick={onNavigate}
-                        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
-                        activeProps={{
-                          className:
-                            "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
-                        }}
+                  shownCreators.map((c, i) => {
+                    const active = creatorSearch.activeIndex === i;
+                    return (
+                      <li
+                        key={c.handle}
+                        id={`creators-opt-${i}`}
+                        role="option"
+                        aria-selected={active}
+                        onMouseEnter={() => creatorSearch.setActiveIndex(i)}
                       >
-                        {c.avatar ? (
-                          <img
-                            src={c.avatar}
-                            alt=""
-                            className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border/60"
-                          />
-                        ) : (
-                          <UsersIcon className="size-3.5 opacity-60" />
-                        )}
-                        <span className="truncate">@{c.handle}</span>
-                      </Link>
-                    </li>
-                  ))
+                        <Link
+                          to="/c/$handle"
+                          params={{ handle: c.handle }}
+                          onClick={() => {
+                            onNavigate?.();
+                            creatorSearch.close();
+                          }}
+                          tabIndex={creatorSearch.open ? -1 : undefined}
+                          className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground ${
+                            active
+                              ? "bg-foreground/[0.06] text-foreground"
+                              : "text-muted-foreground"
+                          }`}
+                          activeProps={{
+                            className:
+                              "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
+                          }}
+                        >
+                          {c.avatar ? (
+                            <img
+                              src={c.avatar}
+                              alt=""
+                              className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                            />
+                          ) : (
+                            <UsersIcon className="size-3.5 opacity-60" />
+                          )}
+                          <span className="truncate">@{c.handle}</span>
+                        </Link>
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             </ScrollArea>
@@ -258,6 +288,8 @@ export function RailContent({
               expand("stocks");
             }}
             onCloseSearch={stockSearch.close}
+            activeIndex={stockSearch.activeIndex}
+            setActiveIndex={stockSearch.setActiveIndex}
           />
           <div data-rail-section="stocks" className="flex min-h-0 flex-col overflow-hidden">
             <RailStocks
@@ -265,6 +297,9 @@ export function RailContent({
               onNavigate={onNavigate}
               query={stockSearch.query}
               searchOpen={stockSearch.open}
+              activeIndex={stockSearch.activeIndex}
+              setActiveIndex={stockSearch.setActiveIndex}
+              onSelect={stockSearch.close}
             />
           </div>
         </AccordionPrimitive.Item>
@@ -361,6 +396,8 @@ function RailSectionTrigger({
   onQueryChange,
   onOpenSearch,
   onCloseSearch,
+  activeIndex,
+  setActiveIndex,
 }: {
   label: string;
   searchOpen: boolean;
@@ -368,9 +405,14 @@ function RailSectionTrigger({
   onQueryChange: (v: string) => void;
   onOpenSearch: () => void;
   onCloseSearch: () => void;
+  activeIndex: number;
+  setActiveIndex: (i: number) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const region = label.toLowerCase();
+  const listId = `rail-${region}-results`;
+  const optionId = (i: number) => `${region}-opt-${i}`;
+  const activeDescendant = searchOpen && activeIndex >= 0 ? optionId(activeIndex) : undefined;
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
@@ -386,6 +428,54 @@ function RailSectionTrigger({
     document.addEventListener("pointerdown", onDown);
     return () => document.removeEventListener("pointerdown", onDown);
   }, [searchOpen, region, onCloseSearch]);
+  // Keep the active option scrolled into view as it changes.
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    document.getElementById(optionId(activeIndex))?.scrollIntoView({ block: "nearest" });
+  });
+  const optionCount = () =>
+    document.querySelectorAll(`[data-rail-section="${region}"] [role="option"]`).length;
+  // Combobox keyboard model: focus stays on the input, arrows move the active
+  // descendant, Enter follows it, Escape closes. (Active option is highlighted
+  // via aria-selected on the rows; the input advertises it via aria-activedescendant.)
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    switch (e.key) {
+      case "ArrowDown": {
+        e.preventDefault();
+        const n = optionCount();
+        if (n) setActiveIndex(Math.min(activeIndex + 1, n - 1));
+        break;
+      }
+      case "ArrowUp":
+        e.preventDefault();
+        setActiveIndex(activeIndex <= 0 ? -1 : activeIndex - 1);
+        break;
+      case "Home":
+        if (optionCount()) {
+          e.preventDefault();
+          setActiveIndex(0);
+        }
+        break;
+      case "End": {
+        const n = optionCount();
+        if (n) {
+          e.preventDefault();
+          setActiveIndex(n - 1);
+        }
+        break;
+      }
+      case "Enter": {
+        e.preventDefault();
+        const idx = activeIndex >= 0 ? activeIndex : 0;
+        document.getElementById(optionId(idx))?.querySelector("a")?.click();
+        break;
+      }
+      case "Escape":
+        e.preventDefault();
+        onCloseSearch();
+        break;
+    }
+  };
   return (
     <AccordionPrimitive.Header
       data-rail-section={region}
@@ -410,14 +500,19 @@ function RailSectionTrigger({
       <input
         ref={inputRef}
         type="text"
+        role="combobox"
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onCloseSearch();
-        }}
+        onKeyDown={onKeyDown}
         placeholder={`Search ${label.toLowerCase()}…`}
         tabIndex={searchOpen ? 0 : -1}
         aria-hidden={!searchOpen}
+        aria-label={`Search ${label.toLowerCase()}`}
+        aria-expanded={searchOpen}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={activeDescendant}
+        autoComplete="off"
         className={`absolute inset-y-0 left-9 right-10 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/50 transition-[opacity,filter] duration-200 ${
           searchOpen ? "opacity-100 blur-0" : "pointer-events-none opacity-0 blur-[2px]"
         }`}
