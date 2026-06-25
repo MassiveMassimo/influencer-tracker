@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
 import { chartCssVars, useChart, useChartHover } from "../chart-context";
 import { type ChartMarker, MarkerGroup } from "./marker-group";
 
@@ -109,6 +110,11 @@ export function ChartMarkers({
     setTooltipData,
   } = useChart();
 
+  // Touch devices skip the entrance stagger — markers mount in place. The
+  // left→right cascade is the pricier per-frame work on slow mobile GPUs.
+  const isTouch = useTouchPrimary();
+  const animateMarkers = animate && !isTouch;
+
   // Markers under the cursor — drives the anchored hover card (quote etc.).
   const [active, setActive] = useState<{ markers: ChartMarker[]; x: number } | null>(null);
   // Freeze the last shown content so the card can animate out after `active`
@@ -190,11 +196,11 @@ export function ChartMarkers({
           const isActive = tooltipData ? hoveredDateKey === dateKey : undefined;
 
           // Stagger only — no base wait for the chart draw, leftmost first.
-          const markerDelay = animate ? groupIndex * staggerStep : 0;
+          const markerDelay = animateMarkers ? groupIndex * staggerStep : 0;
 
           return (
             <MarkerGroup
-              animate={animate}
+              animate={animateMarkers}
               animationDelay={markerDelay}
               containerRef={containerRef}
               iconFill={iconFill}

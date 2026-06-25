@@ -2,6 +2,7 @@
 
 import { motion, useSpring } from "motion/react";
 import { memo, useMemo } from "react";
+import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
 import {
   buildSegments,
   segmentIndexFor,
@@ -117,11 +118,15 @@ const DateTickerInner = memo(function DateTickerInner({
 });
 
 export function DateTicker({ currentIndex, labels, visible }: DateTickerProps) {
+  // Touch scrubbing rolls the spring stacks every frame; on coarse-pointer
+  // devices fall back to the static pill (text-only update, no spring).
+  const isTouch = useTouchPrimary();
+
   if (!visible || labels.length === 0) {
     return null;
   }
 
-  if (labels.length > COMPACT_TICKER_THRESHOLD) {
+  if (isTouch || labels.length > COMPACT_TICKER_THRESHOLD) {
     return <DateTickerCompact currentIndex={currentIndex} labels={labels} />;
   }
 

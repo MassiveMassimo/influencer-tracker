@@ -587,9 +587,8 @@ number-flow-group {
   gap: 3px;
   transition:
     opacity var(--cs-dur) var(--cs-ease),
-    transform var(--cs-dur) var(--cs-ease),
-    filter var(--cs-dur) var(--cs-ease);
-  will-change: opacity, transform, filter;
+    transform var(--cs-dur) var(--cs-ease);
+  will-change: opacity, transform;
 }
 .cs-layer-combobox {
   position: absolute;
@@ -613,14 +612,12 @@ number-flow-group {
 .cs-layer-combobox {
   opacity: 0;
   transform: scale(0.96);
-  filter: blur(4px);
   transform-origin: left center;
   pointer-events: none;
 }
 .cs-layer-tabs {
   opacity: 1;
   transform: scale(1);
-  filter: blur(0);
   /* Origin on the base rule so the collapse-back is symmetric with the open
      (right-anchored scale in both directions, not center on close). */
   transform-origin: right center;
@@ -628,13 +625,11 @@ number-flow-group {
 .cs-root[data-open] .cs-layer-tabs {
   opacity: 0;
   transform: scale(0.96);
-  filter: blur(4px);
   pointer-events: none;
 }
 .cs-root[data-open] .cs-layer-combobox {
   opacity: 1;
   transform: scale(1);
-  filter: blur(0);
   pointer-events: auto;
 }
 /* Input mode mirrors the .cs-panel dropdown: the pill becomes the card surface
