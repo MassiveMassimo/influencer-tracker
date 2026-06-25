@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import { rawDir, creatorDir } from "./config";
 import { saveAvatar } from "./avatar";
 import { knownShortcodes, forwardCaughtUp } from "./scrape-forward";
+import { loadPostDates, savePostDates, mergePostDates, formatTakenAt } from "./post-dates";
 
 (chromium as any).use(stealth());
 
@@ -184,6 +185,17 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   const recent = [...seen.entries()].filter(([, t]) => !t || t >= cutoff).map(([code]) => code);
   await mkdir(rawDir(handle), { recursive: true });
   await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(recent, null, 2));
+
+  // Persist harvested GraphQL dates to the durable store (the source of truth for extract's
+  // anchor). Every seen reel with a positive taken_at; existing-wins so an already-committed
+  // date is frozen. This is the primary writer — info.json is only a fallback in extract.
+  const harvested: Record<string, string> = {};
+  for (const [code, ms] of seen.entries()) {
+    const d = formatTakenAt(ms);
+    if (d) harvested[code] = d;
+  }
+  await savePostDates(handle, mergePostDates(await loadPostDates(handle), harvested));
+
   return recent;
 }
 
