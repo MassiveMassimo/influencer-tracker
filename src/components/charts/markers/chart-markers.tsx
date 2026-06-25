@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
+import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
 import { chartCssVars, useChart, useChartHover } from "../chart-context";
 import { type ChartMarker, MarkerGroup } from "./marker-group";
 
@@ -112,7 +112,7 @@ export function ChartMarkers({
 
   // Touch devices skip the entrance stagger — markers mount in place. The
   // left→right cascade is the pricier per-frame work on slow mobile GPUs.
-  const isTouch = useTouchPrimary();
+  const isTouch = useTouchPrimaryEager();
   const animateMarkers = animate && !isTouch;
 
   // Markers under the cursor — drives the anchored hover card (quote etc.).

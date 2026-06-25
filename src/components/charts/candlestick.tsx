@@ -6,7 +6,7 @@ import { memo, useMemo } from "react";
 import { useChart } from "./chart-context";
 import { useChartLegendHover } from "./chart-legend-hover";
 import { transitionWithDelay } from "./motion-utils";
-import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
+import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
 import { EASE_OUT } from "#/lib/ease.ts";
 
 // Steady-state candles morph their geometry (lengthen/shorten, move up/down)
@@ -438,7 +438,7 @@ export function Candlestick({
   // to this chart. Touch devices also snap (no reveal sweep / candle morph on a
   // timeframe switch) — local patch, re-apply after a bklit resync.
   const prefersReduced = useReducedMotion();
-  const isTouch = useTouchPrimary();
+  const isTouch = useTouchPrimaryEager();
   const reduce = prefersReduced === true || isTouch;
 
   const candleWidth = Math.min(bandWidth ?? columnWidth * 0.8, columnWidth);

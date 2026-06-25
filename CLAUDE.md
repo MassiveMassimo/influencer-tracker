@@ -751,11 +751,15 @@ nav + `RailStocks`) pass `scrollbarClassName="w-1.5"` for a thinner 6px bar (def
   sweep + the `ChartLoadingLabel` overlay, no bklit-core change, so it survives resyncs.
   The ticker route's `ChartSkeleton`/`CandleSkeleton` and the creator-overview funnel
   Suspense fallback use these sweep loaders (not plain `animate-pulse` boxes). Finally,
-  the **touch-snap perf gate**: `candlestick.tsx` and `morph-area.tsx` fold
-  `useTouchPrimary()` into their `reduce` flag (`reduce = prefersReduced === true ||
+  the **touch-snap perf gate**: `candlestick.tsx` / `morph-area.tsx` / `profit-loss-area.tsx`
+  fold `useTouchPrimaryEager()` into their `reduce` flag (`reduce = prefersReduced === true ||
   isTouch`), so coarse-pointer devices skip the candle reveal sweep + candle/area morph
-  on a timeframe switch (treated as reduced motion). Re-apply after a bklit resync — the
-  registry ships only `useReducedMotion()`.
+  (both initial mount and timeframe switch; treated as reduced motion). The **eager** hook
+  variant (not the SSR-safe `useTouchPrimary`) is load-bearing: these charts are
+  `React.lazy`/client-only, so they must resolve `pointer: coarse` synchronously on the
+  first client render — the SSR-safe hook is `false` until a post-paint effect, which let
+  the enter animation fire for one frame before the gate engaged. Re-apply after a bklit
+  resync — the registry ships only `useReducedMotion()`.
 
 **Ticker headline tracks the crosshair.** Scrubbing the candlestick lifts the hovered
 candle's close to the header price + colored delta (`headlineReadout` in

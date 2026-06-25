@@ -4,7 +4,7 @@ import { curveLinear } from "@visx/curve";
 import { area as d3area, line as d3line } from "d3-shape";
 import { animate, useReducedMotion } from "motion/react";
 import { useEffect, useId, useMemo, useRef } from "react";
-import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
+import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
 import { EASE_OUT } from "#/lib/ease.ts";
 import { useChartStable, useYScale } from "./chart-context";
 
@@ -93,7 +93,7 @@ export function ProfitLossArea({
   // Snap to the target shape under reduced motion or on touch — no morph/reveal.
   // Mirrors candlestick.tsx / morph-area.tsx so the perf gate stays consistent.
   const prefersReduced = useReducedMotion();
-  const isTouch = useTouchPrimary();
+  const isTouch = useTouchPrimaryEager();
   const reduce = prefersReduced === true || isTouch;
 
   const uid = useId();
