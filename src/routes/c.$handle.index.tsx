@@ -4,6 +4,7 @@ import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
+import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
 import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
@@ -369,6 +370,9 @@ function StatTile({
   revealed: boolean;
 }) {
   const ready = useNumberFlowReady();
+  // Touch devices render static text — no enter spin (matches the ticker page).
+  const isTouch = useTouchPrimary();
+  const useNumber = ready && !isTouch;
   const toneCls =
     tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
 
@@ -401,7 +405,7 @@ function StatTile({
         {tile.segments.map((seg) =>
           seg.kind === "text" ? (
             <span key={seg.key}>{seg.text}</span>
-          ) : ready ? (
+          ) : useNumber ? (
             <NumberFlow
               format={seg.format}
               isolate
@@ -556,6 +560,8 @@ function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; hala
   const up = (excess ?? 0) >= 0;
   const [valueRef, valueInView] = useInView<HTMLDivElement>();
   const ready = useNumberFlowReady();
+  const isTouch = useTouchPrimary();
+  const useNumber = ready && !isTouch;
   return (
     <li>
       <Link
@@ -598,7 +604,7 @@ function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; hala
               ) : (
                 <ArrowDownRightIcon className="size-3.5" />
               )}
-              {ready ? (
+              {useNumber ? (
                 <NumberFlow
                   format={SIGNED_PCT_FMT}
                   isolate
