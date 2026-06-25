@@ -1,6 +1,6 @@
-import { lazy, Suspense, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { Link } from "@tanstack/react-router";
-import { CompassIcon, HomeIcon, LineChartIcon, ScrollTextIcon, SettingsIcon, UsersIcon } from "lucide-react";
+import { ChevronDownIcon, CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import GitHubLink from "./GitHubLink";
 
 // Lazy so Base UI Dialog + vaul Drawer (only used by the settings modal) stay out
@@ -8,7 +8,9 @@ import GitHubLink from "./GitHubLink";
 // close transition still plays.
 const Preferences = lazy(() => import("./Preferences").then((m) => ({ default: m.Preferences })));
 import { ScrollArea } from "./ui/scroll-area";
+import { AccordionPrimitive } from "./ui/accordion";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
+import { usePreferences } from "#/lib/preferences.tsx";
 import { RailStocks } from "./RailStocks";
 import type { RailStock } from "#/lib/rail-stocks.ts";
 
@@ -32,6 +34,37 @@ export function WorkspaceRail({ creators, stocks }: { creators: CreatorRef[]; st
   );
 }
 
+const RAIL_SECTIONS_KEY = "rail-sections";
+const DEFAULT_OPEN = ["creators", "stocks"];
+
+// Persisted open/closed state for the Creators + Stocks accordion sections.
+// SSR-safe: renders the both-open default on the server + first paint, then
+// hydrates from localStorage in an effect (mirrors the BackendHealth clock
+// pattern). `hydrated` keeps the grid transition off for that first correction,
+// so a stored-collapsed section doesn't animate shut on every page load.
+function useRailSections() {
+  const [open, setOpen] = useState<string[]>(DEFAULT_OPEN);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(RAIL_SECTIONS_KEY);
+      if (raw) setOpen(JSON.parse(raw) as string[]);
+    } catch {
+      // Ignore malformed storage; keep the default.
+    }
+    setHydrated(true);
+  }, []);
+  const update = useCallback((next: string[]) => {
+    setOpen(next);
+    try {
+      window.localStorage.setItem(RAIL_SECTIONS_KEY, JSON.stringify(next));
+    } catch {
+      // Storage unavailable (private mode); state still applies for the session.
+    }
+  }, []);
+  return { open, update, hydrated };
+}
+
 // Shared rail body, rendered in the desktop aside and inside the mobile drawer.
 // onNavigate lets the drawer close itself when a link is followed.
 export function RailContent({
@@ -47,6 +80,10 @@ export function RailContent({
   // Stays true after the first open so the lazy modal remains mounted and can
   // play its close transition (gating render on prefsOpen would cut it).
   const [prefsMounted, setPrefsMounted] = useState(false);
+  const { open, update, hydrated } = useRailSections();
+  const { reduceMotion } = usePreferences();
+  const creatorsOpen = open.includes("creators");
+  const stocksOpen = open.includes("stocks");
   return (
     <div className="flex h-full flex-col bg-foreground/[0.02]">
       <Link
@@ -67,12 +104,9 @@ export function RailContent({
         </div>
       </Link>
 
-      <ScrollArea
-        className="mt-3 min-h-0 flex-1"
-        viewportClassName="px-2 pb-4"
-        scrollbarClassName="w-1.5"
-      >
-        <nav>
+      {/* Primary nav — fixed above the collapsible sections (Changelog moved to
+          Preferences). */}
+      <nav className="shrink-0 px-2 pt-3">
         <ul className="flex flex-col gap-0.5">
           <li>
             <Link
@@ -103,65 +137,81 @@ export function RailContent({
               Explore calls
             </Link>
           </li>
-          <li>
-            <Link
-              to="/changelog"
-              onClick={onNavigate}
-              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
-              activeProps={{
-                className:
-                  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
-              }}
+        </ul>
+      </nav>
+
+      {/* Creators + Stocks split the leftover height equally and collapse. Base
+          UI accordion drives open state + keyboard/a11y; grid-template-rows `fr`
+          does the equal-fill + collapse — the native Panel is content-height,
+          which can't share/fill the column, so it isn't used. Layout is four
+          grid rows: auto trigger / fr panel, per section. */}
+      <AccordionPrimitive.Root
+        multiple
+        value={open}
+        onValueChange={(v) => update(v as string[])}
+        className={`grid min-h-0 flex-1 ${
+          hydrated && !reduceMotion
+            ? "transition-[grid-template-rows] duration-200 ease-in-out"
+            : ""
+        }`}
+        style={{
+          gridTemplateRows: `auto ${creatorsOpen ? "1fr" : "0fr"} auto ${
+            stocksOpen ? "1fr" : "0fr"
+          }`,
+        }}
+      >
+        <AccordionPrimitive.Item value="creators" className="contents">
+          <RailSectionTrigger>Creators</RailSectionTrigger>
+          <div className="flex min-h-0 flex-col overflow-hidden">
+            <ScrollArea
+              className="min-h-0 flex-1"
+              viewportClassName="px-2 pb-2"
+              scrollbarClassName="w-1.5"
             >
-              <ScrollTextIcon className="size-4 opacity-70" />
-              Changelog
-            </Link>
-          </li>
-        </ul>
+              <ul className="flex flex-col gap-0.5">
+                {creators.length === 0 ? (
+                  <li className="px-2 py-1.5 text-muted-foreground/60 text-xs">
+                    No creators yet
+                  </li>
+                ) : (
+                  creators.map((c) => (
+                    <li key={c.handle}>
+                      <Link
+                        to="/c/$handle"
+                        params={{ handle: c.handle }}
+                        onClick={onNavigate}
+                        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
+                        activeProps={{
+                          className:
+                            "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
+                        }}
+                      >
+                        {c.avatar ? (
+                          <img
+                            src={c.avatar}
+                            alt=""
+                            className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                          />
+                        ) : (
+                          <UsersIcon className="size-3.5 opacity-60" />
+                        )}
+                        <span className="truncate">@{c.handle}</span>
+                      </Link>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </ScrollArea>
+          </div>
+        </AccordionPrimitive.Item>
 
-        <SectionLabel>Creators</SectionLabel>
-        <ul className="flex flex-col gap-0.5">
-          {creators.length === 0 ? (
-            <li className="px-2 py-1.5 text-muted-foreground/60 text-xs">
-              No creators yet
-            </li>
-          ) : (
-            creators.map((c) => (
-              <li key={c.handle}>
-                <Link
-                  to="/c/$handle"
-                  params={{ handle: c.handle }}
-                  onClick={onNavigate}
-                  className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
-                  activeProps={{
-                    className:
-                      "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
-                  }}
-                >
-                  {c.avatar ? (
-                    <img
-                      src={c.avatar}
-                      alt=""
-                      className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border/60"
-                    />
-                  ) : (
-                    <UsersIcon className="size-3.5 opacity-60" />
-                  )}
-                  <span className="truncate">@{c.handle}</span>
-                </Link>
-              </li>
-            ))
-          )}
-        </ul>
-        </nav>
-      </ScrollArea>
-
-      {/* px-2 matches the scroll-area viewport inset the Creators label gets, so
-          both section labels (and the rows under them) share the same left edge. */}
-      <div className="px-2">
-        <SectionLabel>Stocks</SectionLabel>
-      </div>
-      <RailStocks stocks={stocks} onNavigate={onNavigate} />
+        <AccordionPrimitive.Item value="stocks" className="contents">
+          <RailSectionTrigger>Stocks</RailSectionTrigger>
+          <div className="flex min-h-0 flex-col overflow-hidden">
+            <RailStocks stocks={stocks} onNavigate={onNavigate} />
+          </div>
+        </AccordionPrimitive.Item>
+      </AccordionPrimitive.Root>
 
       <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
         <BackendHealth creators={creators} />
@@ -242,12 +292,20 @@ function BackendHealth({ creators }: { creators: CreatorRef[] }) {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+// Collapsible section header: a Base UI accordion trigger styled to match the
+// rail's mono section labels, with a chevron that rotates when the section opens.
+function RailSectionTrigger({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-5 mb-1 flex items-center justify-between px-2">
-      <span className="font-mono text-[9px] text-muted-foreground/70 uppercase tracking-[0.25em]">
-        {children}
-      </span>
-    </div>
+    <AccordionPrimitive.Header className="mt-4 px-2">
+      <AccordionPrimitive.Trigger className="flex w-full cursor-pointer items-center justify-between rounded-md py-1 outline-none focus-visible:ring-[3px] focus-visible:ring-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
+        <span className="font-mono text-[9px] text-muted-foreground/70 uppercase tracking-[0.25em]">
+          {children}
+        </span>
+        <ChevronDownIcon
+          className="size-3 shrink-0 text-muted-foreground/60 transition-transform duration-200"
+          data-slot="accordion-indicator"
+        />
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
   );
 }

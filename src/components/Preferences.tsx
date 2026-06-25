@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import { ScrollTextIcon, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Dialog } from "@base-ui/react/dialog";
 import {
   Drawer,
@@ -35,7 +36,7 @@ function SwitchRow({
   );
 }
 
-function Body() {
+function Body({ onClose }: { onClose: () => void }) {
   const {
     reduceMotion,
     reduceHaptics,
@@ -78,6 +79,22 @@ function Body() {
           onChange={setShowHalalStatus}
         />
       </div>
+      <Separator />
+      <Link
+        to="/changelog"
+        onClick={onClose}
+        className="group flex items-center justify-between gap-4 no-underline"
+      >
+        <span className="flex flex-col">
+          <span className="text-sm font-medium text-foreground group-hover:underline group-hover:underline-offset-2">
+            Changelog
+          </span>
+          <span className="text-xs text-muted-foreground">
+            What's new and recently shipped.
+          </span>
+        </span>
+        <ScrollTextIcon className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+      </Link>
     </div>
   );
 }
@@ -117,7 +134,7 @@ export function Preferences({
             <Dialog.Description className="sr-only">
               Theme, motion, and haptics settings.
             </Dialog.Description>
-            <Body />
+            <Body onClose={() => onOpenChange(false)} />
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
@@ -132,7 +149,7 @@ export function Preferences({
           <DrawerDescription className="sr-only">
             Theme, motion, and haptics settings.
           </DrawerDescription>
-          <Body />
+          <Body onClose={() => onOpenChange(false)} />
         </div>
       </DrawerContent>
     </Drawer>
