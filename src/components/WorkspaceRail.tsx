@@ -1,7 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDownIcon, CompassIcon, HomeIcon, LineChartIcon, SearchIcon, SettingsIcon, UsersIcon, X } from "lucide-react";
+import { ChevronDownIcon, CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import GitHubLink from "./GitHubLink";
+import { IconSwap } from "./icon-swap";
 
 // Lazy so Base UI Dialog + vaul Drawer (only used by the settings modal) stay out
 // of the every-route rail bundle; loaded on first open, then kept mounted so the
@@ -413,7 +414,10 @@ function RailSectionTrigger({
         aria-label={searchOpen ? `Clear ${label} search` : `Search ${label}`}
         className="grid shrink-0 place-items-center px-3 py-3 text-muted-foreground/60 transition-colors hover:text-foreground"
       >
-        {searchOpen ? <X className="size-3.5" /> : <SearchIcon className="size-3.5" />}
+        <IconSwap
+          icon={searchOpen ? "icon-[lucide--x]" : "icon-[lucide--search]"}
+          className="size-3.5"
+        />
       </button>
     </AccordionPrimitive.Header>
   );
