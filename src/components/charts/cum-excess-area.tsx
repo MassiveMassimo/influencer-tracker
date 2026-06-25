@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import type { CumPoint } from "#/lib/types.ts";
 import { AreaChart } from "./area-chart";
-import { useChartStable, useYScale } from "./chart-context";
 import { Grid } from "./grid";
 import { ProfitLossArea } from "./profit-loss-area";
 import { ChartTooltip } from "./tooltip/chart-tooltip";
@@ -27,35 +26,6 @@ const fmtPct = (v: number) => `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`;
 
 const fmtAxisPct = (v: number) => `${(v * 100).toFixed(0)}%`;
 
-// Always-visible end readout at the last point — preserves the native chart's
-// endpoint label. Renders inside the chart SVG via the chart context.
-function EndReadout() {
-  const { renderData, xScale, xAccessor } = useChartStable();
-  const yScale = useYScale();
-  const last = renderData.at(-1);
-  if (!last) return null;
-  const v = last.v as number;
-  const cx = xScale(xAccessor(last)) ?? 0;
-  const cy = yScale(v) ?? 0;
-  const color = signColor(v);
-  return (
-    <g>
-      <circle cx={cx} cy={cy} fill={color} r={3} />
-      <text
-        className="tabular-nums"
-        dy="0.32em"
-        fill={color}
-        fontSize={11}
-        fontWeight={600}
-        x={cx + 6}
-        y={cy}
-      >
-        {fmtPct(v)}
-      </text>
-    </g>
-  );
-}
-
 export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
   const data = useMemo(
     () => pts.map((p) => ({ date: new Date(`${p.t}T00:00:00Z`), v: p.v })),
@@ -67,7 +37,7 @@ export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
       aspectRatio="auto"
       className="h-[200px]"
       data={data}
-      margin={{ top: 16, right: 56, bottom: 24, left: 44 }}
+      margin={{ top: 16, right: 0, bottom: 24, left: 44 }}
     >
       {/* Break-even baseline (== SPY), mirrors the native dashed "0% · SPY" line. */}
       <Grid
@@ -86,7 +56,6 @@ export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
           return [{ color: signColor(v), label: "Excess vs SPY", value: fmtPct(v) }];
         }}
       />
-      <EndReadout />
     </AreaChart>
   );
 }
