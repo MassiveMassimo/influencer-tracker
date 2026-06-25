@@ -558,10 +558,6 @@ function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; hala
         ? "bg-emerald-500"
         : "bg-rose-500";
   const up = (excess ?? 0) >= 0;
-  const [valueRef, valueInView] = useInView<HTMLDivElement>();
-  const ready = useNumberFlowReady();
-  const isTouch = useTouchPrimary();
-  const useNumber = ready && !isTouch;
   return (
     <li>
       <Link
@@ -593,7 +589,6 @@ function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; hala
         </div>
         <div
           className={`flex w-24 shrink-0 items-center justify-end gap-1 font-mono text-sm tabular-nums ${toneClass(excess ?? 0)}`}
-          ref={valueRef}
         >
           {excess == null ? (
             <span className="text-muted-foreground">pending</span>
@@ -604,18 +599,7 @@ function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; hala
               ) : (
                 <ArrowDownRightIcon className="size-3.5" />
               )}
-              {useNumber ? (
-                <NumberFlow
-                  format={SIGNED_PCT_FMT}
-                  isolate
-                  locales="en-US"
-                  trend={up ? 1 : -1}
-                  value={valueInView ? excess : 0}
-                  willChange
-                />
-              ) : (
-                formatNum(excess, SIGNED_PCT_FMT)
-              )}
+              {formatNum(excess, SIGNED_PCT_FMT)}
             </>
           )}
         </div>
