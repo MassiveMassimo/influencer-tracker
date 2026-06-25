@@ -177,6 +177,15 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
   lastClose: number | null; tfChange: number | null; tfDelta: number | null; usingFallback: boolean;
 }) {
   const ready = useNumberFlowReady();
+  // Spin in from 0 once the element is registered (mirrors the creator-page
+  // StatTile enter). rAF defers the flip a frame past `ready` so NumberFlow
+  // renders value=0 first, then animates to the real figure.
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    if (!ready) return;
+    const id = requestAnimationFrame(() => setRevealed(true));
+    return () => cancelAnimationFrame(id);
+  }, [ready]);
   if (lastClose == null) return null;
   const priceFormat: Format = { style: "currency", currency: "USD", minimumFractionDigits: lastClose >= 1 ? 2 : 4, maximumFractionDigits: lastClose >= 1 ? 2 : 4 };
   const deltaFormat: Format = { style: "currency", currency: "USD", signDisplay: "exceptZero", minimumFractionDigits: lastClose >= 1 ? 2 : 4, maximumFractionDigits: lastClose >= 1 ? 2 : 4 };
@@ -185,7 +194,7 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
     <div className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
       <NumberFlowGroup>
         <span className="font-heading text-2xl tabular-nums">
-          {ready ? <NumberFlow format={priceFormat} value={lastClose} willChange /> : priceFmt(lastClose)}
+          {ready ? <NumberFlow format={priceFormat} value={revealed ? lastClose : 0} willChange /> : priceFmt(lastClose)}
         </span>
         {/* transition-colors: the tone flips rose<->emerald on a zero-cross while
             NumberFlow glyphs are mid-spin on their own will-change layers; an
@@ -193,7 +202,7 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
             paint. Animating color repaints the whole subtree each frame. */}
         <span className={`font-mono text-sm tabular-nums transition-colors ${toneClass(tfChange)}`}>
           {tfChange == null || tfDelta == null ? "—" : ready ? (
-            <><NumberFlow format={deltaFormat} value={tfDelta} willChange />{" ("}<NumberFlow format={changeFormat} value={tfChange} willChange />{")"}</>
+            <><NumberFlow format={deltaFormat} value={revealed ? tfDelta : 0} willChange />{" ("}<NumberFlow format={changeFormat} value={revealed ? tfChange : 0} willChange />{")"}</>
           ) : `${signedCurrency(tfDelta)} (${signed(tfChange)})`}
         </span>
       </NumberFlowGroup>
