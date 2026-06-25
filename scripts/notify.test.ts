@@ -15,3 +15,10 @@ test("blockedMessage names the reason and the manual investigation command", () 
   expect(m).toContain("guard: scored 1 << baseline 30");
   expect(m).toContain("resume.ts theprofinvestor"); // operator can re-run after investigating
 });
+
+test("blockedMessage: default keeps the X resume command; override replaces it", () => {
+  expect(blockedMessage("foo", "why")).toContain("scripts/resume.ts foo");
+  const ig = blockedMessage("bar", "session died", "RE-AUTH VIA VNC then re-run");
+  expect(ig).toContain("RE-AUTH VIA VNC then re-run");
+  expect(ig).not.toContain("scripts/resume.ts");
+});
