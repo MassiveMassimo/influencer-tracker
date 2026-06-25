@@ -38,8 +38,10 @@ export function ChartHandoff({
     duration: durationMs / 1000,
     ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
   };
+  // isolate: contain the chart's z-50 tooltip portal in its own stacking context
+  // so it can't paint over the sticky page header (z-20) below it.
   return (
-    <div className={`grid ${className ?? ""}`}>
+    <div className={`grid isolate ${className ?? ""}`}>
       <div className="col-start-1 row-start-1 min-w-0">{children}</div>
       <AnimatePresence initial={false}>
         {loading && (

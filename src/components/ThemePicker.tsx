@@ -14,8 +14,9 @@ import { useHaptics } from "#/lib/haptics.tsx";
 import { cn } from "#/lib/utils.ts";
 
 // Fixed palettes so each preview shows its own theme regardless of active theme.
-const LIGHT = { bg: "#ffffff", rail: "#f3f4f6", line: "#111827", muted: "#d1d5db" };
-const DARK = { bg: "#0a0a0a", rail: "#1a1a1a", line: "#e5e7eb", muted: "#374151" };
+// Zinc palette (matches the app's unified neutral scale).
+const LIGHT = { bg: "#ffffff", rail: "#f4f4f5", line: "#18181b", muted: "#d4d4d8" };
+const DARK = { bg: "#09090b", rail: "#18181b", line: "#e4e4e7", muted: "#3f3f46" };
 
 function MiniDashboard({ p }: { p: typeof LIGHT }) {
   return (

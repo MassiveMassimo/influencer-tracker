@@ -24,7 +24,20 @@ const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getIte
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async () => {
     const [creators, index] = await Promise.all([listCreators(), fetchCallsIndex()])
-    return { creators, stocks: topStocksByLastCall(index) }
+    // Platform is a per-creator constant (a handle is scraped from one source);
+    // derive it from the first indexed shortcode (numeric ⇒ X tweet id, else IG)
+    // so MobileNav can show the platform icon + profile link without the dataset.
+    const platformByHandle = new Map<string, "x" | "instagram">()
+    for (const e of index) {
+      if (!platformByHandle.has(e.handle)) {
+        platformByHandle.set(e.handle, /^\d+$/.test(e.shortcode) ? "x" : "instagram")
+      }
+    }
+    const creatorsWithPlatform = creators.map((c) => ({
+      ...c,
+      platform: platformByHandle.get(c.handle),
+    }))
+    return { creators: creatorsWithPlatform, stocks: topStocksByLastCall(index) }
   },
   head: () => ({
     meta: [

@@ -4,11 +4,8 @@ import { Search } from "lucide-react";
 import { pickAvatarTabs, type SwitcherCreator } from "#/lib/ticker-switcher.ts";
 import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "#/components/ui/tooltip.tsx";
 
-// Sum offsetLeft up the offsetParent chain to `container`. offsetLeft is
-// layout-only — CSS transforms (e.g. .cs-layer-tabs scale(0.96) during the
-// open/close transition) don't affect it, so the pill position is stable
-// even when measured mid-transition. getBoundingClientRect() would capture
-// the scaled-down visual position and shift the pill.
+// Sum offsetLeft up the offsetParent chain to `container` (layout-only,
+// transform-immune but integer-rounded).
 function offsetLeftTo(el: HTMLElement, container: HTMLElement): number {
   let left = 0;
   let current: HTMLElement | null = el;
@@ -17,6 +14,24 @@ function offsetLeftTo(el: HTMLElement, container: HTMLElement): number {
     current = current.offsetParent as HTMLElement | null;
   }
   return left;
+}
+
+// Exact, transform-immune left of the active tab relative to `list`. The tab
+// lives inside .cs-layer-tabs, which animates scale() on open/close and (via
+// will-change: transform) is the tab's offsetParent. offsetLeft rounds to
+// integers (~0.4px pill drift); getBoundingClientRect is subpixel-exact but
+// scaled mid-transition. So measure the tab within its scaled layer and divide
+// the scale out — the right-center transform-origin cancels in the rect
+// difference — then add the layer's integer-clean offsetLeft (sits at the
+// container's 3px padding, no fractional part to lose).
+function activeLeftIn(active: HTMLElement, list: HTMLElement): number {
+  const layer = active.offsetParent as HTMLElement | null;
+  if (!layer || layer === list) {
+    return active.getBoundingClientRect().left - list.getBoundingClientRect().left;
+  }
+  const sx = new DOMMatrixReadOnly(getComputedStyle(layer).transform).a || 1;
+  const within = (active.getBoundingClientRect().left - layer.getBoundingClientRect().left) / sx;
+  return offsetLeftTo(layer, list) + within;
 }
 
 function Avatar({ creator, dimmed }: { creator: SwitcherCreator; dimmed?: boolean }) {
@@ -50,12 +65,8 @@ export function CreatorSwitcher({
 
   // Position the pill under the active tab; when the combobox is open the pill
   // expands to fill the whole container and becomes the combobox background.
-  // Always measure with offsetLeftTo (layout-only, transform-immune): the
-  // .cs-layer-tabs layer animates scale(0.96)→1 on close, and selecting from
-  // search updates `selected` via an async navigation that re-positions the
-  // pill mid-transition. getBoundingClientRect() would capture the scaled
-  // position (origin right center → pill drifts right); offsetLeft ignores the
-  // transform.
+  // activeLeftIn stays exact through the open/close scale transition (selecting
+  // from search re-positions mid-transition via an async navigation).
   const positionPill = (animate: boolean) => {
     const list = listRef.current,
       pill = pillRef.current;
@@ -70,7 +81,7 @@ export function CreatorSwitcher({
     } else {
       const active = list.querySelector<HTMLButtonElement>('[aria-selected="true"]');
       if (active) {
-        const left = offsetLeftTo(active, list);
+        const left = activeLeftIn(active, list);
         if (active.dataset.avatarTab != null) {
           const d = active.offsetHeight;
           apply(left + (active.offsetWidth - d) / 2, d);

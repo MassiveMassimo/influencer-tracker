@@ -18,6 +18,7 @@ export interface CreatorRef {
   handle: string;
   name: string;
   avatar?: string;
+  platform?: "x" | "instagram"; // derived from the calls-index in __root (numeric shortcode ⇒ X)
   generatedAt?: string; // newest of these across creators drives the backend-health dot
 }
 
