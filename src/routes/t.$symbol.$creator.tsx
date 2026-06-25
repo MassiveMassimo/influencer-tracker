@@ -279,6 +279,7 @@ function TickerPage() {
   const { impact, select } = useHaptics();
   const queryClient = useQueryClient();
   const numberFlowReady = useNumberFlowReady();
+  const isTouch = useTouchPrimary();
   const { showHalalStatus } = usePreferences();
   const [hoverClose, setHoverClose] = useState<number | null>(null);
 
@@ -369,7 +370,7 @@ function TickerPage() {
   // Reacts to both the creator tab and the timeframe, and stays in lockstep with
   // the rendered markers (label === markers shown).
   const shownCallCount = (creatorHandle ? creatorCalls : hits).filter((c) => inWindow(c.postDate)).length;
-  const callsLabel = numberFlowReady ? (
+  const callsLabel = numberFlowReady && !isTouch ? (
     <NumberFlow value={shownCallCount} suffix={shownCallCount === 1 ? " call" : " calls"} willChange />
   ) : `${shownCallCount} ${shownCallCount === 1 ? "call" : "calls"}`;
 
