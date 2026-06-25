@@ -132,10 +132,12 @@ function CreatorHeading({
       className="group inline-flex items-center gap-2.5 text-foreground no-underline"
     >
       {avatar && (
+        // em-sized so it rides the .t-ticker-title font-size shrink on scroll
+        // (2rem at rest → 1.5rem when stuck). 1.333em × 1.5rem = 2rem.
         <img
           src={avatar}
           alt=""
-          className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+          className="size-[1.333em] shrink-0 rounded-full object-cover ring-1 ring-border/60"
         />
       )}
       <span
