@@ -141,7 +141,7 @@ export function CreatorSwitcher({
   // layers stay mounted so neither hard-pops; the inactive one is faded out and
   // made inert (pointer-events/visibility via CSS).
   return (
-    <div className="cs-root" data-open={open || undefined}>
+    <div className="cs-root shrink-0" data-open={open || undefined}>
       <div className="t-tabs cs-tabs" role="tablist" ref={listRef}>
         <span className="t-tabs-pill" aria-hidden="true" ref={pillRef} />
 
