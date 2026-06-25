@@ -200,7 +200,7 @@ export function RailContent({
             }}
             onCloseSearch={creatorSearch.close}
           />
-          <div className="flex min-h-0 flex-col overflow-hidden">
+          <div data-rail-section="creators" className="flex min-h-0 flex-col overflow-hidden">
             <ScrollArea
               className="min-h-0 flex-1"
               viewportClassName="px-2 pb-2"
@@ -259,7 +259,7 @@ export function RailContent({
             }}
             onCloseSearch={stockSearch.close}
           />
-          <div className="flex min-h-0 flex-col overflow-hidden">
+          <div data-rail-section="stocks" className="flex min-h-0 flex-col overflow-hidden">
             <RailStocks
               stocks={stocks}
               onNavigate={onNavigate}
@@ -370,11 +370,27 @@ function RailSectionTrigger({
   onCloseSearch: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const region = label.toLowerCase();
   useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
+  // Reset when the user clicks outside this section (header controls + its list
+  // both carry data-rail-section, so clicking a result navigates instead of
+  // closing — avoids the blur-vs-result-click race).
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (!t?.closest(`[data-rail-section="${region}"]`)) onCloseSearch();
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [searchOpen, region, onCloseSearch]);
   return (
-    <AccordionPrimitive.Header className="relative flex items-center border-t border-border/60">
+    <AccordionPrimitive.Header
+      data-rail-section={region}
+      className="relative flex items-center border-t border-border/60"
+    >
       <AccordionPrimitive.Trigger className="group flex flex-1 cursor-pointer items-center gap-1.5 px-3 py-3 outline-none focus-visible:-outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
         <ChevronDownIcon
           className="size-3.5 shrink-0 text-muted-foreground/60 transition-[transform,color] duration-200 group-hover:text-foreground"
