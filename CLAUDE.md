@@ -415,10 +415,35 @@ A prod DB change now surfaces with no redeploy. `USE_DB=0` remains the instant r
 
 ### Plan 3b — VM automated ingest
 
-Daily X-only incremental ingest running on the ARM Ubuntu VM (`ssh ubuntu@imos-vm`, repo at
+Daily incremental ingest running on the ARM Ubuntu VM (`ssh ubuntu@imos-vm`, repo at
 `~/influencer-tracker`). Refreshes existing creators only — new-creator onboarding stays manual.
-Ops units + runbook: `ops/` (`influencer-ingest.{service,timer}`, `notify-fail.service`
-dead-man, `ops/README.md` with one-time rsync seed + required `.env` keys).
+**Two separate timers, isolated on purpose** (a fragile headful browser run must never stall the
+reliable X run): **X** (`influencer-ingest.{service,timer}`, 13:00 UTC, `scripts/ingest.ts`,
+`INGEST_HANDLES`) and **Instagram** (`influencer-ingest-ig.{service,timer}`, 14:00 UTC,
+`scripts/ingest-ig.ts`, `INGEST_HANDLES_IG`; runs under `xvfb-run` with `IG_PROXY`). Both hold the
+**same** flock `/tmp/influencer-ingest.lock` so the two git pushes serialize; the 1h stagger is
+defense-in-depth. Ops units + runbook: `ops/` (`notify-fail.service` dead-man, `ops/README.md`
+with one-time rsync seed + required `.env` keys + the IG VNC-re-auth/profile-lock caveats).
+
+**IG ingest mirrors X** but adds a forward-incremental scroll (`scrape(handle, 12, {forward})` via
+`pipeline/scrape-forward.ts`: stops once `patience=3` scroll rounds surface no reel newer than the
+transcript anchor) and an inverse platform guard (`scripts/shortcodes.ts` `majorityNumeric` — skip
+an X handle wrongly in `INGEST_HANDLES_IG`). `scripts/resume.ts <handle> ig` selects the IG pipeline
+(`scripts/pipeline-for.ts`). A dead/challenged IG session → BLOCKED alert with VNC-re-auth steps
+(can't be automated like X's API key); proxy-egress failure aborts loudly before scraping.
+
+**Durable IG post-date store** (`pipeline/post-dates.ts`, `data/creators/<h>/post-dates.json`,
+committed via a `.gitignore` allow-list). IG post dates used to live only in disposable
+`raw/*.info.json`; a caught-up forward run downloads nothing, so `extract` skipped every reel →
+0 calls → guard block. Now `scrape` persists every harvested GraphQL `taken_at` (UTC, existing-wins
+merge — frozen, never rewritten) and `extract`'s `postDateOf` reads the **store first** (info.json
+only a gap-filler, frozen back into the store), so a reel's anchor is reproducible regardless of
+`raw/` presence. `scripts/backfill-post-dates.ts` one-time-seeded the 3 IG creators from their
+`dataset.json` postDates. **Known limitation (follow-up):** `guard-no-shrink` compares the
+*pre-scope* raw bullish-buy count against the *post-scope* committed baseline, so a >5% *post-scope*
+shrink (e.g. legitimate re-classification drift under a newer prompt + dropping since-delisted/foreign
+symbols — roadto100k went 244→214 on its first v2 re-extract, 2026-06-26) can publish unreviewed. A
+like-for-like post-scope guard is a planned separate fix; affects the X path too.
 
 **Fully automated daily run.** The daily timer fires `scripts/ingest.ts`, which runs `scrapeX` +
 `extract-x` for each handle in `INGEST_HANDLES`, then immediately auto-invokes `scripts/resume.ts`
