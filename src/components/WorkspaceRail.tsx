@@ -237,7 +237,7 @@ export function RailContent({
                         id={`creators-opt-${i}`}
                         role="option"
                         aria-selected={active}
-                        onMouseEnter={() => creatorSearch.setActiveIndex(i)}
+                        onMouseEnter={() => creatorSearch.open && creatorSearch.setActiveIndex(i)}
                       >
                         <Link
                           to="/c/$handle"
