@@ -101,7 +101,7 @@ export function RailStocks({
               id={`stocks-opt-${i}`}
               role="option"
               aria-selected={active}
-              onMouseEnter={() => setActiveIndex?.(i)}
+              onMouseEnter={() => searchOpen && setActiveIndex?.(i)}
             >
               <Link
                 to="/t/$symbol/$creator"
