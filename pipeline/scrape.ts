@@ -221,17 +221,28 @@ function* findReels(obj: any): Generator<any> {
   for (const v of Object.values(obj)) yield* findReels(v);
 }
 
-export function downloadReel(handle: string, shortcode: string): boolean {
+// Spawn seam: injectable so the launch-failure-vs-download-failure split is unit-testable.
+// Default shells yt-dlp with inherited stdio.
+type SpawnResult = { status: number | null; error?: Error & { code?: string } };
+type SpawnFn = (cmd: string, args: string[]) => SpawnResult;
+const ytDlpSpawn: SpawnFn = (cmd, args) => spawnSync(cmd, args, { stdio: "inherit" });
+
+export function downloadReel(handle: string, shortcode: string, spawn: SpawnFn = ytDlpSpawn): boolean {
   const out = join(rawDir(handle), shortcode);
   const url = `https://www.instagram.com/reel/${shortcode}/`;
   const jar = cookiesPath(handle);
   const cookieArgs = existsSync(jar) ? ["--cookies", jar] : ["--cookies-from-browser", "chrome"];
   const proxyArgs = IG_PROXY ? ["--proxy", IG_PROXY] : [];
-  const r = spawnSync("yt-dlp", [
+  const r = spawn("yt-dlp", [
     ...cookieArgs,
     ...proxyArgs,
     "-o", join(out, "reel.%(ext)s"),
     "--write-info-json", url,
-  ], { stdio: "inherit" });
+  ]);
+  // A spawn-level error (ENOENT = yt-dlp not on PATH, EACCES, …) is an environment fault that
+  // breaks EVERY reel — throw so the run BLOCKs loudly. Swallowing it silently ingested zero
+  // new reels for ~10 days (2026-06-27). yt-dlp running and exiting non-zero is a per-reel
+  // miss (e.g. an image/carousel post with no video) — return false so the caller skips it.
+  if (r.error) throw new Error(`yt-dlp failed to launch (${r.error.code ?? r.error.message}) — is yt-dlp installed and on PATH?`);
   return r.status === 0;
 }
