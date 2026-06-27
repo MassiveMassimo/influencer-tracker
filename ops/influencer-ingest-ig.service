@@ -6,7 +6,9 @@ Type=oneshot
 User=ubuntu
 WorkingDirectory=/home/ubuntu/influencer-tracker
 EnvironmentFile=/home/ubuntu/influencer-tracker/.env
-Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+# .local/bin is load-bearing: yt-dlp (reel download) lives at ~/.local/bin/yt-dlp. Omitting it
+# made downloadReel's spawn ENOENT, which run.ts swallowed → 0 new reels ingested for ~10 days.
+Environment=PATH=/home/ubuntu/.local/bin:/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
 # IG scrape downloads + transcribes new reels (Parakeet CPU) — allow generous wall time.
 RuntimeMaxSec=4h
 # SHARED lock with the X ingest (/tmp/influencer-ingest.lock, NOT a separate -ig lock): both

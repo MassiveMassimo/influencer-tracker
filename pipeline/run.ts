@@ -30,7 +30,9 @@ for (const stage of stages.slice(start)) {
     // creator to new reels only.
     for (const c of codes) {
       if (existsSync(join(transcriptsDir(handle), `${c}.json`))) continue;
-      downloadReel(handle, c);
+      // downloadReel throws if yt-dlp can't launch (fatal env fault); a false return is a
+      // benign per-reel miss (image/carousel post, no video) — log it and move on.
+      if (!downloadReel(handle, c)) console.warn(`skip download ${c}: no video (image post?) or download failed`);
     }
   } else if (stage === "transcribe") {
     await transcribe(handle);
