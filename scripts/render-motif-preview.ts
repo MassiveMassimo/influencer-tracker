@@ -19,7 +19,14 @@ const cases = [
 
 for (const c of cases) {
   const pal = palette(c.theme);
-  const svg = buildCardBackgroundSvg({ seed: c.seed, up: c.up, theme: c.theme, palette: pal, width: W, height: H });
+  const svg = buildCardBackgroundSvg({
+    seed: c.seed,
+    up: c.up,
+    theme: c.theme,
+    palette: pal,
+    width: W,
+    height: H,
+  });
   const png = new Resvg(svg, { fitTo: { mode: "width", value: W } }).render().asPng();
   const name = `motif-${c.theme}-${c.up ? "up" : "down"}-${c.seed}.png`;
   writeFileSync(`${out}/${name}`, png);

@@ -1,7 +1,12 @@
 export type Timeframe = "1D" | "1W" | "1M" | "3M" | "6M" | "1Y" | "All";
 
 const TF_DAYS: Record<Exclude<Timeframe, "All">, number> = {
-  "1D": 1, "1W": 7, "1M": 30, "3M": 90, "6M": 180, "1Y": 365,
+  "1D": 1,
+  "1W": 7,
+  "1M": 30,
+  "3M": 90,
+  "6M": 180,
+  "1Y": 365,
 };
 
 // Keep bars within `tf` calendar days of the LAST bar's date. "All" returns input.

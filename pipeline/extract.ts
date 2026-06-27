@@ -65,7 +65,11 @@ export async function extract(handle: string) {
       // Free local check first: a reel with no upload_date is skipped before the
       // rate-limited LLM call.
       const postDate = await postDateOf(store, handle, code);
-      if (postDate == null) { console.warn(`skip ${code}: no post date (store or info.json)`); results[i] = []; continue; }
+      if (postDate == null) {
+        console.warn(`skip ${code}: no post date (store or info.json)`);
+        results[i] = [];
+        continue;
+      }
       // Resolved from info.json (absent in the store) -> freeze it.
       if (!(code in store)) discovered[code] = postDate;
       let c;
@@ -77,14 +81,16 @@ export async function extract(handle: string) {
         // NOT per-post and must surface loudly, not silently truncate reel-calls.json.
         if (!(e as Error).message.startsWith("classify:")) throw e;
         console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
-        results[i] = []; continue;
+        results[i] = [];
+        continue;
       }
       results[i] = toReelCalls(c, code, postDate);
     }
   };
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
 
-  if (Object.keys(discovered).length) await savePostDates(handle, mergePostDates(store, discovered));
+  if (Object.keys(discovered).length)
+    await savePostDates(handle, mergePostDates(store, discovered));
 
   const out: ReelCall[] = results.flat();
   await writeCalls(handle, out);

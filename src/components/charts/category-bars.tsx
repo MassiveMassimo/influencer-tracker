@@ -67,13 +67,13 @@ export function CategoryBars({
               className={`h-full rounded transition-colors duration-200 motion-reduce:transition-none ${barCls(r.value)}`}
               initial={reduce ? false : { width: "0%" }}
               transition={
-                reduce
-                  ? { duration: 0 }
-                  : { delay: i * step, duration: 0.3, ease: EASE_OUT }
+                reduce ? { duration: 0 } : { delay: i * step, duration: 0.3, ease: EASE_OUT }
               }
             />
           </div>
-          <div className={`w-16 shrink-0 text-right tabular-nums transition-colors duration-200 motion-reduce:transition-none ${toneCls(r.value)}`}>
+          <div
+            className={`w-16 shrink-0 text-right tabular-nums transition-colors duration-200 motion-reduce:transition-none ${toneCls(r.value)}`}
+          >
             {ready ? (
               <NumberFlow
                 format={format}

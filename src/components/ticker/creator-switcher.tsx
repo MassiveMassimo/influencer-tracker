@@ -2,7 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { pickAvatarTabs, type SwitcherCreator } from "#/lib/ticker-switcher.ts";
-import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "#/components/ui/tooltip.tsx";
+import {
+  Tooltip,
+  TooltipPopup,
+  TooltipProvider,
+  TooltipTrigger,
+} from "#/components/ui/tooltip.tsx";
 
 // Sum offsetLeft up the offsetParent chain to `container` (layout-only,
 // transform-immune but integer-rounded).
@@ -35,7 +40,9 @@ function activeLeftIn(active: HTMLElement, list: HTMLElement): number {
 }
 
 function Avatar({ creator, dimmed }: { creator: SwitcherCreator; dimmed?: boolean }) {
-  const dim = dimmed ? "grayscale transition-[filter] duration-200" : "transition-[filter] duration-200";
+  const dim = dimmed
+    ? "grayscale transition-[filter] duration-200"
+    : "transition-[filter] duration-200";
   return creator.avatar ? (
     <img src={creator.avatar} alt="" className={`cs-avatar ${dim}`} />
   ) : (
@@ -158,27 +165,27 @@ export function CreatorSwitcher({
             All
           </button>
           <TooltipProvider delay={0}>
-          {tabs.map((c) => (
-            <Tooltip key={c.handle}>
-              <TooltipTrigger
-                render={
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={selected === c.handle}
-                    aria-label={c.name}
-                    tabIndex={open ? -1 : 0}
-                    className="t-tab"
-                    data-avatar-tab=""
-                    onClick={() => go(c.handle)}
-                  >
-                    <Avatar creator={c} dimmed={selected !== c.handle} />
-                  </button>
-                }
-              />
-              <TooltipPopup>{c.name}</TooltipPopup>
-            </Tooltip>
-          ))}
+            {tabs.map((c) => (
+              <Tooltip key={c.handle}>
+                <TooltipTrigger
+                  render={
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={selected === c.handle}
+                      aria-label={c.name}
+                      tabIndex={open ? -1 : 0}
+                      className="t-tab"
+                      data-avatar-tab=""
+                      onClick={() => go(c.handle)}
+                    >
+                      <Avatar creator={c} dimmed={selected !== c.handle} />
+                    </button>
+                  }
+                />
+                <TooltipPopup>{c.name}</TooltipPopup>
+              </Tooltip>
+            ))}
           </TooltipProvider>
           <button
             type="button"

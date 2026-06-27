@@ -77,7 +77,7 @@ function XAxisLabel({
       }}
     >
       <span
-        className={cn("whitespace-nowrap text-chart-label text-xs")}
+        className={cn("text-xs whitespace-nowrap text-chart-label")}
         style={{
           opacity,
           transition: "opacity 0.4s ease-in-out",
@@ -134,7 +134,7 @@ function indicesForTickCount(length: number, tickCount: number): number[] {
   }
 
   const rawIndices = Array.from({ length: tickCount }, (_, index) =>
-    Math.round((index / (tickCount - 1)) * span)
+    Math.round((index / (tickCount - 1)) * span),
   );
 
   const indices = [...new Set(rawIndices)].sort((a, b) => a - b);
@@ -171,7 +171,7 @@ function dedupeIndicesByLabel(
   indices: number[],
   data: Record<string, unknown>[],
   dateLabels: string[],
-  xAccessor: (d: Record<string, unknown>) => Date
+  xAccessor: (d: Record<string, unknown>) => Date,
 ): number[] {
   const seenLabels = new Set<string>();
   const deduped: number[] = [];
@@ -229,7 +229,7 @@ function smallestGapEdgePreference(indices: number[]): number {
 function scoreTickLayout(
   indices: number[],
   resolveXPx: (index: number) => number,
-  targetCount: number
+  targetCount: number,
 ): TickLayoutScore {
   if (indices.length < 2) {
     return {
@@ -252,17 +252,14 @@ function scoreTickLayout(
 
   const minGap = Math.min(...pixelGaps);
   const maxGap = Math.max(...pixelGaps);
-  const meanGap =
-    pixelGaps.reduce((sum, gap) => sum + gap, 0) / pixelGaps.length;
-  const spreadRatio =
-    meanGap > 0 ? (maxGap - minGap) / meanGap : maxGap - minGap;
+  const meanGap = pixelGaps.reduce((sum, gap) => sum + gap, 0) / pixelGaps.length;
+  const spreadRatio = meanGap > 0 ? (maxGap - minGap) / meanGap : maxGap - minGap;
   const countDistance = Math.abs(indices.length - targetCount);
 
   const gaps = indexGaps(indices);
   const smallestGap = Math.min(...gaps);
   const smallestGapIndex = gaps.indexOf(smallestGap);
-  const interiorPenalty =
-    smallestGapIndex > 0 && smallestGapIndex < gaps.length - 1 ? 0.08 : 0;
+  const interiorPenalty = smallestGapIndex > 0 && smallestGapIndex < gaps.length - 1 ? 0.08 : 0;
 
   const symmetryPenalty =
     gaps.reduce((penalty, gap, index) => {
@@ -270,11 +267,7 @@ function scoreTickLayout(
     }, 0) / gaps.length;
 
   return {
-    score:
-      spreadRatio +
-      0.1 * countDistance +
-      interiorPenalty +
-      symmetryPenalty * 0.02,
+    score: spreadRatio + 0.1 * countDistance + interiorPenalty + symmetryPenalty * 0.02,
     symmetryPenalty,
     countDistance,
     edgePreference: smallestGapEdgePreference(indices),
@@ -285,7 +278,7 @@ function isBetterTickLayout(
   next: TickLayoutScore,
   best: TickLayoutScore,
   nextCountDistance: number,
-  bestCountDistance: number
+  bestCountDistance: number,
 ): boolean {
   if (next.score < best.score - 1e-6) {
     return true;
@@ -320,7 +313,7 @@ export function selectEvenlySpacedIndices(
     dateLabels?: string[];
     xAccessor?: (d: Record<string, unknown>) => Date;
     resolveXPx?: (index: number) => number;
-  }
+  },
 ): number[] {
   if (length <= 0) {
     return [];
@@ -345,12 +338,7 @@ export function selectEvenlySpacedIndices(
     for (const rawIndices of allIndexLayouts(length, tickCount)) {
       const indices =
         options?.data && options.dateLabels && options.xAccessor
-          ? dedupeIndicesByLabel(
-              rawIndices,
-              options.data,
-              options.dateLabels,
-              options.xAccessor
-            )
+          ? dedupeIndicesByLabel(rawIndices, options.data, options.dateLabels, options.xAccessor)
           : rawIndices;
 
       if (indices.length < 2) {
@@ -360,14 +348,7 @@ export function selectEvenlySpacedIndices(
       const layoutScore = scoreTickLayout(indices, resolveXPx, targetCount);
       const countDistance = Math.abs(indices.length - targetCount);
 
-      if (
-        isBetterTickLayout(
-          layoutScore,
-          bestScore,
-          countDistance,
-          bestCountDistance
-        )
-      ) {
+      if (isBetterTickLayout(layoutScore, bestScore, countDistance, bestCountDistance)) {
         bestIndices = indices;
         bestScore = layoutScore;
         bestCountDistance = countDistance;
@@ -497,8 +478,7 @@ const XAxisInner = memo(function XAxisInner({
   tickMode = "domain",
   container,
 }: XAxisProps & { container: HTMLDivElement }) {
-  const { xScale, margin, tooltipData, data, xAccessor, dateLabels, xDomain } =
-    useChart();
+  const { xScale, margin, tooltipData, data, xAccessor, dateLabels, xDomain } = useChart();
 
   const labelsToShow = useMemo(() => {
     // Brush (any extent): snap ticks to data rows with even index spacing.
@@ -518,23 +498,13 @@ const XAxisInner = memo(function XAxisInner({
       numTicks,
       xScale,
     });
-  }, [
-    tickMode,
-    xDomain,
-    data,
-    dateLabels,
-    xAccessor,
-    xScale,
-    margin.left,
-    numTicks,
-  ]);
+  }, [tickMode, xDomain, data, dateLabels, xAccessor, xScale, margin.left, numTicks]);
 
   const isHovering = tooltipData !== null;
   const crosshairX = tooltipData ? tooltipData.x + margin.left : null;
   const hoveredLabel =
     isHovering && tooltipData
-      ? (dateLabels[tooltipData.index] ??
-        shortDateFmt.format(xAccessor(tooltipData.point)))
+      ? (dateLabels[tooltipData.index] ?? shortDateFmt.format(xAccessor(tooltipData.point)))
       : null;
 
   return createPortal(
@@ -552,7 +522,7 @@ const XAxisInner = memo(function XAxisInner({
         />
       ))}
     </div>,
-    container
+    container,
   );
 });
 

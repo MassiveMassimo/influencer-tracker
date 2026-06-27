@@ -21,18 +21,18 @@ test("closeOnOrAfter returns null past the last bar", () => {
   expect(closeOnOrAfter(bars, "2026-06-09")).toBeNull();
 });
 test("forwardReturn computes pct change over a calendar horizon", () => {
-  expect(forwardReturn(bars, "2026-06-01", 7)).toBeCloseTo(0.10, 6);
+  expect(forwardReturn(bars, "2026-06-01", 7)).toBeCloseTo(0.1, 6);
 });
 test("forwardReturn is null when the horizon has not elapsed", () => {
   expect(forwardReturn(bars, "2026-06-05", 30)).toBeNull();
 });
 test("computeReturns produces excess = stock - spy per horizon", () => {
-  const spy: OhlcBar[] = bars.map(b => ({ ...b, c: 100 }));
+  const spy: OhlcBar[] = bars.map((b) => ({ ...b, c: 100 }));
   const r = computeReturns(bars, spy, "2026-06-01");
-  expect(r["1w"].stock).toBeCloseTo(0.10, 6);
+  expect(r["1w"].stock).toBeCloseTo(0.1, 6);
   expect(r["1w"].spy).toBeCloseTo(0, 6);
-  expect(r["1w"].excess).toBeCloseTo(0.10, 6);
-  expect(r["toDate"].stock).toBeCloseTo(0.10, 6);
+  expect(r["1w"].excess).toBeCloseTo(0.1, 6);
+  expect(r["toDate"].stock).toBeCloseTo(0.1, 6);
 });
 
 const lateBars: OhlcBar[] = [

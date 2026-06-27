@@ -35,8 +35,7 @@ export function HapticsProvider({ children }: { children: React.ReactNode }) {
 
   const value = React.useMemo<Haptics>(() => {
     const fire = (input: Parameters<WebHaptics["trigger"]>[0]) => {
-      if (!shouldFire({ supported: WebHaptics.isSupported, reduceHaptics }))
-        return;
+      if (!shouldFire({ supported: WebHaptics.isSupported, reduceHaptics })) return;
       void instanceRef.current?.trigger(input);
     };
     return {
@@ -46,9 +45,7 @@ export function HapticsProvider({ children }: { children: React.ReactNode }) {
     };
   }, [reduceHaptics]);
 
-  return (
-    <HapticsContext.Provider value={value}>{children}</HapticsContext.Provider>
-  );
+  return <HapticsContext.Provider value={value}>{children}</HapticsContext.Provider>;
 }
 
 // Safe no-op default if used outside the provider (e.g. isolated tests).

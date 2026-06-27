@@ -41,7 +41,7 @@ export function MarkerTooltipContent({ markers }: MarkerTooltipContentProps) {
   const hiddenCount = markers.length - MAX_TOOLTIP_MARKERS;
 
   return (
-    <div className="mt-2 space-y-2 border-chart-tooltip-muted border-t pt-2">
+    <div className="mt-2 space-y-2 border-t border-chart-tooltip-muted pt-2">
       {visibleMarkers.map((marker) => {
         const isClickable = !!(marker.onClick || marker.href);
         return (
@@ -53,10 +53,7 @@ export function MarkerTooltipContent({ markers }: MarkerTooltipContentProps) {
                 border: `1px solid ${chartCssVars.markerBorder}`,
               }}
             >
-              <span
-                className="text-xs"
-                style={{ color: chartCssVars.markerForeground }}
-              >
+              <span className="text-xs" style={{ color: chartCssVars.markerForeground }}>
                 {marker.icon}
               </span>
             </div>
@@ -65,16 +62,12 @@ export function MarkerTooltipContent({ markers }: MarkerTooltipContentProps) {
                 marker.content
               ) : (
                 <>
-                  <div className="flex items-center gap-1.5 truncate font-medium text-chart-tooltip-foreground text-sm">
+                  <div className="flex items-center gap-1.5 truncate text-sm font-medium text-chart-tooltip-foreground">
                     {marker.title}
-                    {isClickable && (
-                      <span className="text-[10px] text-chart-tooltip-muted">
-                        ↗
-                      </span>
-                    )}
+                    {isClickable && <span className="text-[10px] text-chart-tooltip-muted">↗</span>}
                   </div>
                   {marker.description && (
-                    <div className="max-w-[16rem] whitespace-normal break-words text-chart-tooltip-muted text-xs">
+                    <div className="max-w-[16rem] text-xs break-words whitespace-normal text-chart-tooltip-muted">
                       {marker.description}
                     </div>
                   )}
@@ -85,9 +78,7 @@ export function MarkerTooltipContent({ markers }: MarkerTooltipContentProps) {
         );
       })}
       {hiddenCount > 0 && (
-        <div className="pl-7 text-chart-tooltip-muted text-xs">
-          +{hiddenCount} more...
-        </div>
+        <div className="pl-7 text-xs text-chart-tooltip-muted">+{hiddenCount} more...</div>
       )}
     </div>
   );
@@ -101,14 +92,7 @@ export function ChartMarkers({
   replayKey,
   iconFill = false,
 }: ChartMarkersProps) {
-  const {
-    xScale,
-    innerHeight,
-    margin,
-    containerRef,
-    tooltipData,
-    setTooltipData,
-  } = useChart();
+  const { xScale, innerHeight, margin, containerRef, tooltipData, setTooltipData } = useChart();
 
   // Touch devices skip the entrance stagger — markers mount in place. The
   // left→right cascade is the pricier per-frame work on slow mobile GPUs.
@@ -133,7 +117,7 @@ export function ChartMarkers({
         setActive(null);
       }
     },
-    [setTooltipData, xScale]
+    [setTooltipData, xScale],
   );
 
   // Group markers by date
@@ -156,10 +140,9 @@ export function ChartMarkers({
   const sortedGroups = useMemo(
     () =>
       Array.from(markersByDate.entries()).sort(
-        ([, a], [, b]) =>
-          (a[0]?.date.getTime() ?? 0) - (b[0]?.date.getTime() ?? 0)
+        ([, a], [, b]) => (a[0]?.date.getTime() ?? 0) - (b[0]?.date.getTime() ?? 0),
       ),
-    [markersByDate]
+    [markersByDate],
   );
 
   // Spread the whole cascade across a fixed window (not a flat per-group step),
@@ -167,19 +150,14 @@ export function ChartMarkers({
   // multi-second tail. ~1.2s ceiling matches bklit's bar-stagger spec.
   const STAGGER_WINDOW = 1.2;
   const staggerStep =
-    sortedGroups.length > 1
-      ? Math.min(0.08, STAGGER_WINDOW / (sortedGroups.length - 1))
-      : 0;
+    sortedGroups.length > 1 ? Math.min(0.08, STAGGER_WINDOW / (sortedGroups.length - 1)) : 0;
 
   // Crosshair date — resolve once per render, not once per marker group per
   // hover frame (this component re-renders on every scrub via tooltipData).
   let hoveredDateKey: string | undefined;
   if (tooltipData) {
     const point = tooltipData.point;
-    const date =
-      point.date instanceof Date
-        ? point.date
-        : new Date(point.date as string | number);
+    const date = point.date instanceof Date ? point.date : new Date(point.date as string | number);
     hoveredDateKey = date.toDateString();
   }
 
@@ -187,39 +165,39 @@ export function ChartMarkers({
     <>
       {/* SVG markers rendered in chart space */}
       {sortedGroups.map(([dateKey, dateMarkers], groupIndex) => {
-          const markerDate = dateMarkers[0]?.date;
-          if (!markerDate) {
-            return null;
-          }
+        const markerDate = dateMarkers[0]?.date;
+        if (!markerDate) {
+          return null;
+        }
 
-          const markerX = xScale(markerDate) ?? 0;
-          const isActive = tooltipData ? hoveredDateKey === dateKey : undefined;
+        const markerX = xScale(markerDate) ?? 0;
+        const isActive = tooltipData ? hoveredDateKey === dateKey : undefined;
 
-          // Stagger only — no base wait for the chart draw, leftmost first.
-          const markerDelay = animateMarkers ? groupIndex * staggerStep : 0;
+        // Stagger only — no base wait for the chart draw, leftmost first.
+        const markerDelay = animateMarkers ? groupIndex * staggerStep : 0;
 
-          return (
-            <MarkerGroup
-              animate={animateMarkers}
-              animationDelay={markerDelay}
-              containerRef={containerRef}
-              iconFill={iconFill}
-              isActive={isActive}
-              // replayKey in the key remounts the group on a timeframe switch so
-              // the entrance variant fires again (the area chart never unmounts).
-              key={`${dateKey}-${replayKey ?? ""}`}
-              lineHeight={innerHeight}
-              marginLeft={margin.left}
-              marginTop={margin.top}
-              markers={dateMarkers}
-              onHover={handleMarkerHover}
-              showLine={showLines}
-              size={size}
-              x={markerX}
-              y={markerY}
-            />
-          );
-        })}
+        return (
+          <MarkerGroup
+            animate={animateMarkers}
+            animationDelay={markerDelay}
+            containerRef={containerRef}
+            iconFill={iconFill}
+            isActive={isActive}
+            // replayKey in the key remounts the group on a timeframe switch so
+            // the entrance variant fires again (the area chart never unmounts).
+            key={`${dateKey}-${replayKey ?? ""}`}
+            lineHeight={innerHeight}
+            marginLeft={margin.left}
+            marginTop={margin.top}
+            markers={dateMarkers}
+            onHover={handleMarkerHover}
+            showLine={showLines}
+            size={size}
+            x={markerX}
+            y={markerY}
+          />
+        );
+      })}
 
       {/* Anchored hover card — the marker's own detail (title + description),
           positioned at the marker instead of inside the chart tooltip. Kept
@@ -237,16 +215,16 @@ export function ChartMarkers({
           >
             {shown.markers.map((m) => (
               <div key={m.title} className="not-first:mt-2">
-                <div className="font-medium text-foreground text-sm">{m.title}</div>
+                <div className="text-sm font-medium text-foreground">{m.title}</div>
                 {m.description && (
-                  <div className="mt-0.5 max-w-[16rem] whitespace-normal break-words text-muted-foreground text-xs">
+                  <div className="mt-0.5 max-w-[16rem] text-xs break-words whitespace-normal text-muted-foreground">
                     {m.description}
                   </div>
                 )}
               </div>
             ))}
           </div>,
-          containerRef.current
+          containerRef.current,
         )}
     </>
   );
@@ -261,10 +239,7 @@ export function useActiveMarkers(items: ChartMarker[]) {
       return [];
     }
     const point = tooltipData.point;
-    const date =
-      point.date instanceof Date
-        ? point.date
-        : new Date(point.date as string | number);
+    const date = point.date instanceof Date ? point.date : new Date(point.date as string | number);
     const dateKey = date.toDateString();
     return items.filter((m) => m.date.toDateString() === dateKey);
   }, [tooltipData, items]);

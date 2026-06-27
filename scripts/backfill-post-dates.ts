@@ -33,11 +33,16 @@ async function main() {
       continue;
     }
     const codes = calls.map((c) => String(c.shortcode ?? "")).filter(Boolean);
-    if (majorityNumeric(codes)) { console.log(`skip ${handle}: X creator (numeric shortcodes)`); continue; }
+    if (majorityNumeric(codes)) {
+      console.log(`skip ${handle}: X creator (numeric shortcodes)`);
+      continue;
+    }
     const seeded = postDatesFromDataset(calls);
     const merged = mergePostDates(await loadPostDates(handle), seeded);
     await savePostDates(handle, merged);
-    console.log(`seeded ${handle}: ${Object.keys(seeded).length} dates -> store has ${Object.keys(merged).length}`);
+    console.log(
+      `seeded ${handle}: ${Object.keys(seeded).length} dates -> store has ${Object.keys(merged).length}`,
+    );
   }
 }
 

@@ -22,10 +22,7 @@ import { createFileRoute } from "@tanstack/react-router";
 // VERCEL_PROJECT_ID (and VERCEL_TEAM_ID if team-scoped), call Vercel's purge endpoint per
 // path/tag. Until then `purge` records intent and returns the count it would have purged;
 // it deliberately does not claim to have busted the CDN.
-async function purge(
-  paths: string[],
-  tags: string[],
-): Promise<{ paths: number; tags: number }> {
+async function purge(paths: string[], tags: string[]): Promise<{ paths: number; tags: number }> {
   // No real CDN purge available in 3a (see TODO above). Log the intent so an operator
   // calling this manually can confirm the seam fired, then report what was requested.
   if (paths.length || tags.length) {
@@ -77,8 +74,10 @@ export const Route = createFileRoute("/api/revalidate")({
         let tags: string[] = [];
         try {
           const body = (await request.json()) as { paths?: unknown; tags?: unknown };
-          if (Array.isArray(body?.paths)) paths = body.paths.filter((p): p is string => typeof p === "string");
-          if (Array.isArray(body?.tags)) tags = body.tags.filter((t): t is string => typeof t === "string");
+          if (Array.isArray(body?.paths))
+            paths = body.paths.filter((p): p is string => typeof p === "string");
+          if (Array.isArray(body?.tags))
+            tags = body.tags.filter((t): t is string => typeof t === "string");
         } catch {
           // No JSON body — treat as a no-op purge request.
         }

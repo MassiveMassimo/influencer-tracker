@@ -14,9 +14,7 @@ export function isSafeAssetKey(key: string): boolean {
   return /^[A-Za-z0-9.$!_-]{1,40}$/.test(key);
 }
 
-type MissMode =
-  | { onMiss: "empty"; emptyBody: string }
-  | { onMiss: "error"; label: string };
+type MissMode = { onMiss: "empty"; emptyBody: string } | { onMiss: "error"; label: string };
 
 // Fetches the committed static CDN asset (public/... served from the edge) over HTTP — public/
 // ships to the CDN, not the function filesystem on Vercel, so a node:fs read would 500 in prod.

@@ -28,8 +28,14 @@ async function main() {
     const entry = index[ord];
     const ds = readJson(join(CREATORS, scopedHandle, "dataset.json"));
     await backfillCreator(db, entry, ds, ord);
-    const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(calls).where(eq(calls.handle, scopedHandle));
-    if (n !== ds.calls.length) throw new Error(`${scopedHandle}: ${n} rows != ${ds.calls.length} calls — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy.`);
+    const [{ n }] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(calls)
+      .where(eq(calls.handle, scopedHandle));
+    if (n !== ds.calls.length)
+      throw new Error(
+        `${scopedHandle}: ${n} rows != ${ds.calls.length} calls — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy.`,
+      );
     console.log(`creator ${scopedHandle}: ${ds.calls.length} calls`);
     // Backfill only this creator's price symbols (insert-only; no cross-creator regression).
     const symbols = [...new Set([...ds.calls.map((c: { ticker: string }) => c.ticker), "SPY"])];
@@ -55,8 +61,14 @@ async function main() {
     await backfillCreator(db, entry, ds, ord);
     // Guard against the (handle, shortcode) PK silently merging rows if a post ever
     // yields two calls: inserted count must equal the source call count.
-    const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(calls).where(eq(calls.handle, entry.handle));
-    if (n !== ds.calls.length) throw new Error(`${entry.handle}: ${n} rows != ${ds.calls.length} calls — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy.`);
+    const [{ n }] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(calls)
+      .where(eq(calls.handle, entry.handle));
+    if (n !== ds.calls.length)
+      throw new Error(
+        `${entry.handle}: ${n} rows != ${ds.calls.length} calls — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy.`,
+      );
     console.log(`creator ${entry.handle}: ${ds.calls.length} calls`);
   }
   for (const file of readdirSync(PRICES).filter((f) => f.endsWith(".json"))) {

@@ -16,7 +16,10 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/gif": "gif",
 };
 
-export async function saveAvatar(handle: string, url: string | null | undefined): Promise<string | null> {
+export async function saveAvatar(
+  handle: string,
+  url: string | null | undefined,
+): Promise<string | null> {
   if (!url) return null;
   try {
     const res = await fetch(url);
@@ -32,5 +35,7 @@ export async function saveAvatar(handle: string, url: string | null | undefined)
     }
     await writeFile(join(AVATARS, `${handle}.${ext}`), bytes);
     return `/avatars/${handle}.${ext}`;
-  } catch { return null; /* avatar is optional */ }
+  } catch {
+    return null; /* avatar is optional */
+  }
 }

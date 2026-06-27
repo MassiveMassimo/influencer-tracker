@@ -8,13 +8,11 @@ import type { Margin } from "./chart-context";
 import { ChartLoadingLabel } from "./chart-loading-label";
 import { Grid } from "./grid";
 
-const DEFAULT_LOADING_GRID_STROKE =
-  "color-mix(in oklch, var(--chart-grid) 50%, transparent)";
+const DEFAULT_LOADING_GRID_STROKE = "color-mix(in oklch, var(--chart-grid) 50%, transparent)";
 const DEFAULT_LOADING_GRID_SHIMMER_STROKE =
   "color-mix(in oklch, var(--foreground) 68%, transparent)";
 // Neutral skeleton candles — no green/red, so the shimmer reads as the motion.
-const DEFAULT_CANDLE_FILL =
-  "color-mix(in oklch, var(--foreground) 16%, transparent)";
+const DEFAULT_CANDLE_FILL = "color-mix(in oklch, var(--foreground) 16%, transparent)";
 const SKELETON_POINT_COUNT = 14;
 
 /** Placeholder OHLC candles for the loading skeleton (mirrors generate-chart-skeleton-data). */

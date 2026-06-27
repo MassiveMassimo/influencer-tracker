@@ -8,12 +8,31 @@ import { type Timeframe, trimToLastSession } from "./window-series.ts";
 
 // yahoo-finance2 ChartOptions["interval"] uses "60m" as the canonical alias for
 // "1h". Both are accepted at runtime; this type covers only the values we use.
-type YfInterval = "1m" | "2m" | "5m" | "15m" | "30m" | "60m" | "90m" | "1h" | "1d" | "5d" | "1wk" | "1mo" | "3mo";
+type YfInterval =
+  | "1m"
+  | "2m"
+  | "5m"
+  | "15m"
+  | "30m"
+  | "60m"
+  | "90m"
+  | "1h"
+  | "1d"
+  | "5d"
+  | "1wk"
+  | "1mo"
+  | "3mo";
 
 // A live OHLC bar. Unlike the dataset's date-only OhlcBar, `date` is a full ISO
 // datetime so intraday bars are distinct. Kept separate so DatasetSchema is
 // untouched.
-export interface LiveBar { date: string; o: number; h: number; l: number; c: number }
+export interface LiveBar {
+  date: string;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+}
 
 export interface ChartData {
   ohlc: LiveBar[];
@@ -105,7 +124,10 @@ export const InputSchema = z.object({
   timeframe: z.enum(["1D", "1W", "1M", "3M", "6M", "1Y", "All"]),
   // Anchored end + length cap: an unbounded suffix would land verbatim in the
   // "All" cache key and feed new Date() an Invalid Date.
-  firstDate: z.string().max(30).regex(/^\d{4}-\d{2}-\d{2}($|T)/, "firstDate must be YYYY-MM-DD"),
+  firstDate: z
+    .string()
+    .max(30)
+    .regex(/^\d{4}-\d{2}-\d{2}($|T)/, "firstDate must be YYYY-MM-DD"),
 });
 
 export const fetchChart = createServerFn({ method: "GET" })

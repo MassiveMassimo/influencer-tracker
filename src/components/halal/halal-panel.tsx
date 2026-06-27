@@ -7,7 +7,11 @@ import { ChartBoundary } from "#/components/ChartBoundary";
 import { usePreferences } from "#/lib/preferences.tsx";
 import { musaffaKey, STATUS_META, type HalalInfo } from "#/lib/halal/types.ts";
 
-const SLICE = { halal: "var(--color-emerald-500)", doubtful: "var(--color-amber-500)", notHalal: "var(--color-red-500)" } as const;
+const SLICE = {
+  halal: "var(--color-emerald-500)",
+  doubtful: "var(--color-amber-500)",
+  notHalal: "var(--color-red-500)",
+} as const;
 
 // AAOIFI financial screens are compliant under ~30% of market cap.
 const SCREEN_THRESHOLD = 30;
@@ -28,7 +32,9 @@ function Screen({ label, value }: { label: string; value: number }) {
     <div className="space-y-1">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-muted-foreground">{label}</span>
-        <span className={`font-mono font-medium tabular-nums ${ok ? "text-foreground" : "text-red-500"}`}>
+        <span
+          className={`font-mono font-medium tabular-nums ${ok ? "text-foreground" : "text-red-500"}`}
+        >
           {value.toFixed(1)}%
         </span>
       </div>
@@ -52,7 +58,7 @@ export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }
 
   if (info.status === "unknown") {
     return (
-      <section className="rounded-2xl border border-border/60 border-dashed bg-muted/20 p-5">
+      <section className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <CircleQuestionMark className="size-[1.1em]" />
           Not rated by Musaffa
@@ -88,7 +94,7 @@ export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }
             <span className="text-xs text-muted-foreground">· {info.sector}</span>
           ) : null}
         </div>
-        <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
           Shariah · {info.exchange || info.ticker}
         </span>
       </div>
@@ -99,7 +105,14 @@ export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }
               render-prop on hover, falling back to a "Total" label otherwise. */}
           <div className="relative" style={{ width: 132, height: 132 }}>
             <ChartBoundary>
-              <PieChart data={data} size={132} innerRadius={46} padAngle={0.03} cornerRadius={3} hoverOffset={4}>
+              <PieChart
+                data={data}
+                size={132}
+                innerRadius={46}
+                padAngle={0.03}
+                cornerRadius={3}
+                hoverOffset={4}
+              >
                 {data.map((d, i) => (
                   <PieSlice index={i} key={d.label} />
                 ))}
@@ -109,7 +122,7 @@ export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }
               <div className="font-heading text-xl leading-none text-foreground">
                 {info.halalPct.toFixed(0)}%
               </div>
-              <div className="mt-0.5 text-[9px] uppercase tracking-[0.15em] text-muted-foreground">
+              <div className="mt-0.5 text-[9px] tracking-[0.15em] text-muted-foreground uppercase">
                 halal rev
               </div>
             </div>

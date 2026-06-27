@@ -1,12 +1,7 @@
 import { ScrollTextIcon, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Dialog } from "@base-ui/react/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerTitle,
-} from "#/components/ui/drawer.tsx";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "#/components/ui/drawer.tsx";
 import { Switch } from "#/components/ui/switch.tsx";
 import { Separator } from "#/components/ui/separator.tsx";
 import { ThemePicker } from "./ThemePicker";
@@ -49,7 +44,7 @@ function Body({ onClose }: { onClose: () => void }) {
   return (
     <div className="space-y-5">
       <div className="space-y-2">
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+        <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
           Theme
         </div>
         <ThemePicker />
@@ -89,9 +84,7 @@ function Body({ onClose }: { onClose: () => void }) {
           <span className="text-sm font-medium text-foreground group-hover:underline group-hover:underline-offset-2">
             Changelog
           </span>
-          <span className="text-xs text-muted-foreground">
-            What's new and recently shipped.
-          </span>
+          <span className="text-xs text-muted-foreground">What's new and recently shipped.</span>
         </span>
         <ScrollTextIcon className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
       </Link>

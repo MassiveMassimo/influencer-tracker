@@ -73,11 +73,28 @@ function BrandLockup({ pal }: { pal: OgPalette }) {
           border: `1px solid ${pal.line}`,
         }}
       >
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke={pal.bg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="21"
+          height="21"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={pal.bg}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d={LINE_CHART_D} />
         </svg>
       </div>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 22, fontWeight: 600, color: pal.fg }}>
+      <div
+        style={{
+          display: "flex",
+          fontFamily: "Geist Mono",
+          fontSize: 22,
+          fontWeight: 600,
+          color: pal.fg,
+        }}
+      >
         Signal Tracker
       </div>
     </div>
@@ -109,7 +126,15 @@ function Frame({ pal, bg, children }: { pal: OgPalette; bg: string; children: Re
       }}
     >
       <img src={bg} width={W} height={H} style={{ position: "absolute", top: 0, left: 0 }} />
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between", position: "relative" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          justifyContent: "space-between",
+          position: "relative",
+        }}
+      >
         {children}
       </div>
     </div>
@@ -118,7 +143,16 @@ function Frame({ pal, bg, children }: { pal: OgPalette; bg: string; children: Re
 
 function Kicker({ pal, text }: { pal: OgPalette; text: string }) {
   return (
-    <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 22, letterSpacing: 6, textTransform: "uppercase", color: pal.fgMuted }}>
+    <div
+      style={{
+        display: "flex",
+        fontFamily: "Geist Mono",
+        fontSize: 22,
+        letterSpacing: 6,
+        textTransform: "uppercase",
+        color: pal.fgMuted,
+      }}
+    >
       {text}
     </div>
   );
@@ -129,11 +163,31 @@ function Stat({ pal, value }: { pal: OgPalette; value: number | null }) {
   const color = value == null ? pal.fgMuted : ok ? pal.up : pal.down;
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 28 }}>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 96, fontWeight: 700, lineHeight: 1, color }}>
+      <div
+        style={{
+          display: "flex",
+          fontFamily: "Geist Mono",
+          fontSize: 96,
+          fontWeight: 700,
+          lineHeight: 1,
+          color,
+        }}
+      >
         {value == null ? "—" : signed(value)}
       </div>
       {/* flex-end + paddingBottom lands the small label on the big number's baseline */}
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, lineHeight: 1, paddingBottom: 16, color: pal.fgMuted }}>vs SPY · 3m</div>
+      <div
+        style={{
+          display: "flex",
+          fontFamily: "Geist Mono",
+          fontSize: 30,
+          lineHeight: 1,
+          paddingBottom: 16,
+          color: pal.fgMuted,
+        }}
+      >
+        vs SPY · 3m
+      </div>
     </div>
   );
 }
@@ -144,13 +198,39 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
       <Frame pal={pal} bg={bg}>
         <TopBar pal={pal} kicker="Influencer accuracy · vs SPY" />
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.fg }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontWeight: 700,
+              fontSize: 56,
+              lineHeight: 1.08,
+              color: pal.fg,
+            }}
+          >
             Influencer accuracy,
           </div>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.lagoonDeep }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontWeight: 700,
+              fontSize: 56,
+              lineHeight: 1.08,
+              color: pal.lagoonDeep,
+            }}
+          >
             measured against the market.
           </div>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 26, color: pal.fgMuted, marginTop: 10 }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontSize: 26,
+              color: pal.fgMuted,
+              marginTop: 10,
+            }}
+          >
             Forward returns of stock calls, net of SPY.
           </div>
         </div>
@@ -163,13 +243,39 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
       <Frame pal={pal} bg={bg}>
         <TopBar pal={pal} kicker="Changelog" />
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.fg }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontWeight: 700,
+              fontSize: 56,
+              lineHeight: 1.08,
+              color: pal.fg,
+            }}
+          >
             What's new
           </div>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1.08, color: pal.lagoonDeep }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontWeight: 700,
+              fontSize: 56,
+              lineHeight: 1.08,
+              color: pal.lagoonDeep,
+            }}
+          >
             on Signal Tracker.
           </div>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 26, color: pal.fgMuted, marginTop: 10 }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontSize: 26,
+              color: pal.fgMuted,
+              marginTop: 10,
+            }}
+          >
             New features, improvements, and fixes.
           </div>
         </div>
@@ -183,11 +289,36 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
         <TopBar pal={pal} kicker="Signal accuracy" />
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           {card.avatar ? (
-            <img src={card.avatar} width={120} height={120} style={{ borderRadius: 999, border: `2px solid ${pal.line}` }} />
+            <img
+              src={card.avatar}
+              width={120}
+              height={120}
+              style={{ borderRadius: 999, border: `2px solid ${pal.line}` }}
+            />
           ) : null}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 56, lineHeight: 1, color: pal.fg }}>{card.name}</div>
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, color: pal.fgMuted }}>@{card.handle} · {card.totalCalls} calls</div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "Geist Mono",
+                fontWeight: 700,
+                fontSize: 56,
+                lineHeight: 1,
+                color: pal.fg,
+              }}
+            >
+              {card.name}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "Geist Mono",
+                fontSize: 30,
+                color: pal.fgMuted,
+              }}
+            >
+              @{card.handle} · {card.totalCalls} calls
+            </div>
           </div>
         </div>
         <Stat pal={pal} value={card.excess3m} />
@@ -200,12 +331,42 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
         <TopBar pal={pal} kicker="Across creators" />
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 20 }}>
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 96, lineHeight: 1, color: pal.fg }}>{card.symbol}</div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "Geist Mono",
+                fontWeight: 700,
+                fontSize: 96,
+                lineHeight: 1,
+                color: pal.fg,
+              }}
+            >
+              {card.symbol}
+            </div>
             {card.company ? (
-              <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, lineHeight: 1, paddingBottom: 14, color: pal.fgMuted }}>{card.company}</div>
+              <div
+                style={{
+                  display: "flex",
+                  fontFamily: "Geist Mono",
+                  fontSize: 34,
+                  lineHeight: 1,
+                  paddingBottom: 14,
+                  color: pal.fgMuted,
+                }}
+              >
+                {card.company}
+              </div>
             ) : null}
           </div>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 600, fontSize: 32, color: pal.fgMuted }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontWeight: 600,
+              fontSize: 32,
+              color: pal.fgMuted,
+            }}
+          >
             {card.creatorCount} creators · {card.callCount} calls
           </div>
         </div>
@@ -218,12 +379,44 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
       <TopBar pal={pal} kicker={`@${card.handle}`} />
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 20 }}>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 96, lineHeight: 1, color: pal.fg }}>{card.symbol}</div>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontWeight: 700,
+              fontSize: 96,
+              lineHeight: 1,
+              color: pal.fg,
+            }}
+          >
+            {card.symbol}
+          </div>
           {card.company ? (
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, lineHeight: 1, paddingBottom: 14, color: pal.fgMuted }}>{card.company}</div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "Geist Mono",
+                fontSize: 34,
+                lineHeight: 1,
+                paddingBottom: 14,
+                color: pal.fgMuted,
+              }}
+            >
+              {card.company}
+            </div>
           ) : null}
         </div>
-        <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 600, fontSize: 32, color: pal.fgMuted }}>called by {card.name}</div>
+        <div
+          style={{
+            display: "flex",
+            fontFamily: "Geist Mono",
+            fontWeight: 600,
+            fontSize: 32,
+            color: pal.fgMuted,
+          }}
+        >
+          called by {card.name}
+        </div>
       </div>
       <Stat pal={pal} value={card.excess3m} />
     </Frame>

@@ -1,16 +1,20 @@
 const TEXT: Record<string, string> = {
   survivorship: "Deleted losing-call reels can't be scraped — accuracy shown is an upper bound.",
   "reposts-deduped": "Repeated promotions are counted once (first bullish mention per ticker).",
-  "forward-from-post-date": "Returns are measured from each reel's post date forward — not the gains he brags about.",
-  "crypto-vs-spy": "Crypto calls are scored against SPY despite trading 24/7 — an asset-class mismatch in the headline metric.",
+  "forward-from-post-date":
+    "Returns are measured from each reel's post date forward — not the gains he brags about.",
+  "crypto-vs-spy":
+    "Crypto calls are scored against SPY despite trading 24/7 — an asset-class mismatch in the headline metric.",
 };
 
 export function CaveatsBanner({ caveats }: { caveats: string[] }) {
   return (
     <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm">
-      <div className="font-semibold mb-1">How to read this</div>
-      <ul className="list-disc pl-5 space-y-0.5">
-        {caveats.map(c => <li key={c}>{TEXT[c] ?? c}</li>)}
+      <div className="mb-1 font-semibold">How to read this</div>
+      <ul className="list-disc space-y-0.5 pl-5">
+        {caveats.map((c) => (
+          <li key={c}>{TEXT[c] ?? c}</li>
+        ))}
       </ul>
     </div>
   );

@@ -145,8 +145,7 @@ export function MarkerGroup({
   const [isHovered, setIsHovered] = useState(false);
   const shouldFan = (isHovered || forceOpen) && markers.length > 1;
   const hasMultiple = markers.length > 1;
-  const fannedMarkers =
-    maxFanned === undefined ? markers : markers.slice(0, maxFanned);
+  const fannedMarkers = maxFanned === undefined ? markers : markers.slice(0, maxFanned);
   let currentVariant: "fanned" | "muted" | "visible" = "visible";
   if (shouldFan) {
     currentVariant = "fanned";
@@ -337,10 +336,7 @@ export function MarkerGroup({
               <AnimatePresence mode="sync">
                 {shouldFan &&
                   fannedMarkers.map((marker, index) => {
-                    const position = getCirclePosition(
-                      index,
-                      fannedMarkers.length
-                    );
+                    const position = getCirclePosition(index, fannedMarkers.length);
                     return (
                       <motion.div
                         animate={{
@@ -407,7 +403,7 @@ export function MarkerGroup({
               </AnimatePresence>
             </div>
           </div>,
-          containerRef.current
+          containerRef.current,
         )}
     </>
   );
@@ -508,7 +504,7 @@ function MarkerCircleHTML({
     <motion.div
       className={cn(
         "relative flex h-full w-full items-center justify-center rounded-full shadow-lg",
-        hasAction && "cursor-pointer"
+        hasAction && "cursor-pointer",
       )}
       onClick={hasAction ? handleClick : undefined}
       style={{
@@ -520,11 +516,7 @@ function MarkerCircleHTML({
         overflow: "hidden",
       }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      whileHover={
-        hasAction
-          ? { scale: 1.15, boxShadow: "0 4px 20px rgba(0,0,0,0.25)" }
-          : undefined
-      }
+      whileHover={hasAction ? { scale: 1.15, boxShadow: "0 4px 20px rgba(0,0,0,0.25)" } : undefined}
       whileTap={hasAction ? { scale: 0.95 } : undefined}
     >
       {icon}

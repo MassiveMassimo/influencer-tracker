@@ -72,7 +72,10 @@ async function searchBatch(keys: string[], apiKey: string): Promise<Record<strin
 
 // Returns a map keyed by uppercased Musaffa `id`. Throws MusaffaOutage on 5xx so
 // the caller (halal-fetch) can fail open. Missing keys simply aren't in the map.
-export async function fetchMusaffa(keys: string[], apiKey: string): Promise<Record<string, HalalInfo>> {
+export async function fetchMusaffa(
+  keys: string[],
+  apiKey: string,
+): Promise<Record<string, HalalInfo>> {
   if (keys.length === 0) return {};
   const chunks: string[][] = [];
   for (let i = 0; i < keys.length; i += MAX_PER_PAGE) {

@@ -46,15 +46,18 @@ export function applyCallFilter(
     }
     if (q) {
       // `shortcode` included so a pasted/typed post id (see normalizeQuery) matches.
-      const hay = `${r.ticker} ${r.company} ${r.summary ?? ""} ${names[r.handle] ?? ""} ${r.handle} ${r.shortcode}`.toLowerCase();
+      const hay =
+        `${r.ticker} ${r.company} ${r.summary ?? ""} ${names[r.handle] ?? ""} ${r.handle} ${r.shortcode}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
   const { key, dir } = f.sort;
   return filtered.sort((a, b) => {
-    if (key === "postDate") return a.postDate.localeCompare(b.postDate) * dir || a.shortcode.localeCompare(b.shortcode);
-    if (key === "conviction") return (a.conviction - b.conviction) * dir || a.shortcode.localeCompare(b.shortcode);
+    if (key === "postDate")
+      return a.postDate.localeCompare(b.postDate) * dir || a.shortcode.localeCompare(b.shortcode);
+    if (key === "conviction")
+      return (a.conviction - b.conviction) * dir || a.shortcode.localeCompare(b.shortcode);
     return cmpNullable(a[key], b[key], dir) || a.shortcode.localeCompare(b.shortcode);
   });
 }
@@ -94,13 +97,21 @@ export function summarizeTicker(rows: CallIndexEntry[], symbol: string): TickerS
     byHandle.set(r.handle, arr);
   }
   const byCreator: TickerCreatorRow[] = [...byHandle.entries()].map(([handle, cs]) => {
-    const first = cs.find((c) => c.isFirstCall) ?? [...cs].sort((a, b) => a.postDate.localeCompare(b.postDate))[0];
+    const first =
+      cs.find((c) => c.isFirstCall) ??
+      [...cs].sort((a, b) => a.postDate.localeCompare(b.postDate))[0];
     return {
       handle,
       callCount: cs.length,
       firstCallDate: first?.postDate ?? null,
-      lastCallDate: cs.reduce<string | null>((m, c) => (m == null || c.postDate > m ? c.postDate : m), null),
-      bestEx3m: cs.reduce<number | null>((m, c) => (c.ex3m != null && (m == null || c.ex3m > m) ? c.ex3m : m), null),
+      lastCallDate: cs.reduce<string | null>(
+        (m, c) => (m == null || c.postDate > m ? c.postDate : m),
+        null,
+      ),
+      bestEx3m: cs.reduce<number | null>(
+        (m, c) => (c.ex3m != null && (m == null || c.ex3m > m) ? c.ex3m : m),
+        null,
+      ),
       ex3m: first?.ex3m ?? null,
       exToDate: first?.exToDate ?? null,
     };

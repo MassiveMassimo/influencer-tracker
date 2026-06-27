@@ -6,8 +6,7 @@ export const CHART_CLIP_PASSTHROUGH = "__chartClipPassthrough" as const;
 export function isChartClipPassthrough(type: unknown): boolean {
   return (
     typeof type === "function" &&
-    (type as { [CHART_CLIP_PASSTHROUGH]?: boolean })[CHART_CLIP_PASSTHROUGH] ===
-      true
+    (type as { [CHART_CLIP_PASSTHROUGH]?: boolean })[CHART_CLIP_PASSTHROUGH] === true
   );
 }
 

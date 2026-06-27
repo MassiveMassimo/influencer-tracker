@@ -21,7 +21,9 @@ function arg(name: string): string | undefined {
 const [handle, shortcode] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const reason = arg("reason");
 if (!handle || !shortcode || !reason) {
-  console.error('usage: apply-override.ts <handle> <shortcode> --reason "<why>" [--target X] [--ticker X] [--buy true|false] [--direction bullish|bearish|neutral]');
+  console.error(
+    'usage: apply-override.ts <handle> <shortcode> --reason "<why>" [--target X] [--ticker X] [--buy true|false] [--direction bullish|bearish|neutral]',
+  );
   process.exit(1);
 }
 const buyArg = arg("buy");
@@ -31,12 +33,29 @@ const targetTicker = (arg("target") ?? "").trim().toUpperCase();
 const today = new Date().toISOString().slice(0, 10);
 
 const db = getWriteDb();
-await db.insert(callOverrides).values({
-  handle, shortcode, targetTicker, ticker: arg("ticker") ?? null, isExplicitBuy,
-  direction: arg("direction") ?? null, reason, createdAt: today,
-}).onConflictDoUpdate({
-  target: [callOverrides.handle, callOverrides.shortcode, callOverrides.targetTicker],
-  set: { ticker: arg("ticker") ?? null, isExplicitBuy, direction: arg("direction") ?? null, reason, createdAt: today },
-});
-console.log(`override recorded for ${handle}/${shortcode}${targetTicker ? ` (target ${targetTicker})` : ""}. Re-score to apply:`);
+await db
+  .insert(callOverrides)
+  .values({
+    handle,
+    shortcode,
+    targetTicker,
+    ticker: arg("ticker") ?? null,
+    isExplicitBuy,
+    direction: arg("direction") ?? null,
+    reason,
+    createdAt: today,
+  })
+  .onConflictDoUpdate({
+    target: [callOverrides.handle, callOverrides.shortcode, callOverrides.targetTicker],
+    set: {
+      ticker: arg("ticker") ?? null,
+      isExplicitBuy,
+      direction: arg("direction") ?? null,
+      reason,
+      createdAt: today,
+    },
+  });
+console.log(
+  `override recorded for ${handle}/${shortcode}${targetTicker ? ` (target ${targetTicker})` : ""}. Re-score to apply:`,
+);
 console.log(`  flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${handle}`);

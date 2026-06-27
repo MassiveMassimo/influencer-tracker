@@ -26,7 +26,8 @@ export function validateReportBody(body: unknown): ReportInput | null {
   if (typeof handle !== "string" || handle.length < 1 || handle.length > 64) return null;
   if (typeof shortcode !== "string" || shortcode.length < 1 || shortcode.length > 64) return null;
   if (typeof ticker !== "string" || ticker.length < 1 || ticker.length > 32) return null;
-  if (typeof reason !== "string" || !(REPORT_REASONS as readonly string[]).includes(reason)) return null;
+  if (typeof reason !== "string" || !(REPORT_REASONS as readonly string[]).includes(reason))
+    return null;
   return { handle, shortcode, ticker, reason };
 }
 

@@ -1,28 +1,44 @@
 export type Horizon = "1w" | "1m" | "3m" | "toDate";
 export type Direction = "bullish" | "bearish" | "neutral";
 
-export interface OhlcBar { date: string; o: number; h: number; l: number; c: number }
-export interface ReturnTriple { stock: number | null; spy: number | null; excess: number | null }
+export interface OhlcBar {
+  date: string;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+}
+export interface ReturnTriple {
+  stock: number | null;
+  spy: number | null;
+  excess: number | null;
+}
 
 export interface Call {
   shortcode: string;
-  postDate: string;            // ISO date, the signal date
+  postDate: string; // ISO date, the signal date
   ticker: string;
   company: string;
   isFirstCall: boolean;
-  conviction: number;          // 0..1
+  conviction: number; // 0..1
   quote: string;
-  summary?: string;            // one-sentence context on what the post is about
+  summary?: string; // one-sentence context on what the post is about
   onScreenPrice?: number | null;
-  spark?: number[];            // downsampled closes from postDate forward, for the sparkline
+  spark?: number[]; // downsampled closes from postDate forward, for the sparkline
   returns: Record<Horizon, ReturnTriple>;
 }
 
-export interface FunnelStage { label: string; value: number }
+export interface FunnelStage {
+  label: string;
+  value: number;
+}
 
 // One point on the cumulative-performance curve: `t` = ISO date, `v` = equal-weight
 // mean excess return vs SPY across the creator's scored picks active as of `t`.
-export interface CumPoint { t: string; v: number }
+export interface CumPoint {
+  t: string;
+  v: number;
+}
 
 export interface Scorecard {
   totalCalls: number;

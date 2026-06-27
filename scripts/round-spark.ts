@@ -9,12 +9,9 @@ import { join } from "node:path";
 
 const CREATORS = "data/creators";
 const round4 = (v: number) => Number(v.toPrecision(4));
-const roundArr = (s: unknown) =>
-  Array.isArray(s) ? s.map((v) => round4(v as number)) : s;
+const roundArr = (s: unknown) => (Array.isArray(s) ? s.map((v) => round4(v as number)) : s);
 
-const index: { handle: string }[] = JSON.parse(
-  readFileSync(join(CREATORS, "index.json"), "utf8"),
-);
+const index: { handle: string }[] = JSON.parse(readFileSync(join(CREATORS, "index.json"), "utf8"));
 
 for (const { handle } of index) {
   const path = join(CREATORS, handle, "dataset.json");

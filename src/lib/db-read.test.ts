@@ -19,12 +19,16 @@ const index = RUN ? readJson(join(ROOT, "data", "creators", "index.json")) : [];
 const db = RUN ? makeDb(process.env.DATABASE_URL_TEST!) : (undefined as unknown as Db);
 
 describe.skipIf(!RUN)("DB read golden master", () => {
-
   beforeAll(async () => {
     assertSeparateTestDb();
     await db.execute(sql`TRUNCATE creators, calls, prices, artifacts RESTART IDENTITY CASCADE`);
     for (const [ord, e] of index.entries()) {
-      await backfillCreator(db, e, readJson(join(ROOT, "data", "creators", (e as { handle: string }).handle, "dataset.json")), ord as number);
+      await backfillCreator(
+        db,
+        e,
+        readJson(join(ROOT, "data", "creators", (e as { handle: string }).handle, "dataset.json")),
+        ord as number,
+      );
     }
     for (const f of readdirSync(join(ROOT, "data", "prices")).filter((f) => f.endsWith(".json"))) {
       await backfillPrices(db, f.replace(/\.json$/, ""), readJson(join(ROOT, "data", "prices", f)));
@@ -53,11 +57,17 @@ describe.skipIf(!RUN)("DB read golden master", () => {
   });
 
   test("readCallsIndex deep-equals buildCallsIndex over all datasets", async () => {
-    const datasets = await Promise.all(index.map((e: { handle: string }) => readDataset(db, e.handle)));
+    const datasets = await Promise.all(
+      index.map((e: { handle: string }) => readDataset(db, e.handle)),
+    );
     const expected = buildCallsIndex(datasets);
-    await db.insert(artifacts)
+    await db
+      .insert(artifacts)
       .values({ key: "calls-index", payload: expected, generatedAt: "2026-06-10" })
-      .onConflictDoUpdate({ target: artifacts.key, set: { payload: expected, generatedAt: "2026-06-10" } });
+      .onConflictDoUpdate({
+        target: artifacts.key,
+        set: { payload: expected, generatedAt: "2026-06-10" },
+      });
     const fromDb = await readCallsIndex(db);
     expect(fromDb).toEqual(expected);
   });

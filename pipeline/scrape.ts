@@ -14,11 +14,13 @@ import { loadPostDates, savePostDates, mergePostDates, formatTakenAt } from "./p
 
 (chromium as any).use(stealth());
 
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const jitter = (min: number, max: number) => min + Math.random() * (max - min);
 
 // yt-dlp reads this Netscape cookie jar so downloads reuse the harvest login.
-function cookiesPath(handle: string) { return join(creatorDir(handle), "cookies.txt"); }
+function cookiesPath(handle: string) {
+  return join(creatorDir(handle), "cookies.txt");
+}
 
 // Block until the IG session cookie appears, so a fresh profile gets a manual
 // login instead of silently hitting the logged-out wall and harvesting nothing.
@@ -37,8 +39,14 @@ function toNetscape(cookies: any[]): string {
   const lines = ["# Netscape HTTP Cookie File"];
   for (const c of cookies) {
     const domain = c.domain.startsWith(".") ? c.domain : `.${c.domain}`;
-    const expiry = Math.floor(c.expires && c.expires > 0 ? c.expires : Date.now() / 1000 + 31536000);
-    lines.push([domain, "TRUE", c.path || "/", c.secure ? "TRUE" : "FALSE", expiry, c.name, c.value].join("\t"));
+    const expiry = Math.floor(
+      c.expires && c.expires > 0 ? c.expires : Date.now() / 1000 + 31536000,
+    );
+    lines.push(
+      [domain, "TRUE", c.path || "/", c.secure ? "TRUE" : "FALSE", expiry, c.name, c.value].join(
+        "\t",
+      ),
+    );
   }
   return lines.join("\n") + "\n";
 }
@@ -50,15 +58,21 @@ function fromNetscape(text: string): any[] {
   const out: any[] = [];
   for (let line of text.split("\n")) {
     let httpOnly = false;
-    if (line.startsWith("#HttpOnly_")) { httpOnly = true; line = line.slice(10); }
-    else if (line.startsWith("#") || !line.trim()) continue;
+    if (line.startsWith("#HttpOnly_")) {
+      httpOnly = true;
+      line = line.slice(10);
+    } else if (line.startsWith("#") || !line.trim()) continue;
     const p = line.split("\t");
     if (p.length < 7) continue;
     const [domain, , path, secure, expiry, name, value] = p;
     out.push({
-      name, value, domain, path: path || "/",
+      name,
+      value,
+      domain,
+      path: path || "/",
       expires: Number(expiry) > 0 ? Number(expiry) : -1,
-      httpOnly, secure: secure === "TRUE",
+      httpOnly,
+      secure: secure === "TRUE",
     });
   }
   return out;
@@ -107,12 +121,19 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   if (IG_PROXY) {
     let egress = "";
     try {
-      await page.goto("https://api.ipify.org?format=json", { waitUntil: "domcontentloaded", timeout: 15_000 });
+      await page.goto("https://api.ipify.org?format=json", {
+        waitUntil: "domcontentloaded",
+        timeout: 15_000,
+      });
       egress = JSON.parse(await page.evaluate(() => document.body.innerText))?.ip ?? "";
-    } catch { /* egress stays empty -> abort below */ }
+    } catch {
+      /* egress stays empty -> abort below */
+    }
     if (!egress) {
       await ctx.close();
-      throw new Error(`IG_PROXY=${IG_PROXY} egress check failed (relay down/unreachable) — aborting to avoid scraping from the datacenter IP`);
+      throw new Error(
+        `IG_PROXY=${IG_PROXY} egress check failed (relay down/unreachable) — aborting to avoid scraping from the datacenter IP`,
+      );
     }
     console.log(`>>> IG proxy egress IP: ${egress}`);
   }
@@ -126,7 +147,9 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
       for (const node of findReels(json)) {
         if (node.code) seen.set(node.code, (node.taken_at ?? 0) * 1000);
       }
-    } catch { /* non-JSON response */ }
+    } catch {
+      /* non-JSON response */
+    }
   });
 
   // Prefer the persistent profile's own session (a real browser login performed once,
@@ -140,7 +163,12 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   // a fresh profile with no session waits for a manual browser login.
   await page.goto("https://www.instagram.com/", { waitUntil: "domcontentloaded" });
   if (!(await waitForLogin(ctx, loggedIn ? 15_000 : 6 * 60_000))) {
-    if (loggedIn) { await ctx.close(); throw new Error("IG session rejected (expired/challenged) — re-login the .chrome-profile (VNC) or refresh cookies.txt"); }
+    if (loggedIn) {
+      await ctx.close();
+      throw new Error(
+        "IG session rejected (expired/challenged) — re-login the .chrome-profile (VNC) or refresh cookies.txt",
+      );
+    }
     console.log("\n>>> Log into Instagram in the open browser window. Waiting for session...");
     if (!(await waitForLogin(ctx))) {
       await ctx.close();
@@ -154,8 +182,13 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   // catch up to already-harvested reels. Forward mode keeps the daily scroll footprint
   // small — both a speed win and a lower bot signature at daily cadence.
   const known = opts.forward ? knownShortcodes(handle) : new Set<string>();
-  const countNew = () => { let n = 0; for (const c of seen.keys()) if (!known.has(c)) n++; return n; };
-  let stagnant = 0, knownOnlyRounds = 0;
+  const countNew = () => {
+    let n = 0;
+    for (const c of seen.keys()) if (!known.has(c)) n++;
+    return n;
+  };
+  let stagnant = 0,
+    knownOnlyRounds = 0;
   while (stagnant < 4) {
     const before = seen.size;
     const newBefore = opts.forward ? countNew() : 0;
@@ -211,7 +244,9 @@ async function resolveAvatarUrl(page: any, handle: string): Promise<string | nul
       const j = await r.json();
       return j?.data?.user?.profile_pic_url_hd ?? j?.data?.user?.profile_pic_url ?? null;
     }, handle);
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // Recursively find objects that look like reel media nodes.
@@ -227,7 +262,11 @@ type SpawnResult = { status: number | null; error?: Error & { code?: string } };
 type SpawnFn = (cmd: string, args: string[]) => SpawnResult;
 const ytDlpSpawn: SpawnFn = (cmd, args) => spawnSync(cmd, args, { stdio: "inherit" });
 
-export function downloadReel(handle: string, shortcode: string, spawn: SpawnFn = ytDlpSpawn): boolean {
+export function downloadReel(
+  handle: string,
+  shortcode: string,
+  spawn: SpawnFn = ytDlpSpawn,
+): boolean {
   const out = join(rawDir(handle), shortcode);
   const url = `https://www.instagram.com/reel/${shortcode}/`;
   const jar = cookiesPath(handle);
@@ -236,13 +275,18 @@ export function downloadReel(handle: string, shortcode: string, spawn: SpawnFn =
   const r = spawn("yt-dlp", [
     ...cookieArgs,
     ...proxyArgs,
-    "-o", join(out, "reel.%(ext)s"),
-    "--write-info-json", url,
+    "-o",
+    join(out, "reel.%(ext)s"),
+    "--write-info-json",
+    url,
   ]);
   // A spawn-level error (ENOENT = yt-dlp not on PATH, EACCES, …) is an environment fault that
   // breaks EVERY reel — throw so the run BLOCKs loudly. Swallowing it silently ingested zero
   // new reels for ~10 days (2026-06-27). yt-dlp running and exiting non-zero is a per-reel
   // miss (e.g. an image/carousel post with no video) — return false so the caller skips it.
-  if (r.error) throw new Error(`yt-dlp failed to launch (${r.error.code ?? r.error.message}) — is yt-dlp installed and on PATH?`);
+  if (r.error)
+    throw new Error(
+      `yt-dlp failed to launch (${r.error.code ?? r.error.message}) — is yt-dlp installed and on PATH?`,
+    );
   return r.status === 0;
 }

@@ -1,4 +1,7 @@
-export interface Pt { x: number; y: number }
+export interface Pt {
+  x: number;
+  y: number;
+}
 
 const n = (v: number) => Number(v.toFixed(2));
 

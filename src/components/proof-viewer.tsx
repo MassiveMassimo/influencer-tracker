@@ -2,12 +2,7 @@ import { useRef } from "react";
 import { X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Dialog } from "@base-ui/react/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerTitle,
-} from "#/components/ui/drawer.tsx";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "#/components/ui/drawer.tsx";
 import { ScrollArea } from "#/components/ui/scroll-area.tsx";
 import { ReportButton } from "#/components/report-button.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
@@ -43,7 +38,7 @@ export function proof(shortcode: string) {
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+    <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
       {children}
     </div>
   );
@@ -65,7 +60,11 @@ function OtherCalls({
   return (
     <div className="space-y-1.5">
       <Label>Other stocks in this post</Label>
-      <ScrollArea className="rounded-lg border border-border/60" viewportClassName="max-h-72" scrollbarClassName="w-1.5">
+      <ScrollArea
+        className="rounded-lg border border-border/60"
+        viewportClassName="max-h-72"
+        scrollbarClassName="w-1.5"
+      >
         {siblings.map((s, i) => (
           <Link
             key={s.ticker}
@@ -75,7 +74,7 @@ function OtherCalls({
             className={`flex items-center justify-between gap-3 px-3 py-2 text-sm transition-colors hover:bg-muted ${i > 0 ? "border-t border-border/60" : ""}`}
           >
             <span className="flex min-w-0 items-baseline gap-2">
-              <span className="font-heading shrink-0">{s.ticker}</span>
+              <span className="shrink-0 font-heading">{s.ticker}</span>
               <span className="truncate text-xs text-muted-foreground">{s.company}</span>
             </span>
             <span className="shrink-0 text-muted-foreground">↗</span>
@@ -126,7 +125,9 @@ function ProofContent({
             <p className="text-sm leading-relaxed text-muted-foreground">“{call.quote}”</p>
           </div>
         )}
-        {siblings.length > 0 && <OtherCalls siblings={siblings} handle={handle} onNavigate={onNavigate} />}
+        {siblings.length > 0 && (
+          <OtherCalls siblings={siblings} handle={handle} onNavigate={onNavigate} />
+        )}
         <ReportButton handle={handle} shortcode={call.shortcode} ticker={call.ticker} />
       </div>
       <iframe
@@ -170,7 +171,9 @@ export function ProofViewer({
   // chart-markers' `lastActive`). `open` drives the exit transition, but the body
   // renders off `shown`, so it stays mounted and fades out intact instead of
   // flashing empty.
-  const lastShown = useRef<{ call: ProofCall; handle: string; siblings: SiblingCall[] } | null>(null);
+  const lastShown = useRef<{ call: ProofCall; handle: string; siblings: SiblingCall[] } | null>(
+    null,
+  );
   if (call) lastShown.current = { call, handle, siblings: siblings?.[call.shortcode] ?? [] };
   const shown = lastShown.current;
 
@@ -188,7 +191,7 @@ export function ProofViewer({
                   </Dialog.Title>
                   <Dialog.Close
                     aria-label="Close"
-                    className="-mr-1 -mt-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+                    className="-mt-1 -mr-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
                   >
                     <X className="size-4" />
                   </Dialog.Close>
@@ -196,7 +199,12 @@ export function ProofViewer({
                 <Dialog.Description className="sr-only">
                   Proof media and context for the {shown.call.ticker} call.
                 </Dialog.Description>
-                <ProofContent call={shown.call} handle={shown.handle} siblings={shown.siblings} onNavigate={onClose} />
+                <ProofContent
+                  call={shown.call}
+                  handle={shown.handle}
+                  siblings={shown.siblings}
+                  onNavigate={onClose}
+                />
               </>
             )}
           </Dialog.Popup>
@@ -220,7 +228,12 @@ export function ProofViewer({
                 Proof media and context for the {shown.call.ticker} call.
               </DrawerDescription>
             </div>
-            <ProofContent call={shown.call} handle={shown.handle} siblings={shown.siblings} onNavigate={onClose} />
+            <ProofContent
+              call={shown.call}
+              handle={shown.handle}
+              siblings={shown.siblings}
+              onNavigate={onClose}
+            />
           </ScrollArea>
         )}
       </DrawerContent>

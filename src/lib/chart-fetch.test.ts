@@ -30,8 +30,8 @@ describe("cache", () => {
     const bars = [{ date: "2026-06-03T13:30:00.000Z", o: 1, h: 1, l: 1, c: 1 }];
     const t0 = 2_000_000;
     cacheSet("X:1d", bars, t0);
-    expect(cacheGet("X:1d", t0 + 5 * 60_000)).toEqual(bars);     // exactly 5 min: fresh
-    expect(cacheGet("X:1d", t0 + 5 * 60_000 + 1)).toBeNull();    // 1 ms past: stale
+    expect(cacheGet("X:1d", t0 + 5 * 60_000)).toEqual(bars); // exactly 5 min: fresh
+    expect(cacheGet("X:1d", t0 + 5 * 60_000 + 1)).toBeNull(); // 1 ms past: stale
   });
 });
 
@@ -48,6 +48,8 @@ describe("InputSchema", () => {
   });
 
   it("rejects an over-long firstDate", () => {
-    expect(InputSchema.safeParse({ ...valid, firstDate: "2026-01-01" + "x".repeat(50) }).success).toBe(false);
+    expect(
+      InputSchema.safeParse({ ...valid, firstDate: "2026-01-01" + "x".repeat(50) }).success,
+    ).toBe(false);
   });
 });

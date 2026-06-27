@@ -20,7 +20,11 @@ export async function insertReport(db: Db, r: ReportRow): Promise<void> {
 
 // Operator review queue: one row per reported call, ranked by distinct-reporter count,
 // with the reasons seen. Read through ingest (has SELECT). Plain SQL aggregate.
-export async function reportQueue(db: Db): Promise<{ handle: string; shortcode: string; ticker: string; count: number; reasons: string[] }[]> {
+export async function reportQueue(
+  db: Db,
+): Promise<
+  { handle: string; shortcode: string; ticker: string; count: number; reasons: string[] }[]
+> {
   const rows = await db
     .select({
       handle: callReports.handle,

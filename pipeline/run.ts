@@ -10,9 +10,9 @@ import { transcriptsDir } from "./config";
 
 // Usage: bun run pipeline --handle kevvonz --name "Kevin Hu" [--from <stage>]
 const args = Object.fromEntries(
-  process.argv.slice(2).flatMap((a, i, arr) =>
-    a.startsWith("--") ? [[a.slice(2), arr[i + 1]]] : []
-  )
+  process.argv
+    .slice(2)
+    .flatMap((a, i, arr) => (a.startsWith("--") ? [[a.slice(2), arr[i + 1]]] : [])),
 );
 const handle = args.handle;
 const name = args.name ?? handle;
@@ -32,7 +32,8 @@ for (const stage of stages.slice(start)) {
       if (existsSync(join(transcriptsDir(handle), `${c}.json`))) continue;
       // downloadReel throws if yt-dlp can't launch (fatal env fault); a false return is a
       // benign per-reel miss (image/carousel post, no video) — log it and move on.
-      if (!downloadReel(handle, c)) console.warn(`skip download ${c}: no video (image post?) or download failed`);
+      if (!downloadReel(handle, c))
+        console.warn(`skip download ${c}: no video (image post?) or download failed`);
     }
   } else if (stage === "transcribe") {
     await transcribe(handle);

@@ -28,29 +28,43 @@ describe.skipIf(!SERVE)("serve role is read-only", () => {
   });
 
   test("serve role cannot INSERT into calls", async () => {
-    await expect((async () => {
-      await sqlRole`INSERT INTO calls (handle, shortcode, ord, post_date, ticker, company, is_first_call, conviction, quote, returns) VALUES ('__perm_probe__','__perm_probe__',0,'2026-01-01','Z','Z',true,0,'q','{}')`;
-    })()).rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlRole`INSERT INTO calls (handle, shortcode, ord, post_date, ticker, company, is_first_call, conviction, quote, returns) VALUES ('__perm_probe__','__perm_probe__',0,'2026-01-01','Z','Z',true,0,'q','{}')`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 
   test("serve role cannot UPDATE prices", async () => {
-    await expect((async () => { await sqlRole`UPDATE prices SET c = 0 WHERE symbol = '__perm_probe__'`; })())
-      .rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlRole`UPDATE prices SET c = 0 WHERE symbol = '__perm_probe__'`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 
   test("serve role cannot DELETE creators", async () => {
-    await expect((async () => { await sqlRole`DELETE FROM creators WHERE handle = '__perm_probe__'`; })())
-      .rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlRole`DELETE FROM creators WHERE handle = '__perm_probe__'`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 
   test("serve role cannot read call_overrides", async () => {
-    await expect((async () => { await sqlRole`SELECT 1 FROM call_overrides LIMIT 1`; })())
-      .rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlRole`SELECT 1 FROM call_overrides LIMIT 1`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 
   test("serve role cannot read call_reports", async () => {
-    await expect((async () => { await sqlRole`SELECT 1 FROM call_reports LIMIT 1`; })())
-      .rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlRole`SELECT 1 FROM call_reports LIMIT 1`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 });
 
@@ -64,7 +78,10 @@ describe.skipIf(!REPORT)("report role is INSERT-only on call_reports", () => {
   });
 
   test("report role cannot SELECT call_reports", async () => {
-    await expect((async () => { await sqlReport`SELECT 1 FROM call_reports LIMIT 1`; })())
-      .rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlReport`SELECT 1 FROM call_reports LIMIT 1`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 });

@@ -92,7 +92,10 @@ const ClassificationSchema = z.object({
   company: z.string().nullable().catch(null),
   direction: z.enum(["bullish", "bearish", "neutral"]).catch("neutral"),
   isExplicitBuy: z.boolean().catch(false),
-  conviction: z.number().catch(0).transform((v) => Math.min(1, Math.max(0, v))),
+  conviction: z
+    .number()
+    .catch(0)
+    .transform((v) => Math.min(1, Math.max(0, v))),
   quote: z.string().catch(""),
   onScreenPrice: z.number().nullable().catch(null),
   summary: z.string().catch(""),
@@ -115,14 +118,21 @@ export async function classify(
   body: string,
   client: ChatClient,
 ): Promise<Classification[]> {
-  const r = await (await client("/chat/completions", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: textModel, temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [{ role: "system", content: CLASSIFY_SYS }, { role: "user", content: body }],
-    }),
-  })).json() as { choices?: { message?: { content?: string } }[] };
+  const r = (await (
+    await client("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: textModel,
+        temperature: 0,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: CLASSIFY_SYS },
+          { role: "user", content: body },
+        ],
+      }),
+    })
+  ).json()) as { choices?: { message?: { content?: string } }[] };
   const content = r.choices?.[0]?.message?.content;
   if (typeof content !== "string") {
     throw new Error("classify: missing choices/content in LLM reply");
@@ -159,7 +169,9 @@ export function toReelCalls(cs: Classification[], shortcode: string, postDate: s
     if (seen.has(ticker)) continue;
     seen.add(ticker);
     out.push({
-      shortcode, postDate, ticker,
+      shortcode,
+      postDate,
+      ticker,
       company: c.company ?? "",
       direction: c.direction ?? "neutral",
       isExplicitBuy: !!c.isExplicitBuy,
@@ -176,13 +188,20 @@ export function toReelCalls(cs: Classification[], shortcode: string, postDate: s
 export function buildReview(calls: ReelCall[]): string {
   const bullish = calls.filter((c) => c.isExplicitBuy && c.direction === "bullish");
   return [
-    "# Calls review — verify before scoring", "",
+    "# Calls review — verify before scoring",
+    "",
     // One row per (post, ticker): a post naming multiple stocks contributes several rows.
     `Total ticker calls: ${calls.length} across ${new Set(calls.map((c) => c.shortcode)).size} posts. ` +
-      `Explicit bullish calls: ${bullish.length}.`, "",
-    "| date | ticker | buy? | dir | conv | quote |", "|---|---|---|---|---|---|",
-    ...[...calls].sort((a, b) => a.postDate.localeCompare(b.postDate)).map((c) =>
-      `| ${c.postDate} | ${c.ticker} | ${c.isExplicitBuy ? "✅" : ""} | ${c.direction} | ${c.conviction} | ${c.quote.replace(/\|/g, " ").slice(0, 60)} |`),
+      `Explicit bullish calls: ${bullish.length}.`,
+    "",
+    "| date | ticker | buy? | dir | conv | quote |",
+    "|---|---|---|---|---|---|",
+    ...[...calls]
+      .sort((a, b) => a.postDate.localeCompare(b.postDate))
+      .map(
+        (c) =>
+          `| ${c.postDate} | ${c.ticker} | ${c.isExplicitBuy ? "✅" : ""} | ${c.direction} | ${c.conviction} | ${c.quote.replace(/\|/g, " ").slice(0, 60)} |`,
+      ),
   ].join("\n");
 }
 

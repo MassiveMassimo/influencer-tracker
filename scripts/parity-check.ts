@@ -13,7 +13,11 @@ const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 function canon(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(canon);
   if (v && typeof v === "object") {
-    return Object.fromEntries(Object.keys(v as object).sort().map((k) => [k, canon((v as Record<string, unknown>)[k])]));
+    return Object.fromEntries(
+      Object.keys(v as object)
+        .sort()
+        .map((k) => [k, canon((v as Record<string, unknown>)[k])]),
+    );
   }
   return v;
 }
@@ -60,7 +64,8 @@ async function main() {
   for (const f of priceFiles) {
     const symbol = f.replace(/\.json$/, "");
     const stat = readJson(join(ROOT, "data", "prices", f));
-    if (!eq(stat, await readPrices(db, symbol))) throw new Error(`prices parity FAILED for ${symbol}`);
+    if (!eq(stat, await readPrices(db, symbol)))
+      throw new Error(`prices parity FAILED for ${symbol}`);
   }
   console.log(`✓ ${priceFiles.length} price symbols`);
   // Reassemble the calls-index from the DB datasets gathered above and assert it equals the

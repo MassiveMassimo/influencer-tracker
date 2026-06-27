@@ -31,9 +31,7 @@ export function ChartHandoff({
   children: ReactNode;
 }) {
   const reduce = useReducedMotion();
-  const exitTo = reduce
-    ? { opacity: 0 }
-    : { opacity: 0, filter: `blur(${blur}px)` };
+  const exitTo = reduce ? { opacity: 0 } : { opacity: 0, filter: `blur(${blur}px)` };
   const transition = {
     duration: durationMs / 1000,
     ease: [0.23, 1, 0.32, 1] as [number, number, number, number],
@@ -41,12 +39,12 @@ export function ChartHandoff({
   // isolate: contain the chart's z-50 tooltip portal in its own stacking context
   // so it can't paint over the sticky page header (z-20) below it.
   return (
-    <div className={`grid isolate ${className ?? ""}`}>
+    <div className={`isolate grid ${className ?? ""}`}>
       <div className="col-start-1 row-start-1 min-w-0">{children}</div>
       <AnimatePresence initial={false}>
         {loading && (
           <motion.div
-            className="col-start-1 row-start-1 z-10 min-w-0"
+            className="z-10 col-start-1 row-start-1 min-w-0"
             exit={exitTo}
             initial={false}
             key="skeleton"

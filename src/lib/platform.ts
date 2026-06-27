@@ -10,9 +10,7 @@ export const platformOf = (shortcode: string): Platform =>
 // Anything other than an explicit "instagram" falls back to X (matches the
 // callers' prior defaults when platform is unknown).
 export const profileUrl = (platform: Platform | undefined, handle: string): string =>
-  platform === "instagram"
-    ? `https://www.instagram.com/${handle}/`
-    : `https://x.com/${handle}`;
+  platform === "instagram" ? `https://www.instagram.com/${handle}/` : `https://x.com/${handle}`;
 
 export const platformIcon = (platform: Platform | undefined): string =>
   platform === "instagram" ? "icon-[mdi--instagram]" : "icon-[ri--twitter-x-fill]";

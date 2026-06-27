@@ -50,7 +50,7 @@ export function isIntradaySeries(times: number[]): boolean {
 // choice that the chart shell, candlestick, x-axis, and tooltip all share.
 export function intradayAwareFmt(
   times: number[],
-  dateFmt: Intl.DateTimeFormat
+  dateFmt: Intl.DateTimeFormat,
 ): Intl.DateTimeFormat {
   return isIntradaySeries(times) ? intradayTimeFmt : dateFmt;
 }

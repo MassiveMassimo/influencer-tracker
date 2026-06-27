@@ -17,34 +17,61 @@ describe.skipIf(!RUN)("reports", () => {
     assertSeparateTestDb();
     // TRUNCATE in FK-safe order (call_reports → calls → creators).
     await db.execute(sql`TRUNCATE call_reports, calls, creators RESTART IDENTITY CASCADE`);
-    await db.insert(creators).values({
-      handle: "h",
-      name: "n",
-      ord: 0,
-      generatedAt: "2026-06-01",
-      spyAnchor: "2026-01-01",
-      scorecard: {},
-      caveats: [],
-      indexStats: {},
-    }).onConflictDoNothing();
-    await db.insert(calls).values({
-      handle: "h",
-      shortcode: "AAA",
-      ord: 0,
-      postDate: "2026-06-01",
-      ticker: "AAPL",
-      company: "Apple",
-      isFirstCall: false,
-      conviction: 0.8,
-      quote: "Going up",
-      returns: {},
-    }).onConflictDoNothing();
+    await db
+      .insert(creators)
+      .values({
+        handle: "h",
+        name: "n",
+        ord: 0,
+        generatedAt: "2026-06-01",
+        spyAnchor: "2026-01-01",
+        scorecard: {},
+        caveats: [],
+        indexStats: {},
+      })
+      .onConflictDoNothing();
+    await db
+      .insert(calls)
+      .values({
+        handle: "h",
+        shortcode: "AAA",
+        ord: 0,
+        postDate: "2026-06-01",
+        ticker: "AAPL",
+        company: "Apple",
+        isFirstCall: false,
+        conviction: 0.8,
+        quote: "Going up",
+        returns: {},
+      })
+      .onConflictDoNothing();
   });
 
   test("insertReport dedupes by (handle, shortcode, ticker, reporterHash); queue counts compound", async () => {
-    await insertReport(db, { handle: "h", shortcode: "AAA", ticker: "AAPL", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" });
-    await insertReport(db, { handle: "h", shortcode: "AAA", ticker: "AAPL", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" }); // dup → ignored
-    await insertReport(db, { handle: "h", shortcode: "AAA", ticker: "AAPL", reason: "not-a-buy", reporterHash: "r2", createdAt: "2026-06-13" });
+    await insertReport(db, {
+      handle: "h",
+      shortcode: "AAA",
+      ticker: "AAPL",
+      reason: "wrong-ticker",
+      reporterHash: "r1",
+      createdAt: "2026-06-13",
+    });
+    await insertReport(db, {
+      handle: "h",
+      shortcode: "AAA",
+      ticker: "AAPL",
+      reason: "wrong-ticker",
+      reporterHash: "r1",
+      createdAt: "2026-06-13",
+    }); // dup → ignored
+    await insertReport(db, {
+      handle: "h",
+      shortcode: "AAA",
+      ticker: "AAPL",
+      reason: "not-a-buy",
+      reporterHash: "r2",
+      createdAt: "2026-06-13",
+    });
     const q = await reportQueue(db);
     expect(q[0]).toMatchObject({ handle: "h", shortcode: "AAA", ticker: "AAPL", count: 2 });
   });

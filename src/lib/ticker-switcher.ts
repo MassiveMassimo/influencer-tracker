@@ -25,7 +25,7 @@ export function pickAvatarTabs(
 ): SwitcherCreator[] {
   const ranked = [...creators].sort(byRecency);
   const top = ranked.slice(0, max);
-  const sel = selected ? ranked.find((c) => c.handle === selected) ?? null : null;
+  const sel = selected ? (ranked.find((c) => c.handle === selected) ?? null) : null;
   if (!sel || top.some((c) => c.handle === sel.handle)) return top;
   return [...ranked.slice(0, max - 1), sel];
 }

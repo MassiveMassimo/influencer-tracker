@@ -22,9 +22,15 @@ export const Route = createFileRoute("/")({
 type Creator = Awaited<ReturnType<typeof listCreators>>[number];
 type SortKey = "hitRate3m" | "avgExcess3m" | "totalCalls";
 
-function pct(x: number) { return `${(x * 100).toFixed(0)}%`; }
-function signed(x: number) { return `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`; }
-function lowConf(c: Creator) { return c.hitRate3mN < LOW_CONFIDENCE_N; }
+function pct(x: number) {
+  return `${(x * 100).toFixed(0)}%`;
+}
+function signed(x: number) {
+  return `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
+}
+function lowConf(c: Creator) {
+  return c.hitRate3mN < LOW_CONFIDENCE_N;
+}
 
 function relativeDate(iso: string): string {
   const days = Math.round((Date.now() - new Date(iso + "T00:00:00Z").getTime()) / 86400000);
@@ -37,7 +43,8 @@ function relativeDate(iso: string): string {
 // Proven creators first; within each group sort by key desc. Low-confidence always last.
 function sortCreators(creators: Creator[], key: SortKey, dir: 1 | -1): Creator[] {
   return [...creators].sort((a, b) => {
-    const la = lowConf(a) ? 1 : 0, lb = lowConf(b) ? 1 : 0;
+    const la = lowConf(a) ? 1 : 0,
+      lb = lowConf(b) ? 1 : 0;
     if (la !== lb) return la - lb;
     return (a[key] - b[key]) * dir;
   });
@@ -45,9 +52,23 @@ function sortCreators(creators: Creator[], key: SortKey, dir: 1 | -1): Creator[]
 
 // Sortable column header. Chevron is dim when inactive (signals sortability),
 // solid when active; rotates 180° for ascending (dir 1) vs descending (dir -1).
-function SortHeader({ label, active, dir, onClick }: { label: string; active: boolean; dir: 1 | -1; onClick: () => void }) {
+function SortHeader({
+  label,
+  active,
+  dir,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  dir: 1 | -1;
+  onClick: () => void;
+}) {
   return (
-    <button type="button" onClick={onClick} className="group flex items-center justify-end gap-0.5 text-right transition-colors hover:text-foreground">
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex items-center justify-end gap-0.5 text-right transition-colors hover:text-foreground"
+    >
       {label}
       <ChevronDownIcon
         className={`size-3 transition-[rotate,opacity] duration-200 ease-out ${active ? "opacity-100" : "opacity-25 group-hover:opacity-60"} ${active && dir === 1 ? "rotate-180" : ""}`}
@@ -68,12 +89,13 @@ function Landing() {
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header>
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+        <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
           Signal Tracker · vs SPY
         </div>
         <h1 className="mt-1 font-heading text-2xl">Influencer accuracy</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ranked by 3-month hit rate: share of first calls per ticker that beat SPY. Sample size shown; thin samples are flagged and ranked last.
+          Ranked by 3-month hit rate: share of first calls per ticker that beat SPY. Sample size
+          shown; thin samples are flagged and ranked last.
         </p>
       </header>
 
@@ -81,15 +103,30 @@ function Landing() {
         <p className="text-sm text-muted-foreground">No creators yet. Run the pipeline.</p>
       ) : (
         <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-          <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 border-border/40 border-b px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5 md:tracking-[0.2em]">
+          <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] tracking-[0.08em] text-muted-foreground uppercase md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5 md:tracking-[0.2em]">
             <span className="hidden md:block">#</span>
             <span>Creator</span>
-            <SortHeader label="Hit 3m" active={sort.key === "hitRate3m"} dir={sort.dir} onClick={() => onSort("hitRate3m")} />
-            <SortHeader label="Excess 3m" active={sort.key === "avgExcess3m"} dir={sort.dir} onClick={() => onSort("avgExcess3m")} />
-            <SortHeader label="Calls" active={sort.key === "totalCalls"} dir={sort.dir} onClick={() => onSort("totalCalls")} />
+            <SortHeader
+              label="Hit 3m"
+              active={sort.key === "hitRate3m"}
+              dir={sort.dir}
+              onClick={() => onSort("hitRate3m")}
+            />
+            <SortHeader
+              label="Excess 3m"
+              active={sort.key === "avgExcess3m"}
+              dir={sort.dir}
+              onClick={() => onSort("avgExcess3m")}
+            />
+            <SortHeader
+              label="Calls"
+              active={sort.key === "totalCalls"}
+              dir={sort.dir}
+              onClick={() => onSort("totalCalls")}
+            />
             <span className="hidden text-right md:block">Updated</span>
           </div>
-          <ul className="divide-border/40 divide-y">
+          <ul className="divide-y divide-border/40">
             {rows.map((c, i) => (
               <li key={c.handle}>
                 <Link
@@ -97,32 +134,54 @@ function Landing() {
                   params={{ handle: c.handle }}
                   className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5"
                 >
-                  <span className="hidden font-mono text-xs text-muted-foreground tabular-nums md:block">{i + 1}</span>
+                  <span className="hidden font-mono text-xs text-muted-foreground tabular-nums md:block">
+                    {i + 1}
+                  </span>
                   <div className="flex min-w-0 items-center gap-3">
                     {c.avatar ? (
-                      <img src={c.avatar} alt="" className="size-9 shrink-0 rounded-full object-cover ring-1 ring-border/60" />
+                      <img
+                        src={c.avatar}
+                        alt=""
+                        className="size-9 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                      />
                     ) : (
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-xs uppercase text-foreground ring-1 ring-border/60">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-xs text-foreground uppercase ring-1 ring-border/60">
                         {c.handle.slice(0, 2)}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <div className="truncate font-medium text-sm text-foreground">{c.name}</div>
-                      <div className="truncate font-mono text-xs text-muted-foreground">@{c.handle}</div>
+                      <div className="truncate text-sm font-medium text-foreground">{c.name}</div>
+                      <div className="truncate font-mono text-xs text-muted-foreground">
+                        @{c.handle}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right font-mono text-sm tabular-nums">
                     <div className="text-foreground">{pct(c.hitRate3m)}</div>
-                    <div className={`text-[10px] ${lowConf(c) ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}>
-                      {lowConf(c) ? `low · ${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}` : `${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`}
+                    <div
+                      className={`text-[10px] ${lowConf(c) ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
+                    >
+                      {lowConf(c)
+                        ? `low · ${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`
+                        : `${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`}
                     </div>
                   </div>
-                  <div className={`flex items-center justify-end gap-1 font-mono text-sm tabular-nums ${c.avgExcess3m > 0 ? "text-emerald-600 dark:text-emerald-400" : c.avgExcess3m < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"}`}>
-                    {c.avgExcess3m > 0 ? <ArrowUpRightIcon className="size-3.5" /> : c.avgExcess3m < 0 ? <ArrowDownRightIcon className="size-3.5" /> : null}
+                  <div
+                    className={`flex items-center justify-end gap-1 font-mono text-sm tabular-nums ${c.avgExcess3m > 0 ? "text-emerald-600 dark:text-emerald-400" : c.avgExcess3m < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"}`}
+                  >
+                    {c.avgExcess3m > 0 ? (
+                      <ArrowUpRightIcon className="size-3.5" />
+                    ) : c.avgExcess3m < 0 ? (
+                      <ArrowDownRightIcon className="size-3.5" />
+                    ) : null}
                     {signed(c.avgExcess3m)}
                   </div>
-                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">{c.totalCalls}</div>
-                  <div className="hidden text-right font-mono text-[10px] text-muted-foreground tabular-nums md:block">{relativeDate(c.generatedAt)}</div>
+                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">
+                    {c.totalCalls}
+                  </div>
+                  <div className="hidden text-right font-mono text-[10px] text-muted-foreground tabular-nums md:block">
+                    {relativeDate(c.generatedAt)}
+                  </div>
                 </Link>
               </li>
             ))}

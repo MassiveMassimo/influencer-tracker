@@ -19,8 +19,7 @@ import { YAxis } from "./y-axis";
 // Lazy-loaded by `CumulativeExcess` so motion/@visx/d3 stay off the creator
 // route's initial bundle (mirrors the lazy CallFunnel).
 
-const signColor = (v: number) =>
-  v >= 0 ? "var(--color-emerald-500)" : "var(--color-rose-500)";
+const signColor = (v: number) => (v >= 0 ? "var(--color-emerald-500)" : "var(--color-rose-500)");
 
 const fmtPct = (v: number) => `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`;
 

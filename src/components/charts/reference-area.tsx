@@ -4,16 +4,12 @@ import { motion } from "motion/react";
 import { useId, useLayoutEffect, useMemo } from "react";
 import { chartCssVars, useChartStable, useYScale } from "./chart-context";
 import { type PatternPresetId, renderPatternPreset } from "./pattern-preset";
-import {
-  computeReferenceAreaRect,
-  type ReferenceAreaIfOverflow,
-} from "./reference-area-geometry";
+import { computeReferenceAreaRect, type ReferenceAreaIfOverflow } from "./reference-area-geometry";
 import { useReferenceAreaRegistration } from "./reference-area-registration-context";
 import { normalizeYAxisId } from "./y-axis-scales";
 import { isReferenceAreaVisiblePhase } from "./y-domain-utils";
 
-const DEFAULT_FILL =
-  "color-mix(in oklch, var(--chart-foreground-muted) 12%, transparent)";
+const DEFAULT_FILL = "color-mix(in oklch, var(--chart-foreground-muted) 12%, transparent)";
 
 export type ReferenceAreaStrokeStyle = "solid" | "dashed";
 
@@ -71,7 +67,7 @@ function bracketMarkerPath(
   centerX: number,
   edgeY: number,
   size: number,
-  direction: "down" | "up"
+  direction: "down" | "up",
 ): string {
   const half = size / 2;
   if (direction === "down") {
@@ -110,8 +106,7 @@ export function ReferenceArea({
   ifOverflow = "hidden",
   className,
 }: ReferenceAreaProps) {
-  const { innerWidth, innerHeight, xScale, chartPhase, enterTransition } =
-    useChartStable();
+  const { innerWidth, innerHeight, xScale, chartPhase, enterTransition } = useChartStable();
   const yScale = useYScale(yAxisId);
   const uniqueId = useId().replace(/:/g, "");
   const registration = useReferenceAreaRegistration();
@@ -146,7 +141,7 @@ export function ReferenceArea({
         xScale,
         yScale,
       }),
-    [innerWidth, innerHeight, x1, x2, y1, y2, ifOverflow, xScale, yScale]
+    [innerWidth, innerHeight, x1, x2, y1, y2, ifOverflow, xScale, yScale],
   );
 
   const usesPattern = pattern !== "none";
@@ -210,18 +205,9 @@ export function ReferenceArea({
         <defs>
           <linearGradient id={hGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
             <stop offset="0%" style={{ stopColor: "white", stopOpacity: 0 }} />
-            <stop
-              offset={`${fadeEdge}%`}
-              style={{ stopColor: "white", stopOpacity: 1 }}
-            />
-            <stop
-              offset={`${100 - fadeEdge}%`}
-              style={{ stopColor: "white", stopOpacity: 1 }}
-            />
-            <stop
-              offset="100%"
-              style={{ stopColor: "white", stopOpacity: 0 }}
-            />
+            <stop offset={`${fadeEdge}%`} style={{ stopColor: "white", stopOpacity: 1 }} />
+            <stop offset={`${100 - fadeEdge}%`} style={{ stopColor: "white", stopOpacity: 1 }} />
+            <stop offset="100%" style={{ stopColor: "white", stopOpacity: 0 }} />
           </linearGradient>
           <mask id={hMaskId}>
             <rect
@@ -266,14 +252,8 @@ export function ReferenceArea({
       </g>
       {showMarkers ? (
         <>
-          <path
-            d={bracketMarkerPath(centerX, topEdgeY, markerSize, "down")}
-            fill={markerColor}
-          />
-          <path
-            d={bracketMarkerPath(centerX, bottomEdgeY, markerSize, "up")}
-            fill={markerColor}
-          />
+          <path d={bracketMarkerPath(centerX, topEdgeY, markerSize, "down")} fill={markerColor} />
+          <path d={bracketMarkerPath(centerX, bottomEdgeY, markerSize, "up")} fill={markerColor} />
         </>
       ) : null}
     </motion.g>

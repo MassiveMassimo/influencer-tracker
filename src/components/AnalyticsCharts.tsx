@@ -72,21 +72,26 @@ export function CumulativeExcess({ ds }: { ds: Dataset }) {
   const nPicks = ds.calls.filter((c) => c.isFirstCall && c.returns.toDate.excess != null).length;
   const ready = useChunkReady(importCumExcess);
   if (pts.length < 2) {
-    return <p className="py-6 text-sm text-muted-foreground">Not enough elapsed calls to chart yet.</p>;
+    return (
+      <p className="py-6 text-sm text-muted-foreground">Not enough elapsed calls to chart yet.</p>
+    );
   }
   return (
     <div>
       <ChartHandoff
         className="h-[200px]"
         loading={!ready}
-        skeleton={<AreaChartLoading aspectRatio="auto" className="h-[200px] w-full" label="Loading" />}
+        skeleton={
+          <AreaChartLoading aspectRatio="auto" className="h-[200px] w-full" label="Loading" />
+        }
       >
         <Suspense fallback={null}>
           <CumExcessArea pts={pts} />
         </Suspense>
       </ChartHandoff>
       <p className="mt-2 text-xs text-muted-foreground">
-        Equal-weight across {nPicks} scored {nPicks === 1 ? "pick" : "picks"} · excess return vs SPY, to date
+        Equal-weight across {nPicks} scored {nPicks === 1 ? "pick" : "picks"} · excess return vs
+        SPY, to date
       </p>
     </div>
   );

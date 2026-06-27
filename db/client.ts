@@ -34,7 +34,9 @@ export function getDb(): Db {
 // the writer connection out of the long-lived serverless instance state getDb lives in.
 export function getWriteDb(): Db {
   if (process.env.DATABASE_URL && !process.env.DATABASE_URL_INGEST) {
-    console.warn("DATABASE_URL_INGEST unset — writer running as owner (prices freeze not role-enforced)");
+    console.warn(
+      "DATABASE_URL_INGEST unset — writer running as owner (prices freeze not role-enforced)",
+    );
   }
   return makeDb(process.env.DATABASE_URL_INGEST ?? process.env.DATABASE_URL!);
 }

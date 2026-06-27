@@ -44,7 +44,10 @@ export function applyOverrides(calls: ReelCall[], overrides: Override[]): ReelCa
     const o = matching.find((m) => m.targetTicker !== "") ?? matching[0]!;
     const ticker = o.ticker && o.ticker.trim() ? o.ticker.trim().toUpperCase() : c.ticker;
     const isExplicitBuy = o.isExplicitBuy ?? c.isExplicitBuy;
-    const direction = o.direction && DIRECTIONS.has(o.direction as Direction) ? (o.direction as Direction) : c.direction;
+    const direction =
+      o.direction && DIRECTIONS.has(o.direction as Direction)
+        ? (o.direction as Direction)
+        : c.direction;
     return { ...c, ticker, isExplicitBuy, direction };
   });
 }

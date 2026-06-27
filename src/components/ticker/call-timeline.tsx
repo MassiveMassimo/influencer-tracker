@@ -42,8 +42,7 @@ const LEAD = (
   </>
 );
 
-const GRID =
-  "md:grid md:grid-cols-[1fr_7rem_6rem_6rem] md:gap-2 md:px-5";
+const GRID = "md:grid md:grid-cols-[1fr_7rem_6rem_6rem] md:gap-2 md:px-5";
 
 // Column template shared by the header + every row.
 const COLS = "grid-cols-[1fr_5rem_5rem] md:grid-cols-[1fr_7rem_6rem_6rem]";
@@ -110,11 +109,12 @@ export function CompareTable({
       else dotsByHandle.set(h.handle, [{ postDate: h.postDate, pct }]);
       if (!byMs.has(ms)) byMs.set(ms, pct);
     }
-    const ts = [...byMs.entries()]
-      .map(([ms, pct]) => ({ ms, pct }))
-      .sort((a, b) => a.pct - b.pct);
+    const ts = [...byMs.entries()].map(([ms, pct]) => ({ ms, pct })).sort((a, b) => a.pct - b.pct);
     if (ts.length < 2) return { dotsByHandle, targets: ts, medianGapPct: 100 };
-    const gaps = ts.slice(1).map((t, i) => t.pct - ts[i].pct).sort((a, b) => a - b);
+    const gaps = ts
+      .slice(1)
+      .map((t, i) => t.pct - ts[i].pct)
+      .sort((a, b) => a - b);
     return { dotsByHandle, targets: ts, medianGapPct: gaps[Math.floor(gaps.length / 2)] };
   }, [hits, startMs, endMs]);
 
@@ -150,7 +150,9 @@ export function CompareTable({
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-      <div className={`grid ${COLS} items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:px-5`}>
+      <div
+        className={`grid ${COLS} items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] tracking-[0.08em] text-muted-foreground uppercase md:px-5`}
+      >
         <div className="flex items-center gap-3">
           <div className="hidden size-8 shrink-0 md:block" />
           <span className="md:w-36 md:shrink-0">Creator</span>
@@ -187,7 +189,9 @@ export function CompareTable({
                       </div>
                     )}
                     <div className="min-w-0 flex-1 md:w-36 md:flex-none">
-                      <div className="truncate font-medium text-sm text-foreground">{names[b.handle] ?? b.handle}</div>
+                      <div className="truncate text-sm font-medium text-foreground">
+                        {names[b.handle] ?? b.handle}
+                      </div>
                       <div className="truncate font-mono text-xs text-muted-foreground">
                         {b.callCount} call{b.callCount === 1 ? "" : "s"}
                       </div>
@@ -195,13 +199,13 @@ export function CompareTable({
                     {/* Inline dot track (md+). Same lead+offset as the overlay/ruler. */}
                     <div className={`relative hidden h-8 md:block ${TRACK}`}>
                       {/* Dashed baseline, mirrors the charts' dashed axis line. */}
-                      <div className="-translate-y-1/2 absolute top-1/2 right-0 left-0 border-foreground/15 border-t border-dashed" />
+                      <div className="absolute top-1/2 right-0 left-0 -translate-y-1/2 border-t border-dashed border-foreground/15" />
                       {/* showHighlight band — a brighter slice of the baseline that
                           springs with the crosshair; fades in/out on hover. Clipped
                           to the track so it can't spill past the left/right ends. */}
                       <div className="pointer-events-none absolute inset-0 overflow-hidden">
                         <motion.div
-                          className={`-translate-y-1/2 absolute top-1/2 h-px bg-gradient-to-r from-transparent via-foreground to-transparent transition-opacity duration-200 ${hover ? "opacity-100" : "opacity-0"}`}
+                          className={`absolute top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-foreground to-transparent transition-opacity duration-200 ${hover ? "opacity-100" : "opacity-0"}`}
                           style={{ left: bandLeft, width: BAND_PX }}
                         />
                       </div>
@@ -216,14 +220,14 @@ export function CompareTable({
                         return (
                           <span key={`${postDate}-${i}`} title={postDate}>
                             <span
-                              className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 size-1.5 rounded-full border border-foreground/40 bg-background"
+                              className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/40 bg-background"
                               style={{ left: `${dotPct}%` }}
                             />
                             {/* Highlight overlay — opacity tracks proximity directly
                                 (no transition, so peak opacity lands exactly under
                                 the crosshair, not lagging behind it). */}
                             <span
-                              className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 size-2 rounded-full bg-foreground ring-2 ring-background"
+                              className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground ring-2 ring-background"
                               style={{ left: `${dotPct}%`, opacity: t }}
                             />
                           </span>
@@ -234,8 +238,14 @@ export function CompareTable({
                   <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
                     {b.firstCallDate?.slice(0, 7) ?? "—"}
                   </div>
-                  <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.ex3m)}`}>{signed(b.ex3m)}</div>
-                  <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.exToDate)}`}>{signed(b.exToDate)}</div>
+                  <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.ex3m)}`}>
+                    {signed(b.ex3m)}
+                  </div>
+                  <div
+                    className={`text-right font-mono text-sm tabular-nums ${toneClass(b.exToDate)}`}
+                  >
+                    {signed(b.exToDate)}
+                  </div>
                 </Link>
               </li>
             );
@@ -252,15 +262,18 @@ export function CompareTable({
               {ticks.map((t) => (
                 <div
                   key={t.pct}
-                  className="absolute top-0 bottom-0 border-foreground/7 border-l border-dashed"
+                  className="absolute top-0 bottom-0 border-l border-dashed border-foreground/7"
                   style={{ left: `${t.pct}%` }}
                 />
               ))}
               {hover && (
                 <>
-                  <motion.div className="absolute top-0 bottom-0 w-px bg-foreground/30" style={{ left }} />
+                  <motion.div
+                    className="absolute top-0 bottom-0 w-px bg-foreground/30"
+                    style={{ left }}
+                  />
                   <motion.span
-                    className="-translate-x-1/2 absolute top-1 whitespace-nowrap rounded bg-foreground px-1 font-mono text-[9px] text-background tabular-nums"
+                    className="absolute top-1 -translate-x-1/2 rounded bg-foreground px-1 font-mono text-[9px] whitespace-nowrap text-background tabular-nums"
                     style={{ left }}
                   >
                     <DateChip ms={hover.ms} ready={ready} />
@@ -273,14 +286,14 @@ export function CompareTable({
       </div>
 
       {/* Month-axis ruler — same grid mirror so ticks align with the dots. */}
-      <div className={`hidden border-border/40 border-t px-4 py-3 md:px-5 ${GRID}`}>
+      <div className={`hidden border-t border-border/40 px-4 py-3 md:px-5 ${GRID}`}>
         <div className="flex gap-3">
           {LEAD}
           <div className={`relative h-4 ${TRACK}`}>
             {ticks.map((t) => (
               <span
                 key={t.pct}
-                className="-translate-x-1/2 absolute whitespace-nowrap font-mono text-[10px] text-muted-foreground tabular-nums"
+                className="absolute -translate-x-1/2 font-mono text-[10px] whitespace-nowrap text-muted-foreground tabular-nums"
                 style={{ left: `${t.pct}%` }}
               >
                 {t.label}

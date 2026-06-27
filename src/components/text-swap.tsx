@@ -61,13 +61,7 @@ export function useTextSwap(value: string) {
   return { ref, display };
 }
 
-export function TextSwap({
-  value,
-  className,
-}: {
-  value: string;
-  className?: string;
-}) {
+export function TextSwap({ value, className }: { value: string; className?: string }) {
   const { ref, display } = useTextSwap(value);
   return (
     <span className={`t-text-swap ${className ?? ""}`} ref={ref}>

@@ -26,13 +26,7 @@ type NormPoint = { date: Date; stock: number; spy: number | null };
 // here would propagate through PresenceContext and suppress the nested candle
 // entrance on first paint. The route gates `timeframe` on data readiness, so each
 // key change is a real, fully-formed swap.
-function ChartCrossfade({
-  timeframe,
-  children,
-}: {
-  timeframe: Timeframe;
-  children: ReactNode;
-}) {
+function ChartCrossfade({ timeframe, children }: { timeframe: Timeframe; children: ReactNode }) {
   // Touch devices hard-cut between timeframes (duration 0) — no two-chart
   // opacity dissolve to composite on a slow mobile GPU.
   const isTouch = useTouchPrimaryEager();
@@ -84,7 +78,12 @@ export const PriceCandles = memo(function PriceCandles({
 }) {
   return (
     <ChartCrossfade timeframe={timeframe}>
-      <CandlestickChart data={candles} margin={{ left: 56 }} style={{ height: 320 }} revealSignature={timeframe}>
+      <CandlestickChart
+        data={candles}
+        margin={{ left: 56 }}
+        style={{ height: 320 }}
+        revealSignature={timeframe}
+      >
         <Grid horizontal />
         <Candlestick fadedOpacity={0.25} />
         <ChartMarkers items={markers} replayKey={timeframe} iconFill={iconFill} />

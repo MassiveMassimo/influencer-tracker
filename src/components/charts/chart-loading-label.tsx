@@ -36,7 +36,7 @@ export function ChartLoadingLabel({
       aria-live="polite"
       className={cn(
         "pointer-events-none absolute inset-0 flex items-center justify-center",
-        className
+        className,
       )}
       initial={false}
       role="status"
@@ -46,7 +46,7 @@ export function ChartLoadingLabel({
       }}
     >
       <ShimmeringText
-        className="font-medium text-sm tracking-wide [--color:var(--muted-foreground)] [--shimmering-color:var(--foreground)]"
+        className="text-sm font-medium tracking-wide [--color:var(--muted-foreground)] [--shimmering-color:var(--foreground)]"
         text={text}
       />
     </motion.div>

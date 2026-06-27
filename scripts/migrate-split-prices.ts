@@ -29,5 +29,7 @@ for (const e of index) {
   }
   delete ds.tickers;
   writeFileSync(p, JSON.stringify(ds, null, 2));
-  console.log(`migrated ${e.handle}: ${ds.calls.length} calls, ${Object.keys(tickers).length} tickers`);
+  console.log(
+    `migrated ${e.handle}: ${ds.calls.length} calls, ${Object.keys(tickers).length} tickers`,
+  );
 }
