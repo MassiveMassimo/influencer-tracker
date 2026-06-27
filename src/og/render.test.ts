@@ -68,4 +68,31 @@ describe("renderOgPng", () => {
     });
     expect(png.subarray(0, 4).toString("hex")).toBe("89504e47");
   });
+
+  it("renders a cross-creator ticker-all card with a line-graph background", async () => {
+    const buf = await renderOgPng({
+      kind: "ticker-all",
+      theme: "dark",
+      symbol: "NVDA",
+      company: "NVIDIA",
+      creatorCount: 4,
+      callCount: 11,
+      avgExcess: 0.083,
+      closes: [10, 11, 9, 12, 14, 13, 15, 16, 14, 17],
+    });
+    expect(buf.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+    expect(pngSize(buf)).toEqual({ w: OG_WIDTH, h: OG_HEIGHT });
+  });
+
+  it("renders a minimal ticker-all card (no closes, null excess)", async () => {
+    const buf = await renderOgPng({
+      kind: "ticker-all",
+      theme: "dark",
+      symbol: "AMD",
+      creatorCount: 0,
+      callCount: 0,
+      avgExcess: null,
+    });
+    expect(pngSize(buf)).toEqual({ w: OG_WIDTH, h: OG_HEIGHT });
+  });
 });

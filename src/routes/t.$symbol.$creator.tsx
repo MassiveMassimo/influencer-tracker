@@ -144,10 +144,12 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
       }
     }
 
-    // OG (computed here — head() has no access to derived state).
+    // OG (computed here — head() has no access to derived state). Single-creator view
+    // uses the per-creator ticker card; the cross-creator "all" view uses the symbol-keyed
+    // card (rev hashes the aggregates it shows + last close, so data changes bust the CDN).
     const ogImg = creatorHandle
       ? siteUrl(`/api/og/t/${creatorHandle}/${symbol}/${ogRev([creatorCalls[0]?.returns?.["3m"]?.excess ?? null, bakedOhlc.length, Math.round(bakedOhlc.at(-1)?.c ?? 0)])}`)
-      : siteUrl("/og.png");
+      : siteUrl(`/api/og/t/${symbol}/${ogRev([summary.creatorCount, summary.callCount, summary.avgEx3m, Math.round(bakedOhlc.at(-1)?.c ?? 0)])}`);
     const ogTitle = creatorHandle
       ? `${symbol} — ${names[creatorHandle] ?? creatorHandle} · Signal Tracker`
       : `${symbol} — who called it · Signal Tracker`;
