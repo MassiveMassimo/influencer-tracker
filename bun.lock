@@ -37,7 +37,7 @@
         "posthog-js": "^1.391.3",
         "react": "^19.2.7",
         "react-dom": "^19.2.7",
-        "rettiwt-api": "^7.0.3",
+        "rettiwt-api": "7.1.2",
         "satori": "^0.26.0",
         "shadcn": "^4.11.0",
         "tailwind-merge": "^3.6.0",
@@ -1670,7 +1670,7 @@
 
     "restore-cursor": ["restore-cursor@5.1.0", "", { "dependencies": { "onetime": "^7.0.0", "signal-exit": "^4.1.0" } }, "sha512-oMA2dcrw6u0YfxJQXm342bFKX/E4sG9rbTzO9ptUcR/e8A33cHuvStiYOwH7fszkZlZ1z/ta9AAoPk2F4qIOHA=="],
 
-    "rettiwt-api": ["rettiwt-api@7.0.3", "", { "dependencies": { "axios": "^1.8.4", "chalk": "^5.4.1", "commander": "^11.1.0", "cookiejar": "^2.1.4", "http-proxy-agent": "^7.0.2", "https-proxy-agent": "^7.0.6", "linkedom": "^0.18.12", "node-html-parser": "^7.0.1", "socks-proxy-agent": "^8.0.5", "x-client-transaction-id": "^0.2.3" }, "bin": { "rettiwt": "dist/cli.js" } }, "sha512-8Y9FaA83h/DJPh48HT8Ld3OBn3B7syrMDqH4J69qpj0SctMxl+wYXi4q3CahvRJ007AwW/vhJiYI8JJNz63wug=="],
+    "rettiwt-api": ["rettiwt-api@7.1.2", "", { "dependencies": { "axios": "^1.8.4", "chalk": "^5.4.1", "commander": "^11.1.0", "cookiejar": "^2.1.4", "http-proxy-agent": "^7.0.2", "https-proxy-agent": "^7.0.6", "linkedom": "^0.18.12", "node-html-parser": "^7.0.1", "socks-proxy-agent": "^8.0.5", "x-client-transaction-id": "^0.3.1" }, "bin": { "rettiwt": "dist/cli.js" } }, "sha512-11EoAGGEJLYEQwqksFnG1p2iSzHS1DjLlsyY16mwE0QQyVuGMbUc0SzJi0cy6vw+ZLBmVvXejm/RHJi7Krq8zA=="],
 
     "reusify": ["reusify@1.1.0", "", {}, "sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw=="],
 
@@ -1928,7 +1928,7 @@
 
     "wsl-utils": ["wsl-utils@0.3.1", "", { "dependencies": { "is-wsl": "^3.1.0", "powershell-utils": "^0.1.0" } }, "sha512-g/eziiSUNBSsdDJtCLB8bdYEUMj4jR7AGeUo96p/3dTafgjHhpF4RiCFPiRILwjQoDXx5MqkBr4fwWtR3Ky4Wg=="],
 
-    "x-client-transaction-id": ["x-client-transaction-id@0.2.3", "", { "dependencies": { "linkedom": "^0.18.9" } }, "sha512-SgCpLpswNoUAJpphrKrouCByvBCOBWvBiGynQ8+Ioncc67uG5FafTFBpAtpEiUMhjAK/MRIQF578fl9C6BUfKg=="],
+    "x-client-transaction-id": ["x-client-transaction-id@0.3.1", "", { "dependencies": { "linkedom": "^0.18.9" } }, "sha512-fD9YtDswTL3VyG/z7FbZUfMu5CUsvGmKk33fM3b9eOXe0Wnmj8W55UKLPA5Z/cuq6WrWTxXQhLcV3GGCD6mKaQ=="],
 
     "xml-name-validator": ["xml-name-validator@5.0.0", "", {}, "sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg=="],
 
