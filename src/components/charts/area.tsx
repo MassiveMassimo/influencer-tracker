@@ -18,10 +18,7 @@ import {
   resolveLineLoadingPulseMode,
 } from "./line-loading-pulse";
 import { LINE_LOADING_LOOP_PAUSE_MS } from "./line-loading-timing";
-import {
-  resolveDashTailBounds,
-  usePathStrokeMetrics,
-} from "./path-stroke-utils";
+import { resolveDashTailBounds, usePathStrokeMetrics } from "./path-stroke-utils";
 import { SeriesDashTailOverlay } from "./series-dash-tail-overlay";
 import { SeriesHighlightLayer } from "./series-highlight-layer";
 import { SeriesHoverDim } from "./series-hover-dim";
@@ -92,18 +89,14 @@ function useAreaLoadingPulseState(
   chartPhase: ChartPhase,
   loading: boolean | undefined,
   loadingPulseMode: LineLoadingPulseMode | undefined,
-  notifyLoadingPulseComplete?: () => void
+  notifyLoadingPulseComplete?: () => void,
 ) {
   const phasePulseMode = resolveLineLoadingPulseMode(chartPhase);
   const pulseMode =
-    loading === false
-      ? null
-      : (loadingPulseMode ?? (loading === true ? "loop" : phasePulseMode));
+    loading === false ? null : (loadingPulseMode ?? (loading === true ? "loop" : phasePulseMode));
   const showLoadingPulse = pulseMode != null;
   const showSeriesContent =
-    chartPhase === "revealing" ||
-    chartPhase === "ready" ||
-    chartPhase === "exitingReady";
+    chartPhase === "revealing" || chartPhase === "ready" || chartPhase === "exitingReady";
   const [pulseEpoch, setPulseEpoch] = useState(0);
 
   const handleLoadingPulseComplete = useCallback(() => {
@@ -167,18 +160,8 @@ export function Area({
     notifyLoadingPulseComplete,
   } = useChartStable();
   const yScale = useYScale(yAxisId);
-  const {
-    handleLoadingPulseComplete,
-    pulseMode,
-    pulseEpoch,
-    showLoadingPulse,
-    showSeriesContent,
-  } = useAreaLoadingPulseState(
-    chartPhase,
-    loading,
-    loadingPulseMode,
-    notifyLoadingPulseComplete
-  );
+  const { handleLoadingPulseComplete, pulseMode, pulseEpoch, showLoadingPulse, showSeriesContent } =
+    useAreaLoadingPulseState(chartPhase, loading, loadingPulseMode, notifyLoadingPulseComplete);
 
   const seriesIndex = useMemo(() => {
     const index = lines.findIndex((line) => line.dataKey === dataKey);
@@ -207,15 +190,14 @@ export function Area({
   const areaFill = isPatternFill ? fill : `url(#${gradientId})`;
 
   // Resolved stroke color (defaults to fill; pattern URLs need a real color)
-  const resolvedStroke =
-    stroke || (isPatternFill ? chartCssVars.linePrimary : fill);
+  const resolvedStroke = stroke || (isPatternFill ? chartCssVars.linePrimary : fill);
 
   const getY = useCallback(
     (d: Record<string, unknown>) => {
       const value = d[dataKey];
       return typeof value === "number" ? (yScale(value) ?? 0) : 0;
     },
-    [dataKey, yScale]
+    [dataKey, yScale],
   );
 
   const hasDashTail = resolveDashTailBounds(dashFromIndex, data.length);
@@ -227,8 +209,7 @@ export function Area({
   if (!useViewportEdgeFade && fadeSides.any) {
     strokePaint = `url(#${strokeGradientId})`;
   }
-  const highlightEnabled =
-    showHighlight && showLine && !showLoadingPulse && showSeriesContent;
+  const highlightEnabled = showHighlight && showLine && !showLoadingPulse && showSeriesContent;
   const showSeriesStroke = showSeriesContent && showLine;
   let visibleStroke = "transparent";
   if (showSeriesStroke && !hasDashTail) {
@@ -299,16 +280,8 @@ export function Area({
         strokeGradientId={strokeGradientId}
       />
 
-      <SeriesHoverDim
-        dimOpacity={0.6}
-        enabled={showHighlight}
-        seriesIndex={seriesIndex}
-      >
-        {useViewportEdgeFade ? (
-          <g mask={`url(#${edgeMaskId})`}>{seriesLayers}</g>
-        ) : (
-          seriesLayers
-        )}
+      <SeriesHoverDim dimOpacity={0.6} enabled={showHighlight} seriesIndex={seriesIndex}>
+        {useViewportEdgeFade ? <g mask={`url(#${edgeMaskId})`}>{seriesLayers}</g> : seriesLayers}
       </SeriesHoverDim>
 
       {/* Highlight segment on hover — isolated hover subscriber. */}

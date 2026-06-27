@@ -21,9 +21,7 @@ export function TooltipContent({ title, rows, children }: TooltipContentProps) {
     <div className="overflow-hidden">
       <div className="px-3 py-2.5">
         {title && (
-          <div className="mb-2 font-medium text-chart-tooltip-foreground text-xs">
-            {title}
-          </div>
+          <div className="mb-2 text-xs font-medium text-chart-tooltip-foreground">{title}</div>
         )}
         <div className="space-y-1.5">
           {rows.map((row) => (
@@ -36,11 +34,9 @@ export function TooltipContent({ title, rows, children }: TooltipContentProps) {
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: row.color }}
                 />
-                <span className="text-chart-tooltip-muted text-sm">
-                  {row.label}
-                </span>
+                <span className="text-sm text-chart-tooltip-muted">{row.label}</span>
               </div>
-              <span className="font-medium text-chart-tooltip-foreground text-sm tabular-nums">
+              <span className="text-sm font-medium text-chart-tooltip-foreground tabular-nums">
                 {typeof row.value === "number" ? intFmt(row.value) : row.value}
               </span>
             </div>
@@ -48,9 +44,7 @@ export function TooltipContent({ title, rows, children }: TooltipContentProps) {
         </div>
 
         {children && (
-          <div className="mt-2 transition-opacity duration-200 ease-out">
-            {children}
-          </div>
+          <div className="mt-2 transition-opacity duration-200 ease-out">{children}</div>
         )}
       </div>
     </div>

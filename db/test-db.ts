@@ -17,7 +17,12 @@ function endpointId(url: string | undefined): string | null {
   }
 }
 
-const PROD_URL_VARS = ["DATABASE_URL", "DATABASE_URL_UNPOOLED", "DATABASE_URL_SERVE", "DATABASE_URL_INGEST"];
+const PROD_URL_VARS = [
+  "DATABASE_URL",
+  "DATABASE_URL_UNPOOLED",
+  "DATABASE_URL_SERVE",
+  "DATABASE_URL_INGEST",
+];
 
 export function assertSeparateTestDb(): void {
   const test = process.env.DATABASE_URL_TEST;

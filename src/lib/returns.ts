@@ -1,7 +1,9 @@
 import type { OhlcBar, Horizon, ReturnTriple } from "./types";
 
 const HORIZON_DAYS: Record<Exclude<Horizon, "toDate">, number> = {
-  "1w": 7, "1m": 30, "3m": 90,
+  "1w": 7,
+  "1m": 30,
+  "3m": 90,
 };
 
 function addDays(iso: string, days: number): string {
@@ -30,7 +32,11 @@ function barOnOrAfter(ohlc: OhlcBar[], target: string): OhlcBar | null {
   return null;
 }
 
-export function forwardReturn(ohlc: OhlcBar[], fromDate: string, calendarDays: number): number | null {
+export function forwardReturn(
+  ohlc: OhlcBar[],
+  fromDate: string,
+  calendarDays: number,
+): number | null {
   const startBar = barOnOrAfter(ohlc, fromDate);
   if (startBar == null) return null;
   const endTarget = addDays(fromDate, calendarDays);
@@ -55,15 +61,28 @@ function toDateReturn(ohlc: OhlcBar[], fromDate: string): number | null {
 }
 
 export function computeReturns(
-  stock: OhlcBar[], spy: OhlcBar[], postDate: string,
+  stock: OhlcBar[],
+  spy: OhlcBar[],
+  postDate: string,
 ): Record<Horizon, ReturnTriple> {
   const mk = (s: number | null, p: number | null): ReturnTriple => ({
-    stock: s, spy: p, excess: s != null && p != null ? s - p : null,
+    stock: s,
+    spy: p,
+    excess: s != null && p != null ? s - p : null,
   });
   return {
-    "1w": mk(forwardReturn(stock, postDate, HORIZON_DAYS["1w"]), forwardReturn(spy, postDate, HORIZON_DAYS["1w"])),
-    "1m": mk(forwardReturn(stock, postDate, HORIZON_DAYS["1m"]), forwardReturn(spy, postDate, HORIZON_DAYS["1m"])),
-    "3m": mk(forwardReturn(stock, postDate, HORIZON_DAYS["3m"]), forwardReturn(spy, postDate, HORIZON_DAYS["3m"])),
-    "toDate": mk(toDateReturn(stock, postDate), toDateReturn(spy, postDate)),
+    "1w": mk(
+      forwardReturn(stock, postDate, HORIZON_DAYS["1w"]),
+      forwardReturn(spy, postDate, HORIZON_DAYS["1w"]),
+    ),
+    "1m": mk(
+      forwardReturn(stock, postDate, HORIZON_DAYS["1m"]),
+      forwardReturn(spy, postDate, HORIZON_DAYS["1m"]),
+    ),
+    "3m": mk(
+      forwardReturn(stock, postDate, HORIZON_DAYS["3m"]),
+      forwardReturn(spy, postDate, HORIZON_DAYS["3m"]),
+    ),
+    toDate: mk(toDateReturn(stock, postDate), toDateReturn(spy, postDate)),
   };
 }

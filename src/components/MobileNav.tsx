@@ -39,12 +39,7 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
 
   return (
     <div className="sticky top-0 z-30 flex items-center gap-2.5 border-b border-border/60 bg-background/80 px-3 py-2 backdrop-blur-md md:hidden">
-      <Drawer
-        direction="left"
-        shouldScaleBackground
-        open={open}
-        onOpenChange={setOpen}
-      >
+      <Drawer direction="left" shouldScaleBackground open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>
           <button
             type="button"
@@ -72,18 +67,29 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
             className="group flex min-w-0 items-center gap-2 no-underline"
           >
             {creator.avatar ? (
-              <img src={creator.avatar} alt="" className="size-6 shrink-0 rounded-full object-cover" />
+              <img
+                src={creator.avatar}
+                alt=""
+                className="size-6 shrink-0 rounded-full object-cover"
+              />
             ) : (
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted font-mono text-[10px] uppercase text-muted-foreground">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted font-mono text-[10px] text-muted-foreground uppercase">
                 {creator.handle.slice(0, 2)}
               </span>
             )}
             <span className="flex min-w-0 flex-col">
               <span className="flex items-center gap-1.5">
-                <span className="truncate font-medium text-sm text-foreground leading-tight group-hover:underline group-hover:underline-offset-2">{creator.name}</span>
-                <span className={`${creatorIcon} shrink-0 text-muted-foreground transition-colors group-hover:text-foreground`} aria-hidden />
+                <span className="truncate text-sm leading-tight font-medium text-foreground group-hover:underline group-hover:underline-offset-2">
+                  {creator.name}
+                </span>
+                <span
+                  className={`${creatorIcon} shrink-0 text-muted-foreground transition-colors group-hover:text-foreground`}
+                  aria-hidden
+                />
               </span>
-              <span className="truncate font-mono text-[10px] text-muted-foreground leading-tight">@{creator.handle}</span>
+              <span className="truncate font-mono text-[10px] leading-tight text-muted-foreground">
+                @{creator.handle}
+              </span>
             </span>
           </a>
         ) : sym ? (
@@ -92,16 +98,14 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
               {sym}
             </span>
             <HalalIndicator info={getHalal(sym)} />
-            {company && (
-              <span className="truncate text-sm text-muted-foreground">{company}</span>
-            )}
+            {company && <span className="truncate text-sm text-muted-foreground">{company}</span>}
           </>
         ) : (
           <>
             <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground/80 to-foreground/40 ring-1 ring-border/60">
               <LineChartIcon className="size-3.5 text-background" />
             </div>
-            <span className="font-medium text-sm text-foreground">Signal Tracker</span>
+            <span className="text-sm font-medium text-foreground">Signal Tracker</span>
           </>
         )}
       </div>

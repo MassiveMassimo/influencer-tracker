@@ -19,13 +19,7 @@ const TRANSITION = { duration: 0.25, ease: EASE_OUT } as const;
 // 150ms text swap that drives it.
 const LAYOUT_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
 
-export function IconSwap({
-  icon,
-  className,
-}: {
-  icon: string;
-  className?: string;
-}) {
+export function IconSwap({ icon, className }: { icon: string; className?: string }) {
   const reduce = useReducedMotion();
   if (reduce) {
     return <span aria-hidden className={`${icon} ${className ?? ""}`} />;

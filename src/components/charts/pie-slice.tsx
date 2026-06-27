@@ -14,7 +14,7 @@ function generateArcPath(
   startAngle: number,
   endAngle: number,
   cornerRadius: number,
-  padAngle: number
+  padAngle: number,
 ): string {
   const generator = arcGenerator<unknown>({
     innerRadius,
@@ -29,7 +29,7 @@ function generateArcPath(
 function getSliceOffset(
   startAngle: number,
   endAngle: number,
-  distance: number
+  distance: number,
 ): { x: number; y: number } {
   // Calculate the midpoint angle of the slice
   const midAngle = (startAngle + endAngle) / 2;
@@ -101,17 +101,9 @@ function AnimatedSliceTranslate({
   showGlow,
   hoverOffset,
 }: AnimatedSliceTranslateProps) {
-  const {
-    enterTransition,
-    enterStaggerScale,
-    animationKey: pieAnimationKey,
-  } = usePieStable();
+  const { enterTransition, enterStaggerScale, animationKey: pieAnimationKey } = usePieStable();
   const animationDelay = (0.1 + index * 0.08) * enterStaggerScale;
-  const mountProgress = useMountProgress(
-    enterTransition,
-    animationDelay,
-    pieAnimationKey
-  );
+  const mountProgress = useMountProgress(enterTransition, animationDelay, pieAnimationKey);
   const enterComplete = useEnterComplete(mountProgress);
 
   const animatedPath = useTransform(mountProgress, (mount) => {
@@ -125,7 +117,7 @@ function AnimatedSliceTranslate({
       startAngle,
       currentEndAngle,
       cornerRadius,
-      padAngle
+      padAngle,
     );
   });
 
@@ -137,7 +129,7 @@ function AnimatedSliceTranslate({
     startAngle,
     endAngle,
     cornerRadius,
-    padAngle
+    padAngle,
   );
 
   if (enterComplete) {
@@ -154,10 +146,7 @@ function AnimatedSliceTranslate({
         initial={false}
         pointerEvents="none"
         style={{
-          filter:
-            showGlow && isHovered
-              ? `drop-shadow(0 0 12px ${glowColor})`
-              : "none",
+          filter: showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
         }}
         transition={{
           opacity: { duration: 0.15 },
@@ -181,8 +170,7 @@ function AnimatedSliceTranslate({
       key={`slice-${animationKey}-${index}`}
       pointerEvents="none"
       style={{
-        filter:
-          showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
+        filter: showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
       }}
       transition={{
         opacity: { duration: 0.15 },
@@ -226,17 +214,9 @@ function AnimatedSliceGrow({
   showGlow,
   hoverOffset,
 }: AnimatedSliceGrowProps) {
-  const {
-    enterTransition,
-    enterStaggerScale,
-    animationKey: pieAnimationKey,
-  } = usePieStable();
+  const { enterTransition, enterStaggerScale, animationKey: pieAnimationKey } = usePieStable();
   const animationDelay = (0.1 + index * 0.08) * enterStaggerScale;
-  const mountProgress = useMountProgress(
-    enterTransition,
-    animationDelay,
-    pieAnimationKey
-  );
+  const mountProgress = useMountProgress(enterTransition, animationDelay, pieAnimationKey);
   const enterComplete = useEnterComplete(mountProgress);
 
   const growSpring = useSpring(outerRadius, {
@@ -248,24 +228,20 @@ function AnimatedSliceGrow({
     growSpring.set(isHovered ? outerRadius + hoverOffset : outerRadius);
   }, [isHovered, hoverOffset, outerRadius, growSpring]);
 
-  const animatedPath = useTransform(
-    [mountProgress, growSpring],
-    ([mount, currentOuterRadius]) => {
-      const currentEndAngle =
-        startAngle + (endAngle - startAngle) * (mount as number);
-      if (currentEndAngle <= startAngle + 0.01) {
-        return "";
-      }
-      return generateArcPath(
-        innerRadius,
-        currentOuterRadius as number,
-        startAngle,
-        currentEndAngle,
-        cornerRadius,
-        padAngle
-      );
+  const animatedPath = useTransform([mountProgress, growSpring], ([mount, currentOuterRadius]) => {
+    const currentEndAngle = startAngle + (endAngle - startAngle) * (mount as number);
+    if (currentEndAngle <= startAngle + 0.01) {
+      return "";
     }
-  );
+    return generateArcPath(
+      innerRadius,
+      currentOuterRadius as number,
+      startAngle,
+      currentEndAngle,
+      cornerRadius,
+      padAngle,
+    );
+  });
 
   const glowColor = color;
   const grownOuterRadius = isHovered ? outerRadius + hoverOffset : outerRadius;
@@ -275,7 +251,7 @@ function AnimatedSliceGrow({
     startAngle,
     endAngle,
     cornerRadius,
-    padAngle
+    padAngle,
   );
 
   if (enterComplete) {
@@ -290,10 +266,7 @@ function AnimatedSliceGrow({
         initial={false}
         pointerEvents="none"
         style={{
-          filter:
-            showGlow && isHovered
-              ? `drop-shadow(0 0 12px ${glowColor})`
-              : "none",
+          filter: showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
         }}
         transition={{
           opacity: { duration: 0.15 },
@@ -314,8 +287,7 @@ function AnimatedSliceGrow({
       key={`slice-${animationKey}-${index}`}
       pointerEvents="none"
       style={{
-        filter:
-          showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
+        filter: showGlow && isHovered ? `drop-shadow(0 0 12px ${glowColor})` : "none",
       }}
       transition={{
         opacity: { duration: 0.15 },
@@ -370,11 +342,7 @@ export const PieSlice = memo(function PieSlice({
   const isFaded = hoveredIndex !== null && hoveredIndex !== index;
 
   // Calculate values for non-animated/static paths
-  const offset = getSliceOffset(
-    arcData.startAngle,
-    arcData.endAngle,
-    hoverOffset
-  );
+  const offset = getSliceOffset(arcData.startAngle, arcData.endAngle, hoverOffset);
 
   // Generate the static hitbox path (always uses base outer radius)
   const hitboxPath = generateArcPath(
@@ -383,7 +351,7 @@ export const PieSlice = memo(function PieSlice({
     arcData.startAngle,
     arcData.endAngle,
     cornerRadius,
-    arcData.padAngle
+    arcData.padAngle,
   );
 
   // Generate the visible path for grow effect
@@ -394,7 +362,7 @@ export const PieSlice = memo(function PieSlice({
     arcData.startAngle,
     arcData.endAngle,
     cornerRadius,
-    arcData.padAngle
+    arcData.padAngle,
   );
 
   // Render animated slice based on effect type
@@ -455,8 +423,7 @@ export const PieSlice = memo(function PieSlice({
           initial={false}
           pointerEvents="none"
           style={{
-            filter:
-              showGlow && isHovered ? `drop-shadow(0 0 12px ${color})` : "none",
+            filter: showGlow && isHovered ? `drop-shadow(0 0 12px ${color})` : "none",
           }}
           transition={{
             opacity: { duration: 0.15 },
@@ -483,8 +450,7 @@ export const PieSlice = memo(function PieSlice({
         initial={false}
         pointerEvents="none"
         style={{
-          filter:
-            showGlow && isHovered ? `drop-shadow(0 0 12px ${color})` : "none",
+          filter: showGlow && isHovered ? `drop-shadow(0 0 12px ${color})` : "none",
         }}
         transition={{
           opacity: { duration: 0.15 },

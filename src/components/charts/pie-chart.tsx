@@ -94,7 +94,7 @@ function generatePieArcPath(
   startAngle: number,
   endAngle: number,
   cornerRadius: number,
-  padAngle: number
+  padAngle: number,
 ): string {
   const generator = arcGenerator<unknown>({
     innerRadius,
@@ -166,9 +166,7 @@ const PieChartCore = memo(function PieChartCore({
   enterStaggerScale,
   geometryScrubbing,
 }: PieChartInnerProps) {
-  const [internalHoveredIndex, setInternalHoveredIndex] = useState<
-    number | null
-  >(null);
+  const [internalHoveredIndex, setInternalHoveredIndex] = useState<number | null>(null);
   const [animationKey] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -183,7 +181,7 @@ const PieChartCore = memo(function PieChartCore({
         setInternalHoveredIndex(index);
       }
     },
-    [isControlled, onHoverChange]
+    [isControlled, onHoverChange],
   );
 
   // Use the smaller dimension to ensure the chart fits
@@ -196,10 +194,7 @@ const PieChartCore = memo(function PieChartCore({
   const innerRadius = innerRadiusProp;
 
   // Calculate total value
-  const totalValue = useMemo(
-    () => data.reduce((sum, d) => sum + d.value, 0),
-    [data]
-  );
+  const totalValue = useMemo(() => data.reduce((sum, d) => sum + d.value, 0), [data]);
 
   // Get color for a slice index
   const getColor = useCallback(
@@ -210,7 +205,7 @@ const PieChartCore = memo(function PieChartCore({
       }
       return defaultPieColors[index % defaultPieColors.length] as string;
     },
-    [data]
+    [data],
   );
 
   // Get fill for a slice index (supports patterns/gradients)
@@ -224,7 +219,7 @@ const PieChartCore = memo(function PieChartCore({
       // Fall back to color
       return getColor(index);
     },
-    [data, getColor]
+    [data, getColor],
   );
 
   // Compute arcs using d3-shape pie
@@ -259,8 +254,8 @@ const PieChartCore = memo(function PieChartCore({
         arc.startAngle,
         arc.endAngle,
         cornerRadius,
-        arc.padAngle
-      )
+        arc.padAngle,
+      ),
     );
   }, [geometryScrubbing, arcs, innerRadius, outerRadius, cornerRadius]);
 
@@ -361,7 +356,7 @@ const PieChartCore = memo(function PieChartCore({
       getFill,
       geometryScrubbing,
       scrubSlicePaths,
-    ]
+    ],
   );
 
   // Use CSS Grid stacking to layer SVG and HTML content
@@ -397,7 +392,7 @@ const PieChartCore = memo(function PieChartCore({
                       key={data[index]?.label ?? index}
                       pointerEvents="none"
                     />
-                  ) : null
+                  ) : null,
                 )
               : null}
             {svgChildren}
@@ -418,10 +413,7 @@ const PieChartCore = memo(function PieChartCore({
   );
 }, pieChartCorePropsEqual);
 
-function pieChartCorePropsEqual(
-  prev: PieChartInnerProps,
-  next: PieChartInnerProps
-): boolean {
+function pieChartCorePropsEqual(prev: PieChartInnerProps, next: PieChartInnerProps): boolean {
   return (
     prev.width === next.width &&
     prev.height === next.height &&
@@ -493,10 +485,7 @@ export function PieChart({
 
   // Otherwise use ParentSize for responsive sizing
   return (
-    <div
-      className={cn("relative aspect-square w-full", className)}
-      ref={containerRef}
-    >
+    <div className={cn("relative aspect-square w-full", className)} ref={containerRef}>
       <ParentSize debounceTime={10}>
         {({ width, height }) => (
           <PieChartInner

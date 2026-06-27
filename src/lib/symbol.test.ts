@@ -15,8 +15,8 @@ test("foreign listing gets its Yahoo suffix", () => {
 });
 
 test("out-of-scope notations resolve to null", () => {
-  expect(resolveSymbol("SI1!")).toBeNull();   // continuous future
-  expect(resolveSymbol("SPCFD")).toBeNull();  // CFD
+  expect(resolveSymbol("SI1!")).toBeNull(); // continuous future
+  expect(resolveSymbol("SPCFD")).toBeNull(); // CFD
 });
 
 test("normal equities pass through unchanged", () => {

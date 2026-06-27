@@ -3,12 +3,7 @@
 import { motion, useSpring } from "motion/react";
 import { memo, useMemo } from "react";
 import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
-import {
-  buildSegments,
-  segmentIndexFor,
-  splitLabel,
-  tickerMode,
-} from "./date-ticker-utils.ts";
+import { buildSegments, segmentIndexFor, splitLabel, tickerMode } from "./date-ticker-utils.ts";
 
 const TICKER_ITEM_HEIGHT = 24;
 /**
@@ -38,7 +33,7 @@ const DateTickerCompact = memo(function DateTickerCompact({
   return (
     <div className={PILL_CLASS}>
       <div className="flex h-6 items-center justify-center">
-        <span className="whitespace-nowrap font-medium text-sm">{label}</span>
+        <span className="text-sm font-medium whitespace-nowrap">{label}</span>
       </div>
     </div>
   );
@@ -58,13 +53,8 @@ function Stack({
     <div className="relative h-6 overflow-hidden">
       <motion.div className="flex flex-col" style={{ y }}>
         {segments.map((segment) => (
-          <div
-            className="flex h-6 shrink-0 items-center justify-center"
-            key={segment.key}
-          >
-            <span className="whitespace-nowrap font-medium text-sm">
-              {segment.value}
-            </span>
+          <div className="flex h-6 shrink-0 items-center justify-center" key={segment.key}>
+            <span className="text-sm font-medium whitespace-nowrap">{segment.value}</span>
           </div>
         ))}
       </motion.div>
@@ -82,17 +72,10 @@ const DateTickerInner = memo(function DateTickerInner({
   // Major = month (date) or hour (time); minor = day or minute. Both collapse
   // repeated consecutive values into a single node so a value only rolls when
   // it actually changes (no in-place flip when it repeats across bars).
-  const majorSegments = useMemo(
-    () => buildSegments(parts.map((p) => p[0])),
-    [parts],
-  );
-  const minorSegments = useMemo(
-    () => buildSegments(parts.map((p) => p[1])),
-    [parts],
-  );
+  const majorSegments = useMemo(() => buildSegments(parts.map((p) => p[0])), [parts]);
+  const minorSegments = useMemo(() => buildSegments(parts.map((p) => p[1])), [parts]);
 
-  const clamped =
-    currentIndex < 0 || currentIndex >= labels.length ? 0 : currentIndex;
+  const clamped = currentIndex < 0 || currentIndex >= labels.length ? 0 : currentIndex;
   const majorIndex = useMemo(
     () => segmentIndexFor(majorSegments, clamped),
     [majorSegments, clamped],
@@ -107,9 +90,7 @@ const DateTickerInner = memo(function DateTickerInner({
       <div className="relative h-6 overflow-hidden">
         <div className="flex items-center justify-center gap-1">
           <Stack segments={majorSegments} activeIndex={majorIndex} />
-          {isTime ? (
-            <span className="font-medium text-sm leading-6">:</span>
-          ) : null}
+          {isTime ? <span className="text-sm leading-6 font-medium">:</span> : null}
           <Stack segments={minorSegments} activeIndex={minorIndex} />
         </div>
       </div>

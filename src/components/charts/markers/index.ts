@@ -5,8 +5,4 @@ export {
   type MarkerTooltipContentProps,
   useActiveMarkers,
 } from "./chart-markers";
-export {
-  type ChartMarker,
-  MarkerGroup,
-  type MarkerGroupProps,
-} from "./marker-group";
+export { type ChartMarker, MarkerGroup, type MarkerGroupProps } from "./marker-group";

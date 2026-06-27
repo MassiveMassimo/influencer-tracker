@@ -21,8 +21,7 @@ export function solarAltitudeDeg(date: Date, lat: number, lng: number): number {
   const ha = (gmst + lng) * rad - ra; // local hour angle
   const latR = lat * rad;
   const alt = Math.asin(
-    Math.sin(latR) * Math.sin(delta) +
-      Math.cos(latR) * Math.cos(delta) * Math.cos(ha),
+    Math.sin(latR) * Math.sin(delta) + Math.cos(latR) * Math.cos(delta) * Math.cos(ha),
   );
   return alt / rad;
 }

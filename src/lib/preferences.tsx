@@ -63,15 +63,9 @@ interface PreferencesContextValue extends Preferences {
   setShowHalalStatus: (v: boolean) => void;
 }
 
-const PreferencesContext = React.createContext<PreferencesContextValue | null>(
-  null
-);
+const PreferencesContext = React.createContext<PreferencesContextValue | null>(null);
 
-export function PreferencesProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PreferencesProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = React.useState<Preferences>(DEFAULTS);
 
   // Hydrate + apply on mount (SSR-safe: no window access during render).
@@ -115,19 +109,14 @@ export function PreferencesProvider({
 
   const value = React.useMemo<PreferencesContextValue>(
     () => ({ ...prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus }),
-    [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus]
+    [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus],
   );
 
-  return (
-    <PreferencesContext.Provider value={value}>
-      {children}
-    </PreferencesContext.Provider>
-  );
+  return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
 
 export function usePreferences(): PreferencesContextValue {
   const ctx = React.useContext(PreferencesContext);
-  if (!ctx)
-    throw new Error("usePreferences must be used within PreferencesProvider");
+  if (!ctx) throw new Error("usePreferences must be used within PreferencesProvider");
   return ctx;
 }

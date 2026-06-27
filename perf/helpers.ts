@@ -1,15 +1,15 @@
-import type { Page } from '@playwright/test'
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import type { Page } from "@playwright/test";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 // Routes exercised by the suite. Picked to cover the three render profiles:
 // home (lists), creator overview (stat tiles + cum-excess curve), ticker
 // (the chart-heavy candle/area morph that dominates render cost).
 export const ROUTES = {
-  home: '/',
-  creator: '/c/TheProfInvestor',
-  ticker: '/t/VRT/all',
-} as const
+  home: "/",
+  creator: "/c/TheProfInvestor",
+  ticker: "/t/VRT/all",
+} as const;
 
 // Soft budgets — generous on purpose (~1.4x current measured values) so the suite
 // flags real regressions, not normal jitter. Tighten once a baseline settles.
@@ -33,7 +33,7 @@ export const BUDGETS = {
   // baseline 28.7MB/28 switches — likely bounded TanStack Query timeframe cache,
   // not a leak; 40 gives GC-jitter headroom. If this climbs with more CYCLES, investigate.
   heapGrowthMB: 40,
-} as const
+} as const;
 
 // ── Render counter (dev project only) ───────────────────────────────────────
 // Injected at document_start AFTER react-scan's install-hook.global.js, which
@@ -42,65 +42,65 @@ export const BUDGETS = {
 // (actualDuration > 0) this commit, keyed by component display name.
 // Self-contained: runs in page context, no closure over module scope.
 export function renderCounterInit() {
-  const KEY = '__perf'
-  ;(window as any)[KEY] = { counts: {}, commits: 0, sawDur: false }
-  const hookName = '__REACT_DEVTOOLS_GLOBAL_HOOK__'
+  const KEY = "__perf";
+  (window as any)[KEY] = { counts: {}, commits: 0, sawDur: false };
+  const hookName = "__REACT_DEVTOOLS_GLOBAL_HOOK__";
   const wrap = () => {
-    const hook = (window as any)[hookName]
-    if (!hook || hook.__perfWrapped) return !!(hook && hook.__perfWrapped)
-    const orig = hook.onCommitFiberRoot
+    const hook = (window as any)[hookName];
+    if (!hook || hook.__perfWrapped) return !!(hook && hook.__perfWrapped);
+    const orig = hook.onCommitFiberRoot;
     hook.onCommitFiberRoot = function (id: any, root: any, ...rest: any[]) {
       try {
-        const p = (window as any)[KEY]
-        p.commits++
-        const seen = new Set()
+        const p = (window as any)[KEY];
+        p.commits++;
+        const seen = new Set();
         const walk = (f: any) => {
-          if (!f || seen.has(f)) return
-          seen.add(f)
+          if (!f || seen.has(f)) return;
+          seen.add(f);
           if (f.actualDuration > 0) {
-            p.sawDur = true
-            const t = f.type
-            let n: string | null = null
-            if (typeof t === 'function') n = t.displayName || t.name
-            else if (t && typeof t === 'object')
+            p.sawDur = true;
+            const t = f.type;
+            let n: string | null = null;
+            if (typeof t === "function") n = t.displayName || t.name;
+            else if (t && typeof t === "object")
               n =
                 t.displayName ||
                 (t.type && (t.type.displayName || t.type.name)) ||
-                (t.render && (t.render.displayName || t.render.name))
-            if (n) p.counts[n] = (p.counts[n] || 0) + 1
+                (t.render && (t.render.displayName || t.render.name));
+            if (n) p.counts[n] = (p.counts[n] || 0) + 1;
           }
-          walk(f.child)
-          walk(f.sibling)
-        }
-        walk(root.current)
+          walk(f.child);
+          walk(f.sibling);
+        };
+        walk(root.current);
       } catch {}
-      return orig && orig.apply(this, [id, root, ...rest])
-    }
-    hook.__perfWrapped = true
-    return true
-  }
+      return orig && orig.apply(this, [id, root, ...rest]);
+    };
+    hook.__perfWrapped = true;
+    return true;
+  };
   if (!wrap()) {
     const iv = setInterval(() => {
-      if (wrap()) clearInterval(iv)
-    }, 5)
-    setTimeout(() => clearInterval(iv), 8000)
+      if (wrap()) clearInterval(iv);
+    }, 5);
+    setTimeout(() => clearInterval(iv), 8000);
   }
-  ;(window as any).__perfReset = () => {
-    const p = (window as any)[KEY]
-    p.counts = {}
-    p.commits = 0
-  }
+  (window as any).__perfReset = () => {
+    const p = (window as any)[KEY];
+    p.counts = {};
+    p.commits = 0;
+  };
 }
 
 export type RenderReport = {
-  commits: number
-  sawDur: boolean
-  counts: Record<string, number>
-}
+  commits: number;
+  sawDur: boolean;
+  counts: Record<string, number>;
+};
 
-export const resetRender = (page: Page) => page.evaluate(() => (window as any).__perfReset?.())
+export const resetRender = (page: Page) => page.evaluate(() => (window as any).__perfReset?.());
 export const readRender = (page: Page) =>
-  page.evaluate(() => (window as any).__perf as RenderReport)
+  page.evaluate(() => (window as any).__perf as RenderReport);
 
 // ── Page-perf collector (prod project) ───────────────────────────────────────
 // Native PerformanceObservers — no web-vitals dependency. LCP, CLS, long tasks,
@@ -111,52 +111,54 @@ export function pagePerfInit() {
     cls: 0,
     longTasks: { count: 0, total: 0, max: 0 },
     loaf: { count: 0, total: 0, maxBlocking: 0 },
-  }
-  ;(window as any).__pp = s
+  };
+  (window as any).__pp = s;
   const obs = (type: string, cb: (e: any) => void) => {
     try {
       new PerformanceObserver((l) => l.getEntries().forEach(cb)).observe({
         type,
         buffered: true,
-      } as any)
+      } as any);
     } catch {}
-  }
-  obs('largest-contentful-paint', (e) => {
-    s.lcp = e.renderTime || e.loadTime || e.startTime
-  })
-  obs('layout-shift', (e) => {
-    if (!e.hadRecentInput) s.cls += e.value
-  })
-  obs('longtask', (e) => {
-    s.longTasks.count++
-    s.longTasks.total += e.duration
-    s.longTasks.max = Math.max(s.longTasks.max, e.duration)
-  })
-  obs('long-animation-frame', (e) => {
-    s.loaf.count++
-    s.loaf.total += e.duration
-    s.loaf.maxBlocking = Math.max(s.loaf.maxBlocking, e.blockingDuration || 0)
-  })
+  };
+  obs("largest-contentful-paint", (e) => {
+    s.lcp = e.renderTime || e.loadTime || e.startTime;
+  });
+  obs("layout-shift", (e) => {
+    if (!e.hadRecentInput) s.cls += e.value;
+  });
+  obs("longtask", (e) => {
+    s.longTasks.count++;
+    s.longTasks.total += e.duration;
+    s.longTasks.max = Math.max(s.longTasks.max, e.duration);
+  });
+  obs("long-animation-frame", (e) => {
+    s.loaf.count++;
+    s.loaf.total += e.duration;
+    s.loaf.maxBlocking = Math.max(s.loaf.maxBlocking, e.blockingDuration || 0);
+  });
 }
 
 // Read navigation timing + resource transfer sizes (same-origin, so
 // encodedBodySize is populated) plus the accumulated observer state.
 export async function readPagePerf(page: Page) {
   return page.evaluate(() => {
-    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
-    const paint = performance.getEntriesByType('paint')
-    const fcp = paint.find((p) => p.name === 'first-contentful-paint')?.startTime ?? 0
-    const res = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+    const nav = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    const paint = performance.getEntriesByType("paint");
+    const fcp = paint.find((p) => p.name === "first-contentful-paint")?.startTime ?? 0;
+    const res = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
     let js = 0,
       css = 0,
-      total = 0
+      total = 0;
     for (const r of res) {
-      const sz = r.encodedBodySize || r.transferSize || 0
-      total += sz
-      if (r.initiatorType === 'script' || /\.m?js($|\?)/.test(r.name)) js += sz
-      else if (/\.css($|\?)/.test(r.name)) css += sz
+      const sz = r.encodedBodySize || r.transferSize || 0;
+      total += sz;
+      if (r.initiatorType === "script" || /\.m?js($|\?)/.test(r.name)) js += sz;
+      else if (/\.css($|\?)/.test(r.name)) css += sz;
     }
-    const kb = (b: number) => +(b / 1024).toFixed(1)
+    const kb = (b: number) => +(b / 1024).toFixed(1);
     return {
       ttfb: nav ? Math.round(nav.responseStart) : 0,
       fcp: Math.round(fcp),
@@ -165,8 +167,8 @@ export async function readPagePerf(page: Page) {
       transferKB: { js: kb(js), css: kb(css), total: kb(total) },
       ...(window as any).__pp,
       lcp: Math.round((window as any).__pp.lcp),
-    }
-  })
+    };
+  });
 }
 
 // ── Interaction driver ───────────────────────────────────────────────────────
@@ -174,10 +176,10 @@ export async function readPagePerf(page: Page) {
 // dev/prod because the buttons render server-side regardless of chart data.
 export async function switchTimeframes(page: Page, sequence: string[], settleMs = 450) {
   for (const tf of sequence) {
-    const btn = page.getByRole('tab', { name: tf, exact: true }).first()
+    const btn = page.getByRole("tab", { name: tf, exact: true }).first();
     if (await btn.count()) {
-      await btn.click({ force: true }).catch(() => {})
-      await page.waitForTimeout(settleMs)
+      await btn.click({ force: true }).catch(() => {});
+      await page.waitForTimeout(settleMs);
     }
   }
 }
@@ -186,13 +188,13 @@ export async function switchTimeframes(page: Page, sequence: string[], settleMs 
 // One JSON file per test (no cross-worker write races) + a console table so a
 // bare `bun run test:perf` is readable without opening the HTML report.
 export function writeReport(name: string, data: unknown) {
-  const dir = join(process.cwd(), 'perf', '.report')
-  mkdirSync(dir, { recursive: true })
-  writeFileSync(join(dir, `${name}.json`), JSON.stringify(data, null, 2))
+  const dir = join(process.cwd(), "perf", ".report");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}.json`), JSON.stringify(data, null, 2));
 }
 
 export function logTable(title: string, rows: Record<string, unknown>) {
-  const lines = [`\n  ── ${title} ──`]
-  for (const [k, v] of Object.entries(rows)) lines.push(`   ${k.padEnd(24)} ${v}`)
-  console.log(lines.join('\n'))
+  const lines = [`\n  ── ${title} ──`];
+  for (const [k, v] of Object.entries(rows)) lines.push(`   ${k.padEnd(24)} ${v}`);
+  console.log(lines.join("\n"));
 }

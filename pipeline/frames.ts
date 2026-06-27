@@ -10,7 +10,7 @@ import { readImage, type FrameHint } from "./vision";
 // Prefer the yt-dlp sidecar (<id>.info.json `duration`); else probe with ffprobe.
 function videoDuration(dir: string, video: string): number | null {
   try {
-    const info = readdirSync(dir).find(f => f.endsWith(".info.json"));
+    const info = readdirSync(dir).find((f) => f.endsWith(".info.json"));
     if (info) {
       const d = JSON.parse(readFileSync(join(dir, info), "utf8")).duration;
       if (typeof d === "number" && d > 0) return d;
@@ -20,7 +20,15 @@ function videoDuration(dir: string, video: string): number | null {
   }
   const probe = spawnSync(
     "ffprobe",
-    ["-v", "error", "-show_entries", "format=duration", "-of", "default=nokey=1:noprint_wrapper=1", join(dir, video)],
+    [
+      "-v",
+      "error",
+      "-show_entries",
+      "format=duration",
+      "-of",
+      "default=nokey=1:noprint_wrapper=1",
+      join(dir, video),
+    ],
     { encoding: "utf8" },
   );
   const d = Number.parseFloat((probe.stdout ?? "").trim());
@@ -38,14 +46,18 @@ export async function frames(handle: string) {
     const out = join(framesDir(handle), `${code}.json`);
     if (existsSync(out)) continue;
     const dir = join(rawDir(handle), code);
-    const video = (await readdir(dir)).find(f => /\.(mp4|webm|mkv)$/.test(f));
+    const video = (await readdir(dir)).find((f) => /\.(mp4|webm|mkv)$/.test(f));
     if (!video) continue;
     // sample 3 frames at 25%, 50%, 75% of real duration (fail-open to 60s if unknown)
     const duration = videoDuration(dir, video) ?? 60;
     const hints: FrameHint[] = [];
     for (const pct of [0.25, 0.5, 0.75]) {
       const img = join(dir, `f_${pct}.jpg`);
-      spawnSync("ffmpeg", ["-y", "-ss", String(pct * duration), "-i", join(dir, video), "-frames:v", "1", img], { stdio: "ignore" });
+      spawnSync(
+        "ffmpeg",
+        ["-y", "-ss", String(pct * duration), "-i", join(dir, video), "-frames:v", "1", img],
+        { stdio: "ignore" },
+      );
       if (existsSync(img)) hints.push(await readImage(vision, img, fireworks));
     }
     await writeFile(out, JSON.stringify({ shortcode: code, hints }, null, 2));

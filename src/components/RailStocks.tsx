@@ -10,11 +10,14 @@ import { fetchCallsIndex } from "#/lib/data.ts";
 import { topStocksByLastCall, type RailStock } from "#/lib/rail-stocks.ts";
 
 function pctChip(changePct: number | null) {
-  if (changePct == null) return <span className="font-mono text-[10px] text-muted-foreground tabular-nums">—</span>;
-  const cls = changePct >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
+  if (changePct == null)
+    return <span className="font-mono text-[10px] text-muted-foreground tabular-nums">—</span>;
+  const cls =
+    changePct >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
   return (
     <span className={`font-mono text-[10px] tabular-nums ${cls}`}>
-      {changePct >= 0 ? "+" : ""}{(changePct * 100).toFixed(1)}%
+      {changePct >= 0 ? "+" : ""}
+      {(changePct * 100).toFixed(1)}%
     </span>
   );
 }
@@ -59,7 +62,9 @@ export function RailStocks({
     () =>
       q
         ? allStocks
-            .filter((s) => s.symbol.toLowerCase().includes(q) || s.company.toLowerCase().includes(q))
+            .filter(
+              (s) => s.symbol.toLowerCase().includes(q) || s.company.toLowerCase().includes(q),
+            )
             .slice(0, 50)
         : stocks,
     [q, allStocks, stocks],
@@ -79,65 +84,76 @@ export function RailStocks({
   const sparksLoading = isLoading || shownSymbols !== deferredSymbols;
 
   if (stocks.length === 0) {
-    return <div className="px-2 py-1.5 text-muted-foreground/60 text-xs">No stocks yet</div>;
+    return <div className="px-2 py-1.5 text-xs text-muted-foreground/60">No stocks yet</div>;
   }
 
   return (
-    <ScrollArea
-      className="min-h-0 flex-1"
-      viewportClassName="px-2 pb-2"
-      scrollbarClassName="w-1.5"
-    >
+    <ScrollArea className="min-h-0 flex-1" viewportClassName="px-2 pb-2" scrollbarClassName="w-1.5">
       {shown.length === 0 ? (
-        <div className="px-2 py-1.5 text-muted-foreground/60 text-xs">No matches</div>
+        <div className="px-2 py-1.5 text-xs text-muted-foreground/60">No matches</div>
       ) : (
-      <ul id="rail-stocks-results" role="listbox" aria-label="Stocks" className="flex flex-col gap-0.5">
-        {shown.map((s, i) => {
-          const spark = data?.[s.symbol];
-          const active = activeIndex === i;
-          return (
-            <li
-              key={s.symbol}
-              id={`stocks-opt-${i}`}
-              role="option"
-              aria-selected={active}
-              onMouseEnter={() => searchOpen && setActiveIndex?.(i)}
-            >
-              <Link
-                to="/t/$symbol/$creator"
-                params={{ symbol: s.symbol, creator: "all" }}
-                onClick={() => {
-                  onNavigate?.();
-                  onSelect?.();
-                }}
-                tabIndex={searchOpen ? -1 : undefined}
-                className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 no-underline transition-colors hover:bg-foreground/[0.03] ${
-                  active ? "bg-foreground/[0.06]" : ""
-                }`}
-                activeProps={{ className: "flex w-full items-center gap-2 rounded-md px-2 py-1.5 bg-foreground/[0.06] no-underline" }}
+        <ul
+          id="rail-stocks-results"
+          role="listbox"
+          aria-label="Stocks"
+          className="flex flex-col gap-0.5"
+        >
+          {shown.map((s, i) => {
+            const spark = data?.[s.symbol];
+            const active = activeIndex === i;
+            return (
+              <li
+                key={s.symbol}
+                id={`stocks-opt-${i}`}
+                role="option"
+                aria-selected={active}
+                onMouseEnter={() => searchOpen && setActiveIndex?.(i)}
               >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1">
-                    <span className="truncate font-medium text-sm text-foreground">{s.symbol}</span>
-                    <HalalBadge info={getHalal(s.symbol)} />
+                <Link
+                  to="/t/$symbol/$creator"
+                  params={{ symbol: s.symbol, creator: "all" }}
+                  onClick={() => {
+                    onNavigate?.();
+                    onSelect?.();
+                  }}
+                  tabIndex={searchOpen ? -1 : undefined}
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 no-underline transition-colors hover:bg-foreground/[0.03] ${
+                    active ? "bg-foreground/[0.06]" : ""
+                  }`}
+                  activeProps={{
+                    className:
+                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 bg-foreground/[0.06] no-underline",
+                  }}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1">
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {s.symbol}
+                      </span>
+                      <HalalBadge info={getHalal(s.symbol)} />
+                    </div>
+                    <div className="truncate text-[11px] text-muted-foreground">{s.company}</div>
                   </div>
-                  <div className="truncate text-[11px] text-muted-foreground">{s.company}</div>
-                </div>
-                {spark ? (
-                  <Sparkline closes={spark.closes} excess={spark.changePct} width={48} height={18} />
-                ) : sparksLoading ? (
-                  // Sparks for the shown set are still fetching — skeleton.
-                  <span className="block h-[18px] w-12 animate-pulse rounded bg-foreground/[0.06]" />
-                ) : (
-                  // Settled with no data for this symbol (Yahoo gap) — render nothing.
-                  <span className="block h-[18px] w-12" />
-                )}
-                <span className="w-10 text-right">{pctChip(spark?.changePct ?? null)}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+                  {spark ? (
+                    <Sparkline
+                      closes={spark.closes}
+                      excess={spark.changePct}
+                      width={48}
+                      height={18}
+                    />
+                  ) : sparksLoading ? (
+                    // Sparks for the shown set are still fetching — skeleton.
+                    <span className="block h-[18px] w-12 animate-pulse rounded bg-foreground/[0.06]" />
+                  ) : (
+                    // Settled with no data for this symbol (Yahoo gap) — render nothing.
+                    <span className="block h-[18px] w-12" />
+                  )}
+                  <span className="w-10 text-right">{pctChip(spark?.changePct ?? null)}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </ScrollArea>
   );

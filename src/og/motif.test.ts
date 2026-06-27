@@ -20,7 +20,13 @@ describe("motif", () => {
     expect(pts[pts.length - 1].y).toBeGreaterThan(pts[0].y);
   });
   it("builds a self-contained svg with gradient + mask", () => {
-    const svg = buildMotifSvg({ seed: "x", up: true, palette: palette("light"), width: 1200, height: 630 });
+    const svg = buildMotifSvg({
+      seed: "x",
+      up: true,
+      palette: palette("light"),
+      width: 1200,
+      height: 630,
+    });
     expect(svg.startsWith("<svg")).toBe(true);
     expect(svg).toContain("linearGradient");
     expect(svg).toContain("<mask");

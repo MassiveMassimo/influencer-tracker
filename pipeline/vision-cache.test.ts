@@ -11,8 +11,13 @@ function fakeClient(reply: unknown) {
   const client = async () =>
     new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(reply) } }] }));
   return {
-    get calls() { return calls; },
-    fn: (...args: Parameters<typeof client>) => { calls++; return client(...args); },
+    get calls() {
+      return calls;
+    },
+    fn: (...args: Parameters<typeof client>) => {
+      calls++;
+      return client(...args);
+    },
   };
 }
 
@@ -33,7 +38,10 @@ test("cache miss: calls the model once and writes the sidecar", async () => {
   expect(hint).toEqual({ ticker: "AAA", price: 12 });
   expect(c.calls).toBe(1);
   expect(existsSync(`${img}.hint.json`)).toBe(true);
-  expect(JSON.parse(await readFile(`${img}.hint.json`, "utf8"))).toEqual({ ticker: "AAA", price: 12 });
+  expect(JSON.parse(await readFile(`${img}.hint.json`, "utf8"))).toEqual({
+    ticker: "AAA",
+    price: 12,
+  });
 });
 
 test("cache hit: reuses the sidecar, never calls the model", async () => {

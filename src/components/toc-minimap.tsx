@@ -15,17 +15,8 @@ export type TOCItem = {
   depth: number;
 };
 
-export function TocMinimap({
-  items,
-  className,
-}: {
-  items: TOCItem[];
-  className?: string;
-}) {
-  const itemIds = useMemo(
-    () => items.map((item) => item.url.replace("#", "")),
-    [items],
-  );
+export function TocMinimap({ items, className }: { items: TOCItem[]; className?: string }) {
+  const itemIds = useMemo(() => items.map((item) => item.url.replace("#", "")), [items]);
   const activeHeading = useActiveHeading(itemIds);
 
   if (!items.length) return null;
@@ -56,12 +47,7 @@ export function TocMinimap({
       </PreviewCardPrimitive.Trigger>
 
       <PreviewCardPrimitive.Portal>
-        <PreviewCardPrimitive.Positioner
-          align="center"
-          side="left"
-          sideOffset={8}
-          className="z-50"
-        >
+        <PreviewCardPrimitive.Positioner align="center" side="left" sideOffset={8} className="z-50">
           <PreviewCardPrimitive.Popup className="w-56 overflow-hidden rounded-xl border border-border/60 bg-background shadow-lg transition-[transform,opacity] duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0">
             <ul className="flex max-h-[50dvh] flex-col overflow-y-auto overscroll-contain px-6 py-4 text-sm">
               {items.map((item) => (

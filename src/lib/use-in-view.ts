@@ -31,7 +31,7 @@ export function useInView<T extends Element>(): [RefObject<T | null>, boolean] {
           observer.disconnect();
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
     observer.observe(el);
     return () => observer.disconnect();

@@ -17,7 +17,9 @@ async function resolveAvatar(avatar: string | undefined): Promise<string | undef
     const mime = (res.headers.get("content-type") ?? "image/jpeg").split(";")[0].trim();
     const b64 = Buffer.from(await res.arrayBuffer()).toString("base64");
     return `data:${mime};base64,${b64}`;
-  } catch { return undefined; }
+  } catch {
+    return undefined;
+  }
 }
 
 // Dynamic creator OG card. ISR-cached (vite routeRules); the $rev path segment busts

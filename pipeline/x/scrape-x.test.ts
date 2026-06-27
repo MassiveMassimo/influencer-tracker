@@ -6,7 +6,8 @@ describe("toRecord", () => {
     // Real Rettiwt shape: media[].type is the MediaType enum ("PHOTO"/"VIDEO").
     // The video URL has no image extension, so it is excluded by type alone.
     const rec = toRecord({
-      id: 123, fullText: "buy NBIS",
+      id: 123,
+      fullText: "buy NBIS",
       createdAt: "2026-01-15T10:00:00.000Z",
       media: [
         { type: "PHOTO", url: "https://pbs.twimg.com/media/a.jpg" },
@@ -14,21 +15,28 @@ describe("toRecord", () => {
       ],
     });
     expect(rec).toEqual({
-      id: "123", text: "buy NBIS",
+      id: "123",
+      text: "buy NBIS",
       createdAt: "2026-01-15T10:00:00.000Z",
       imageUrls: ["https://pbs.twimg.com/media/a.jpg"],
     });
   });
   it("detects a PHOTO even when its URL lacks an extension", () => {
     const rec = toRecord({
-      id: 5, createdAt: "2026-01-15T00:00:00.000Z",
+      id: 5,
+      createdAt: "2026-01-15T00:00:00.000Z",
       media: [{ type: "PHOTO", url: "https://pbs.twimg.com/media/noext?format=jpg" }],
     });
     expect(rec.imageUrls).toEqual(["https://pbs.twimg.com/media/noext?format=jpg"]);
   });
   it("handles missing media and text", () => {
     const rec = toRecord({ id: 9, createdAt: "2026-01-15T00:00:00.000Z" });
-    expect(rec).toEqual({ id: "9", text: "", createdAt: "2026-01-15T00:00:00.000Z", imageUrls: [] });
+    expect(rec).toEqual({
+      id: "9",
+      text: "",
+      createdAt: "2026-01-15T00:00:00.000Z",
+      imageUrls: [],
+    });
   });
 });
 

@@ -13,7 +13,9 @@ import { DATA, creatorDir, RETTIWT_KEY } from "./config";
 import { saveAvatar } from "./avatar";
 
 const args = Object.fromEntries(
-  process.argv.slice(2).flatMap((a, i, arr) => (a.startsWith("--") ? [[a.slice(2), arr[i + 1] ?? "true"]] : [])),
+  process.argv
+    .slice(2)
+    .flatMap((a, i, arr) => (a.startsWith("--") ? [[a.slice(2), arr[i + 1] ?? "true"]] : [])),
 );
 const force = args.force !== undefined;
 const only = args.handle as string | undefined;
@@ -27,7 +29,9 @@ async function detectPlatform(handle: string): Promise<"ig" | "x"> {
     const ds = JSON.parse(await readFile(join(creatorDir(handle), "dataset.json"), "utf8"));
     const sc = String(ds?.calls?.[0]?.shortcode ?? "");
     if (sc) return /^\d+$/.test(sc) ? "x" : "ig";
-  } catch { /* fall through to filesystem heuristic */ }
+  } catch {
+    /* fall through to filesystem heuristic */
+  }
   return existsSync(join(creatorDir(handle), "cookies.txt")) ? "ig" : "x";
 }
 
@@ -44,9 +48,12 @@ async function resolveIg(handle: string): Promise<string | null> {
     .map((f) => `${f[5]}=${f[6]}`)
     .join("; ");
   const user = handle.replace(/^@/, "");
-  const r = await fetch(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${user}`, {
-    headers: { "x-ig-app-id": "936619743392459", cookie, "user-agent": UA },
-  });
+  const r = await fetch(
+    `https://www.instagram.com/api/v1/users/web_profile_info/?username=${user}`,
+    {
+      headers: { "x-ig-app-id": "936619743392459", cookie, "user-agent": UA },
+    },
+  );
   if (!r.ok) return null;
   const j: any = await r.json();
   return j?.data?.user?.profile_pic_url_hd ?? j?.data?.user?.profile_pic_url ?? null;
@@ -67,7 +74,10 @@ let changed = false;
 for (const entry of idx) {
   const { handle } = entry;
   if (only && handle !== only) continue;
-  if (entry.avatar && !force) { console.log(`skip @${handle} (already has avatar)`); continue; }
+  if (entry.avatar && !force) {
+    console.log(`skip @${handle} (already has avatar)`);
+    continue;
+  }
 
   const platform = await detectPlatform(handle);
   let url: string | null = null;

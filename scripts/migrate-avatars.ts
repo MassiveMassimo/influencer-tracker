@@ -7,8 +7,11 @@ import { join } from "node:path";
 import { ROOT } from "../pipeline/config";
 
 const EXT_BY_MIME: Record<string, string> = {
-  "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
-  "image/webp": "webp", "image/gif": "gif",
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
 };
 
 const INDEX = join(ROOT, "data", "creators", "index.json");
@@ -21,7 +24,10 @@ for (const e of idx) {
   const a = e.avatar;
   if (!a || !a.startsWith("data:")) continue; // already a path or absent
   const m = /^data:([^;]+);base64,(.*)$/s.exec(a);
-  if (!m) { console.warn(`skip ${e.handle}: unparseable data URI`); continue; }
+  if (!m) {
+    console.warn(`skip ${e.handle}: unparseable data URI`);
+    continue;
+  }
   const ext = EXT_BY_MIME[m[1].trim()] ?? "jpg";
   writeFileSync(join(AVATARS, `${e.handle}.${ext}`), Buffer.from(m[2], "base64"));
   e.avatar = `/avatars/${e.handle}.${ext}`;

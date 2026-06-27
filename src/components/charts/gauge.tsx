@@ -12,10 +12,7 @@ import {
   useMemo,
 } from "react";
 import { cn } from "#/lib/utils.ts";
-import {
-  type ChartStatFlowFormat,
-  defaultChartStatFlowFormat,
-} from "./chart-stat-flow";
+import { type ChartStatFlowFormat, defaultChartStatFlowFormat } from "./chart-stat-flow";
 import { PieCenterShell } from "./pie-center-shell";
 
 function isDefsComponent(child: ReactElement): boolean {
@@ -43,11 +40,7 @@ function collectDefsElements(nodes: ReactNode): ReactElement[] {
       return;
     }
     if (child.type === Fragment) {
-      out.push(
-        ...collectDefsElements(
-          (child.props as { children?: ReactNode }).children
-        )
-      );
+      out.push(...collectDefsElements((child.props as { children?: ReactNode }).children));
       return;
     }
     if (isDefsComponent(child)) {
@@ -57,11 +50,7 @@ function collectDefsElements(nodes: ReactNode): ReactElement[] {
   return out;
 }
 
-function interpolateHex(
-  color1: string,
-  color2: string,
-  factor: number
-): string {
+function interpolateHex(color1: string, color2: string, factor: number): string {
   const hex = (c: string) => Number.parseInt(c, 16);
   const r1 = hex(color1.slice(1, 3));
   const g1 = hex(color1.slice(3, 5));
@@ -77,10 +66,7 @@ function interpolateHex(
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
-const DEFAULT_ACTIVE_GRADIENT: readonly [string, string] = [
-  "#bef264",
-  "#10b981",
-];
+const DEFAULT_ACTIVE_GRADIENT: readonly [string, string] = ["#bef264", "#10b981"];
 
 const DEFAULT_ACTIVE_FILL_OPACITY = 1;
 const DEFAULT_INACTIVE_FILL_OPACITY = 0.8;
@@ -212,14 +198,11 @@ function GaugeInner({
 
   const stagger = Math.max(0.25, Math.min(2.5, enterStaggerScale));
 
-  const hasCustomInactive =
-    inactiveFill !== undefined && inactiveFill.length > 0;
+  const hasCustomInactive = inactiveFill !== undefined && inactiveFill.length > 0;
   const hasCustomActive = activeFill !== undefined && activeFill.length > 0;
 
-  const resolvedActiveFillOpacity =
-    activeFillOpacity ?? DEFAULT_ACTIVE_FILL_OPACITY;
-  const resolvedInactiveFillOpacity =
-    inactiveFillOpacity ?? DEFAULT_INACTIVE_FILL_OPACITY;
+  const resolvedActiveFillOpacity = activeFillOpacity ?? DEFAULT_ACTIVE_FILL_OPACITY;
+  const resolvedInactiveFillOpacity = inactiveFillOpacity ?? DEFAULT_INACTIVE_FILL_OPACITY;
 
   const size = Math.min(width, height);
   const centerX = width / 2;
@@ -321,13 +304,12 @@ function GaugeInner({
       y4: number;
     },
     cornerRadiusPx: number,
-    radialDepth: number
+    radialDepth: number,
   ) => {
     const { x1, y1, x2, y2, x3, y3, x4, y4 } = points;
 
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-    const dist = (ax: number, ay: number, bx: number, by: number) =>
-      Math.hypot(bx - ax, by - ay);
+    const dist = (ax: number, ay: number, bx: number, by: number) => Math.hypot(bx - ax, by - ay);
 
     const d12 = dist(x1, y1, x2, y2);
     const d23 = dist(x2, y2, x3, y3);
@@ -346,7 +328,7 @@ function GaugeInner({
       d23 * 0.49,
       d34 * 0.49,
       d41 * 0.49,
-      minEdge * 0.49
+      minEdge * 0.49,
     );
 
     const r1 = Math.min(cr / d12, 0.49);
@@ -409,13 +391,7 @@ function GaugeInner({
         {defsChildren.length > 0 || useThemePaletteGradient ? (
           <defs>
             {useThemePaletteGradient ? (
-              <linearGradient
-                id={themeActiveGradientId}
-                x1="0%"
-                x2="100%"
-                y1="0%"
-                y2="0%"
-              >
+              <linearGradient id={themeActiveGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
                 <stop offset="0%" stopColor="var(--chart-1)" />
                 <stop offset="100%" stopColor="var(--chart-5)" />
               </linearGradient>
@@ -496,16 +472,11 @@ export function Gauge({
   }
 
   return (
-    <div
-      className={cn("relative w-full max-w-full", className)}
-      style={{ minWidth }}
-    >
+    <div className={cn("relative w-full max-w-full", className)} style={{ minWidth }}>
       <div className="mx-auto aspect-[21/16] w-full max-w-[560px]">
         <ParentSize debounceTime={10}>
           {({ width, height }) =>
-            width > 0 && height > 0 ? (
-              <GaugeInner height={height} width={width} {...props} />
-            ) : null
+            width > 0 && height > 0 ? <GaugeInner height={height} width={width} {...props} /> : null
           }
         </ParentSize>
       </div>

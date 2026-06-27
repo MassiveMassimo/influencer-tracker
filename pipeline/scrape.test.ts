@@ -4,7 +4,10 @@ import { downloadReel } from "./scrape";
 // A spawn-level failure (yt-dlp not on PATH) breaks EVERY reel — it must throw so the run
 // BLOCKs loudly, not silently ingest nothing (the ~10-day data gap on 2026-06-27).
 test("downloadReel throws when yt-dlp cannot launch (ENOENT)", () => {
-  const spawn = () => ({ status: null, error: Object.assign(new Error("spawn yt-dlp ENOENT"), { code: "ENOENT" }) });
+  const spawn = () => ({
+    status: null,
+    error: Object.assign(new Error("spawn yt-dlp ENOENT"), { code: "ENOENT" }),
+  });
   expect(() => downloadReel("__t", "CODE", spawn)).toThrow(/yt-dlp failed to launch/);
 });
 

@@ -22,12 +22,18 @@ describe.skipIf(!INGEST)("prices immutability", () => {
   // Wrap in an async IIFE: neon's tagged template returns a lazy NeonQueryPromise that
   // expect().rejects won't drive on its own — awaiting it inside a real Promise does.
   test("ingest role cannot UPDATE prices", async () => {
-    await expect((async () => { await sqlRole`UPDATE prices SET c = 0 WHERE symbol = '__perm_probe__'`; })())
-      .rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlRole`UPDATE prices SET c = 0 WHERE symbol = '__perm_probe__'`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 
   test("ingest role cannot DELETE prices", async () => {
-    await expect((async () => { await sqlRole`DELETE FROM prices WHERE symbol = '__perm_probe__'`; })())
-      .rejects.toThrow(/permission denied/i);
+    await expect(
+      (async () => {
+        await sqlRole`DELETE FROM prices WHERE symbol = '__perm_probe__'`;
+      })(),
+    ).rejects.toThrow(/permission denied/i);
   });
 });

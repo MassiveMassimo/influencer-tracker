@@ -21,7 +21,8 @@ function loadPrices(sym: string): OhlcBar[] {
 
 const index: { handle: string }[] = JSON.parse(readFileSync(join(CREATORS, "index.json"), "utf8"));
 const spy = loadPrices("SPY");
-if (spy.length === 0) throw new Error("data/prices/SPY.json missing or empty — cannot bake cumExcess");
+if (spy.length === 0)
+  throw new Error("data/prices/SPY.json missing or empty — cannot bake cumExcess");
 
 for (const { handle } of index) {
   const path = join(CREATORS, handle, "dataset.json");

@@ -69,13 +69,22 @@ function renderInline(text: string): ReactNode[] {
     if (m.index > last) nodes.push(text.slice(last, m.index));
     if (m[1] !== undefined) {
       nodes.push(
-        <code key={key++} className="rounded bg-foreground/[0.06] px-1 py-0.5 font-mono text-[0.85em]">
+        <code
+          key={key++}
+          className="rounded bg-foreground/[0.06] px-1 py-0.5 font-mono text-[0.85em]"
+        >
           {m[1]}
         </code>,
       );
     } else if (m[2] !== undefined) {
       nodes.push(
-        <a key={key++} href={m[3]} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2 hover:no-underline">
+        <a
+          key={key++}
+          href={m[3]}
+          target="_blank"
+          rel="noreferrer"
+          className="text-foreground underline underline-offset-2 hover:no-underline"
+        >
           {m[2]}
         </a>,
       );
@@ -98,11 +107,13 @@ function Changelog() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 md:px-10 md:py-12">
       <header>
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Changelog</div>
+        <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+          Changelog
+        </div>
         <h1 className="mt-1 font-heading text-2xl tracking-tight md:text-3xl">What's new</h1>
-        <p className="mt-2 max-w-prose text-sm text-muted-foreground leading-relaxed">
-          New features, improvements, and fixes — newest first. Spot a call we got wrong? Every
-          call has a "Report incorrect" button.
+        <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+          New features, improvements, and fixes — newest first. Spot a call we got wrong? Every call
+          has a "Report incorrect" button.
         </p>
       </header>
 
@@ -117,13 +128,15 @@ function Changelog() {
               {/* Sticky date column (devl-style). */}
               <aside className="self-start md:sticky md:top-8">
                 <div className="flex items-center gap-2">
-                  <span className={`size-1.5 shrink-0 rounded-full ${latest ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
-                  <time className="font-mono text-xs text-muted-foreground uppercase tracking-[0.15em] tabular-nums">
+                  <span
+                    className={`size-1.5 shrink-0 rounded-full ${latest ? "bg-emerald-500" : "bg-muted-foreground/40"}`}
+                  />
+                  <time className="font-mono text-xs tracking-[0.15em] text-muted-foreground uppercase tabular-nums">
                     {fmtDate(e.date)}
                   </time>
                 </div>
                 {latest && (
-                  <span className="mt-2 ml-3.5 inline-flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 font-mono text-[9px] text-background uppercase tracking-[0.2em]">
+                  <span className="mt-2 ml-3.5 inline-flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 font-mono text-[9px] tracking-[0.2em] text-background uppercase">
                     <SparklesIcon className="size-2.5" />
                     Latest
                   </span>
@@ -133,7 +146,7 @@ function Changelog() {
               <div className="mt-4 min-w-0 md:mt-0">
                 {e.tagline && (
                   <div className="mb-7 rounded-xl border border-border/60 bg-gradient-to-br from-emerald-500/10 via-foreground/[0.03] to-indigo-500/10 px-5 py-4">
-                    <div className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.25em]">
+                    <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
                       <SparklesIcon className="size-3" />
                       Highlight
                     </div>
@@ -146,7 +159,7 @@ function Changelog() {
                 {e.groups.map((g, gi) => (
                   <section key={gi} className="mt-7 first:mt-0">
                     {g.tag && (
-                      <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.25em]">
+                      <div className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground uppercase">
                         {LABEL[g.tag] ?? g.tag}
                       </div>
                     )}
@@ -157,13 +170,15 @@ function Changelog() {
                           const feature = splitTitle(it);
                           return feature ? (
                             <div key={ii}>
-                              <h3 className="font-medium text-foreground text-sm">{renderInline(feature.title)}</h3>
-                              <p className="mt-0.5 text-sm text-muted-foreground leading-relaxed">
+                              <h3 className="text-sm font-medium text-foreground">
+                                {renderInline(feature.title)}
+                              </h3>
+                              <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
                                 {renderInline(feature.body)}
                               </p>
                             </div>
                           ) : (
-                            <p key={ii} className="text-sm text-foreground/85 leading-relaxed">
+                            <p key={ii} className="text-sm leading-relaxed text-foreground/85">
                               {renderInline(it)}
                             </p>
                           );
@@ -174,7 +189,10 @@ function Changelog() {
                       // "**Title** —" lead renders inline, like maestri's point releases).
                       <ul className="mt-3 space-y-2">
                         {g.items.map((it, ii) => (
-                          <li key={ii} className="flex gap-2.5 text-sm text-foreground/85 leading-relaxed">
+                          <li
+                            key={ii}
+                            className="flex gap-2.5 text-sm leading-relaxed text-foreground/85"
+                          >
                             <span className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground/50" />
                             <span className="min-w-0">{renderInline(it)}</span>
                           </li>

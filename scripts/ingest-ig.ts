@@ -6,8 +6,14 @@ import { majorityNumeric, loadShortcodes } from "./shortcodes";
 // Daily IG ingest. Separate from the X ingest (scripts/ingest.ts) on purpose: the headful
 // browser path can hang on a dead IG session, so it must never share a process/lock with the
 // reliable X run. Runs under xvfb with IG_PROXY set (see ops/influencer-ingest-ig.service).
-const handles = (process.env.INGEST_HANDLES_IG ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-if (!handles.length) { console.error("INGEST_HANDLES_IG unset"); process.exit(1); }
+const handles = (process.env.INGEST_HANDLES_IG ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+if (!handles.length) {
+  console.error("INGEST_HANDLES_IG unset");
+  process.exit(1);
+}
 
 // Shell out through THIS bun's absolute path, never a bare PATH-dependent `bun`.
 const bun = process.execPath;
@@ -20,15 +26,22 @@ const igRecovery = (h: string) =>
   `ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bash -c 'INGEST_HANDLES_IG=${h} xvfb-run -a bun run scripts/ingest-ig.ts'"`;
 
 if (!notifyConfigured()) {
-  console.error("No notify path configured (set HERMES_BIN or TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) — refusing to run blind");
+  console.error(
+    "No notify path configured (set HERMES_BIN or TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) — refusing to run blind",
+  );
   process.exit(1);
 }
 
 async function counts(h: string) {
   try {
     const rc = JSON.parse(await readFile(`data/creators/${h}/reel-calls.json`, "utf8"));
-    return { total: rc.length, scored: rc.filter((x: any) => x.isExplicitBuy && x.direction === "bullish").length };
-  } catch { return { total: 0, scored: 0 }; }
+    return {
+      total: rc.length,
+      scored: rc.filter((x: any) => x.isExplicitBuy && x.direction === "bullish").length,
+    };
+  } catch {
+    return { total: 0, scored: 0 };
+  }
 }
 
 // Tracks any handle BLOCK / failed publish so the process exits non-zero for the systemd
@@ -40,11 +53,18 @@ for (const h of handles) {
     // Inverse of ingest.ts's looksInstagram: skip an X creator wrongly listed here. Scraping IG
     // for a numeric-shortcode (X) handle would hit instagram.com/<h> and clobber real X data.
     if (majorityNumeric(await loadShortcodes(h))) {
-      await notify(blockedMessage(h, "looks like an X creator (numeric shortcodes) — skipped IG ingest. Remove it from INGEST_HANDLES_IG.", "Edit INGEST_HANDLES_IG in the VM .env to drop this handle."));
+      await notify(
+        blockedMessage(
+          h,
+          "looks like an X creator (numeric shortcodes) — skipped IG ingest. Remove it from INGEST_HANDLES_IG.",
+          "Edit INGEST_HANDLES_IG in the VM .env to drop this handle.",
+        ),
+      );
       continue;
     }
     const before = await counts(h);
-    const name = JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
+    const name =
+      JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
     // Stage-1: scrape(forward) + transcribe + frames + extract (idempotent stages skip done work).
     // run.ts pauses after extract; we resume explicitly below (no human review — ship-then-correct).
     await $`${bun} run pipeline --handle ${h} --name ${name} --forward`;
@@ -73,12 +93,22 @@ if (dirty) {
   if (rebased.exitCode !== 0) {
     await $`git rebase --abort`.nothrow();
     failed = true;
-    await notify(blockedMessage("ingest-ig", `rebase onto origin/main conflicted (aborted); data committed but NOT pushed:\n${rebased.stderr.toString().slice(0, 400)}`));
+    await notify(
+      blockedMessage(
+        "ingest-ig",
+        `rebase onto origin/main conflicted (aborted); data committed but NOT pushed:\n${rebased.stderr.toString().slice(0, 400)}`,
+      ),
+    );
   } else {
     const pushed = await $`git push origin main`.nothrow();
     if (pushed.exitCode !== 0) {
       failed = true;
-      await notify(blockedMessage("ingest-ig", `data committed but push failed:\n${pushed.stderr.toString().slice(0, 400)}`));
+      await notify(
+        blockedMessage(
+          "ingest-ig",
+          `data committed but push failed:\n${pushed.stderr.toString().slice(0, 400)}`,
+        ),
+      );
     }
   }
 } else {

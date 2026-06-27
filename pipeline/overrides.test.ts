@@ -3,26 +3,41 @@ import { applyOverrides, type Override } from "./overrides";
 import type { ReelCall } from "../src/lib/types";
 
 const base: ReelCall = {
-  shortcode: "AAA", postDate: "2026-06-01", ticker: "DUOL", company: "Duolingo",
-  direction: "bullish", isExplicitBuy: true, conviction: 0.9, quote: "q",
-  onScreenPrice: null, summary: "s",
+  shortcode: "AAA",
+  postDate: "2026-06-01",
+  ticker: "DUOL",
+  company: "Duolingo",
+  direction: "bullish",
+  isExplicitBuy: true,
+  conviction: 0.9,
+  quote: "q",
+  onScreenPrice: null,
+  summary: "s",
 };
 
 // targetTicker "" = legacy whole-post override (applies to the sole call in the post).
 const ov = (o: Partial<Override>): Override => ({
-  handle: "h", shortcode: "AAA", targetTicker: "", ticker: null,
-  isExplicitBuy: null, direction: null, reason: "r", ...o,
+  handle: "h",
+  shortcode: "AAA",
+  targetTicker: "",
+  ticker: null,
+  isExplicitBuy: null,
+  direction: null,
+  reason: "r",
+  ...o,
 });
 
 test("a non-null override field replaces the classified value; null fields are left alone", () => {
   const [c] = applyOverrides([base], [ov({ ticker: "AMD", reason: "wrong ticker" })]);
-  expect(c.ticker).toBe("AMD");        // overridden
-  expect(c.isExplicitBuy).toBe(true);  // untouched (null in override)
+  expect(c.ticker).toBe("AMD"); // overridden
+  expect(c.isExplicitBuy).toBe(true); // untouched (null in override)
   expect(c.direction).toBe("bullish"); // untouched
 });
 
 test("override can flip isExplicitBuy off (the maintainable replacement for owner-DELETE)", () => {
-  expect(applyOverrides([base], [ov({ isExplicitBuy: false, reason: "not a buy" })])[0].isExplicitBuy).toBe(false);
+  expect(
+    applyOverrides([base], [ov({ isExplicitBuy: false, reason: "not a buy" })])[0].isExplicitBuy,
+  ).toBe(false);
 });
 
 test("calls with no override are returned unchanged; matching is by shortcode", () => {
@@ -50,9 +65,12 @@ test("targetTicker matches by canonical symbol (BTC targets a BTCUSD-classified 
 
 test("a ticker-specific override wins over a legacy whole-post one", () => {
   const amd: ReelCall = { ...base, ticker: "AMD" };
-  const out = applyOverrides([amd], [
-    ov({ targetTicker: "", direction: "bearish" }),       // legacy whole-post
-    ov({ targetTicker: "AMD", direction: "neutral" }),    // specific
-  ]);
+  const out = applyOverrides(
+    [amd],
+    [
+      ov({ targetTicker: "", direction: "bearish" }), // legacy whole-post
+      ov({ targetTicker: "AMD", direction: "neutral" }), // specific
+    ],
+  );
   expect(out[0].direction).toBe("neutral");
 });

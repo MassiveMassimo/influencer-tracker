@@ -32,15 +32,24 @@ export async function readImage(
   const b64 = (await readFile(imgPath)).toString("base64");
   const body = {
     model: vision,
-    messages: [{ role: "user", content: [
-      { type: "text", text: PROMPT },
-      { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } },
-    ] }],
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: PROMPT },
+          { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } },
+        ],
+      },
+    ],
     temperature: 0,
   };
-  const r = await (await client("/chat/completions", {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-  })).json() as { choices: { message: { content: string } }[] };
+  const r = (await (
+    await client("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+  ).json()) as { choices: { message: { content: string } }[] };
   return parseHint(r.choices[0].message.content);
 }
 

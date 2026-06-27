@@ -12,13 +12,24 @@ import { summarizeTicker } from "../lib/call-filter";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
 import { TextSwap, useTextSwap } from "#/components/text-swap.tsx";
 import type { HalalInfo } from "#/lib/halal/types.ts";
-import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
+import {
+  PreviewCard,
+  PreviewCardTrigger,
+  PreviewCardPopup,
+} from "#/components/ui/preview-card.tsx";
 import { TocMinimap } from "#/components/toc-minimap.tsx";
 import { usePreferences } from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import type { Call } from "#/lib/types.ts";
 import type { ChartMarker } from "#/components/charts/markers/index.ts";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "#/components/ui/table.tsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "#/components/ui/table.tsx";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { AreaChartLoading } from "#/components/charts/area-chart-loading.tsx";
 import { CandlestickChartLoading } from "#/components/charts/candlestick-chart-loading.tsx";
@@ -39,14 +50,14 @@ import type { SwitcherCreator } from "#/lib/ticker-switcher.ts";
 // Shared importer so React.lazy and useChunkReady ride the same cached chunk
 // load — the skeleton holds until the chart chunk is in, then crossfades.
 const importTickerCharts = () => import("#/components/charts/ticker-charts.tsx");
-const PriceCandles = lazy(() =>
-  importTickerCharts().then((m) => ({ default: m.PriceCandles })),
-);
+const PriceCandles = lazy(() => importTickerCharts().then((m) => ({ default: m.PriceCandles })));
 const StockVsSpyLine = lazy(() =>
   importTickerCharts().then((m) => ({ default: m.StockVsSpyLine })),
 );
 
-function pct(x: number | null) { return x == null ? "—" : `${(x * 100).toFixed(1)}%`; }
+function pct(x: number | null) {
+  return x == null ? "—" : `${(x * 100).toFixed(1)}%`;
+}
 function priceFmt(x: number | null) {
   if (x == null) return "—";
   const d = x >= 1 ? 2 : 4;
@@ -90,7 +101,10 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
     const hits = calls
       .filter((r) => r.ticker.toUpperCase() === symbol)
       .map((r) => ({ handle: r.handle, postDate: r.postDate, isFirstCall: r.isFirstCall }));
-    const firstDate = hits.reduce((m, h) => (h.postDate < m ? h.postDate : m), hits[0]?.postDate ?? new Date().toISOString().slice(0, 10));
+    const firstDate = hits.reduce(
+      (m, h) => (h.postDate < m ? h.postDate : m),
+      hits[0]?.postDate ?? new Date().toISOString().slice(0, 10),
+    );
 
     // Names + avatars for the creators who called this symbol only.
     const shown = new Set(summary.byCreator.map((b) => b.handle));
@@ -114,7 +128,10 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
     // run it in the same Promise.all instead of serially ahead of them.
     const datasetPromise = creatorHandle
       ? fetchDataset(creatorHandle).catch((err) => {
-          console.warn(`[ticker loader] dataset fetch failed for ${creatorHandle}, degrading to All:`, (err as Error)?.message ?? err);
+          console.warn(
+            `[ticker loader] dataset fetch failed for ${creatorHandle}, degrading to All:`,
+            (err as Error)?.message ?? err,
+          );
           return null;
         })
       : Promise.resolve(null);
@@ -122,7 +139,10 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
     const [ds, , bakedOhlc, bakedSpy] = await Promise.all([
       datasetPromise,
       context.queryClient.ensureQueryData(chartQuery(symbol, "1Y", firstDate)).catch((err) => {
-        console.warn("[ticker loader] live-Yahoo prefetch failed, using baked fallback:", (err as Error)?.message ?? err);
+        console.warn(
+          "[ticker loader] live-Yahoo prefetch failed, using baked fallback:",
+          (err as Error)?.message ?? err,
+        );
         return undefined;
       }),
       fetchPrices(symbol),
@@ -148,15 +168,29 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
     // uses the per-creator ticker card; the cross-creator "all" view uses the symbol-keyed
     // card (rev hashes the aggregates it shows + last close, so data changes bust the CDN).
     const ogImg = creatorHandle
-      ? siteUrl(`/api/og/t/${creatorHandle}/${symbol}/${ogRev([creatorCalls[0]?.returns?.["3m"]?.excess ?? null, bakedOhlc.length, Math.round(bakedOhlc.at(-1)?.c ?? 0)])}`)
-      : siteUrl(`/api/og/t/${symbol}/${ogRev([summary.creatorCount, summary.callCount, summary.avgEx3m, Math.round(bakedOhlc.at(-1)?.c ?? 0)])}`);
+      ? siteUrl(
+          `/api/og/t/${creatorHandle}/${symbol}/${ogRev([creatorCalls[0]?.returns?.["3m"]?.excess ?? null, bakedOhlc.length, Math.round(bakedOhlc.at(-1)?.c ?? 0)])}`,
+        )
+      : siteUrl(
+          `/api/og/t/${symbol}/${ogRev([summary.creatorCount, summary.callCount, summary.avgEx3m, Math.round(bakedOhlc.at(-1)?.c ?? 0)])}`,
+        );
     const ogTitle = creatorHandle
       ? `${symbol} — ${names[creatorHandle] ?? creatorHandle} · Signal Tracker`
       : `${symbol} — who called it · Signal Tracker`;
 
     return {
-      symbol, company: summary.company, summary, names, avatars, hits,
-      creatorHandle, creatorCalls, siblings, firstDate, bakedOhlc, bakedSpy,
+      symbol,
+      company: summary.company,
+      summary,
+      names,
+      avatars,
+      hits,
+      creatorHandle,
+      creatorCalls,
+      siblings,
+      firstDate,
+      bakedOhlc,
+      bakedSpy,
       og: { img: ogImg, title: ogTitle },
     };
   },
@@ -176,8 +210,16 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
   component: TickerPage,
 });
 
-function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
-  lastClose: number | null; tfChange: number | null; tfDelta: number | null; usingFallback: boolean;
+function PriceReadout({
+  lastClose,
+  tfChange,
+  tfDelta,
+  usingFallback,
+}: {
+  lastClose: number | null;
+  tfChange: number | null;
+  tfDelta: number | null;
+  usingFallback: boolean;
 }) {
   const ready = useNumberFlowReady();
   // Touch devices render the plain static text instead of NumberFlow — no enter
@@ -195,26 +237,59 @@ function PriceReadout({ lastClose, tfChange, tfDelta, usingFallback }: {
     return () => cancelAnimationFrame(id);
   }, [useNumber]);
   if (lastClose == null) return null;
-  const priceFormat: Format = { style: "currency", currency: "USD", minimumFractionDigits: lastClose >= 1 ? 2 : 4, maximumFractionDigits: lastClose >= 1 ? 2 : 4 };
-  const deltaFormat: Format = { style: "currency", currency: "USD", signDisplay: "exceptZero", minimumFractionDigits: lastClose >= 1 ? 2 : 4, maximumFractionDigits: lastClose >= 1 ? 2 : 4 };
-  const changeFormat: Format = { style: "percent", signDisplay: "exceptZero", minimumFractionDigits: 1, maximumFractionDigits: 1 };
+  const priceFormat: Format = {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: lastClose >= 1 ? 2 : 4,
+    maximumFractionDigits: lastClose >= 1 ? 2 : 4,
+  };
+  const deltaFormat: Format = {
+    style: "currency",
+    currency: "USD",
+    signDisplay: "exceptZero",
+    minimumFractionDigits: lastClose >= 1 ? 2 : 4,
+    maximumFractionDigits: lastClose >= 1 ? 2 : 4,
+  };
+  const changeFormat: Format = {
+    style: "percent",
+    signDisplay: "exceptZero",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  };
   return (
     <div className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
       <NumberFlowGroup>
         <span className="font-heading text-2xl tabular-nums">
-          {useNumber ? <NumberFlow format={priceFormat} value={revealed ? lastClose : 0} willChange /> : priceFmt(lastClose)}
+          {useNumber ? (
+            <NumberFlow format={priceFormat} value={revealed ? lastClose : 0} willChange />
+          ) : (
+            priceFmt(lastClose)
+          )}
         </span>
         {/* transition-colors: the tone flips rose<->emerald on a zero-cross while
             NumberFlow glyphs are mid-spin on their own will-change layers; an
             instant color swap leaves random glyphs holding a stale (old-tone)
             paint. Animating color repaints the whole subtree each frame. */}
         <span className={`font-mono text-sm tabular-nums transition-colors ${toneClass(tfChange)}`}>
-          {tfChange == null || tfDelta == null ? "—" : useNumber ? (
-            <><NumberFlow format={deltaFormat} value={revealed ? tfDelta : 0} willChange />{" ("}<NumberFlow format={changeFormat} value={revealed ? tfChange : 0} willChange />{")"}</>
-          ) : `${signedCurrency(tfDelta)} (${signed(tfChange)})`}
+          {tfChange == null || tfDelta == null ? (
+            "—"
+          ) : useNumber ? (
+            <>
+              <NumberFlow format={deltaFormat} value={revealed ? tfDelta : 0} willChange />
+              {" ("}
+              <NumberFlow format={changeFormat} value={revealed ? tfChange : 0} willChange />
+              {")"}
+            </>
+          ) : (
+            `${signedCurrency(tfDelta)} (${signed(tfChange)})`
+          )}
         </span>
       </NumberFlowGroup>
-      {usingFallback ? <span className="font-mono text-[10px] text-amber-600 uppercase tracking-[0.3em] dark:text-amber-400">· cached daily data</span> : null}
+      {usingFallback ? (
+        <span className="font-mono text-[10px] tracking-[0.3em] text-amber-600 uppercase dark:text-amber-400">
+          · cached daily data
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -263,8 +338,13 @@ function TickerScope({ creatorHandle }: { creatorHandle: string | null }) {
           params={{ handle: display }}
           className="group flex min-w-0 items-center gap-1 no-underline hover:text-foreground"
         >
-          <span className="min-w-0 truncate group-hover:underline group-hover:underline-offset-2">@{display}</span>
-          <span className="icon-[lucide--external-link] shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+          <span className="min-w-0 truncate group-hover:underline group-hover:underline-offset-2">
+            @{display}
+          </span>
+          <span
+            className="icon-[lucide--external-link] shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+            aria-hidden
+          />
         </Link>
       )}
     </span>
@@ -273,7 +353,19 @@ function TickerScope({ creatorHandle }: { creatorHandle: string | null }) {
 
 function TickerPage() {
   const data = Route.useLoaderData();
-  const { symbol, summary, names, avatars, hits, creatorHandle, creatorCalls, siblings, firstDate, bakedOhlc, bakedSpy } = data;
+  const {
+    symbol,
+    summary,
+    names,
+    avatars,
+    hits,
+    creatorHandle,
+    creatorCalls,
+    siblings,
+    firstDate,
+    bakedOhlc,
+    bakedSpy,
+  } = data;
   const getHalal = useHalalStatus([symbol]);
   const halal = getHalal(symbol);
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
@@ -289,7 +381,10 @@ function TickerPage() {
 
   const buildView = (live: typeof query.data | null) =>
     buildChartView({ timeframe, live: live ?? null, bakedOhlc, bakedSpy });
-  const liveNow = query.data != null && !query.isPlaceholderData && query.data.ohlc.length > 0 ? query.data : null;
+  const liveNow =
+    query.data != null && !query.isPlaceholderData && query.data.ohlc.length > 0
+      ? query.data
+      : null;
   const [view, setView] = useState(() => buildView(liveNow));
 
   useEffect(() => {
@@ -298,9 +393,13 @@ function TickerPage() {
     setView(buildView(live));
   }, [query.isPending, query.isPlaceholderData, query.data, timeframe, bakedOhlc, bakedSpy]);
 
-  useEffect(() => { setHoverClose(null); }, [view.timeframe]);
+  useEffect(() => {
+    setHoverClose(null);
+  }, [view.timeframe]);
 
-  const prefetchTimeframe = (tf: Timeframe) => { queryClient.prefetchQuery(chartQuery(symbol, tf, firstDate)); };
+  const prefetchTimeframe = (tf: Timeframe) => {
+    queryClient.prefetchQuery(chartQuery(symbol, tf, firstDate));
+  };
 
   const usingFallback = view.usingFallback;
   const ohlc: LiveBar[] = view.ohlc;
@@ -321,34 +420,50 @@ function TickerPage() {
   // out-of-window calls don't bleed off the axis.
   const callMarkers: ChartMarker[] = useMemo(() => {
     if (creatorHandle) {
-      return creatorCalls.filter((c) => inWindow(c.postDate)).map((c) => ({
-        date: new Date(c.postDate),
-        icon: "▲",
-        title: `${symbol} · ${c.postDate}`,
-        description: `${c.returns.toDate.excess != null ? signed(c.returns.toDate.excess) + " vs SPY · " : ""}${c.quote}`,
-        onClick: () => { select(); setSelectedCall(c); },
-      }));
+      return creatorCalls
+        .filter((c) => inWindow(c.postDate))
+        .map((c) => ({
+          date: new Date(c.postDate),
+          icon: "▲",
+          title: `${symbol} · ${c.postDate}`,
+          description: `${c.returns.toDate.excess != null ? signed(c.returns.toDate.excess) + " vs SPY · " : ""}${c.quote}`,
+          onClick: () => {
+            select();
+            setSelectedCall(c);
+          },
+        }));
     }
-    return hits.filter((h) => inWindow(h.postDate)).map((h) => ({
-      date: new Date(h.postDate),
-      icon: avatars[h.handle] ? (
-        <img
-          src={avatars[h.handle]!}
-          alt=""
-          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-        />
-      ) : "▲",
-      title: `${names[h.handle] ?? h.handle} · ${h.postDate}`,
-      description: "",
-    }));
+    return hits
+      .filter((h) => inWindow(h.postDate))
+      .map((h) => ({
+        date: new Date(h.postDate),
+        icon: avatars[h.handle] ? (
+          <img
+            src={avatars[h.handle]!}
+            alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+          />
+        ) : (
+          "▲"
+        ),
+        title: `${names[h.handle] ?? h.handle} · ${h.postDate}`,
+        description: "",
+      }));
   }, [creatorHandle, creatorCalls, hits, names, avatars, symbol, select, winStart, winEnd]);
 
-  const candles = useMemo(() => ohlc.map((b) => ({ date: new Date(b.date), open: b.o, high: b.h, low: b.l, close: b.c })), [ohlc]);
+  const candles = useMemo(
+    () => ohlc.map((b) => ({ date: new Date(b.date), open: b.o, high: b.h, low: b.l, close: b.c })),
+    [ohlc],
+  );
   const norm = useMemo(() => {
     const base = ohlc[0]?.c ?? 1;
     const spyBase = spy[0]?.c ?? 1;
     const spyByDate = new Map(spy.map((b) => [b.date, b.c]));
-    return ohlc.map((b) => ({ date: new Date(b.date), stock: (b.c / base) * 100, spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null }));
+    return ohlc.map((b) => ({
+      date: new Date(b.date),
+      stock: (b.c / base) * 100,
+      spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
+    }));
   }, [ohlc, spy]);
 
   // Hold the skeleton until both the data and the lazy chart chunk are in, so
@@ -362,8 +477,11 @@ function TickerPage() {
 
   // Switcher + timeline data from the cross-creator summary.
   const switcherCreators: SwitcherCreator[] = summary.byCreator.map((b) => ({
-    handle: b.handle, name: names[b.handle] ?? b.handle, avatar: avatars[b.handle] ?? null,
-    lastCallDate: b.lastCallDate, callCount: b.callCount,
+    handle: b.handle,
+    name: names[b.handle] ?? b.handle,
+    avatar: avatars[b.handle] ?? null,
+    lastCallDate: b.lastCallDate,
+    callCount: b.callCount,
   }));
   const today = new Date().toISOString().slice(0, 10);
 
@@ -371,10 +489,19 @@ function TickerPage() {
   // markers come from (creator-scoped or all), filtered to the visible window.
   // Reacts to both the creator tab and the timeframe, and stays in lockstep with
   // the rendered markers (label === markers shown).
-  const shownCallCount = (creatorHandle ? creatorCalls : hits).filter((c) => inWindow(c.postDate)).length;
-  const callsLabel = numberFlowReady && !isTouch ? (
-    <NumberFlow value={shownCallCount} suffix={shownCallCount === 1 ? " call" : " calls"} willChange />
-  ) : `${shownCallCount} ${shownCallCount === 1 ? "call" : "calls"}`;
+  const shownCallCount = (creatorHandle ? creatorCalls : hits).filter((c) =>
+    inWindow(c.postDate),
+  ).length;
+  const callsLabel =
+    numberFlowReady && !isTouch ? (
+      <NumberFlow
+        value={shownCallCount}
+        suffix={shownCallCount === 1 ? " call" : " calls"}
+        willChange
+      />
+    ) : (
+      `${shownCallCount} ${shownCallCount === 1 ? "call" : "calls"}`
+    );
 
   return (
     <main className="space-y-6 py-8 md:py-10">
@@ -390,7 +517,7 @@ function TickerPage() {
       <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
         <div className="t-ticker-pad mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
           <div className="max-sm:min-w-0">
-            <div className="t-ticker-label font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em] max-sm:truncate">
+            <div className="t-ticker-label font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase max-sm:truncate">
               <TickerScope creatorHandle={creatorHandle} />
             </div>
             <StockHeading symbol={symbol} company={data.company} halal={halal} />
@@ -400,133 +527,220 @@ function TickerPage() {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
-
-      <section id="price" className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex w-full flex-col items-start gap-1 sm:w-auto">
-            <div className="flex w-full items-start justify-between gap-3 sm:w-auto sm:justify-start">
-              <PriceReadout lastClose={head.close} tfChange={head.change} tfDelta={head.delta} usingFallback={usingFallback} />
-              <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em] sm:hidden">{callsLabel}</span>
+        <section
+          id="price"
+          className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6"
+        >
+          <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex w-full flex-col items-start gap-1 sm:w-auto">
+              <div className="flex w-full items-start justify-between gap-3 sm:w-auto sm:justify-start">
+                <PriceReadout
+                  lastClose={head.close}
+                  tfChange={head.change}
+                  tfDelta={head.delta}
+                  usingFallback={usingFallback}
+                />
+                <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase sm:hidden">
+                  {callsLabel}
+                </span>
+              </div>
+              <span className="hidden font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase sm:block">
+                {callsLabel}
+              </span>
             </div>
-            <span className="hidden font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em] sm:block">{callsLabel}</span>
+            <TimeframeTabs
+              value={timeframe}
+              onChange={(tf) => {
+                impact();
+                setTimeframe(tf);
+              }}
+              onPrefetch={prefetchTimeframe}
+            />
           </div>
-          <TimeframeTabs value={timeframe} onChange={(tf) => { impact(); setTimeframe(tf); }} onPrefetch={prefetchTimeframe} />
-        </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<CandleSkeleton />} className="h-[320px] max-sm:-mx-6">
-          {candles.length === 0 ? (
-            <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
-          ) : (
-            <ChartBoundary>
-              {/* ChartHandoff's overlay skeleton (gated on the same chunk via
+          <ChartHandoff
+            loading={showSkeleton}
+            skeleton={<CandleSkeleton />}
+            className="h-[320px] max-sm:-mx-6"
+          >
+            {candles.length === 0 ? (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground"
+              >
+                No price data for this symbol.
+              </div>
+            ) : (
+              <ChartBoundary>
+                {/* ChartHandoff's overlay skeleton (gated on the same chunk via
                   useChunkReady) is the single loading UI — null here avoids a
                   redundant second skeleton beneath it. */}
-              <Suspense fallback={null}>
-                <PriceCandles candles={candles} markers={callMarkers} timeframe={view.timeframe} onHoverClose={setHoverClose} iconFill={!creatorHandle} />
-              </Suspense>
-            </ChartBoundary>
-          )}
-        </ChartHandoff>
-      </section>
+                <Suspense fallback={null}>
+                  <PriceCandles
+                    candles={candles}
+                    markers={callMarkers}
+                    timeframe={view.timeframe}
+                    onHoverClose={setHoverClose}
+                    iconFill={!creatorHandle}
+                  />
+                </Suspense>
+              </ChartBoundary>
+            )}
+          </ChartHandoff>
+        </section>
 
-      <section id="vs-spy" className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="mb-4 flex items-start justify-between gap-2 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-          <span>Stock vs SPY · rebased to 100 · markers are call dates</span>
-          <PreviewCard>
-            <PreviewCardTrigger
-              render={
-                <button
-                  type="button"
-                  aria-label="How to read this chart"
-                  className="inline-flex size-3.5 shrink-0 cursor-default items-center justify-center rounded-full text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-                />
-              }
-            >
-              <span className="icon-[lucide--circle-help] size-3.5" aria-hidden />
-            </PreviewCardTrigger>
-            <PreviewCardPopup className="flex-col w-72 normal-case tracking-normal">
-              <div className="font-heading text-sm text-foreground">How to read this</div>
-              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                Both lines start at 100 on the left edge — imagine $100 invested in the stock and $100 in
-                SPY at the start of the window. Each line tracks how that $100 grows. When the stock line
-                sits above SPY, the stock beat the market over the window.
-              </p>
-              <p className="mt-2 border-t border-border/50 pt-2 text-[11px] leading-relaxed text-muted-foreground/80">
-                Rebased per timeframe: switching the timeframe resets both to 100 at the new window's
-                start. Markers are the creator's call dates.
-              </p>
-            </PreviewCardPopup>
-          </PreviewCard>
-        </div>
-        <ChartHandoff loading={showSkeleton} skeleton={<ChartSkeleton />} className="h-[320px] max-sm:-mx-6">
-          {norm.length === 0 ? (
-            <div role="status" aria-live="polite" className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground">No price data for this symbol.</div>
-          ) : (
-            <ChartBoundary>
-              {/* See note above: overlay skeleton is the single loading UI. */}
-              <Suspense fallback={null}>
-                <StockVsSpyLine norm={norm} markers={callMarkers} timeframe={view.timeframe} iconFill={!creatorHandle} />
-              </Suspense>
-            </ChartBoundary>
-          )}
-        </ChartHandoff>
-      </section>
+        <section
+          id="vs-spy"
+          className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6"
+        >
+          <div className="mb-4 flex items-start justify-between gap-2 font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+            <span>Stock vs SPY · rebased to 100 · markers are call dates</span>
+            <PreviewCard>
+              <PreviewCardTrigger
+                render={
+                  <button
+                    type="button"
+                    aria-label="How to read this chart"
+                    className="inline-flex size-3.5 shrink-0 cursor-default items-center justify-center rounded-full text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+                  />
+                }
+              >
+                <span className="icon-[lucide--circle-help] size-3.5" aria-hidden />
+              </PreviewCardTrigger>
+              <PreviewCardPopup className="w-72 flex-col tracking-normal normal-case">
+                <div className="font-heading text-sm text-foreground">How to read this</div>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                  Both lines start at 100 on the left edge — imagine $100 invested in the stock and
+                  $100 in SPY at the start of the window. Each line tracks how that $100 grows. When
+                  the stock line sits above SPY, the stock beat the market over the window.
+                </p>
+                <p className="mt-2 border-t border-border/50 pt-2 text-[11px] leading-relaxed text-muted-foreground/80">
+                  Rebased per timeframe: switching the timeframe resets both to 100 at the new
+                  window's start. Markers are the creator's call dates.
+                </p>
+              </PreviewCardPopup>
+            </PreviewCard>
+          </div>
+          <ChartHandoff
+            loading={showSkeleton}
+            skeleton={<ChartSkeleton />}
+            className="h-[320px] max-sm:-mx-6"
+          >
+            {norm.length === 0 ? (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex h-[320px] w-full items-center justify-center rounded-xl bg-muted/20 text-sm text-muted-foreground"
+              >
+                No price data for this symbol.
+              </div>
+            ) : (
+              <ChartBoundary>
+                {/* See note above: overlay skeleton is the single loading UI. */}
+                <Suspense fallback={null}>
+                  <StockVsSpyLine
+                    norm={norm}
+                    markers={callMarkers}
+                    timeframe={view.timeframe}
+                    iconFill={!creatorHandle}
+                  />
+                </Suspense>
+              </ChartBoundary>
+            )}
+          </ChartHandoff>
+        </section>
 
-      {/* Stock-page halal surface: panel self-gates on the preference and renders
+        {/* Stock-page halal surface: panel self-gates on the preference and renders
          a muted "Not rated" entry for unknown symbols. Wrapper id only when the
          preference is on (panel renders) so the TOC anchor never dangles and the
          space-y gap doesn't double on an empty div. */}
-      {showHalalStatus && (
-        <div id="halal">
-          <HalalPanel info={halal} symbol={symbol} />
+        {showHalalStatus && (
+          <div id="halal">
+            <HalalPanel info={halal} symbol={symbol} />
+          </div>
+        )}
+
+        {/* Who called it & when. */}
+        <div id="calls">
+          <CompareTable
+            rows={summary.byCreator}
+            names={names}
+            avatars={avatars}
+            hits={hits}
+            symbol={symbol}
+            creatorHandle={creatorHandle}
+            rangeStart={firstDate}
+            rangeEnd={today}
+          />
         </div>
-      )}
 
-      {/* Who called it & when. */}
-      <div id="calls">
-        <CompareTable
-          rows={summary.byCreator}
-          names={names}
-          avatars={avatars}
-          hits={hits}
-          symbol={symbol}
-          creatorHandle={creatorHandle}
-          rangeStart={firstDate}
-          rangeEnd={today}
-        />
-      </div>
-
-      {/* Detail table only when a specific creator is selected. */}
-      {creatorHandle && (
-        <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-          <div className="border-border/40 border-b px-5 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">{names[creatorHandle] ?? creatorHandle} · forward return vs SPY · tap a row for proof</div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">1w</TableHead>
-                <TableHead className="text-right">1m</TableHead>
-                <TableHead className="text-right">3m</TableHead>
-                <TableHead className="text-right">To date</TableHead>
-                <TableHead>Quote</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {creatorCalls.map((c) => (
-                <TableRow key={c.shortcode} onClick={() => { select(); setSelectedCall(c); }} className="cursor-pointer">
-                  <TableCell className="font-mono tabular-nums">{c.postDate}{c.isFirstCall ? " ★" : ""}</TableCell>
-                  <TableCell className={`text-right tabular-nums ${toneClass(c.returns["1w"].excess)}`}>{pct(c.returns["1w"].excess)}</TableCell>
-                  <TableCell className={`text-right tabular-nums ${toneClass(c.returns["1m"].excess)}`}>{pct(c.returns["1m"].excess)}</TableCell>
-                  <TableCell className={`text-right tabular-nums ${toneClass(c.returns["3m"].excess)}`}>{pct(c.returns["3m"].excess)}</TableCell>
-                  <TableCell className={`text-right tabular-nums ${toneClass(c.returns["toDate"].excess)}`}>{pct(c.returns["toDate"].excess)}</TableCell>
-                  <TableCell className="max-w-xs truncate text-muted-foreground">{c.quote}</TableCell>
+        {/* Detail table only when a specific creator is selected. */}
+        {creatorHandle && (
+          <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+            <div className="border-b border-border/40 px-5 py-3 font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+              {names[creatorHandle] ?? creatorHandle} · forward return vs SPY · tap a row for proof
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">1w</TableHead>
+                  <TableHead className="text-right">1m</TableHead>
+                  <TableHead className="text-right">3m</TableHead>
+                  <TableHead className="text-right">To date</TableHead>
+                  <TableHead>Quote</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </section>
-      )}
+              </TableHeader>
+              <TableBody>
+                {creatorCalls.map((c) => (
+                  <TableRow
+                    key={c.shortcode}
+                    onClick={() => {
+                      select();
+                      setSelectedCall(c);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <TableCell className="font-mono tabular-nums">
+                      {c.postDate}
+                      {c.isFirstCall ? " ★" : ""}
+                    </TableCell>
+                    <TableCell
+                      className={`text-right tabular-nums ${toneClass(c.returns["1w"].excess)}`}
+                    >
+                      {pct(c.returns["1w"].excess)}
+                    </TableCell>
+                    <TableCell
+                      className={`text-right tabular-nums ${toneClass(c.returns["1m"].excess)}`}
+                    >
+                      {pct(c.returns["1m"].excess)}
+                    </TableCell>
+                    <TableCell
+                      className={`text-right tabular-nums ${toneClass(c.returns["3m"].excess)}`}
+                    >
+                      {pct(c.returns["3m"].excess)}
+                    </TableCell>
+                    <TableCell
+                      className={`text-right tabular-nums ${toneClass(c.returns["toDate"].excess)}`}
+                    >
+                      {pct(c.returns["toDate"].excess)}
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate text-muted-foreground">
+                      {c.quote}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </section>
+        )}
 
-      <ProofViewer call={selectedCall} handle={creatorHandle ?? ""} siblings={siblings} onClose={() => setSelectedCall(null)} />
+        <ProofViewer
+          call={selectedCall}
+          handle={creatorHandle ?? ""}
+          siblings={siblings}
+          onClose={() => setSelectedCall(null)}
+        />
       </div>
     </main>
   );

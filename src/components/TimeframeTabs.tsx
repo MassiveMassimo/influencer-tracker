@@ -19,7 +19,8 @@ export function TimeframeTabs({
   // Position the pill under the active tab. On mount/resize, snap without transition.
   // Uses getBoundingClientRect for subpixel precision (offsetLeft rounds to integers).
   const positionPill = (animate: boolean) => {
-    const list = listRef.current, pill = pillRef.current;
+    const list = listRef.current,
+      pill = pillRef.current;
     if (!list || !pill) return;
     const active = list.querySelector<HTMLButtonElement>('[aria-selected="true"]');
     if (!active) return;

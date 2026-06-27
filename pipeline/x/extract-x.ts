@@ -38,7 +38,11 @@ export function tweetDate(createdAt: string): string {
 }
 
 // A tweet can name multiple stocks → zero or more ReelCalls (one per ticker).
-export async function tweetToReelCalls(t: TweetRecord, handle: string, deps: ExtractDeps): Promise<ReelCall[]> {
+export async function tweetToReelCalls(
+  t: TweetRecord,
+  handle: string,
+  deps: ExtractDeps,
+): Promise<ReelCall[]> {
   const dir = join(rawDir(handle), t.id);
   let hints: FrameHint[] = [];
   if (existsSync(dir)) {
@@ -59,7 +63,9 @@ export async function extractX(handle: string) {
     classifyFn: (m, b) => classify(m, b, fireworks),
     readImageFn: (m, p) => readImageCached(m, p, fireworks),
   };
-  const tweets: TweetRecord[] = JSON.parse(await readFile(join(rawDir(handle), "tweets.json"), "utf8"));
+  const tweets: TweetRecord[] = JSON.parse(
+    await readFile(join(rawDir(handle), "tweets.json"), "utf8"),
+  );
 
   // Resume: skip tweets already processed (call or not), keep prior calls.
   const donePath = join(rawDir(handle), "extract-done.json");
@@ -71,7 +77,10 @@ export async function extractX(handle: string) {
     : [];
   const out: ReelCall[] = dedupeCalls(loaded);
   const seenCalls = new Set(out.map(callKey));
-  if (done.size) console.log(`resuming: ${done.size} done, ${tweets.length - done.size} pending, ${out.length} calls so far`);
+  if (done.size)
+    console.log(
+      `resuming: ${done.size} done, ${tweets.length - done.size} pending, ${out.length} calls so far`,
+    );
 
   // Continuous worker pool. Fireworks isn't request-capped (adaptive per-model TPM
   // limits, and fireworks() backs off on 429/503), so keep CONCURRENCY tweets in
@@ -85,8 +94,8 @@ export async function extractX(handle: string) {
   let writeChain: Promise<void> = Promise.resolve();
   const persist = () => {
     writeChain = writeChain.then(async () => {
-      await writeCalls(handle, out);                                // durable results
-      await writeFile(donePath, JSON.stringify([...done]));         // durable progress
+      await writeCalls(handle, out); // durable results
+      await writeFile(donePath, JSON.stringify([...done])); // durable progress
     });
     return writeChain;
   };
@@ -106,14 +115,15 @@ export async function extractX(handle: string) {
         const t = pending[next++];
         try {
           const rcs = await tweetToReelCalls(t, handle, deps);
-          for (const rc of rcs) {                                   // one tweet → 0+ ticker calls
+          for (const rc of rcs) {
+            // one tweet → 0+ ticker calls
             if (seenCalls.has(callKey(rc))) continue;
             seenCalls.add(callKey(rc));
             out.push(rc);
           }
-          done.add(t.id);                                           // mark done only on success
+          done.add(t.id); // mark done only on success
         } catch (e) {
-          console.warn(`skip ${t.id}: ${(e as Error).message}`);   // left un-done; retried next pass
+          console.warn(`skip ${t.id}: ${(e as Error).message}`); // left un-done; retried next pass
         }
         if (++completed % 20 === 0) {
           await persist();
@@ -124,7 +134,8 @@ export async function extractX(handle: string) {
 
     await Promise.all(Array.from({ length: Math.min(CONCURRENCY, pending.length) }, worker));
     await persist();
-    if (done.size === before) {                                    // a pass that helped nobody
+    if (done.size === before) {
+      // a pass that helped nobody
       console.warn(`no progress on ${pending.length} tweets; giving up`);
       break;
     }

@@ -84,7 +84,7 @@ function computeGeometries(
   negativeFill: string,
   bodyPatternPositive: string | undefined,
   bodyPatternNegative: string | undefined,
-  insideStrokeWidth: number
+  insideStrokeWidth: number,
 ): CandleGeometry[] {
   return renderData.map((d) => {
     const date = xAccessor(d);
@@ -131,7 +131,7 @@ function geometryDimOpacity(
   geometry: CandleGeometry,
   fadedOpacity: number,
   legendHoveredIndex: number | null,
-  hoveredTime: number | null
+  hoveredTime: number | null,
 ): number {
   if (legendHoveredIndex !== null) {
     const dimFromLegend =
@@ -149,11 +149,7 @@ function geometryDimOpacity(
 // which wants the highlighted candle to track the crosshair instantly, not tween.
 // Shares its exact shape set (wick + body + optional pattern + inside stroke) with
 // the morphing MorphCandleBody below — keep the two in sync if either changes.
-const CandlestickBody = memo(function CandlestickBody({
-  geometry,
-}: {
-  geometry: CandleGeometry;
-}) {
+const CandlestickBody = memo(function CandlestickBody({ geometry }: { geometry: CandleGeometry }) {
   const {
     wickLeft,
     wickTop,
@@ -170,13 +166,7 @@ const CandlestickBody = memo(function CandlestickBody({
 
   return (
     <>
-      <rect
-        fill={wickFill}
-        height={wickHeight}
-        width={WICK_WIDTH}
-        x={wickLeft}
-        y={wickTop}
-      />
+      <rect fill={wickFill} height={wickHeight} width={WICK_WIDTH} x={wickLeft} y={wickTop} />
       <rect
         fill={bodySolidFill}
         height={bodyHeight}
@@ -323,12 +313,7 @@ const CandlestickBodies = memo(function CandlestickBodies({
         <g
           // biome-ignore lint/suspicious/noArrayIndexKey: chronological, no reorder
           key={index}
-          opacity={geometryDimOpacity(
-            geometry,
-            fadedOpacity,
-            legendHoveredIndex,
-            hoveredTime
-          )}
+          opacity={geometryDimOpacity(geometry, fadedOpacity, legendHoveredIndex, hoveredTime)}
           style={{ transition: "opacity 0.15s ease-in-out" }}
         >
           <MorphCandleBody geometry={geometry} transition={morphTransition} />
@@ -345,12 +330,7 @@ interface AnimatedCandleProps {
   revealEpoch: number;
 }
 
-function AnimatedCandle({
-  geometry,
-  delay,
-  enterTransition,
-  revealEpoch,
-}: AnimatedCandleProps) {
+function AnimatedCandle({ geometry, delay, enterTransition, revealEpoch }: AnimatedCandleProps) {
   const t = transitionWithDelay(enterTransition, delay);
   const bodyOrigin = `${geometry.centerX}px ${geometry.bodyTop + geometry.bodyHeight / 2}px`;
   const wickCenterY = geometry.wickTop + geometry.wickHeight / 2;
@@ -455,7 +435,7 @@ export function Candlestick({
         negativeFill,
         bodyPatternPositive,
         bodyPatternNegative,
-        insideStrokeWidth
+        insideStrokeWidth,
       ),
     [
       data,
@@ -468,7 +448,7 @@ export function Candlestick({
       bodyPatternPositive,
       bodyPatternNegative,
       insideStrokeWidth,
-    ]
+    ],
   );
 
   const hoveredTime = useMemo(() => {
@@ -498,7 +478,7 @@ export function Candlestick({
         negativeFill,
         bodyPatternPositive,
         bodyPatternNegative,
-        insideStrokeWidth
+        insideStrokeWidth,
       )[0] ?? null
     );
   }, [
@@ -521,8 +501,7 @@ export function Candlestick({
     bounce: 0.15,
   };
   const enter = enterTransition ?? defaultEnter;
-  const staggerDelayMs =
-    data.length > 0 ? (animationDuration * 0.6) / data.length : 0;
+  const staggerDelayMs = data.length > 0 ? (animationDuration * 0.6) / data.length : 0;
 
   // Reduced motion skips the enter sweep entirely (render the steady bodies
   // straight away); the steady morph is snapped to 0s below.

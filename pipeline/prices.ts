@@ -21,9 +21,14 @@ async function fetchOhlc(symbol: string, from: string): Promise<OhlcBar[]> {
   const rows = await yahooFinance.chart(symbol, { period1: from, interval: "1d" });
   const todayUtc = new Date().toISOString().slice(0, 10);
   const mapped = rows.quotes
-    .filter(q => q.open != null && q.high != null && q.low != null && q.close != null)
-    .map(q => ({ date: new Date(q.date).toISOString().slice(0, 10),
-      o: q.open!, h: q.high!, l: q.low!, c: q.close! }));
+    .filter((q) => q.open != null && q.high != null && q.low != null && q.close != null)
+    .map((q) => ({
+      date: new Date(q.date).toISOString().slice(0, 10),
+      o: q.open!,
+      h: q.high!,
+      l: q.low!,
+      c: q.close!,
+    }));
   return dropUnsettled(mapped, todayUtc);
 }
 
@@ -50,9 +55,14 @@ export function canonicalSymbols(calls: ReelCall[]): string[] {
 
 export async function prices(handle: string) {
   await mkdir(pricesDir(handle), { recursive: true });
-  const calls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
+  const calls: ReelCall[] = JSON.parse(
+    await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"),
+  );
   const tickers = canonicalSymbols(calls);
-  const from = calls.reduce((m, c) => c.postDate < m ? c.postDate : m, calls[0]?.postDate ?? "2025-01-01");
+  const from = calls.reduce(
+    (m, c) => (c.postDate < m ? c.postDate : m),
+    calls[0]?.postDate ?? "2025-01-01",
+  );
   for (const t of tickers) {
     const out = join(pricesDir(handle), `${t}.json`);
     let cachedBars: OhlcBar[] = [];
@@ -69,31 +79,54 @@ export async function prices(handle: string) {
           // recent horizons never mature. Fetch from ~10 days before the last bar so the
           // overlap is >=2 trading days — detectBasisShift needs >=2 overlapping bars to fire.
           const lastDate = cachedBars[cachedBars.length - 1]?.date ?? from;
-          const overlapFrom = new Date(new Date(lastDate).getTime() - 10 * 86400_000).toISOString().slice(0, 10);
+          const overlapFrom = new Date(new Date(lastDate).getTime() - 10 * 86400_000)
+            .toISOString()
+            .slice(0, 10);
           try {
             const fwd = await fetchOhlc(t, overlapFrom);
             const shift = detectBasisShift(cachedBars, fwd);
-            if (shift != null) { console.warn(`SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping append, needs OWNER restatement`); continue; }
+            if (shift != null) {
+              console.warn(
+                `SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping append, needs OWNER restatement`,
+              );
+              continue;
+            }
             const ohlc = mergePrices(cachedBars, fwd);
             await writeFile(out, JSON.stringify(ohlc));
-            console.log(`prices ${t}: extended to ${ohlc[ohlc.length - 1]?.date} (${ohlc.length} bars)`);
-          } catch (e) { console.warn(`FLAG ${t}: forward-extend failed: ${(e as Error).message}`); }
+            console.log(
+              `prices ${t}: extended to ${ohlc[ohlc.length - 1]?.date} (${ohlc.length} bars)`,
+            );
+          } catch (e) {
+            console.warn(`FLAG ${t}: forward-extend failed: ${(e as Error).message}`);
+          }
           continue;
         }
-        console.warn(`REFETCH ${t}: cache misses coverage (need <= ${from}, have ${Array.isArray(cached) && cached[0]?.date ? cached[0].date : "?"} / ${Array.isArray(cached) ? cached.length : 0} bar(s))`);
+        console.warn(
+          `REFETCH ${t}: cache misses coverage (need <= ${from}, have ${Array.isArray(cached) && cached[0]?.date ? cached[0].date : "?"} / ${Array.isArray(cached) ? cached.length : 0} bar(s))`,
+        );
       } catch {
         console.warn(`REFETCH ${t}: unreadable cache`);
       }
     }
     try {
       const fetched = await fetchOhlc(t, from);
-      if (!fetched.length) { console.warn(`FLAG ${t}: no price data`); continue; }
+      if (!fetched.length) {
+        console.warn(`FLAG ${t}: no price data`);
+        continue;
+      }
       const shift = detectBasisShift(cachedBars, fetched);
-      if (shift != null) { console.warn(`SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping merge, needs OWNER restatement`); continue; }
+      if (shift != null) {
+        console.warn(
+          `SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping merge, needs OWNER restatement`,
+        );
+        continue;
+      }
       // Existing-wins merge: never rewrite a frozen scored bar; append only new dates.
       const ohlc = mergePrices(cachedBars, fetched);
       await writeFile(out, JSON.stringify(ohlc));
       console.log(`prices ${t}: ${ohlc.length} bars`);
-    } catch (e) { console.warn(`FLAG ${t}: ${(e as Error).message}`); }
+    } catch (e) {
+      console.warn(`FLAG ${t}: ${(e as Error).message}`);
+    }
   }
 }

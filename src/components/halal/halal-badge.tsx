@@ -18,7 +18,7 @@ export function HalalBadge({ info }: { info: HalalInfo }) {
       <span
         role="img"
         aria-label="Shariah-compliant (Musaffa)"
-        className="icon-[hugeicons--halal] size-[1.1em] text-emerald-500 align-[-0.15em]"
+        className="icon-[hugeicons--halal] size-[1.1em] align-[-0.15em] text-emerald-500"
       />
     );
   }
@@ -26,7 +26,7 @@ export function HalalBadge({ info }: { info: HalalInfo }) {
     return (
       <CircleQuestionMark
         aria-label="Shariah compliance questionable (Musaffa)"
-        className="size-[1.1em] text-amber-500 align-[-0.15em]"
+        className="size-[1.1em] align-[-0.15em] text-amber-500"
       />
     );
   }

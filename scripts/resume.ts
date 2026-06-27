@@ -3,7 +3,10 @@ import { $ } from "bun";
 import { pipelineFor } from "./pipeline-for";
 const handle = process.argv[2];
 const platform = process.argv[3]; // "ig" | "x" | undefined (default x)
-if (!handle) { console.error("usage: resume <handle> [ig|x]"); process.exit(1); }
+if (!handle) {
+  console.error("usage: resume <handle> [ig|x]");
+  process.exit(1);
+}
 // Invoke nested stages through THIS bun's absolute path (process.execPath), not a bare
 // `bun` that depends on PATH. The systemd unit sets PATH, but a manual run over a
 // non-login SSH shell has no ~/.bun/bin on PATH, so a bare nested `bun` would fail.
@@ -14,7 +17,9 @@ await $`${bun} run scripts/guard-no-shrink.ts ${handle}`;
 // 2. Score (reads name from the committed dataset so updateIndex doesn't rename the creator).
 //    score applies operator overrides (db/overrides.ts, fail-open) before writing dataset.json.
 //    prices+score are platform-agnostic; the IG and X orchestrators expose the same --from prices.
-const name = JSON.parse(await readFile(`data/creators/${handle}/dataset.json`, "utf8")).creator?.name ?? handle;
+const name =
+  JSON.parse(await readFile(`data/creators/${handle}/dataset.json`, "utf8")).creator?.name ??
+  handle;
 await $`${bun} run ${pipeline} --handle ${handle} --name ${name} --from prices`;
 // Static-serve model: data/ (dataset.json + index.json + prices) is the source of truth; the
 // serve path reads the committed static assets (USE_DB=0), so there is no per-creator DB sync,

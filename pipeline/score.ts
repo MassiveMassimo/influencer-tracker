@@ -35,7 +35,7 @@ export function assembleDataset(
   nameFor: (sym: string) => string | undefined = () => undefined,
 ): Dataset {
   const spy = ohlc["SPY"] ?? [];
-  const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
+  const bullish = reelCalls.filter((c) => c.isExplicitBuy && c.direction === "bullish");
   // Priceability gate: a bullish call is scored only if its ticker resolves to a
   // canonical Yahoo symbol that has price bars. Unresolvable (null) or dataless
   // tickers are excluded and logged — never emitted as a scored call with an
@@ -51,7 +51,9 @@ export function assembleDataset(
     const sym = resolveSymbol(c.ticker);
     const bars = sym ? (ohlc[sym] ?? []) : [];
     if (!sym || bars.length === 0) {
-      console.warn(`UNPRICEABLE ${c.ticker} (${sym ? "no price data" : "unresolved/out-of-scope"}) — shortcode ${c.shortcode}`);
+      console.warn(
+        `UNPRICEABLE ${c.ticker} (${sym ? "no price data" : "unresolved/out-of-scope"}) — shortcode ${c.shortcode}`,
+      );
       continue;
     }
     if (!isInScope(sym)) continue; // out-of-scope type; logged once per symbol in score()
@@ -59,35 +61,58 @@ export function assembleDataset(
     const prevIdx = seenPostSym.get(key);
     if (prevIdx !== undefined) {
       if (c.conviction > calls[prevIdx]!.conviction) {
-        calls[prevIdx] = { ...calls[prevIdx]!, conviction: c.conviction, quote: c.quote, summary: c.summary, company: nameFor(sym) || c.company };
+        calls[prevIdx] = {
+          ...calls[prevIdx]!,
+          conviction: c.conviction,
+          quote: c.quote,
+          summary: c.summary,
+          company: nameFor(sym) || c.company,
+        };
       }
       continue;
     }
     seenPostSym.set(key, calls.length);
     calls.push({
-      shortcode: c.shortcode, postDate: c.postDate, ticker: sym, company: nameFor(sym) || c.company,
-      isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
+      shortcode: c.shortcode,
+      postDate: c.postDate,
+      ticker: sym,
+      company: nameFor(sym) || c.company,
+      isFirstCall: false,
+      conviction: c.conviction,
+      quote: c.quote,
+      summary: c.summary,
+      onScreenPrice: c.onScreenPrice,
       spark: buildSpark(bars, c.postDate),
       returns: computeReturns(bars, spy, c.postDate),
     });
   }
   calls = dedupeFirstCall(calls);
-  const firstCalls = calls.filter(c => c.isFirstCall);
-  const beatSpy = firstCalls.filter(c => (c.returns.toDate.excess ?? -1) > 0).length;
+  const firstCalls = calls.filter((c) => c.isFirstCall);
+  const beatSpy = firstCalls.filter((c) => (c.returns.toDate.excess ?? -1) > 0).length;
   const funnel = counts
     ? buildFunnel(counts, calls.length, firstCalls.length, beatSpy, postNoun)
     : undefined;
   const ds: Dataset = {
-    creator, generatedAt, spyAnchor: "SPY", calls,
+    creator,
+    generatedAt,
+    spyAnchor: "SPY",
+    calls,
     scorecard: { ...buildScorecard(calls), funnel, cumExcess: buildCumExcess(calls, ohlc, spy) },
-    caveats: calls.some(c => c.ticker.endsWith("-USD")) ? [...CAVEATS, "crypto-vs-spy"] : CAVEATS,
+    caveats: calls.some((c) => c.ticker.endsWith("-USD")) ? [...CAVEATS, "crypto-vs-spy"] : CAVEATS,
   };
   DatasetSchema.parse(ds); // fail-closed on a malformed dataset
   return ds;
 }
 
-export async function score(handle: string, name: string, today = new Date().toISOString().slice(0,10), postNoun = "Reels") {
-  const reelCalls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
+export async function score(
+  handle: string,
+  name: string,
+  today = new Date().toISOString().slice(0, 10),
+  postNoun = "Reels",
+) {
+  const reelCalls: ReelCall[] = JSON.parse(
+    await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"),
+  );
   // Deterministic correction pass. Reads operator overrides from the DB (ingest role)
   // and patches the classified calls before scoring, so the fix is baked identically
   // into dataset.json AND (via backfill) the DB calls row. Fail-open: if the DB is
@@ -102,24 +127,39 @@ export async function score(handle: string, name: string, today = new Date().toI
         console.log(`applied ${overrides.length} override(s) for ${handle}`);
       }
     } catch (e) {
-      console.warn(`override load failed for ${handle} (scoring raw classification): ${(e as Error).message}`);
+      console.warn(
+        `override load failed for ${handle} (scoring raw classification): ${(e as Error).message}`,
+      );
     }
   }
   const ohlc: Record<string, OhlcBar[]> = {};
   for (const f of await readdir(pricesDir(handle))) {
-    if (f.endsWith(".json")) ohlc[f.replace(".json","")] = JSON.parse(await readFile(join(pricesDir(handle), f), "utf8"));
+    if (f.endsWith(".json"))
+      ohlc[f.replace(".json", "")] = JSON.parse(await readFile(join(pricesDir(handle), f), "utf8"));
   }
   let reelsScraped = reelCalls.length;
-  try { reelsScraped = JSON.parse(await readFile(join(creatorDir(handle), "raw", "shortcodes.json"), "utf8")).length; } catch {}
+  try {
+    reelsScraped = JSON.parse(
+      await readFile(join(creatorDir(handle), "raw", "shortcodes.json"), "utf8"),
+    ).length;
+  } catch {}
   // Resolve scope (Yahoo quoteType, cached) for every priced symbol, then drop
   // out-of-scope ones from scoring. SPY is the benchmark, never a scored call.
-  const symbols = Object.keys(ohlc).filter(s => s !== "SPY");
+  const symbols = Object.keys(ohlc).filter((s) => s !== "SPY");
   const meta = await symbolMeta(symbols);
-  const outOfScope = new Set(symbols.filter(s => isOutOfScope(meta[s]?.type)));
-  for (const s of outOfScope) console.warn(`OUT-OF-SCOPE ${s}: ${meta[s]?.type} — not a stock pick, excluded from scoring`);
-  const ds = assembleDataset({ handle, name }, corrected, ohlc, today,
-    { reelsScraped, reelsWithTicker: corrected.length }, postNoun,
-    sym => !outOfScope.has(sym), sym => meta[sym]?.name || undefined);
+  const outOfScope = new Set(symbols.filter((s) => isOutOfScope(meta[s]?.type)));
+  for (const s of outOfScope)
+    console.warn(`OUT-OF-SCOPE ${s}: ${meta[s]?.type} — not a stock pick, excluded from scoring`);
+  const ds = assembleDataset(
+    { handle, name },
+    corrected,
+    ohlc,
+    today,
+    { reelsScraped, reelsWithTicker: corrected.length },
+    postNoun,
+    (sym) => !outOfScope.has(sym),
+    (sym) => meta[sym]?.name || undefined,
+  );
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
   // Write deduped per-ticker prices to a shared store (one file per symbol across
   // all creators) for the ticker-page fallback. Merge so a creator with a shorter
@@ -128,13 +168,18 @@ export async function score(handle: string, name: string, today = new Date().toI
   // shared cross-creator output store.
   const sharedDir = join(ROOT, "data", "prices");
   await mkdir(sharedDir, { recursive: true });
-  for (const sym of new Set([...ds.calls.map(c => c.ticker), "SPY"])) {
+  for (const sym of new Set([...ds.calls.map((c) => c.ticker), "SPY"])) {
     const bars = ohlc[sym] ?? [];
     if (!bars.length) continue;
     const f = join(sharedDir, `${sym}.json`);
     const existing: OhlcBar[] = existsSync(f) ? JSON.parse(await readFile(f, "utf8")) : [];
     const shift = detectBasisShift(existing, bars);
-    if (shift != null) { console.warn(`SPLIT ${sym}: basis shift x${shift.toFixed(4)} — skipping merge, needs OWNER restatement`); continue; }
+    if (shift != null) {
+      console.warn(
+        `SPLIT ${sym}: basis shift x${shift.toFixed(4)} — skipping merge, needs OWNER restatement`,
+      );
+      continue;
+    }
     await writeFile(f, JSON.stringify(mergePrices(existing, bars)));
   }
   await updateIndex(handle, name, ds);
@@ -152,7 +197,8 @@ async function updateIndex(handle: string, name: string, ds: Dataset) {
     if (file) avatar = `/avatars/${file}`;
   } catch {}
   const entry = {
-    handle, name,
+    handle,
+    name,
     totalCalls: ds.scorecard.totalCalls,
     firstCalls: ds.scorecard.uniqueTickers,
     hitRate3m: ds.scorecard.hitRate["3m"],
@@ -161,8 +207,9 @@ async function updateIndex(handle: string, name: string, ds: Dataset) {
     generatedAt: ds.generatedAt,
     ...(avatar ? { avatar } : {}),
   };
-  const i = idx.findIndex(e => e.handle === handle);
-  if (i >= 0) idx[i] = entry; else idx.push(entry);
+  const i = idx.findIndex((e) => e.handle === handle);
+  if (i >= 0) idx[i] = entry;
+  else idx.push(entry);
   await mkdir(DATA, { recursive: true });
   await writeFile(path, JSON.stringify(idx, null, 2));
 }

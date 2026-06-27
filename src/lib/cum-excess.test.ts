@@ -15,8 +15,14 @@ function bars(startISO: string, closes: number[]): OhlcBar[] {
 
 function call(ticker: string, postDate: string): Call {
   return {
-    shortcode: `${ticker}-${postDate}`, postDate, ticker, company: ticker,
-    isFirstCall: true, conviction: 0.5, quote: "", onScreenPrice: null,
+    shortcode: `${ticker}-${postDate}`,
+    postDate,
+    ticker,
+    company: ticker,
+    isFirstCall: true,
+    conviction: 0.5,
+    quote: "",
+    onScreenPrice: null,
     returns: {} as Call["returns"], // unused by buildCumExcess
   };
 }
@@ -26,7 +32,9 @@ const round4 = (v: number) => Math.round(v * 1e4) / 1e4;
 describe("buildCumExcess", () => {
   test("returns [] when SPY is empty or no first-calls qualify", () => {
     const spy = bars("2026-01-01", [100, 101, 102]);
-    expect(buildCumExcess([call("A", "2026-01-01")], { A: bars("2026-01-01", [10, 11, 12]) }, [])).toEqual([]);
+    expect(
+      buildCumExcess([call("A", "2026-01-01")], { A: bars("2026-01-01", [10, 11, 12]) }, []),
+    ).toEqual([]);
     expect(buildCumExcess([], {}, spy)).toEqual([]);
     // isFirstCall:false is ignored
     const notFirst = { ...call("A", "2026-01-01"), isFirstCall: false };
@@ -46,9 +54,18 @@ describe("buildCumExcess", () => {
   });
 
   test("equal-weights staggered calls; endpoint is the mean of per-call to-date excess", () => {
-    const spy = bars("2026-01-01", Array.from({ length: 10 }, (_, i) => 100 + i)); // slow grind up
-    const a = bars("2026-01-01", Array.from({ length: 10 }, (_, i) => 10 + 2 * i)); // strong
-    const b = bars("2026-01-01", Array.from({ length: 10 }, () => 50)); // flat, enters later
+    const spy = bars(
+      "2026-01-01",
+      Array.from({ length: 10 }, (_, i) => 100 + i),
+    ); // slow grind up
+    const a = bars(
+      "2026-01-01",
+      Array.from({ length: 10 }, (_, i) => 10 + 2 * i),
+    ); // strong
+    const b = bars(
+      "2026-01-01",
+      Array.from({ length: 10 }, () => 50),
+    ); // flat, enters later
     const calls = [call("A", "2026-01-01"), call("B", "2026-01-06")];
     const series = buildCumExcess(calls, { A: a, B: b }, spy);
     const exA = computeReturns(a, spy, "2026-01-01").toDate.excess!;
@@ -67,7 +84,10 @@ describe("buildCumExcess", () => {
   test("downsamples to maxPoints, keeping first and last points", () => {
     const closes = Array.from({ length: 300 }, (_, i) => 100 + i);
     const spy = bars("2026-01-01", closes);
-    const stock = bars("2026-01-01", closes.map((c) => c * 1.2));
+    const stock = bars(
+      "2026-01-01",
+      closes.map((c) => c * 1.2),
+    );
     const series = buildCumExcess([call("A", "2026-01-01")], { A: stock }, spy, 90);
     expect(series.length).toBe(90);
     expect(series[0]!.t).toBe(spy[0]!.date);

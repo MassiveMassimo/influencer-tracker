@@ -32,9 +32,7 @@ if (import.meta.main) {
 
   const token = process.env.REVALIDATE_TOKEN;
   if (!token) {
-    console.warn(
-      "REVALIDATE_TOKEN unset — skipping on-demand revalidate (TTL still applies)"
-    );
+    console.warn("REVALIDATE_TOKEN unset — skipping on-demand revalidate (TTL still applies)");
     process.exit(0);
   }
 
@@ -50,8 +48,7 @@ if (import.meta.main) {
     process.exit(1);
   }
 
-  const origin =
-    process.env.VITE_SITE_URL ?? "https://influencer-tracker-beta.vercel.app";
+  const origin = process.env.VITE_SITE_URL ?? "https://influencer-tracker-beta.vercel.app";
   const paths = revalidatePaths(handle, tickers);
 
   for (const path of paths) {

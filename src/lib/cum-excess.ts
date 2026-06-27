@@ -60,7 +60,10 @@ export function buildCumExcess(
   }
   if (entries.length === 0) return [];
 
-  const earliest = entries.reduce((m, e) => (e.entryDate < m ? e.entryDate : m), entries[0]!.entryDate);
+  const earliest = entries.reduce(
+    (m, e) => (e.entryDate < m ? e.entryDate : m),
+    entries[0]!.entryDate,
+  );
   const grid = spy.filter((b) => b.date >= earliest);
   const ptr = entries.map(() => 0); // index of last stock bar with date <= current grid date
 

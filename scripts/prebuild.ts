@@ -97,7 +97,6 @@ async function emit(card: OgCard, outPath: string) {
   writeFileSync(outPath, await renderOgPng(card));
 }
 
-
 async function main() {
   rmSync(OG_DIR, { recursive: true, force: true });
   rmSync(DS_DIR, { recursive: true, force: true });
@@ -136,9 +135,7 @@ async function main() {
   writeFileSync(join(PUB, "calls-index.json"), JSON.stringify(buildCallsIndex(datasets)));
   writeFileSync(join(PUB, "llms.txt"), buildLlmsTxt(index));
 
-  console.log(
-    `prebuild done: ${index.length} creators, datasets + llms.txt + calls-index copied.`,
-  );
+  console.log(`prebuild done: ${index.length} creators, datasets + llms.txt + calls-index copied.`);
 }
 
 main();

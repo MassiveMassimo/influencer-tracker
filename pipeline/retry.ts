@@ -21,7 +21,9 @@ export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOpts = {}): 
     } catch (e) {
       if (attempt >= retries || !isRetryable(e)) throw e;
       const wait = delayMs(attempt);
-      console.warn(`retry ${attempt + 1}/${retries}${label ? ` ${label}` : ""} in ${(wait / 1000).toFixed(1)}s`);
+      console.warn(
+        `retry ${attempt + 1}/${retries}${label ? ` ${label}` : ""} in ${(wait / 1000).toFixed(1)}s`,
+      );
       await sleep(wait);
     }
   }

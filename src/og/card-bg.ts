@@ -24,7 +24,14 @@ export interface CardBgOpts {
   height: number;
 }
 
-export function buildCardBackgroundSvg({ seed, up, theme, palette, width, height }: CardBgOpts): string {
+export function buildCardBackgroundSvg({
+  seed,
+  up,
+  theme,
+  palette,
+  width,
+  height,
+}: CardBgOpts): string {
   const motifInner = buildMotifSvg({ seed, up, palette, width, height, theme })
     .replace(/^<svg[^>]*>/, "")
     .replace(/<\/svg>\s*$/, "");
@@ -70,8 +77,9 @@ export function buildLineChartBackgroundSvg({
   const MAX = 64;
   let pts = closes;
   if (closes.length > MAX) {
-    pts = Array.from({ length: MAX }, (_, i) =>
-      closes[Math.round((i * (closes.length - 1)) / (MAX - 1))],
+    pts = Array.from(
+      { length: MAX },
+      (_, i) => closes[Math.round((i * (closes.length - 1)) / (MAX - 1))],
     );
   }
 

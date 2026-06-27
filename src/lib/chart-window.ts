@@ -17,10 +17,7 @@ function daysAgo(now: Date, days: number): Date {
 // Maps a timeframe to a Yahoo interval + start date. Intraday intervals are
 // restricted to windows within Yahoo's ~60-day sub-daily cap (1D/1W/1M); 3M+
 // use daily, matching the retail-app standard (Robinhood/Google Finance).
-export function chartWindow(
-  tf: Timeframe,
-  opts: { now: Date; firstDate: Date },
-): ChartWindow {
+export function chartWindow(tf: Timeframe, opts: { now: Date; firstDate: Date }): ChartWindow {
   const { now, firstDate } = opts;
   switch (tf) {
     case "1D":

@@ -1,10 +1,7 @@
 import { Component, type ReactNode } from "react";
 
 // Isolates a single chart's render failure so it can't blank the whole route.
-export class ChartBoundary extends Component<
-  { children: ReactNode },
-  { failed: boolean }
-> {
+export class ChartBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };

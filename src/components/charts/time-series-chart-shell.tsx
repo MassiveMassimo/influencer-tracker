@@ -14,10 +14,7 @@ import {
   useEffect,
   useMemo,
 } from "react";
-import {
-  DEFAULT_ANIMATION_EASING,
-  DEFAULT_CHART_ENTER_TRANSITION,
-} from "./animation";
+import { DEFAULT_ANIMATION_EASING, DEFAULT_CHART_ENTER_TRANSITION } from "./animation";
 import { resolveChartChildElement } from "./chart-child-passthrough";
 import { ChartProvider, type LineConfig, type Margin } from "./chart-context";
 import { isGradientDefComponent, isPatternDefComponent } from "./chart-defs";
@@ -30,19 +27,13 @@ import {
   isChartInteractionPhase,
 } from "./chart-phase";
 import { ChartRevealClip } from "./chart-reveal-clip";
-import {
-  decimateTimeSeries,
-  maxRenderPointsForWidth,
-} from "./decimate-time-series";
+import { decimateTimeSeries, maxRenderPointsForWidth } from "./decimate-time-series";
 import { filterDataByXDomain } from "./filter-data-by-x-domain";
 import {
   generateChartSkeletonData,
   generateChartSkeletonFromTarget,
 } from "./generate-chart-skeleton-data";
-import {
-  computeSeriesBarRevealClipPadding,
-  computeSeriesBarWidth,
-} from "./series-bar-layout";
+import { computeSeriesBarRevealClipPadding, computeSeriesBarWidth } from "./series-bar-layout";
 import { useStaticChartPreview } from "./static-chart-preview-context";
 import { useAnimatedYDomains } from "./use-animated-y-domains";
 import { useChartInteraction } from "./use-chart-interaction";
@@ -55,10 +46,7 @@ import {
 } from "./y-axis-scales";
 import { computeYDomainsByAxis } from "./y-domain-utils";
 
-function collectNumericExtents(
-  data: Record<string, unknown>[],
-  dataKeys: string[]
-) {
+function collectNumericExtents(data: Record<string, unknown>[], dataKeys: string[]) {
   let minValue = Number.POSITIVE_INFINITY;
   let maxValue = Number.NEGATIVE_INFINITY;
 
@@ -86,7 +74,7 @@ function collectNumericExtents(
 function resolveTimeSeriesYDomain(
   data: Record<string, unknown>[],
   dataKeys: string[],
-  yScaleDomainMax: number | undefined
+  yScaleDomainMax: number | undefined,
 ): [number, number] {
   if (yScaleDomainMax != null && yScaleDomainMax > 0) {
     return [0, yScaleDomainMax * 1.1];
@@ -115,9 +103,7 @@ export function isPostOverlayComponent(child: ReactElement): boolean {
   }
 
   const componentName =
-    typeof child.type === "function"
-      ? childType.displayName || childType.name || ""
-      : "";
+    typeof child.type === "function" ? childType.displayName || childType.name || "" : "";
 
   return (
     componentName === "ChartMarkers" ||
@@ -141,9 +127,7 @@ const CLIP_EXCLUDED_COMPONENT_NAMES = new Set([
 export function isClipExcludedComponent(child: ReactElement): boolean {
   const childType = child.type as { displayName?: string; name?: string };
   const componentName =
-    typeof child.type === "function"
-      ? childType.displayName || childType.name || ""
-      : "";
+    typeof child.type === "function" ? childType.displayName || childType.name || "" : "";
   return CLIP_EXCLUDED_COMPONENT_NAMES.has(componentName);
 }
 
@@ -242,15 +226,11 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
   const resolveYDomain = useCallback(
     (sourceData: Record<string, unknown>[], dataKeys: string[]) => {
       const axisGroups = groupLinesByYAxisId(lines);
-      const usesDefaultOnly =
-        axisGroups.size === 1 && axisGroups.has(DEFAULT_Y_AXIS_ID);
-      const domainMax =
-        usesDefaultOnly && yScaleDomainMax != null
-          ? yScaleDomainMax
-          : undefined;
+      const usesDefaultOnly = axisGroups.size === 1 && axisGroups.has(DEFAULT_Y_AXIS_ID);
+      const domainMax = usesDefaultOnly && yScaleDomainMax != null ? yScaleDomainMax : undefined;
       return resolveTimeSeriesYDomain(sourceData, dataKeys, domainMax);
     },
-    [lines, yScaleDomainMax]
+    [lines, yScaleDomainMax],
   );
 
   const skeletonData = useMemo(() => {
@@ -289,12 +269,12 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       const value = d[xDataKey];
       return value instanceof Date ? value : new Date(value as string | number);
     },
-    [xDataKey]
+    [xDataKey],
   );
 
   const bisectDate = useMemo(
     () => bisector<Record<string, unknown>, Date>((d) => xAccessor(d)).left,
-    [xAccessor]
+    [xAccessor],
   );
 
   const visiblePlotData = useMemo(() => {
@@ -325,18 +305,12 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
 
   const renderData = useMemo(() => {
     const valueKeys = lines.map((line) => line.dataKey);
-    return decimateTimeSeries(
-      seriesSourceData,
-      maxRenderPointsForWidth(innerWidth),
-      valueKeys
-    );
+    return decimateTimeSeries(seriesSourceData, maxRenderPointsForWidth(innerWidth), valueKeys);
   }, [seriesSourceData, innerWidth, lines]);
 
   const columnWidth = useMemo(() => {
     const slotCount =
-      xDomain && xDomainSlotCount != null
-        ? xDomainSlotCount
-        : visiblePlotData.length;
+      xDomain && xDomainSlotCount != null ? xDomainSlotCount : visiblePlotData.length;
     if (slotCount < 2) {
       return 0;
     }
@@ -349,17 +323,16 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
         lines,
         resolveDomain: (dataKeys) => resolveYDomain(skeletonData, dataKeys),
       }),
-    [lines, resolveYDomain, skeletonData]
+    [lines, resolveYDomain, skeletonData],
   );
 
   const yDomainTargetByAxis = useMemo(
     () =>
       computeYDomainsByAxis({
         lines,
-        resolveDomain: (dataKeys) =>
-          resolveYDomain(xDomain ? visiblePlotData : data, dataKeys),
+        resolveDomain: (dataKeys) => resolveYDomain(xDomain ? visiblePlotData : data, dataKeys),
       }),
-    [data, lines, resolveYDomain, visiblePlotData, xDomain]
+    [data, lines, resolveYDomain, visiblePlotData, xDomain],
   );
 
   const animatedYDomainsByAxis = useAnimatedYDomains({
@@ -381,12 +354,12 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
         innerHeight,
         lines,
       }),
-    [yDomainsForScales, innerHeight, lines]
+    [yDomainsForScales, innerHeight, lines],
   );
 
   const yScale = getPrimaryYScale(
     yScales,
-    scaleLinear({ range: [innerHeight, 0], domain: [0, 100], nice: true })
+    scaleLinear({ range: [innerHeight, 0], domain: [0, 100], nice: true }),
   );
 
   const dateLabels = useMemo(() => {
@@ -526,17 +499,13 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
       composedStacked,
       composedStackOffsets,
       composedStackGap,
-    ]
+    ],
   );
 
   const useClipReveal =
-    !staticPreview &&
-    renderData.length > 1 &&
-    innerWidth > 0 &&
-    animationDuration > 0;
+    !staticPreview && renderData.length > 1 && innerWidth > 0 && animationDuration > 0;
   const isRevealAnimating = chartPhase === "revealing";
-  const isRevealConcealing =
-    chartPhase === "exitingReady" && animationDuration > 0;
+  const isRevealConcealing = chartPhase === "exitingReady" && animationDuration > 0;
 
   const effectiveEnterTransition: Transition =
     enterTransition ??
@@ -588,9 +557,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
               enterTransition={effectiveEnterTransition}
               height={innerHeight + 20}
               mode={isRevealConcealing ? "conceal" : "reveal"}
-              onComplete={
-                isRevealConcealing ? notifyRevealConcealComplete : undefined
-              }
+              onComplete={isRevealConcealing ? notifyRevealConcealComplete : undefined}
               padding={revealClipPadding}
               revealEpoch={isRevealConcealing ? concealEpoch : revealEpoch}
               targetWidth={innerWidth}
@@ -605,13 +572,7 @@ const TimeSeriesChartCore = memo(function TimeSeriesChartCore({
           style={interactionStyle}
           transform={`translate(${margin.left},${margin.top})`}
         >
-          <rect
-            fill="transparent"
-            height={innerHeight}
-            width={innerWidth}
-            x={0}
-            y={0}
-          />
+          <rect fill="transparent" height={innerHeight} width={innerWidth} x={0} y={0} />
 
           {clipExcludedChildren}
           {useClipReveal ? (

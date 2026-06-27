@@ -14,9 +14,9 @@ export function detectBasisShift(existing: OhlcBar[], incoming: OhlcBar[]): numb
   }
   if (ratios.length < 2) return null;
   const avg = ratios.reduce((s, r) => s + r, 0) / ratios.length;
-  if (Math.abs(avg - 1) < 0.01) return null;                  // same basis
+  if (Math.abs(avg - 1) < 0.01) return null; // same basis
   if (ratios.every((r) => Math.abs(r - avg) <= 0.02 * avg)) return avg; // consistent shift
-  return null;                                                // noisy → not a clean split
+  return null; // noisy → not a clean split
 }
 
 // Union two daily-OHLC series by date, sorted ascending. Insert-only: an existing

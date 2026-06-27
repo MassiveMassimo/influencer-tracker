@@ -20,10 +20,7 @@ import { cn } from "#/lib/utils.ts";
 import { ChartProvider, type LineConfig, type Margin } from "./chart-context";
 import { intradayAwareFmt, shortDateFmt } from "./chart-formatters";
 import { DEFAULT_CHART_LIFECYCLE } from "./chart-phase";
-import {
-  decimateOhlcData,
-  maxRenderPointsForWidth,
-} from "./decimate-time-series";
+import { decimateOhlcData, maxRenderPointsForWidth } from "./decimate-time-series";
 import { useChartInteraction } from "./use-chart-interaction";
 import { wrapSingleYScale } from "./y-axis-scales";
 
@@ -120,16 +117,15 @@ const ChartCore = memo(function ChartCore({
       const value = d[xDataKey];
       return value instanceof Date ? value : new Date(value as string | number);
     },
-    [xDataKey]
+    [xDataKey],
   );
 
   const bisectDate = useMemo(
     () => bisector<Record<string, unknown>, Date>((d) => xAccessor(d)).left,
-    [xAccessor]
+    [xAccessor],
   );
 
-  const slotCount =
-    xDomain && xDomainSlotCount != null ? xDomainSlotCount : data.length;
+  const slotCount = xDomain && xDomainSlotCount != null ? xDomainSlotCount : data.length;
   const slotWidth = innerWidth / Math.max(slotCount, 1);
   const xScale = useMemo(() => {
     const minTime = xDomain
@@ -176,15 +172,13 @@ const ChartCore = memo(function ChartCore({
   const bandWidth = candleWidthProp ?? slotWidth * (1 - candleGap);
 
   const lines: LineConfig[] = useMemo(
-    () => [
-      { dataKey: "close", stroke: "var(--chart-line-primary)", strokeWidth: 0 },
-    ],
-    []
+    () => [{ dataKey: "close", stroke: "var(--chart-line-primary)", strokeWidth: 0 }],
+    [],
   );
 
   const renderData = useMemo(
     () => decimateOhlcData(data, maxRenderPointsForWidth(innerWidth)),
-    [data, innerWidth]
+    [data, innerWidth],
   );
 
   const dateLabels = useMemo(() => {
@@ -300,13 +294,7 @@ const ChartCore = memo(function ChartCore({
           style={interactionStyle}
           transform={`translate(${margin.left},${margin.top})`}
         >
-          <rect
-            fill="transparent"
-            height={innerHeight}
-            width={innerWidth}
-            x={0}
-            y={0}
-          />
+          <rect fill="transparent" height={innerHeight} width={innerWidth} x={0} y={0} />
           {restChildren}
         </g>
       </svg>

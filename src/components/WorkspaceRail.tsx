@@ -1,6 +1,21 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDownIcon, CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  CompassIcon,
+  HomeIcon,
+  LineChartIcon,
+  SettingsIcon,
+  UsersIcon,
+} from "lucide-react";
 import GitHubLink from "./GitHubLink";
 import { IconSwap } from "./icon-swap";
 
@@ -27,7 +42,13 @@ export interface CreatorRef {
 
 // Left workspace rail (devl workspace-rail aesthetic): app mark + name, primary
 // nav, and a creators section. Wraps all routes via __root.
-export function WorkspaceRail({ creators, stocks }: { creators: CreatorRef[]; stocks: RailStock[] }) {
+export function WorkspaceRail({
+  creators,
+  stocks,
+}: {
+  creators: CreatorRef[];
+  stocks: RailStock[];
+}) {
   return (
     <aside className="h-svh border-r border-border/60">
       <RailContent creators={creators} stocks={stocks} />
@@ -129,10 +150,8 @@ export function RailContent({
           <LineChartIcon className="size-4 text-background" />
         </div>
         <div className="min-w-0">
-          <div className="truncate font-medium text-sm text-foreground">
-            Signal Tracker
-          </div>
-          <div className="truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+          <div className="truncate text-sm font-medium text-foreground">Signal Tracker</div>
+          <div className="truncate font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
             vs SPY
           </div>
         </div>
@@ -183,7 +202,7 @@ export function RailContent({
         multiple
         value={open}
         onValueChange={(v) => update(v as string[])}
-        className={`grid content-start min-h-0 flex-1 ${
+        className={`grid min-h-0 flex-1 content-start ${
           hydrated && !reduceMotion
             ? "transition-[grid-template-rows] duration-200 ease-in-out"
             : ""
@@ -221,13 +240,9 @@ export function RailContent({
                 className="flex flex-col gap-0.5"
               >
                 {creators.length === 0 ? (
-                  <li className="px-2 py-1.5 text-muted-foreground/60 text-xs">
-                    No creators yet
-                  </li>
+                  <li className="px-2 py-1.5 text-xs text-muted-foreground/60">No creators yet</li>
                 ) : shownCreators.length === 0 ? (
-                  <li className="px-2 py-1.5 text-muted-foreground/60 text-xs">
-                    No matches
-                  </li>
+                  <li className="px-2 py-1.5 text-xs text-muted-foreground/60">No matches</li>
                 ) : (
                   shownCreators.map((c, i) => {
                     const active = creatorSearch.activeIndex === i;
@@ -373,7 +388,7 @@ function BackendHealth({ creators }: { creators: CreatorRef[] }) {
     <Tooltip>
       <TooltipTrigger
         render={
-          <span className="flex items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+          <span className="flex items-center gap-1.5 truncate font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
             <span className={`size-1.5 rounded-full ${dot}`} />
             {label}
           </span>
@@ -483,14 +498,14 @@ function RailSectionTrigger({
       data-rail-section={region}
       className="relative flex items-center border-t border-border/60"
     >
-      <AccordionPrimitive.Trigger className="group flex flex-1 cursor-pointer items-center gap-1.5 px-3 py-3 outline-none focus-visible:-outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
+      <AccordionPrimitive.Trigger className="group flex flex-1 cursor-pointer items-center gap-1.5 px-3 py-3 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring data-panel-open:*:data-[slot=accordion-indicator]:rotate-180">
         <ChevronDownIcon
           className="size-3.5 shrink-0 text-muted-foreground/60 transition-[transform,color] duration-200 group-hover:text-foreground"
           data-slot="accordion-indicator"
         />
         <span
-          className={`font-mono text-[10px] text-muted-foreground/70 uppercase tracking-[0.25em] transition-[opacity,filter,color] duration-200 group-hover:text-foreground ${
-            searchOpen ? "opacity-0 blur-[2px]" : "opacity-100 blur-0"
+          className={`font-mono text-[10px] tracking-[0.25em] text-muted-foreground/70 uppercase transition-[opacity,filter,color] duration-200 group-hover:text-foreground ${
+            searchOpen ? "opacity-0 blur-[2px]" : "blur-0 opacity-100"
           }`}
         >
           {label}
@@ -515,8 +530,8 @@ function RailSectionTrigger({
         aria-autocomplete="list"
         aria-activedescendant={activeDescendant}
         autoComplete="off"
-        className={`absolute inset-y-0 left-9 right-10 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/50 transition-[opacity,filter] duration-200 ${
-          searchOpen ? "opacity-100 blur-0" : "pointer-events-none opacity-0 blur-[2px]"
+        className={`absolute inset-y-0 right-10 left-9 bg-transparent text-sm text-foreground transition-[opacity,filter] duration-200 outline-none placeholder:text-muted-foreground/50 ${
+          searchOpen ? "blur-0 opacity-100" : "pointer-events-none opacity-0 blur-[2px]"
         }`}
       />
 

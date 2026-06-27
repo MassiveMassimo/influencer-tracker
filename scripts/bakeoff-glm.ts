@@ -93,20 +93,31 @@ async function run() {
   const byTicker = (cs: ReelCall[]) => new Map(cs.map((c) => [c.ticker, c]));
   const buys = (cs: ReelCall[]) => cs.filter((c) => c.isExplicitBuy && c.direction === "bullish");
 
-  let tickerSetDiff = 0, buyDiff = 0, dirDiff = 0;
-  let dsTickers = 0, glmTickers = 0, dsBuys = 0, glmBuys = 0;
+  let tickerSetDiff = 0,
+    buyDiff = 0,
+    dirDiff = 0;
+  let dsTickers = 0,
+    glmTickers = 0,
+    dsBuys = 0,
+    glmBuys = 0;
   const disagreements: string[] = [];
 
   for (const r of rows) {
-    const dsS = tset(r.ds), glmS = tset(r.glm);
-    dsTickers += dsS.size; glmTickers += glmS.size;
-    dsBuys += buys(r.ds).length; glmBuys += buys(r.glm).length;
+    const dsS = tset(r.ds),
+      glmS = tset(r.glm);
+    dsTickers += dsS.size;
+    glmTickers += glmS.size;
+    dsBuys += buys(r.ds).length;
+    glmBuys += buys(r.glm).length;
 
     const onlyDs = [...dsS].filter((x) => !glmS.has(x));
     const onlyGlm = [...glmS].filter((x) => !dsS.has(x));
-    const dm = byTicker(r.ds), gm = byTicker(r.glm);
+    const dm = byTicker(r.ds),
+      gm = byTicker(r.glm);
     const shared = [...dsS].filter((x) => glmS.has(x));
-    const buyConflicts = shared.filter((x) => dm.get(x)!.isExplicitBuy !== gm.get(x)!.isExplicitBuy);
+    const buyConflicts = shared.filter(
+      (x) => dm.get(x)!.isExplicitBuy !== gm.get(x)!.isExplicitBuy,
+    );
     const dirConflicts = shared.filter((x) => dm.get(x)!.direction !== gm.get(x)!.direction);
 
     if (onlyDs.length || onlyGlm.length) tickerSetDiff++;
@@ -119,7 +130,8 @@ async function run() {
       const lines = [`### ${r.id}`, `> ${r.text.replace(/\n/g, " ").slice(0, 220)}`];
       const all = new Set([...dsS, ...glmS]);
       for (const tk of all) {
-        const d = dm.get(tk), g = gm.get(tk);
+        const d = dm.get(tk),
+          g = gm.get(tk);
         if (!d || !g || d.isExplicitBuy !== g.isExplicitBuy || d.direction !== g.direction)
           lines.push(`- **${tk}** — deepseek: ${fmt(d)} | glm: ${fmt(g)}`);
       }
@@ -158,8 +170,12 @@ async function run() {
   console.log(`posts: ${rows.length}`);
   console.log(`tickers  ds=${dsTickers} glm=${glmTickers}`);
   console.log(`buys     ds=${dsBuys} glm=${glmBuys}`);
-  console.log(`latency/call  ds=${avg((r) => r.dsMs).toFixed(0)}ms glm=${avg((r) => r.glmMs).toFixed(0)}ms`);
-  console.log(`ticker-set agree ${agreePct}%  | buy-conflicts ${buyDiff}  | dir-conflicts ${dirDiff}`);
+  console.log(
+    `latency/call  ds=${avg((r) => r.dsMs).toFixed(0)}ms glm=${avg((r) => r.glmMs).toFixed(0)}ms`,
+  );
+  console.log(
+    `ticker-set agree ${agreePct}%  | buy-conflicts ${buyDiff}  | dir-conflicts ${dirDiff}`,
+  );
   console.log(`report: ${out}`);
 }
 

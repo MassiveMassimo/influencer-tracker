@@ -137,7 +137,7 @@ export function ProfitLossArea({
         .y0(zeroY)
         .y1((p) => p[1])
         .curve(curveLinear),
-    [zeroY]
+    [zeroY],
   );
 
   useEffect(() => {

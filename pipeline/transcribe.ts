@@ -29,10 +29,15 @@ export async function transcribe(handle: string) {
     const code = d.name;
     if (existsSync(join(transcriptsDir(handle), `${code}.json`))) continue; // idempotent
     const dir = join(rawDir(handle), code);
-    const video = (await readdir(dir)).find(f => /\.(mp4|webm|mkv)$/.test(f));
-    if (!video) { console.warn(`skip ${code}: no video`); continue; }
+    const video = (await readdir(dir)).find((f) => /\.(mp4|webm|mkv)$/.test(f));
+    if (!video) {
+      console.warn(`skip ${code}: no video`);
+      continue;
+    }
     const wav = join(dir, "audio.wav");
-    spawnSync("ffmpeg", ["-y", "-i", join(dir, video), "-vn", "-ar", "16000", "-ac", "1", wav], { stdio: "ignore" });
+    spawnSync("ffmpeg", ["-y", "-i", join(dir, video), "-vn", "-ar", "16000", "-ac", "1", wav], {
+      stdio: "ignore",
+    });
     // ffmpeg emits nothing for a video with no audio track; skip rather than crash.
     if (existsSync(wav)) jobs.push([code, wav]);
     else console.warn(`skip ${code}: no audio track`);
@@ -47,13 +52,20 @@ export async function transcribe(handle: string) {
   });
   // A nonzero exit is a setup/transport failure (missing venv, bad model) — NOT
   // per-file — and must surface loudly, not silently truncate transcripts.
-  if (r.status !== 0) throw new Error(`parakeet transcribe failed: ${r.stderr || r.error?.message || "unknown"}`);
+  if (r.status !== 0)
+    throw new Error(`parakeet transcribe failed: ${r.stderr || r.error?.message || "unknown"}`);
 
   const texts: Record<string, string> = JSON.parse(r.stdout);
   for (const [code] of jobs) {
     const text = texts[code];
-    if (text == null) { console.warn(`skip ${code}: no transcript returned`); continue; }
-    await writeFile(join(transcriptsDir(handle), `${code}.json`), JSON.stringify({ shortcode: code, text }, null, 2));
+    if (text == null) {
+      console.warn(`skip ${code}: no transcript returned`);
+      continue;
+    }
+    await writeFile(
+      join(transcriptsDir(handle), `${code}.json`),
+      JSON.stringify({ shortcode: code, text }, null, 2),
+    );
     console.log(`transcribed ${code}`);
   }
 }

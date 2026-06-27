@@ -22,7 +22,9 @@ export function parseSparkResponse(json: unknown, maxPoints = 24): Record<string
     const resp = r?.response?.[0];
     const raw = resp?.indicators?.quote?.[0]?.close;
     if (!symbol || !Array.isArray(raw)) continue;
-    const closes = raw.filter((v: unknown): v is number => typeof v === "number" && Number.isFinite(v));
+    const closes = raw.filter(
+      (v: unknown): v is number => typeof v === "number" && Number.isFinite(v),
+    );
     if (closes.length < 2) continue;
     const prev = resp?.meta?.chartPreviousClose ?? resp?.meta?.previousClose ?? closes[0];
     const last = closes[closes.length - 1];

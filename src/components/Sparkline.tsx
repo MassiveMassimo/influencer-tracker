@@ -18,7 +18,8 @@ export function Sparkline({
   const gid = useId().replace(/:/g, ""); // strip colons — invalid in some SVG url(#…) contexts
   if (closes.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
 
-  const min = Math.min(...closes), max = Math.max(...closes);
+  const min = Math.min(...closes),
+    max = Math.max(...closes);
   const span = max - min || 1;
   const pad = 2;
   const x = (i: number) => pad + (i / (closes.length - 1)) * (width - 2 * pad);
@@ -30,7 +31,11 @@ export function Sparkline({
   const area = `${line} L${pts.at(-1)!.x.toFixed(2)},${baseline} L${pts[0].x.toFixed(2)},${baseline} Z`;
 
   const color =
-    excess == null ? "var(--muted-foreground)" : excess >= 0 ? "var(--color-emerald-500)" : "var(--color-red-500)";
+    excess == null
+      ? "var(--muted-foreground)"
+      : excess >= 0
+        ? "var(--color-emerald-500)"
+        : "var(--color-red-500)";
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
@@ -41,7 +46,15 @@ export function Sparkline({
         </linearGradient>
       </defs>
       <path d={area} fill={`url(#${gid})`} stroke="none" />
-      <path d={line} fill="none" stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" opacity={0.9} />
+      <path
+        d={line}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={0.9}
+      />
       <circle cx={x(0)} cy={y(closes[0])} r={2} fill={color} />
     </svg>
   );

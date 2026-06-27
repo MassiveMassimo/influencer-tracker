@@ -7,7 +7,11 @@ const ReturnTriple = z.object({
 });
 
 const OhlcBarSchema = z.object({
-  date: z.string(), o: z.number(), h: z.number(), l: z.number(), c: z.number(),
+  date: z.string(),
+  o: z.number(),
+  h: z.number(),
+  l: z.number(),
+  c: z.number(),
 });
 
 export const PriceFileSchema = z.array(OhlcBarSchema);
@@ -24,7 +28,10 @@ const CallSchema = z.object({
   onScreenPrice: z.number().nullable().optional(),
   spark: z.array(z.number()).optional(),
   returns: z.object({
-    "1w": ReturnTriple, "1m": ReturnTriple, "3m": ReturnTriple, "toDate": ReturnTriple,
+    "1w": ReturnTriple,
+    "1m": ReturnTriple,
+    "3m": ReturnTriple,
+    toDate: ReturnTriple,
   }),
 });
 
@@ -34,11 +41,19 @@ export const DatasetSchema = z.object({
   spyAnchor: z.string(),
   calls: z.array(CallSchema),
   scorecard: z.object({
-    totalCalls: z.number(), uniqueTickers: z.number(),
+    totalCalls: z.number(),
+    uniqueTickers: z.number(),
     hitRate: z.object({ "1m": z.number(), "3m": z.number() }),
     hitRateN: z.object({ "1m": z.number(), "3m": z.number() }),
-    avgExcess: z.object({ "1w": z.number(), "1m": z.number(), "3m": z.number(), "toDate": z.number() }),
-    callsPerWeek: z.number(), best: z.array(CallSchema), worst: z.array(CallSchema),
+    avgExcess: z.object({
+      "1w": z.number(),
+      "1m": z.number(),
+      "3m": z.number(),
+      toDate: z.number(),
+    }),
+    callsPerWeek: z.number(),
+    best: z.array(CallSchema),
+    worst: z.array(CallSchema),
     funnel: z.array(z.object({ label: z.string(), value: z.number() })).optional(),
     cumExcess: z.array(z.object({ t: z.string(), v: z.number() })).optional(),
   }),

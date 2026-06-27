@@ -11,7 +11,7 @@ export function HalalCardContent({ info }: { info: HalalInfo }) {
         <span className="text-sm font-medium text-foreground">
           {STATUS_META[info.status].label}
         </span>
-        <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wide">
+        <span className="font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
           {info.exchange || info.ticker}
         </span>
       </div>

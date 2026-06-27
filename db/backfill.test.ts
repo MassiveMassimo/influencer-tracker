@@ -21,7 +21,6 @@ const ds = RUN ? readJson(join(ROOT, "data", "creators", HANDLE, "dataset.json")
 const db = RUN ? makeDb(process.env.DATABASE_URL_TEST!) : (undefined as unknown as Db);
 
 describe.skipIf(!RUN)("backfillCreator", () => {
-
   beforeAll(async () => {
     assertSeparateTestDb();
     await db.execute(sql`TRUNCATE creators, calls RESTART IDENTITY CASCADE`);

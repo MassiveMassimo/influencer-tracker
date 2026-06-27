@@ -4,8 +4,13 @@ import type { Dataset, Call } from "./types";
 
 function call(over: Partial<Call> & { shortcode: string; ticker: string; postDate: string }): Call {
   return {
-    company: "Acme", isFirstCall: true, conviction: 0.5, quote: "buy it",
-    summary: "thesis", onScreenPrice: null, spark: [1, 2, 3],
+    company: "Acme",
+    isFirstCall: true,
+    conviction: 0.5,
+    quote: "buy it",
+    summary: "thesis",
+    onScreenPrice: null,
+    spark: [1, 2, 3],
     returns: {
       "1w": { stock: null, spy: null, excess: null },
       "1m": { stock: null, spy: null, excess: null },
@@ -17,11 +22,20 @@ function call(over: Partial<Call> & { shortcode: string; ticker: string; postDat
 }
 function ds(handle: string, calls: Call[]): Dataset {
   return {
-    creator: { handle, name: handle.toUpperCase() }, generatedAt: "2026-06-01",
-    spyAnchor: "SPY", calls,
-    scorecard: { totalCalls: calls.length, uniqueTickers: 1, hitRate: { "1m": 0, "3m": 0 },
-      hitRateN: { "1m": 0, "3m": 0 }, avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0 },
-      callsPerWeek: 0, best: [], worst: [] },
+    creator: { handle, name: handle.toUpperCase() },
+    generatedAt: "2026-06-01",
+    spyAnchor: "SPY",
+    calls,
+    scorecard: {
+      totalCalls: calls.length,
+      uniqueTickers: 1,
+      hitRate: { "1m": 0, "3m": 0 },
+      hitRateN: { "1m": 0, "3m": 0 },
+      avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0 },
+      callsPerWeek: 0,
+      best: [],
+      worst: [],
+    },
     caveats: [],
   };
 }
@@ -55,6 +69,8 @@ test("orders by postDate desc, then handle, then shortcode (deterministic)", () 
 });
 
 test("output validates against CallIndexSchema", () => {
-  const out = buildCallsIndex([ds("alice", [call({ shortcode: "a1", ticker: "NVDA", postDate: "2026-05-01" })])]);
+  const out = buildCallsIndex([
+    ds("alice", [call({ shortcode: "a1", ticker: "NVDA", postDate: "2026-05-01" })]),
+  ]);
   expect(() => CallIndexSchema.parse(out)).not.toThrow();
 });

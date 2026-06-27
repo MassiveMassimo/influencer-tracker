@@ -23,7 +23,11 @@ function retryDelaySec(res: Response, attempt: number): number {
   return Math.min(2 ** attempt, 30);
 }
 
-export async function fireworks(path: string, init: RequestInit = {}, maxRetries = 6): Promise<Response> {
+export async function fireworks(
+  path: string,
+  init: RequestInit = {},
+  maxRetries = 6,
+): Promise<Response> {
   if (!FIREWORKS_KEY) throw new Error("FIREWORKS_API_KEY not set (see .env.example)");
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(`${BASE}${path}`, {
@@ -34,7 +38,9 @@ export async function fireworks(path: string, init: RequestInit = {}, maxRetries
     const body = await res.text();
     if ((res.status === 429 || res.status >= 500) && attempt < maxRetries) {
       const wait = retryDelaySec(res, attempt) + 0.5;
-      console.warn(`Fireworks ${res.status} on ${path}; retry ${attempt + 1}/${maxRetries} in ${wait.toFixed(1)}s`);
+      console.warn(
+        `Fireworks ${res.status} on ${path}; retry ${attempt + 1}/${maxRetries} in ${wait.toFixed(1)}s`,
+      );
       await sleep(wait * 1000);
       continue;
     }

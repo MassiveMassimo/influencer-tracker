@@ -4,8 +4,16 @@ import type { CallIndexEntry } from "./call-index";
 
 function e(over: Partial<CallIndexEntry> & { shortcode: string }): CallIndexEntry {
   return {
-    handle: "alice", ticker: "NVDA", company: "Nvidia", postDate: "2026-05-01",
-    isFirstCall: true, conviction: 0.5, ex3m: 0, exToDate: 0, stockToDate: 0, ...over,
+    handle: "alice",
+    ticker: "NVDA",
+    company: "Nvidia",
+    postDate: "2026-05-01",
+    isFirstCall: true,
+    conviction: 0.5,
+    ex3m: 0,
+    exToDate: 0,
+    stockToDate: 0,
+    ...over,
   };
 }
 

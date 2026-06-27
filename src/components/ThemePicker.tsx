@@ -5,11 +5,7 @@ import { CheckIcon } from "lucide-react";
 // overridden by coss's fixed-height/centered/svg-shrinking toggle styling.
 import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { Toggle } from "@base-ui/react/toggle";
-import {
-  usePreferences,
-  setThemeTransitioning,
-  type ThemeMode,
-} from "#/lib/preferences.tsx";
+import { usePreferences, setThemeTransitioning, type ThemeMode } from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import { cn } from "#/lib/utils.ts";
 
@@ -51,7 +47,10 @@ const OPTIONS: { value: ThemeMode; label: string; node: React.ReactNode }[] = [
         <div className="absolute inset-0" style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}>
           <MiniDashboard p={LIGHT} />
         </div>
-        <div className="absolute inset-0" style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}>
+        <div
+          className="absolute inset-0"
+          style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+        >
           <MiniDashboard p={DARK} />
         </div>
       </div>
@@ -115,14 +114,14 @@ export function ThemePicker() {
             "group relative flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-2 transition-all",
             "hover:border-border data-[pressed]:border-primary data-[pressed]:ring-2 data-[pressed]:ring-primary/30",
             // Locked during the reveal but visually unchanged (no fade).
-            "disabled:pointer-events-none"
+            "disabled:pointer-events-none",
           )}
         >
           <div className="aspect-[4/3] w-full overflow-hidden rounded-md ring-1 ring-border/40">
             {o.node}
           </div>
           <span className="text-center text-xs font-medium text-foreground">{o.label}</span>
-          <span className="absolute right-2 top-2 hidden size-4 items-center justify-center rounded-full bg-primary text-primary-foreground group-data-[pressed]:flex">
+          <span className="absolute top-2 right-2 hidden size-4 items-center justify-center rounded-full bg-primary text-primary-foreground group-data-[pressed]:flex">
             <CheckIcon className="size-2.5" />
           </span>
         </Toggle>

@@ -111,7 +111,7 @@ export function MorphArea({
         .y0(innerHeight)
         .y1((p) => p[1])
         .curve(curveNatural),
-    [innerHeight]
+    [innerHeight],
   );
 
   useEffect(() => {
@@ -172,9 +172,7 @@ export function MorphArea({
       {/* `d` is driven imperatively (mount + morph) so React never resets it to
           the target mid-tween, which would flash the end shape then morph back.
           Fill is painted under the stroke. */}
-      {showFill ? (
-        <path fill={`url(#${gradientId})`} ref={fillRef} stroke="none" />
-      ) : null}
+      {showFill ? <path fill={`url(#${gradientId})`} ref={fillRef} stroke="none" /> : null}
       <path
         fill="none"
         ref={strokeRef}

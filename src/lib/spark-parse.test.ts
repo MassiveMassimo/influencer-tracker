@@ -11,11 +11,19 @@ test("sampleCloses keeps first+last and caps length", () => {
 
 test("parseSparkResponse: good symbol uses prevClose for changePct", () => {
   const json = {
-    spark: { result: [
-      { symbol: "AAPL", response: [
-        { meta: { chartPreviousClose: 100 }, indicators: { quote: [{ close: [101, 102, null, 110] }] } },
-      ]},
-    ]},
+    spark: {
+      result: [
+        {
+          symbol: "AAPL",
+          response: [
+            {
+              meta: { chartPreviousClose: 100 },
+              indicators: { quote: [{ close: [101, 102, null, 110] }] },
+            },
+          ],
+        },
+      ],
+    },
   };
   const out = parseSparkResponse(json);
   expect(out.AAPL.closes).toEqual([101, 102, 110]); // null dropped
@@ -24,9 +32,11 @@ test("parseSparkResponse: good symbol uses prevClose for changePct", () => {
 
 test("parseSparkResponse: symbol with <2 valid closes is omitted", () => {
   const json = {
-    spark: { result: [
-      { symbol: "THIN", response: [{ meta: {}, indicators: { quote: [{ close: [null, 5] }] } }] },
-    ]},
+    spark: {
+      result: [
+        { symbol: "THIN", response: [{ meta: {}, indicators: { quote: [{ close: [null, 5] }] } }] },
+      ],
+    },
   };
   expect(parseSparkResponse(json).THIN).toBeUndefined();
 });

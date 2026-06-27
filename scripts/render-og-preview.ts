@@ -36,11 +36,27 @@ if (c) {
   }
   cards.push({
     file: "og-ticker-light.png",
-    card: { kind: "ticker", theme: "light", symbol: "NVDA", company: "NVIDIA", name: c.name, handle: c.handle, excess3m: 0.082 },
+    card: {
+      kind: "ticker",
+      theme: "light",
+      symbol: "NVDA",
+      company: "NVIDIA",
+      name: c.name,
+      handle: c.handle,
+      excess3m: 0.082,
+    },
   });
   cards.push({
     file: "og-ticker-dark.png",
-    card: { kind: "ticker", theme: "dark", symbol: "TSLA", company: "Tesla", name: c.name, handle: c.handle, excess3m: -0.041 },
+    card: {
+      kind: "ticker",
+      theme: "dark",
+      symbol: "TSLA",
+      company: "Tesla",
+      name: c.name,
+      handle: c.handle,
+      excess3m: -0.041,
+    },
   });
 }
 

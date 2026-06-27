@@ -115,10 +115,14 @@ const RUN = !!process.env.FIREWORKS_API_KEY && !!process.env.RUN_LLM_EVAL;
 
 describe.skipIf(!RUN)("CLASSIFY_SYS recap-guard eval", () => {
   for (const c of CASES) {
-    test(c.name, async () => {
-      const scored = await scoredTickers(c.text);
-      for (const t of c.include ?? []) expect(scored).toContain(t);
-      for (const t of c.exclude ?? []) expect(scored).not.toContain(t);
-    }, 60_000); // generous: long multi-ticker tweets + Fireworks 5xx backoff can exceed 30s
+    test(
+      c.name,
+      async () => {
+        const scored = await scoredTickers(c.text);
+        for (const t of c.include ?? []) expect(scored).toContain(t);
+        for (const t of c.exclude ?? []) expect(scored).not.toContain(t);
+      },
+      60_000,
+    ); // generous: long multi-ticker tweets + Fireworks 5xx backoff can exceed 30s
   }
 });

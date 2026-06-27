@@ -23,7 +23,15 @@ const yahooFinance = new YahooFinance();
 // primary listing (e.g. a foreign ETF like VFV queried without its .TO suffix). A
 // real primary-listed equity never comes back ECNQUOTE, so it signals an ambiguous,
 // non-scorable security — drop it (the OUT-OF-SCOPE log also surfaces the gap).
-const OUT_OF_SCOPE = new Set(["ETF", "MUTUALFUND", "INDEX", "CURRENCY", "FUTURE", "OPTION", "ECNQUOTE"]);
+const OUT_OF_SCOPE = new Set([
+  "ETF",
+  "MUTUALFUND",
+  "INDEX",
+  "CURRENCY",
+  "FUTURE",
+  "OPTION",
+  "ECNQUOTE",
+]);
 
 export interface SymbolMeta {
   type: string; // Yahoo quoteType ("" if unresolvable)
@@ -38,7 +46,11 @@ export function isOutOfScope(quoteType: string | undefined): boolean {
 
 async function loadCache(): Promise<Record<string, SymbolMeta>> {
   if (!existsSync(CACHE)) return {};
-  try { return JSON.parse(await readFile(CACHE, "utf8")); } catch { return {}; }
+  try {
+    return JSON.parse(await readFile(CACHE, "utf8"));
+  } catch {
+    return {};
+  }
 }
 
 // Resolve quoteType + name for each symbol, caching to data/symbol-meta.json. One
@@ -51,9 +63,19 @@ export async function symbolMeta(symbols: string[]): Promise<Record<string, Symb
   for (const s of symbols) {
     if (s in cache) continue;
     try {
-      const q = (await yahooFinance.quote(s)) as { quoteType?: string; displayName?: string; longName?: string; shortName?: string };
-      cache[s] = { type: q?.quoteType ?? "", name: q?.displayName ?? q?.longName ?? q?.shortName ?? "" };
-    } catch { cache[s] = { type: "", name: "" }; }
+      const q = (await yahooFinance.quote(s)) as {
+        quoteType?: string;
+        displayName?: string;
+        longName?: string;
+        shortName?: string;
+      };
+      cache[s] = {
+        type: q?.quoteType ?? "",
+        name: q?.displayName ?? q?.longName ?? q?.shortName ?? "",
+      };
+    } catch {
+      cache[s] = { type: "", name: "" };
+    }
     dirty = true;
   }
   if (dirty) await writeFile(CACHE, JSON.stringify(cache, null, 2) + "\n");

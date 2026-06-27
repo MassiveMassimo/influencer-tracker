@@ -8,7 +8,9 @@ export function knownShortcodes(handle: string): Set<string> {
   const dir = transcriptsDir(handle);
   if (!existsSync(dir)) return new Set();
   return new Set(
-    readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -".json".length)),
+    readdirSync(dir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => f.slice(0, -".json".length)),
   );
 }
 

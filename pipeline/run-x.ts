@@ -5,8 +5,9 @@ import { score } from "./score";
 
 // Usage: bun run pipeline:x --handle TheProfInvestor --name "The Prof Investor" [--from <stage>]
 const args = Object.fromEntries(
-  process.argv.slice(2).flatMap((a, i, arr) =>
-    a.startsWith("--") ? [[a.slice(2), arr[i + 1]]] : []),
+  process.argv
+    .slice(2)
+    .flatMap((a, i, arr) => (a.startsWith("--") ? [[a.slice(2), arr[i + 1]]] : [])),
 );
 const handle = args.handle;
 const name = args.name ?? handle;

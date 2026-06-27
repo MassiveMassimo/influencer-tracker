@@ -15,7 +15,15 @@ const LABELS: Record<string, string> = {
 // never the route/db modules, so neon/drizzle stay out of the client bundle. Best-effort
 // POST — the UI thanks the user immediately and dedupes per (shortcode, ticker) via
 // localStorage (a multi-stock post has one flaggable call per ticker).
-export function ReportButton({ handle, shortcode, ticker }: { handle: string; shortcode: string; ticker: string }) {
+export function ReportButton({
+  handle,
+  shortcode,
+  ticker,
+}: {
+  handle: string;
+  shortcode: string;
+  ticker: string;
+}) {
   const key = `reported:${shortcode}:${ticker}`;
   // Read localStorage once on mount, not every render; guard the throw private
   // mode / disabled storage raises on access.

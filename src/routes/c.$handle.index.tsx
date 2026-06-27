@@ -28,7 +28,11 @@ import { ogRev } from "#/og/og-rev.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { type HalalInfo } from "#/lib/halal/types.ts";
-import { PreviewCard, PreviewCardTrigger, PreviewCardPopup } from "#/components/ui/preview-card.tsx";
+import {
+  PreviewCard,
+  PreviewCardTrigger,
+  PreviewCardPopup,
+} from "#/components/ui/preview-card.tsx";
 import { TocMinimap } from "#/components/toc-minimap.tsx";
 import {
   platformOf,
@@ -41,7 +45,10 @@ const CALLS_PER_PAGE = 25;
 export const Route = createFileRoute("/c/$handle/")({
   loader: async ({ params, context }) => {
     const ds = await fetchDataset(params.handle);
-    await prefetchHalal(context.queryClient, ds.calls.map((c) => c.ticker));
+    await prefetchHalal(
+      context.queryClient,
+      ds.calls.map((c) => c.ticker),
+    );
     return ds;
   },
   head: ({ params, loaderData }) => {
@@ -141,10 +148,7 @@ function CreatorHeading({
           className="size-[1.333em] shrink-0 rounded-full object-cover ring-1 ring-border/60"
         />
       )}
-      <span
-        className="t-text-swap group-hover:underline group-hover:underline-offset-2"
-        ref={ref}
-      >
+      <span className="t-text-swap group-hover:underline group-hover:underline-offset-2" ref={ref}>
         {display}
       </span>
       <IconSwap
@@ -171,23 +175,20 @@ function Overview() {
       segments: [{ kind: "num", key: "v", value: sc.totalCalls, format: INT_FMT }],
       help: {
         body: "Every scored bullish buy call in the tracked window — one per ticker named, so a single post pitching several stocks counts once per stock.",
-        caveat: "Watchlist mentions, bearish/short calls, and 'no position' references aren't scored.",
+        caveat:
+          "Watchlist mentions, bearish/short calls, and 'no position' references aren't scored.",
       },
     },
     {
       label: "Unique tickers",
-      segments: [
-        { kind: "num", key: "v", value: sc.uniqueTickers, format: INT_FMT },
-      ],
+      segments: [{ kind: "num", key: "v", value: sc.uniqueTickers, format: INT_FMT }],
       help: {
         body: "Distinct symbols across all scored calls. Lower than total calls when the same stock is pitched more than once.",
       },
     },
     {
       label: "Calls / week",
-      segments: [
-        { kind: "num", key: "v", value: sc.callsPerWeek, format: DEC1_FMT },
-      ],
+      segments: [{ kind: "num", key: "v", value: sc.callsPerWeek, format: DEC1_FMT }],
       help: {
         body: "Posting cadence: distinct-ticker calls divided by the weeks between the first and last call.",
         caveat: "An average — real posting is bursty, clustering around earnings and market moves.",
@@ -205,7 +206,8 @@ function Overview() {
       ],
       help: {
         body: "Share of calls that beat SPY over the 3 months after the call (excess return > 0), shown as rate · winners/total. 50% is the coin-flip baseline.",
-        caveat: "Scored on one call per ticker (highest conviction); only calls with a full 3 months elapsed count.",
+        caveat:
+          "Scored on one call per ticker (highest conviction); only calls with a full 3 months elapsed count.",
       },
     },
     {
@@ -231,7 +233,9 @@ function Overview() {
   // each tile's first numeric segment; decorative/aria-hidden (the live tiles
   // below own NumberFlow).
   const statBar = tiles.map((t) => {
-    const seg = t.segments.find((s): s is Extract<StatSegment, { kind: "num" }> => s.kind === "num")!;
+    const seg = t.segments.find(
+      (s): s is Extract<StatSegment, { kind: "num" }> => s.kind === "num",
+    )!;
     return { label: t.label, text: formatNum(seg.value, seg.format), tone: t.tone };
   });
 
@@ -260,11 +264,16 @@ function Overview() {
               doubling). Persistent: stays put on scroll while the date/stats
               crossfade plays in the right zone. */}
           <div className="shrink-0 max-md:hidden">
-            <div className="t-ticker-label font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+            <div className="t-ticker-label font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
               Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
             </div>
             <h1 className="t-ticker-title mt-1 font-heading text-2xl">
-              <CreatorHeading name={ds.creator.name} avatar={avatar} platformIcon={platformIcon} profileUrl={profileUrl} />
+              <CreatorHeading
+                name={ds.creator.name}
+                avatar={avatar}
+                platformIcon={platformIcon}
+                profileUrl={profileUrl}
+              />
             </h1>
           </div>
           {/* Right zone — flex-1 so the stats scroll inside the remaining width
@@ -275,7 +284,9 @@ function Overview() {
             <div className="t-stick-fade absolute inset-y-0 right-0 flex items-center justify-end text-right max-md:hidden">
               <DataAsOf iso={ds.generatedAt} />
               {ageDays(ds.generatedAt) > 30 && (
-                <span className="ml-2 font-mono text-[10px] text-amber-600 uppercase tracking-[0.2em] dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
+                <span className="ml-2 font-mono text-[10px] tracking-[0.2em] text-amber-600 uppercase dark:text-amber-400">
+                  · data {ageDays(ds.generatedAt)}d old
+                </span>
               )}
             </div>
             {/* Persistent stat summary (the overview tiles scroll away → this
@@ -296,8 +307,14 @@ function Overview() {
                 <div className="flex w-full items-center gap-4 pe-4 font-mono md:gap-5 [&>:first-child]:ms-auto">
                   {statBar.map((s) => (
                     <span key={s.label} className="flex shrink-0 flex-col items-end gap-0.5">
-                      <span className="whitespace-nowrap text-[8px] text-muted-foreground uppercase tracking-[0.2em]">{s.label}</span>
-                      <span className={`text-sm tabular-nums ${s.tone !== undefined ? toneClass(s.tone) : "text-foreground"}`}>{s.text}</span>
+                      <span className="text-[8px] tracking-[0.2em] whitespace-nowrap text-muted-foreground uppercase">
+                        {s.label}
+                      </span>
+                      <span
+                        className={`text-sm tabular-nums ${s.tone !== undefined ? toneClass(s.tone) : "text-foreground"}`}
+                      >
+                        {s.text}
+                      </span>
                     </span>
                   ))}
                 </div>
@@ -308,77 +325,81 @@ function Overview() {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
+        <section
+          id="overview"
+          className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 sm:grid-cols-3 lg:grid-cols-5"
+          ref={statsRef}
+        >
+          <NumberFlowGroup>
+            {tiles.map((t) => (
+              <StatTile key={t.label} revealed={statsInView} tile={t} />
+            ))}
+          </NumberFlowGroup>
+        </section>
 
-      <section
-        id="overview"
-        className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 sm:grid-cols-3 lg:grid-cols-5"
-        ref={statsRef}
-      >
-        <NumberFlowGroup>
-          {tiles.map((t) => (
-            <StatTile key={t.label} revealed={statsInView} tile={t} />
-          ))}
-        </NumberFlowGroup>
-      </section>
-
-      <section id="performance" className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6">
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-          Performance vs SPY · cumulative
-          <span className="ml-1 normal-case tracking-normal opacity-70">(equal-weight, not risk-adjusted)</span>
-        </div>
-        <div className="mt-3">
-          <ChartBoundary>
-            <CumulativeExcess ds={ds} />
-          </ChartBoundary>
-        </div>
-      </section>
-
-      <section id="analytics" className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2">
-        <div className="bg-background p-6">
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Avg excess vs SPY · by horizon
-            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
+        <section
+          id="performance"
+          className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6"
+        >
+          <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+            Performance vs SPY · cumulative
+            <span className="ml-1 tracking-normal normal-case opacity-70">
+              (equal-weight, not risk-adjusted)
+            </span>
           </div>
           <div className="mt-3">
-            <HorizonBars ds={ds} />
+            <ChartBoundary>
+              <CumulativeExcess ds={ds} />
+            </ChartBoundary>
           </div>
-        </div>
-        <div className="bg-background p-6">
-          <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
-            Avg excess vs SPY · by conviction
-            <span className="ml-1 normal-case tracking-normal opacity-70">(not risk-adjusted)</span>
-          </div>
-          <div className="mt-3">
-            <ConvictionBars ds={ds} />
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <CallsList handle={handle} calls={calls} ds={ds} />
+        <section
+          id="analytics"
+          className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2"
+        >
+          <div className="bg-background p-6">
+            <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+              Avg excess vs SPY · by horizon
+              <span className="ml-1 tracking-normal normal-case opacity-70">
+                (not risk-adjusted)
+              </span>
+            </div>
+            <div className="mt-3">
+              <HorizonBars ds={ds} />
+            </div>
+          </div>
+          <div className="bg-background p-6">
+            <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+              Avg excess vs SPY · by conviction
+              <span className="ml-1 tracking-normal normal-case opacity-70">
+                (not risk-adjusted)
+              </span>
+            </div>
+            <div className="mt-3">
+              <ConvictionBars ds={ds} />
+            </div>
+          </div>
+        </section>
 
-      <CaveatsBanner caveats={ds.caveats} />
+        <CallsList handle={handle} calls={calls} ds={ds} />
+
+        <CaveatsBanner caveats={ds.caveats} />
       </div>
     </main>
   );
 }
 
-function StatTile({
-  tile,
-  revealed,
-}: {
-  tile: StatTileData;
-  revealed: boolean;
-}) {
+function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean }) {
   const ready = useNumberFlowReady();
   // Touch devices render static text — no enter spin (matches the ticker page).
   const isTouch = useTouchPrimary();
   const useNumber = ready && !isTouch;
-  const toneCls =
-    tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
+  const toneCls = tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
 
   return (
     <div className="bg-background p-4">
-      <div className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+      <div className="flex items-center gap-1 font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
         {tile.label}
         <PreviewCard>
           <PreviewCardTrigger
@@ -392,11 +413,13 @@ function StatTile({
           >
             <span className="icon-[lucide--circle-help] size-3.5" aria-hidden />
           </PreviewCardTrigger>
-          <PreviewCardPopup className="flex-col w-72 normal-case tracking-normal">
+          <PreviewCardPopup className="w-72 flex-col tracking-normal normal-case">
             <div className="font-heading text-sm text-foreground">{tile.label}</div>
             <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{tile.help.body}</p>
             {tile.help.caveat && (
-              <p className="mt-2 border-t border-border/50 pt-2 text-[11px] leading-relaxed text-muted-foreground/80">{tile.help.caveat}</p>
+              <p className="mt-2 border-t border-border/50 pt-2 text-[11px] leading-relaxed text-muted-foreground/80">
+                {tile.help.caveat}
+              </p>
             )}
           </PreviewCardPopup>
         </PreviewCard>
@@ -416,22 +439,14 @@ function StatTile({
             />
           ) : (
             <span key={seg.key}>{formatNum(seg.value, seg.format)}</span>
-          )
+          ),
         )}
       </div>
     </div>
   );
 }
 
-function CallsList({
-  handle,
-  calls,
-  ds,
-}: {
-  handle: string;
-  calls: Call[];
-  ds: Dataset;
-}) {
+function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: Dataset }) {
   const [page, setPage] = useState(1);
   const pageCount = Math.max(1, Math.ceil(calls.length / CALLS_PER_PAGE));
   const current = Math.min(page, pageCount);
@@ -441,16 +456,19 @@ function CallsList({
   const getHalal = useHalalStatus(allTickers);
 
   return (
-    <section id="calls" className="overflow-hidden rounded-2xl border border-border/60 bg-background">
-      <div className="flex items-center justify-between border-border/40 border-b px-5 py-3">
-        <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+    <section
+      id="calls"
+      className="overflow-hidden rounded-2xl border border-border/60 bg-background"
+    >
+      <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
+        <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
           Calls
         </span>
-        <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
           {calls.length} signals · newest first
         </span>
       </div>
-      <ul className="divide-border/40 divide-y">
+      <ul className="divide-y divide-border/40">
         {visible.map((c) => (
           <CallRow
             key={`${c.shortcode}:${c.ticker}`}
@@ -464,7 +482,7 @@ function CallsList({
         )}
       </ul>
       {pageCount > 1 && (
-        <div className="flex items-center justify-between gap-3 border-border/40 border-t px-3 py-3">
+        <div className="flex items-center justify-between gap-3 border-t border-border/40 px-3 py-3">
           <span className="hidden pl-2 font-mono text-[10px] text-muted-foreground tabular-nums sm:block">
             {start + 1}–{start + visible.length} of {calls.length}
           </span>
@@ -548,15 +566,19 @@ function CallsPagination({
   );
 }
 
-function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; halalInfo: HalalInfo }) {
+function CallRow({
+  handle,
+  call,
+  halalInfo,
+}: {
+  handle: string;
+  call: Call;
+  halalInfo: HalalInfo;
+}) {
   const excess = call.returns.toDate.excess;
   // Status dot: pending when no elapsed return, else beat/lag vs SPY.
   const dot =
-    excess == null
-      ? "bg-muted-foreground/40"
-      : excess >= 0
-        ? "bg-emerald-500"
-        : "bg-rose-500";
+    excess == null ? "bg-muted-foreground/40" : excess >= 0 ? "bg-emerald-500" : "bg-rose-500";
   const up = (excess ?? 0) >= 0;
   return (
     <li>
@@ -573,7 +595,7 @@ function CallRow({ handle, call, halalInfo }: { handle: string; call: Call; hala
             {call.isFirstCall && (
               <span
                 title="Only the earliest call per ticker is scored; later calls on the same ticker are not counted."
-                className="rounded-full bg-foreground/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-foreground"
+                className="rounded-full bg-foreground/10 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.15em] text-foreground uppercase"
               >
                 first
               </span>
