@@ -3,8 +3,10 @@
 //
 //  1. public/datasets/<handle>.json  — the large datasets as static immutable assets
 //     (fetched by fetchDataset() instead of being bundled into the server function).
-//  2. public/og/...png               — every OG card pre-rendered to a static PNG, so
-//     crawlers hit the CDN and satori/resvg never run at request time.
+//  2. public/og.png + public/og/changelog.png — only the content-stable home +
+//     changelog cards, pre-rendered to static PNGs (satori/resvg never run at request
+//     time for them). Data-driven creator/ticker cards render on demand via the
+//     /api/og/{c,t}/* routes instead (see emit() callers below).
 //  3. public/llms.txt                 — agent-readable site index (llmstxt.org): summary,
 //     per-creator stats, and the machine-readable dataset URLs.
 //

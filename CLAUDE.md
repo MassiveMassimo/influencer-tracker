@@ -865,22 +865,31 @@ cross-creator rail/sidebar + `/explore` source, also a prebuild artifact) stays 
 list/rail surfaces still show old data until you regenerate it too (re-run `prebuild.ts`,
 or rebuild just that file via `buildCallsIndex` over the datasets).
 
-**OG images are pre-rendered to static PNGs at build** (#1). `prebuild.ts` renders
-home + every creator + every called ticker via `src/og/` (satori + `@resvg/resvg-js`)
-into `public/og/…png`; crawlers hit the CDN and **satori/resvg never run at request
-time** (and aren't in the function bundle — no route imports `src/og/render.tsx`).
-- Theme is **frozen to `dark`** (`scripts/prebuild.ts` `THEME`); the runtime
-  day/night flip (`ogTheme()`) is dropped since social platforms cache OG
-  aggressively. The renderer still supports `light` but it's never baked.
+**OG images are HYBRID — content-stable cards baked, data-driven cards rendered on
+demand** (see `docs/superpowers/specs/2026-06-15-dynamic-og-images-design.md`). Both
+paths use `src/og/render.tsx` (satori + `@resvg/resvg-js`).
+- **Baked at build** (`scripts/prebuild.ts`): only the **home** (`/og.png`) and
+  **changelog** (`/og/changelog.png`) cards — both content-stable, so a static PNG on
+  the CDN is correct and satori/resvg never run at request time for them.
+- **Dynamic runtime routes** for the data-driven cards, so a new creator/ticker (or a
+  re-scored stat) gets a fresh card **with no redeploy**: `/api/og/c/$handle/$rev`
+  (creator), `/api/og/t/$handle/$symbol/$rev` (a creator's call on a ticker), and
+  `/api/og/t/$symbol/$rev` (cross-creator ticker, the `/t/<symbol>` standalone page).
+  Each route renders via `renderOgPng` and is **ISR-cached**; the `$rev` segment is a
+  content-hash (`ogRev([...])`) so a data change mints a new URL and busts the cache,
+  while unchanged content stays cached. Fail-open to a minimal card on any error.
+- Theme is **frozen to `dark`** (`scripts/prebuild.ts` `THEME` for baked; the runtime
+  routes pass `dark` too) since social platforms cache OG aggressively. The renderer
+  still supports `light` but it's never used.
 - Fonts are base64-embedded in `src/og/fonts.data.ts` (regenerate with
   `bun run scripts/gen-og-fonts.ts` from the vendored `src/og/fonts/*.woff`).
-- Meta `og:image` points at the static path (`/og/<h>.png`, `/og/<h>/<sym>.png`);
-  absolute URLs come from `VITE_SITE_URL` (**build-time** env in Vercel). New
-  creators/tickers get their card only on the next deploy.
+- Meta `og:image` points at the baked path (`/og.png`) for home/changelog and at the
+  rev-busted runtime route for creator/ticker pages; absolute URLs come from
+  `VITE_SITE_URL` (**build-time** env in Vercel).
 
 **Updating data = re-run the pipeline, commit the changed JSON, push.** The deploy
-re-copies datasets and re-renders all OG cards (datasets are frozen-for-reproducibility,
-so co-versioning with code is correct).
+re-copies datasets; creator/ticker OG cards re-render on demand at their new `$rev`,
+and the two baked cards (home/changelog) re-render at build.
 
 ## Changelog
 
