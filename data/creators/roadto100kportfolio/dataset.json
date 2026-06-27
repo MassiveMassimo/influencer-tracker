@@ -191,7 +191,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "At number three is a stable low volatility stock Costco. Costco remains one of the most defensive stable and low volatility large caps in the market.",
-      "summary": "Costco is a defensive, low-volatility large cap with a membership model and loyal customer base.",
+      "summary": "Costco is a defensive, low-volatility large cap with a membership model and high renewal rates.",
       "onScreenPrice": null,
       "spark": [
         912,
@@ -250,7 +250,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "At number four is a small cap tech stock, My10X Play, Nebias Group, a fast growing player in the cloud and AI infrastructure ecosystem.",
-      "summary": "Nebias Group is a fast-growing player in cloud and AI infrastructure, offering speculative high upside potential.",
+      "summary": "Nebius Group is a fast-growing player in cloud and AI infrastructure, offering speculative high upside potential.",
       "onScreenPrice": null,
       "spark": [
         100.2,
@@ -781,7 +781,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "We have AA, which is a pure play aluminum exposure, very sensitive to aluminum prices.",
-      "summary": "The creator recommends AA as a direct stock investment to benefit from rising aluminum prices.",
+      "summary": "The post presents AA as a pure play aluminum stock sensitive to aluminum prices, recommended as a way to invest in the aluminum trend.",
       "onScreenPrice": null,
       "spark": [
         53.77,
@@ -840,7 +840,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "Then we have RIO, which is a diversified miner but aluminum is a major revenue driver.",
-      "summary": "The creator recommends RIO as a diversified miner with significant aluminum exposure.",
+      "summary": "The post presents RIO as a diversified miner with aluminum as a major revenue driver, recommended for aluminum exposure.",
       "onScreenPrice": null,
       "spark": [
         80.4,
@@ -899,7 +899,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "We also have CENX, which is a core aluminum smelting.",
-      "summary": "The creator recommends CENX as a core aluminum smelting stock for direct aluminum exposure.",
+      "summary": "The post presents CENX as a core aluminum smelting company, recommended as a way to invest in aluminum.",
       "onScreenPrice": null,
       "spark": [
         39.04,
@@ -1194,7 +1194,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Number 2 is Microsoft which earns up to 5% allocation in your portfolio with price targets to $600 and $400 as key support level.",
-      "summary": "The creator recommends buying Microsoft with a 5% allocation, targeting $600, highlighting Azure's 40% growth and its role as the AI cloud backbone.",
+      "summary": "The creator recommends buying Microsoft with a 5% allocation, targeting $600, highlighting Azure's 40% growth as the AI cloud backbone.",
       "onScreenPrice": null,
       "spark": [
         414.4,
@@ -1763,7 +1763,7 @@
       "isFirstCall": false,
       "conviction": 0.95,
       "quote": "At number 4 is my favorite Meta. Their AI models are rapidly improving, Reels is printing cash and they are quietly becoming an AI infrastructure giant.",
-      "summary": "Meta is a mega-cap with AI upside, still priced below future potential, making it a top pick.",
+      "summary": "Meta is a mega-cap with AI upside and is priced below its future potential.",
       "onScreenPrice": null,
       "spark": [
         594.3,
@@ -1881,7 +1881,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "starting fresh in AMD",
-      "summary": "The creator is starting a new long-term position in AMD.",
+      "summary": "Creator is starting a new long-term position in AMD.",
       "onScreenPrice": null,
       "spark": [
         208.4,
@@ -1939,8 +1939,8 @@
       "company": "Broadcom",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "starting fresh in Broadcom",
-      "summary": "The creator is starting a new long-term position in Broadcom.",
+      "quote": "starting fresh in ... Broadcom",
+      "summary": "Creator is starting a new long-term position in Broadcom.",
       "onScreenPrice": null,
       "spark": [
         332.9,
@@ -1999,7 +1999,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "$2,000 into Meta. This is a high conviction cash generating business with strong margins and heavy investments in AI infrastructure.",
-      "summary": "The creator allocated $2,000 to Meta, viewing it as a high-conviction cash-generating business with strong margins and AI infrastructure investments, and is topping up an existing long position.",
+      "summary": "The creator allocated $2,000 to Meta, citing it as a high-conviction cash-generating business with strong margins and AI infrastructure investments.",
       "onScreenPrice": null,
       "spark": [
         661.5,
@@ -2058,7 +2058,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "I put $1,000 into Nebias Group. This is the highest risk position in this group. So position sizing is key. It is a smaller, asymmetric bet, meaningful upside without risking the portfolio.",
-      "summary": "The creator allocated $1,000 to Nebias Group as a high-risk, asymmetric bet with meaningful upside, emphasizing position sizing, and is topping up an existing position.",
+      "summary": "The creator invested $1,000 in Nebias Group as a high-risk, asymmetric bet with meaningful upside, emphasizing position sizing.",
       "onScreenPrice": null,
       "spark": [
         93.23,
@@ -2117,7 +2117,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Another $2,000 went into Amazon, which gives me diversified exposure, AWS, e-commerce, logistics, advertising, and many more.",
-      "summary": "The creator allocated $2,000 to Amazon for diversified exposure across AWS, e-commerce, logistics, and advertising, and is topping up an existing long position.",
+      "summary": "The creator added $2,000 to Amazon for diversified exposure across AWS, e-commerce, logistics, and advertising.",
       "onScreenPrice": null,
       "spark": [
         228.4,
@@ -2176,7 +2176,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Lastly, the $1000 into AMD. This is my higher volatility growth position tied to semiconductors and AI demand.",
-      "summary": "The creator allocated $1,000 to AMD as a higher-volatility growth position tied to semiconductors and AI demand, and is topping up an existing long position.",
+      "summary": "The creator put $1,000 into AMD as a higher-volatility growth position tied to semiconductors and AI demand.",
       "onScreenPrice": null,
       "spark": [
         214.9,
@@ -2284,7 +2284,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Micron, Sandesk, SK Hynex, Samsung If AI keeps growing, memory demand keeps growing.",
-      "summary": "Micron benefits from growing memory demand driven by AI growth.",
+      "summary": "Micron benefits from growing memory demand if AI keeps growing.",
       "onScreenPrice": null,
       "spark": [
         949.3,
@@ -2382,7 +2382,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Google One of the few AI companies already generating massive returns from AI spending.",
-      "summary": "Google is generating massive returns from AI spending.",
+      "summary": "Google is one of the few AI companies already generating massive returns from AI spending.",
       "onScreenPrice": null,
       "spark": [
         363.3,
@@ -2480,7 +2480,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "CRDO It's high margin AI networking company benefiting from faster data transfer needs.",
-      "summary": "CRDO is a high margin AI networking company benefiting from faster data transfer.",
+      "summary": "CRDO is a high margin AI networking company benefiting from faster data transfer needs.",
       "onScreenPrice": null,
       "spark": [
         222.3,
@@ -2823,7 +2823,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "MDB AI applications still need databases and MDB remains a leader.",
-      "summary": "MDB remains a leader as AI applications still need databases.",
+      "summary": "MongoDB remains a leader in databases needed for AI applications.",
       "onScreenPrice": null,
       "spark": [
         352.6,
@@ -2871,7 +2871,7 @@
       "company": "Marvell Technology",
       "isFirstCall": true,
       "conviction": 0.8,
-      "quote": "Marvel Custom AI chips and Photonics positioning the next$1 trillion company.",
+      "quote": "Marvel Custom AI chips and Photonics positioning the next$1 trillion company. Jensen approved.",
       "summary": "Marvell's custom AI chips and photonics position it as a potential $1 trillion company.",
       "onScreenPrice": null,
       "spark": [
@@ -2921,7 +2921,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Microsoft Azure AI growth remains one of the strongest stories in tech.",
-      "summary": "Microsoft's Azure AI growth is one of the strongest stories in tech.",
+      "summary": "Microsoft Azure AI growth is one of the strongest stories in tech.",
       "onScreenPrice": null,
       "spark": [
         411.7,
@@ -2968,9 +2968,9 @@
       "ticker": "NBIS",
       "company": "Nebius",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "Nebius Many see Nebius as one of the best AI cloud companies outside the hyperscalers.",
-      "summary": "Nebius is seen as one of the best AI cloud companies outside hyperscalers.",
+      "summary": "Nebius is seen as one of the best AI cloud companies outside the hyperscalers.",
       "onScreenPrice": null,
       "spark": [
         218,
@@ -3409,7 +3409,7 @@
       "ticker": "BE",
       "company": "Bloom Energy",
       "isFirstCall": true,
-      "conviction": 0.5,
+      "conviction": 0.6,
       "quote": "Bloom Energy Strong AI power thesis but profitability remains a question.",
       "summary": "Bloom Energy has a strong AI power thesis but profitability is questionable.",
       "onScreenPrice": null,
@@ -3509,7 +3509,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Number one is Camiko, world's biggest uranium miner, supplies 18% of global uranium production and has long-term contracts locking in revenue through the decade.",
-      "summary": "Cameco is the world's largest uranium miner with long-term contracts, benefiting from AI-driven nuclear demand.",
+      "summary": "Cameco is the world's largest uranium miner with long-term contracts, benefiting from increased uranium demand for nuclear power to fuel AI data centers.",
       "onScreenPrice": null,
       "spark": [
         108.2,
@@ -3567,7 +3567,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Second, Oklo. It's building nuclear-powered AI factories with NVIDIA, backed by Sam Altman and targeting commercial reactor operation by 2027.",
-      "summary": "Oklo is building nuclear-powered AI factories with NVIDIA, targeting commercial reactor operation by 2027.",
+      "summary": "Oklo is developing nuclear-powered AI factories with NVIDIA and Sam Altman's backing, targeting commercial operation by 2027.",
       "onScreenPrice": null,
       "spark": [
         68.7,
@@ -3625,7 +3625,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Third is uranium energy. It's a pure play US uranium in the ground. It uses ISR, the lowest cost, fastest method to produce uranium domestically.",
-      "summary": "Uranium Energy Corp is a pure-play US uranium producer using low-cost ISR method.",
+      "summary": "Uranium Energy is a pure-play US uranium producer using low-cost ISR technology, positioned to benefit from domestic uranium demand.",
       "onScreenPrice": null,
       "spark": [
         13.51,
@@ -3683,7 +3683,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Fourth, energy fuels. Uranium plus rare earths. Double the thesis. The only US company processing both, making it a critical minerals play on top of nuclear.",
-      "summary": "Energy Fuels processes uranium and rare earths, making it a critical minerals play.",
+      "summary": "Energy Fuels processes both uranium and rare earths, making it a critical minerals play with exposure to nuclear and rare earth demand.",
       "onScreenPrice": null,
       "spark": [
         18.4,
@@ -3741,7 +3741,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Fifth, NNE, portable micro-reactors and DOE bank. It's designing reactors small enough to deploy in remote sites, military bases and eventually space.",
-      "summary": "NNE designs portable micro-reactors for remote sites, military, and space.",
+      "summary": "NNE designs portable micro-reactors for remote sites, military bases, and space, with DOE backing.",
       "onScreenPrice": null,
       "spark": [
         29.07,
@@ -3799,7 +3799,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Sixth, New Scale, the only SMR with full NRC approval. That regulatory head start is years long mode. No competitor has been able to close.",
-      "summary": "NuScale Power has the only SMR with full NRC approval, giving it a regulatory head start.",
+      "summary": "NuScale Power has the only SMR with full NRC approval, giving it a regulatory head start in the small modular reactor market.",
       "onScreenPrice": null,
       "spark": [
         12.22,
@@ -3857,7 +3857,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Next, Denison Mine, highest grade undeveloped uranium deposit on earth. Wheeler River in Saskatchewan is fully permitted and waiting for uranium prices to trigger the build.",
-      "summary": "Denison Mines holds the highest grade undeveloped uranium deposit, fully permitted and waiting for prices.",
+      "summary": "Denison Mines holds the highest grade undeveloped uranium deposit, fully permitted and ready to build when uranium prices rise.",
       "onScreenPrice": null,
       "spark": [
         3.35,
@@ -3915,7 +3915,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Number eight is LEU. It's sole US producer of next-gen reactor fuel and$3.8 billion of backlog. Every advanced SMR that needs Halo fuel has essentially one domestic supplier. This is it.",
-      "summary": "Centrus Energy is the sole US producer of next-gen reactor fuel with a large backlog.",
+      "summary": "Centrus Energy is the sole US producer of next-generation reactor fuel with a $3.8 billion backlog, essential for advanced SMRs.",
       "onScreenPrice": null,
       "spark": [
         183.4,
@@ -3973,8 +3973,8 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Microsoft 344",
-      "summary": "Creator recommends buying Microsoft at $344 if the market dips, as a long-term quality stock.",
-      "onScreenPrice": 344,
+      "summary": "The creator recommends buying Microsoft at $344 as a quality stock to accumulate on dips.",
+      "onScreenPrice": null,
       "spark": [
         372.9,
         374.3,
@@ -4032,7 +4032,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Meta 500 520 range",
-      "summary": "Creator recommends buying Meta in the $500-$520 range if the market dips, as a long-term quality stock.",
+      "summary": "The creator recommends buying Meta in the $500-$520 range as a quality stock to accumulate on dips.",
       "onScreenPrice": null,
       "spark": [
         573,
@@ -4091,7 +4091,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "MU 320 to 74",
-      "summary": "Creator recommends buying Micron in the $320-$74 range if the market dips, as a long-term quality stock.",
+      "summary": "The creator recommends buying Micron at $320 to $74 as a quality stock to accumulate on dips.",
       "onScreenPrice": null,
       "spark": [
         377.8,
@@ -4150,8 +4150,8 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Apple two thirty",
-      "summary": "Creator recommends buying Apple at $230 if the market dips, as a long-term quality stock.",
-      "onScreenPrice": 230,
+      "summary": "The creator recommends buying Apple at $230 as a quality stock to accumulate on dips.",
+      "onScreenPrice": null,
       "spark": [
         258.9,
         258.9,
@@ -4209,8 +4209,8 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Broadcom two sixty eight",
-      "summary": "Creator recommends buying Broadcom at $268 if the market dips, as a long-term quality stock.",
-      "onScreenPrice": 268,
+      "summary": "The creator recommends buying Broadcom at $268 as a quality stock to accumulate on dips.",
+      "onScreenPrice": null,
       "spark": [
         314.4,
         350.6,
@@ -4268,7 +4268,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Lementum seven hundred and six hundred",
-      "summary": "Creator recommends buying Lumentum in the $700-$600 range if the market dips, as a long-term quality stock.",
+      "summary": "The creator recommends buying Lumentum at $700 and $600 as a quality stock to accumulate on dips.",
       "onScreenPrice": null,
       "spark": [
         772.3,
@@ -4327,7 +4327,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Tesla three forty four to ninety",
-      "summary": "Creator recommends buying Tesla in the $344-$90 range if the market dips, as a long-term quality stock.",
+      "summary": "The creator recommends buying Tesla in the $344 to $90 range as a quality stock to accumulate on dips.",
       "onScreenPrice": null,
       "spark": [
         352.8,
@@ -4386,8 +4386,8 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Rocket Lab 54",
-      "summary": "Creator recommends buying Rocket Lab at $54 if the market dips, as a long-term quality stock.",
-      "onScreenPrice": 54,
+      "summary": "The creator recommends buying Rocket Lab at $54 as a quality stock to accumulate on dips.",
+      "onScreenPrice": null,
       "spark": [
         67.67,
         69.08,
@@ -4445,7 +4445,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Nebias ninety two and eighty six",
-      "summary": "Creator recommends buying Nebius in the $92-$86 range if the market dips, as a long-term quality stock.",
+      "summary": "The creator recommends buying Nebias at $92 and $86 as a quality stock to accumulate on dips.",
       "onScreenPrice": null,
       "spark": [
         112.5,
@@ -4734,7 +4734,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "The company is Nokia. And now it's pivoting into AI-driven networking, making telecom networks faster, smarter and more automated.",
-      "summary": "The speaker is bullish on Nokia, citing its pivot to AI-driven networking, Nvidia's stake, strong cash flows, and potential catch-up trade as AI data movement demand grows.",
+      "summary": "The speaker is bullish on Nokia, citing its pivot to AI-driven networking, Nvidia's stake, and potential catch-up trade as it lags peers like Sienna.",
       "onScreenPrice": null,
       "spark": [
         13.14,
@@ -4841,65 +4841,6 @@
           "stock": -0.06502820890330507,
           "spy": 0.07639718011720187,
           "excess": -0.14142538902050694
-        }
-      }
-    },
-    {
-      "shortcode": "DQnDapADwuV",
-      "postDate": "2025-11-03",
-      "ticker": "AMZN",
-      "company": "Amazon.com",
-      "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "Amazon could be next",
-      "summary": "The creator predicts Amazon's stock will rise due to a potential partnership with OpenAI, similar to other companies that saw gains after such deals.",
-      "onScreenPrice": null,
-      "spark": [
-        254,
-        244.2,
-        220.7,
-        232.4,
-        226.2,
-        232.1,
-        233.1,
-        236.6,
-        238.4,
-        233,
-        198.8,
-        210.6,
-        213.2,
-        215.2,
-        207.5,
-        213.8,
-        249.7,
-        261.1,
-        275,
-        264.1,
-        271.9,
-        246,
-        246,
-        232.7
-      ],
-      "returns": {
-        "1w": {
-          "stock": -0.022047268124077313,
-          "spy": -0.0027804962967058477,
-          "excess": -0.019266771827371465
-        },
-        "1m": {
-          "stock": -0.08511809101254919,
-          "spy": 0.000804852300983594,
-          "excess": -0.08592294331353278
-        },
-        "3m": {
-          "stock": -0.04346454049658588,
-          "spy": 0.017663163015058325,
-          "excess": -0.061127703511644205
-        },
-        "toDate": {
-          "stock": -0.08389762818343993,
-          "spy": 0.06680417008348538,
-          "excess": -0.1507017982669253
         }
       }
     },
@@ -5147,7 +5088,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Meta is down basically due to the higher AI spending and a one-time tax charge. But long term, this is one of the strongest companies.",
-      "summary": "Creator recommends buying Meta due to strong fundamentals and AI potential despite short-term dip.",
+      "summary": "Creator recommends buying Meta due to strong fundamentals and AI potential despite short-term headwinds.",
       "onScreenPrice": null,
       "spark": [
         637.7,
@@ -5263,9 +5204,9 @@
       "ticker": "MSFT",
       "company": "Microsoft",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.9,
       "quote": "At number one is Microsoft, which runs the world's biggest software and cloud stack, Windows and Office with Azure at core. Latest quarter, Azure and other cloud services revenue was up 40% year on year and the stock has price targets around $620.",
-      "summary": "The creator holds Microsoft for growth, citing strong Azure growth and price targets around $620.",
+      "summary": "Creator holds Microsoft for growth, citing strong Azure revenue growth and analyst price targets around $620.",
       "onScreenPrice": null,
       "spark": [
         496.8,
@@ -5322,9 +5263,9 @@
       "ticker": "AMZN",
       "company": "Amazon.com",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.9,
       "quote": "At number two is Amazon, e-commerce giant and AWS Powerhouse with fast growing ads. Q3 revenue was $180 billion and AWS revenue was 30% year on year growth and the analyst price targets are north of $300.",
-      "summary": "The creator holds Amazon for growth, citing e-commerce and AWS strength with price targets above $300.",
+      "summary": "Creator holds Amazon for growth, citing e-commerce and AWS strength with analyst price targets above $300.",
       "onScreenPrice": null,
       "spark": [
         244.4,
@@ -5381,9 +5322,9 @@
       "ticker": "META",
       "company": "Meta Platforms",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "At number 3 is Meta which is at a huge discount due to heavy AI spending and a one-time tax charge. Latest quarter revenue was $51 billion up 26% year on year. I would buy more of this stock when it dips below $600 which it would.",
-      "summary": "The creator holds Meta and plans to buy more on dips, citing a discount due to AI spending and strong revenue growth.",
+      "summary": "Creator holds Meta and plans to buy more on dips below $600, citing discount from AI spending and strong revenue growth.",
       "onScreenPrice": null,
       "spark": [
         621.7,
@@ -5440,9 +5381,9 @@
       "ticker": "ORCL",
       "company": "Oracle",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.9,
       "quote": "At number 4 is Oracle, enterprises database and rapidly scaling Oracle Cloud. Total revenue up 12% year on year to almost $15 billion whereas cloud revenue was up 28% year on year off about $7.2 billion. Again the stock is at a huge discount due to heavy capex but the analyst price targets suggest around $350.",
-      "summary": "The creator holds Oracle for growth, citing cloud revenue growth and analyst price targets around $350.",
+      "summary": "Creator holds Oracle for growth, citing cloud revenue growth and analyst price targets around $350.",
       "onScreenPrice": null,
       "spark": [
         239.3,
@@ -5501,7 +5442,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "the final stock is Nebius Group which is an AI infrastructure builder for large GPU data center capacity for enterprises. It is also backed by NVIDIA and recently signed a 5 year $20 billion deal with Microsoft.",
-      "summary": "The creator holds Nebius Group as a high-growth AI infrastructure play, backed by NVIDIA and a Microsoft deal.",
+      "summary": "Creator holds Nebius Group as a 10x play, citing AI infrastructure, NVIDIA backing, and a $20 billion Microsoft deal.",
       "onScreenPrice": null,
       "spark": [
         111.3,
@@ -5678,7 +5619,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "At number 1 is TSM. TSM is world's largest semiconductor manufacturer.",
-      "summary": "The creator is buying TSM on Friday, citing strong Q3 revenue growth of 34% and net income surge of 46%, driven by AI and high-end chip demand, with analysts expecting further growth.",
+      "summary": "The creator is buying TSM on Friday, citing strong Q3 revenue growth of 34% and net income surge of 46%, driven by AI and high-end chip demand, with analysts expecting 20% growth next year.",
       "onScreenPrice": null,
       "spark": [
         286.5,
@@ -5737,7 +5678,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "The second stock I'm buying today is Oracle.",
-      "summary": "The creator is buying Oracle, highlighting its pivot to AI cloud infrastructure, 12% revenue growth, and 28% cloud revenue growth, despite short-term profit squeeze from heavy AI investments.",
+      "summary": "The creator is buying Oracle, highlighting its pivot to AI cloud infrastructure, 12% revenue growth with cloud up 28%, and a pullback due to heavy AI investments that could squeeze short-term profits but build long-term growth capacity.",
       "onScreenPrice": null,
       "spark": [
         239.3,
@@ -6504,7 +6445,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "this one stock I am buying on Tuesday, May 26th to quietly outperform the S&P 500 in 2026",
-      "summary": "The creator is buying Reddit (RDDT) because of its unique position in AI data licensing, ad revenue acceleration, and user growth, believing it can compound strongly.",
+      "summary": "The creator is buying Reddit (RDDT) because of its unique position in AI data licensing, ad revenue growth, and user engagement, believing it can compound strongly.",
       "onScreenPrice": null,
       "spark": [
         144.6,
@@ -6560,9 +6501,9 @@
       "ticker": "MSFT",
       "company": "Microsoft",
       "isFirstCall": false,
-      "conviction": 0.9,
+      "conviction": 0.8,
       "quote": "At number 1 is a large cap growth stock, Microsoft, leader in enterprise AI through Azure, co-pilot, and deep open AI integration.",
-      "summary": "Microsoft is recommended as a large cap growth stock with AI integration and strong recurring revenue.",
+      "summary": "The creator recommends buying Microsoft as a large cap growth stock with strong AI integration and recurring revenue.",
       "onScreenPrice": null,
       "spark": [
         474,
@@ -6619,9 +6560,9 @@
       "ticker": "WMT",
       "company": "Walmart",
       "isFirstCall": true,
-      "conviction": 0.9,
-      "quote": "Act number three is a stable, low-volatility stock, Walmart. Essential retail giant with steady revenue even in downturns. A defensive anchor with slow but reliable growth.",
-      "summary": "Walmart is a defensive retail giant with steady revenue and slow reliable growth.",
+      "conviction": 0.7,
+      "quote": "Act number three is a stable, low-volatility stock, Walmart. Essential retail giant with steady revenue even in downturns.",
+      "summary": "The creator recommends buying Walmart as a defensive anchor with reliable growth.",
       "onScreenPrice": null,
       "spark": [
         104.1,
@@ -6678,9 +6619,9 @@
       "ticker": "NBIS",
       "company": "Nebius",
       "isFirstCall": false,
-      "conviction": 1,
+      "conviction": 0.9,
       "quote": "Act number four is a small cap tech stock, Nebius. My 10x play. AI cloud compute provider, renting GPU capacity. High risk, high upside play, tied directly to AI infrastructure demand.",
-      "summary": "Nebius is a high-risk small cap AI cloud compute provider with potential for 10x returns.",
+      "summary": "The creator recommends buying Nebius as a high-risk, high-upside AI infrastructure play with potential for 10x returns.",
       "onScreenPrice": null,
       "spark": [
         91.9,
@@ -7092,8 +7033,8 @@
       "company": "NVIDIA",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "It's the AI infrastructure king, with revenue up 114% last year and data center demand off the charts. Analysts see an upside above two hundred twenty dollars by the end of November.",
-      "summary": "The creator recommends buying Nvidia, citing strong revenue growth and AI demand, with a price target above $220.",
+      "quote": "Analysts see an upside above two hundred twenty dollars by the end of November.",
+      "summary": "The creator is buying Nvidia due to its AI infrastructure dominance and analyst price target above $220.",
       "onScreenPrice": null,
       "spark": [
         199.1,
@@ -7152,7 +7093,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Microsoft is a true tech powerhouse. Azur grew thirty nine percent last quarter and revenue hit seventy six billion dollars. Its ecosystem works seamlessly together, making it hard for customers to leave.",
-      "summary": "The creator recommends buying Microsoft, highlighting Azure growth and its strong ecosystem in cloud and AI.",
+      "summary": "The creator is buying Microsoft for its strong cloud growth and ecosystem lock-in.",
       "onScreenPrice": null,
       "spark": [
         506,
@@ -7211,7 +7152,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "I have Irene, which is a renewable powered data center and AI compute play with strong backing and growing infrastructure revenue. Analysts' average twelve month price targets are around eighty to eighty five dollars, with high forecasts nearing one thirty six dollars.",
-      "summary": "Creator recommends buying IREN as a renewable powered data center and AI compute play with analyst price targets of $80-$85 and high forecast of $136.",
+      "summary": "Creator recommends buying Irene (IREN) as a small cap AI compute play with analyst price targets up to $136.",
       "onScreenPrice": null,
       "spark": [
         37.77,
@@ -7270,7 +7211,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "At number two is my personal favorite, Nebius Group. Nebbius focuses on AI infrastructure and cloud compute partnerships and has captured attention with major contracts from Microsoft, Meta and Rapid Growth. Wall Street's average twelve month price targets sit around one fifty to one sixty dollars, which is almost double from current prices.",
-      "summary": "Creator recommends buying NBIS as an AI infrastructure and cloud compute play with major contracts from Microsoft and Meta, and analyst price targets of $150-$160.",
+      "summary": "Creator recommends buying Nebius Group (NBIS) as a favorite small cap AI infrastructure stock with price targets around $150-$160.",
       "onScreenPrice": null,
       "spark": [
         83.71,
@@ -7329,7 +7270,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "What if I told you that this $136 stock could 2x and literally no one is talking about it?",
-      "summary": "The post argues Reddit is undervalued, highlighting its AI data licensing deals and strong user engagement, with a potential to double from $136.",
+      "summary": "The post argues Reddit is undervalued at $136, with potential to double due to its AI data licensing deals, growing user engagement, and unique position as a data infrastructure company.",
       "onScreenPrice": 136,
       "spark": [
         132.3,
@@ -7504,9 +7445,9 @@
       "ticker": "META",
       "company": "Meta Platforms",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "the stock is at a huge discount as the sell-off looks like an overreaction by a one-time tax charge and higher AI capex but the analysts see the price targets still at $848 which is a 30% upside from the current levels.",
-      "summary": "The creator recommends buying Meta due to a sell-off overreaction and analyst price target of $848.",
+      "conviction": 0.8,
+      "quote": "MetaStock and the stock is at a huge discount as the sell-off looks like an overreaction by a one-time tax charge and higher AI capex but the analysts see the price targets still at$848 which is a 30% upside from the current levels.",
+      "summary": "The creator recommends buying Meta (META) due to a sell-off overreaction, with analysts' price target of $848 implying 30% upside.",
       "onScreenPrice": null,
       "spark": [
         637.7,
@@ -7563,9 +7504,9 @@
       "ticker": "ORCL",
       "company": "Oracle",
       "isFirstCall": true,
-      "conviction": 0.9,
-      "quote": "Oracle, one of the least hyped stocks but the most essential player in AI bookspace. They're building the AI infrastructure everyone else runs on. Their cloud hosts NVIDIA's AI workloads and massive enterprise data. Revenue is climbing fast and analysts have set price targets for $350 with a 33% upside.",
-      "summary": "The creator recommends buying Oracle as a key AI infrastructure player with strong revenue growth and analyst price target of $350.",
+      "conviction": 0.8,
+      "quote": "Oracle, one of the least hyped stocks but the most essential player in AI bookspace. They're building the AI infrastructure everyone else runs on. Their cloud hosts NVIDIA's AI workloads and massive enterprise data. Revenue is climbing fast and analysts have set price targets for$350 with a 33% upside.",
+      "summary": "The creator recommends buying Oracle (ORCL) as a key AI infrastructure player with strong revenue growth and analyst price target of $350.",
       "onScreenPrice": null,
       "spark": [
         257.9,
@@ -7624,7 +7565,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Meta around 499",
-      "summary": "Creator recommends buying Meta at around $499 as a dip-buying opportunity during the correction, focusing on quality names.",
+      "summary": "Creator recommends buying Meta at around $499 as a dip-buying opportunity during the market correction, focusing on quality names.",
       "onScreenPrice": 499,
       "spark": [
         525.7,
@@ -7683,7 +7624,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Microsoft around 345",
-      "summary": "Creator recommends buying Microsoft at around $345 as a dip-buying opportunity during the correction, focusing on quality names.",
+      "summary": "Creator recommends buying Microsoft at around $345 as a dip-buying opportunity during the market correction, focusing on quality names.",
       "onScreenPrice": 345,
       "spark": [
         356.8,
@@ -7742,7 +7683,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "NVIDIA near 144",
-      "summary": "Creator recommends buying NVIDIA at around $144 as a dip-buying opportunity during the correction, focusing on quality names.",
+      "summary": "Creator recommends buying NVIDIA near $144 as a dip-buying opportunity during the market correction, focusing on quality names.",
       "onScreenPrice": 144,
       "spark": [
         167.5,
@@ -7801,7 +7742,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Amazon 183",
-      "summary": "Creator recommends buying Amazon at $183 as a dip-buying opportunity during the correction, focusing on quality names.",
+      "summary": "Creator recommends buying Amazon at $183 as a dip-buying opportunity during the market correction, focusing on quality names.",
       "onScreenPrice": 183,
       "spark": [
         199.3,
@@ -7860,7 +7801,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Google near 260",
-      "summary": "Creator recommends buying Google at around $260 as a dip-buying opportunity during the correction, focusing on quality names.",
+      "summary": "Creator recommends buying Google near $260 as a dip-buying opportunity during the market correction, focusing on quality names.",
       "onScreenPrice": 260,
       "spark": [
         274.3,
@@ -7919,7 +7860,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Micron I already started adding slowly at the current levels",
-      "summary": "Creator is already adding to Micron at current levels as a dip-buying opportunity during the correction, focusing on quality names.",
+      "summary": "Creator is already adding to Micron at current levels as a dip-buying opportunity during the market correction, focusing on quality names.",
       "onScreenPrice": null,
       "spark": [
         357.2,
@@ -7978,7 +7919,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "AMD in the 194 to 187 range",
-      "summary": "Creator recommends buying AMD in the $194 to $187 range as a dip-buying opportunity during the correction, focusing on quality names.",
+      "summary": "Creator recommends buying AMD in the $194 to $187 range as a dip-buying opportunity during the market correction, focusing on quality names.",
       "onScreenPrice": null,
       "spark": [
         202,
@@ -8271,7 +8212,7 @@
       "ticker": "AAOI",
       "company": "Applied Optoelectronics",
       "isFirstCall": false,
-      "conviction": 0.5,
+      "conviction": 0.8,
       "quote": "Number five is AAOI. This is one of the smaller AI infrastructure plays.",
       "summary": "AAOI is a small AI infrastructure play making optical transceivers for data centers, with 800G products expected to drive revenue in 2026.",
       "onScreenPrice": null,
@@ -8311,9 +8252,9 @@
       "ticker": "ASTS",
       "company": "AST SpaceMobile",
       "isFirstCall": false,
-      "conviction": 0.6,
+      "conviction": 0.8,
       "quote": "Number four is ASTS. This is one of the higher risk, high reward plays in space sector.",
-      "summary": "ASTS is a high-risk space sector play aiming to provide direct-to-cell satellite connectivity.",
+      "summary": "ASTS is a high-risk space play aiming for direct-to-cell satellite connectivity.",
       "onScreenPrice": null,
       "spark": [
         73.19,
@@ -8351,10 +8292,10 @@
       "ticker": "NOW",
       "company": "ServiceNow",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "Number three is ServiceNow. A lot of people think AI will only benefit chip companies but software companies are winning too.",
-      "summary": "ServiceNow's AI products are growing fast, with management raising 2026 AI revenue targets to $1.5 billion.",
-      "onScreenPrice": null,
+      "summary": "ServiceNow's AI products are growing fast, with raised AI revenue targets for 2026.",
+      "onScreenPrice": 95.12,
       "spark": [
         93.01,
         95.94,
@@ -8393,7 +8334,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Number 2 is Microsoft. Probably one of the safest long term AI bets.",
-      "summary": "Microsoft is a safe long-term AI bet with Azure growth and OpenAI integration driving strong earnings.",
+      "summary": "Microsoft is a safe long-term AI bet with Azure growth and OpenAI integration.",
       "onScreenPrice": null,
       "spark": [
         367.3,
@@ -8431,9 +8372,9 @@
       "ticker": "META",
       "company": "Meta Platforms",
       "isFirstCall": false,
-      "conviction": 0.9,
+      "conviction": 0.8,
       "quote": "Number one is Meta. Meta is quietly becoming one of the biggest AI monetization stories in the market.",
-      "summary": "Meta is monetizing AI through advertising and investing in AI infrastructure and recommendation systems.",
+      "summary": "Meta is monetizing AI through advertising and investing in AI infrastructure.",
       "onScreenPrice": null,
       "spark": [
         563.8,
@@ -8944,8 +8885,8 @@
       "company": "Nebius",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "Nebius could 10x in the next 10 years.",
-      "summary": "The post is bullish on Nebius, an AI infrastructure company, citing massive contracts and revenue growth, but notes high risk and plans to buy on dips.",
+      "quote": "If this breaks, the next real cushion is down in the mid seventies. That's exactly where I would buy my second dip.",
+      "summary": "The creator is bullish on Nebius as an AI infrastructure play, citing massive contracts and revenue growth, and recommends buying the dip around mid-70s.",
       "onScreenPrice": null,
       "spark": [
         85.98,
@@ -9299,7 +9240,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Second is Robinhood, which is benefiting from higher trading activity, options growth, expanding into crypto, retirement accounts, and now prediction markets.",
-      "summary": "Creator recommends buying Robinhood, citing benefits from higher trading activity, options growth, and expansion into crypto and prediction markets.",
+      "summary": "Creator recommends buying Robinhood, citing benefits from higher trading activity, options growth, crypto, retirement accounts, and prediction markets.",
       "onScreenPrice": null,
       "spark": [
         75.85,
@@ -9356,9 +9297,9 @@
       "ticker": "CUPPF",
       "company": "Super Copper",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "CUPPF for US investors and CUPR for Canadian investors.",
-      "summary": "The post promotes Super Copper Corp as a copper explorer in Chile, citing high-grade samples and a funded drill program, driven by a projected copper deficit from AI demand.",
+      "conviction": 0.9,
+      "quote": "CUPPF for US investors",
+      "summary": "Promotes Super Copper Corp as a copper explorer in Chile with high-grade samples and upcoming drill program, benefiting from copper deficit driven by AI demand.",
       "onScreenPrice": null,
       "spark": [
         0.5134,
@@ -9415,9 +9356,9 @@
       "ticker": "CUPR",
       "company": "Cuprina Holdings (Cayman)",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "CUPPF for US investors and CUPR for Canadian investors.",
-      "summary": "The post promotes Super Copper Corp as a copper explorer in Chile, citing high-grade samples and a funded drill program, driven by a projected copper deficit from AI demand.",
+      "conviction": 0.9,
+      "quote": "CUPR for Canadian investors",
+      "summary": "Promotes Super Copper Corp as a copper explorer in Chile with high-grade samples and upcoming drill program, benefiting from copper deficit driven by AI demand.",
       "onScreenPrice": null,
       "spark": [
         2.096,
@@ -9654,9 +9595,9 @@
       "ticker": "MSFT",
       "company": "Microsoft",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "Microsoft now and at 347",
-      "summary": "The creator is buying Microsoft at current levels and at $347 as a priority buy during the market correction.",
+      "summary": "The creator is buying Microsoft at current levels and at $347 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         359,
@@ -9713,9 +9654,9 @@
       "ticker": "META",
       "company": "Meta Platforms",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "Meta now",
-      "summary": "The creator is buying Meta at current levels as a priority buy during the market correction.",
+      "summary": "The creator is buying Meta at current levels as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         536.4,
@@ -9772,9 +9713,9 @@
       "ticker": "MU",
       "company": "Micron Technology",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "MU now, 341 and 272",
-      "summary": "The creator is buying MU at current levels and at $341 and $272 as a priority buy during the market correction.",
+      "summary": "The creator is buying Micron at current levels and at $341 and $272 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         321.8,
@@ -9831,9 +9772,9 @@
       "ticker": "TSM",
       "company": "Taiwan Semiconductor Manufacturing Company",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "TSM at 290",
-      "summary": "The creator is buying TSM at $290 as a priority buy during the market correction.",
+      "summary": "The creator is buying TSM at $290 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         316.5,
@@ -9890,9 +9831,9 @@
       "ticker": "AAPL",
       "company": "Apple",
       "isFirstCall": true,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "Apple at 230",
-      "summary": "The creator is buying Apple at $230 as a priority buy during the market correction.",
+      "summary": "The creator is buying Apple at $230 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         246.6,
@@ -9949,9 +9890,9 @@
       "ticker": "AVGO",
       "company": "Broadcom",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "Broadcom at 268",
-      "summary": "The creator is buying Broadcom at $268 as a priority buy during the market correction.",
+      "summary": "The creator is buying Broadcom at $268 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         293.4,
@@ -10008,9 +9949,9 @@
       "ticker": "LITE",
       "company": "Lumentum",
       "isFirstCall": true,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "Lumentum at 600 and 500",
-      "summary": "The creator is buying Lumentum at $600 and $500 as a priority buy during the market correction.",
+      "summary": "The creator is buying Lumentum at $600 and $500 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         654.8,
@@ -10067,9 +10008,9 @@
       "ticker": "TSLA",
       "company": "Tesla",
       "isFirstCall": true,
-      "conviction": 0.6,
+      "conviction": 0.5,
       "quote": "possibly Tesla at 344 and 290",
-      "summary": "The creator is possibly buying Tesla at $344 and $290 as a priority buy during the market correction.",
+      "summary": "The creator is possibly buying Tesla at $344 and $290 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         355.3,
@@ -10126,9 +10067,9 @@
       "ticker": "RKLB",
       "company": "Rocket Lab",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "Rocket Lab at 54",
-      "summary": "The creator is buying Rocket Lab at $54 as a priority buy during the market correction.",
+      "summary": "The creator is buying Rocket Lab at $54 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         57.38,
@@ -10185,9 +10126,9 @@
       "ticker": "NBIS",
       "company": "Nebius",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "Nebius at 92 and 86",
-      "summary": "The creator is buying Nebius at $92 and $86 as a priority buy during the market correction.",
+      "summary": "The creator is buying Nebius at $92 and $86 as a priority buy.",
       "onScreenPrice": null,
       "spark": [
         92.26,
@@ -10954,7 +10895,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "averaging out at these prices is great... buying it at these prices definitely makes sense for the long term.",
-      "summary": "Creator recommends buying Meta after a 7% drop due to capex guidance, citing strong revenue growth and long-term value.",
+      "summary": "The creator recommends buying Meta after a 7% drop due to capex guidance, citing strong revenue growth and long-term value.",
       "onScreenPrice": null,
       "spark": [
         669.1,
@@ -11072,7 +11013,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "At number one is SoFi Technologies. SoFi is a high growth fintech expanding beyond lending into banking, investing and credit cards. As rates stabilize, improving profitability and user growth could drive strong upsides.",
-      "summary": "The creator recommends buying SoFi Technologies, citing its high growth fintech business and potential for strong upside as rates stabilize.",
+      "summary": "The creator recommends buying SoFi Technologies, citing its high growth fintech expansion and potential for strong upsides as rates stabilize.",
       "onScreenPrice": null,
       "spark": [
         26.29,
@@ -11131,7 +11072,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "At number two is my favorite 10x play, the Nebias Growth. Nebias is an AI infrastructure and GPU cloud play benefiting directly from exploding demand for AI compute. It's a small cap AI stock with momentum that can outperform during risk on rallies.",
-      "summary": "The creator recommends buying Nebias Growth as a 10x play, highlighting its AI infrastructure and GPU cloud focus with strong momentum.",
+      "summary": "The creator recommends buying Nebias Growth as a 10x AI infrastructure play benefiting from AI compute demand.",
       "onScreenPrice": null,
       "spark": [
         78.09,
@@ -11190,7 +11131,7 @@
       "isFirstCall": false,
       "conviction": 0.6,
       "quote": "I am almost 25% cash and only bought some memory stocks like Micron and the memory ETF DRAM.",
-      "summary": "The creator bought Micron during a dip, noting that every memory dip gets bought.",
+      "summary": "The creator bought Micron during a dip, noting that every memory dip gets bought and the stock recovered well.",
       "onScreenPrice": null,
       "spark": [
         766.6,
@@ -11248,8 +11189,8 @@
       "company": "Nebius",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "First, Nebius picker is NBIS.",
-      "summary": "Nebius (NBIS) is recommended as an aggressive AI infrastructure play, building data centers and renting engine room, with exponential revenue projections and major contracts.",
+      "quote": "Nebius gives you acceleration. Microsoft gives you durability.",
+      "summary": "Recommends NBIS as an aggressive AI infrastructure play with exponential revenue growth projections and major contracts.",
       "onScreenPrice": null,
       "spark": [
         101.8,
@@ -11307,8 +11248,8 @@
       "company": "Microsoft",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "And the second one, Dad? Microsoft, son.",
-      "summary": "Microsoft (MSFT) is recommended as a durable AI platform owner with Azure growth, large backlog, and attractive valuation.",
+      "quote": "Microsoft gives you durability.",
+      "summary": "Recommends MSFT as a durable AI platform play with strong Azure growth, massive backlog, and cash reserves.",
       "onScreenPrice": null,
       "spark": [
         399.6,
@@ -11365,9 +11306,9 @@
       "ticker": "FRSPF",
       "company": "First Phosphate",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "First Phosphate, Ticker PHOS in Canada and FRSPF in the US a company building a fully integrated mine to market LFP supply chain in the North America",
-      "summary": "The creator highlights First Phosphate as a key player in onshoring LFP battery supply chain, with government funding and increasing volume.",
+      "conviction": 0.7,
+      "quote": "this is one of those under the radar plays quietly positioning itself at the core of the next energy cycle",
+      "summary": "The creator is bullish on First Phosphate as an under-the-radar play in the LFP battery supply chain, highlighting its integrated mine-to-market strategy and recent government funding.",
       "onScreenPrice": null,
       "spark": [
         0.7004,
@@ -11426,7 +11367,7 @@
       "isFirstCall": true,
       "conviction": 0.6,
       "quote": "I'm still building a small position now, less than 1% of my portfolio. And I will add more if the price falls.",
-      "summary": "The creator is bullish on ServiceNow, citing its wide moat, strong AI revenue growth, and undervaluation, and is building a small position with plans to add on dips.",
+      "summary": "The creator is bullish on ServiceNow, citing its wide moat, AI revenue growth, and undervaluation, and is building a small position.",
       "onScreenPrice": null,
       "spark": [
         90.45,
@@ -11721,7 +11662,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "I started fresh 2x leverage positions in Oracle",
-      "summary": "The creator started a 2x leveraged position in Oracle, citing oversold conditions and quality company.",
+      "summary": "Creator started a 2x leveraged long position in Oracle, citing oversold conditions and quality company.",
       "onScreenPrice": null,
       "spark": [
         156.5,
@@ -11780,7 +11721,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "I started fresh 2x leverage positions in Robinhood",
-      "summary": "The creator started a 2x leveraged position in Robinhood, citing oversold conditions and quality company.",
+      "summary": "Creator started a 2x leveraged long position in Robinhood, citing oversold conditions.",
       "onScreenPrice": null,
       "spark": [
         75.65,
@@ -11839,7 +11780,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "I started fresh 2x leverage positions in Netflix",
-      "summary": "The creator started a 2x leveraged position in Netflix, citing oversold conditions and quality company.",
+      "summary": "Creator started a 2x leveraged long position in Netflix, citing oversold conditions.",
       "onScreenPrice": null,
       "spark": [
         77,
@@ -11897,8 +11838,8 @@
       "company": "Nebius",
       "isFirstCall": false,
       "conviction": 0.6,
-      "quote": "I also bought Nebius during the recent dip, the 2x leveraged for quick swings",
-      "summary": "The creator bought Nebius on the dip as a tactical 2x leveraged swing trade.",
+      "quote": "I also bought Nebius during the recent dip, the 2x leveraged for quick swings.",
+      "summary": "Creator bought Nebius on the dip with 2x leverage for a quick swing trade.",
       "onScreenPrice": null,
       "spark": [
         107.6,
@@ -11955,9 +11896,9 @@
       "ticker": "AMZN",
       "company": "Amazon.com",
       "isFirstCall": false,
-      "conviction": 0.7,
-      "quote": "Amazon, which I sold before the recent earnings, but I'm re-entering on this pullback.",
-      "summary": "The creator is re-entering Amazon after a pullback, having sold before earnings.",
+      "conviction": 0.8,
+      "quote": "I sold before the recent earnings, but I'm re-entering on this pullback.",
+      "summary": "Creator is re-entering Amazon after selling before earnings, buying the pullback.",
       "onScreenPrice": null,
       "spark": [
         204.9,
@@ -12015,8 +11956,8 @@
       "company": "Meta Platforms",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "Meta, which I was very heavily invested since 6 months. I took the profits after recent earnings, now I'm building again after last week's pullback.",
-      "summary": "The creator is building a position in Meta again after taking profits post-earnings.",
+      "quote": "I was very heavily invested since 6 months. I took the profits after recent earnings, now I'm building again after last week's pullback.",
+      "summary": "Creator is rebuilding a position in Meta after taking profits, buying the pullback.",
       "onScreenPrice": null,
       "spark": [
         644.8,
@@ -12075,7 +12016,7 @@
       "isFirstCall": false,
       "conviction": 1,
       "quote": "my biggest conviction, my biggest position right now is Microsoft. I'm aggressively adding from profits I've made elsewhere.",
-      "summary": "The creator's largest position is Microsoft, aggressively adding shares due to AI infrastructure conviction.",
+      "summary": "Creator's biggest conviction is Microsoft, aggressively adding shares and 2x leveraged MSFL.",
       "onScreenPrice": null,
       "spark": [
         398.5,
@@ -12123,65 +12064,6 @@
           "stock": -0.06397126632787353,
           "spy": 0.06502748222839672,
           "excess": -0.12899874855627025
-        }
-      }
-    },
-    {
-      "shortcode": "DQ-GlPWj-33",
-      "postDate": "2025-11-12",
-      "ticker": "CRWV",
-      "company": "CoreWeave",
-      "isFirstCall": true,
-      "conviction": 0.6,
-      "quote": "I actually took a small position in this talk with an average of$88.5 dollars, cause I believe Corviv could be the next big player in AI.",
-      "summary": "The creator is bullish on CoreWeave, an AI cloud company renting NVIDIA GPUs, citing large deals with OpenAI and Meta, but notes high risk and volatility. They have a small position at $88.5.",
-      "onScreenPrice": null,
-      "spark": [
-        85.43,
-        71.65,
-        76.03,
-        87.38,
-        84.83,
-        71.61,
-        89.93,
-        91.79,
-        88.94,
-        95.11,
-        89.25,
-        73.78,
-        81.96,
-        81.47,
-        77.47,
-        92,
-        117.4,
-        114.2,
-        114.2,
-        103.8,
-        106.9,
-        102.4,
-        117,
-        96.58
-      ],
-      "returns": {
-        "1w": {
-          "stock": -0.12302472314978696,
-          "spy": -0.030363779817582204,
-          "excess": -0.09266094333220476
-        },
-        "1m": {
-          "stock": -0.080065596896302,
-          "spy": -0.00237056265271518,
-          "excess": -0.07769503424358681
-        },
-        "3m": {
-          "stock": 0.11330914515505763,
-          "spy": 0.012789356100452176,
-          "excess": 0.10051978905460546
-        },
-        "toDate": {
-          "stock": 0.13051622949840236,
-          "spy": 0.06674176157580702,
-          "excess": 0.06377446792259533
         }
       }
     },
@@ -12311,7 +12193,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "Second is Global Foundries, $375 million. They manufacture the specialized chips needed for quantum machines.",
-      "summary": "Global Foundries received $375 million to manufacture specialized chips for quantum hardware.",
+      "summary": "Global Foundries got $375 million to manufacture specialized chips for quantum hardware.",
       "onScreenPrice": null,
       "spark": [
         85.64,
@@ -12429,7 +12311,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "4th, RGTI, $100 million. It's building superconducting quantum processors. It's basically trying to become the Nvidia of quantum chips.",
-      "summary": "RGTI received $100 million to build superconducting quantum processors, aiming to lead quantum chips.",
+      "summary": "RGTI got $100 million to build superconducting quantum processors, aiming to lead quantum chips.",
       "onScreenPrice": null,
       "spark": [
         26.42,
@@ -12723,8 +12605,8 @@
       "company": "Robinhood Markets",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "At number 1 I have Robin Hood. They had pretty good earnings but proceeded to dump with the rest of the market. I'm looking for any entry between 100 to 125 dollars.",
-      "summary": "Creator recommends buying Robinhood after a dip, targeting entry between $100 and $125.",
+      "quote": "I'm looking for any entry between 100 to 125 dollars.",
+      "summary": "The creator recommends buying Robinhood on dips, targeting entries between $100 and $125, citing strong earnings but market weakness.",
       "onScreenPrice": null,
       "spark": [
         130.4,
@@ -12778,71 +12660,12 @@
     {
       "shortcode": "DQxMxvGj5Rf",
       "postDate": "2025-11-07",
-      "ticker": "META",
-      "company": "Meta Platforms",
-      "isFirstCall": false,
-      "conviction": 0.6,
-      "quote": "At number two I have Meta I've been talking about this stock for a very long time which is on a huge discount due to one time tax charge and high AI capex spending but it's one of the Mac 7 stocks which has been printing money like crazy. I do see it going all the way down to 580 and below 600 for sure. So I will be patient for my new entries with this one.",
-      "summary": "Creator sees Meta as a discount due to one-time charges and high AI spending, plans to buy below $600.",
-      "onScreenPrice": null,
-      "spark": [
-        621.7,
-        597.7,
-        648,
-        666.8,
-        649.5,
-        658.7,
-        646.1,
-        604.1,
-        738.3,
-        661.5,
-        643.2,
-        648.2,
-        654.1,
-        606.7,
-        536.4,
-        612.4,
-        688.5,
-        671.3,
-        616.8,
-        611.2,
-        635.3,
-        593,
-        600.2,
-        550.3
-      ],
-      "returns": {
-        "1w": {
-          "stock": -0.019703719687727328,
-          "spy": 0.0014307972257687762,
-          "excess": -0.021134516913496104
-        },
-        "1m": {
-          "stock": 0.07252571814307296,
-          "spy": 0.0188682574965624,
-          "excess": 0.05365746064651056
-        },
-        "3m": {
-          "stock": 0.07801064529426727,
-          "spy": 0.009911061156870904,
-          "excess": 0.06809958413739636
-        },
-        "toDate": {
-          "stock": -0.11494108096555533,
-          "spy": 0.08647185725830542,
-          "excess": -0.20141293822386075
-        }
-      }
-    },
-    {
-      "shortcode": "DQxMxvGj5Rf",
-      "postDate": "2025-11-07",
       "ticker": "NBIS",
       "company": "Nebius",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "At number 3 I have Nebbius Grow which I highly believe would 10x in the next 10 years. I would buy a few more shares the moment it goes below$105.",
-      "summary": "Creator is highly bullish on Nebius Group, expecting a 10x return over 10 years, and plans to buy below $105.",
+      "quote": "I would buy a few more shares the moment it goes below$105.",
+      "summary": "The creator has high conviction that Nebbius Grow will 10x in 10 years and plans to buy more shares below $105.",
       "onScreenPrice": null,
       "spark": [
         111.3,
@@ -12900,8 +12723,8 @@
       "company": "Shopify",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "At number 4 I have Shopify. It's an e-commerce giant with merchant solutions with sticky subs. My plan would be to add some within the 145 to 150 dollar range. If the market stays soft, the next spot I like would be 138 to 135.",
-      "summary": "Creator recommends adding Shopify in the $145-$150 range, with a lower target of $138-$135 if market softens.",
+      "quote": "My plan would be to add some within the 145 to 150 dollar range.",
+      "summary": "The creator is bullish on Shopify as an e-commerce giant with AI tools and plans to add positions in the $145-$150 range.",
       "onScreenPrice": null,
       "spark": [
         152.4,
@@ -13013,23 +12836,23 @@
     }
   ],
   "scorecard": {
-    "totalCalls": 229,
-    "uniqueTickers": 73,
+    "totalCalls": 226,
+    "uniqueTickers": 72,
     "hitRate": {
-      "1m": 0.4576271186440678,
-      "3m": 0.55
+      "1m": 0.46551724137931033,
+      "3m": 0.5384615384615384
     },
     "hitRateN": {
-      "1m": 59,
-      "3m": 40
+      "1m": 58,
+      "3m": 39
     },
     "avgExcess": {
-      "1w": 0.012120017917511532,
-      "1m": 0.021288009354670602,
-      "3m": 0.07462841362889652,
-      "toDate": 0.07658251525514691
+      "1w": 0.013575309045979813,
+      "1m": 0.022994613554640556,
+      "3m": 0.07396453220772449,
+      "toDate": 0.07676040480143236
     },
-    "callsPerWeek": 2.2314410480349345,
+    "callsPerWeek": 2.2008733624454146,
     "best": [
       {
         "shortcode": "DR0dHySj_Zm",
@@ -13096,9 +12919,9 @@
         "ticker": "CUPR",
         "company": "Cuprina Holdings (Cayman)",
         "isFirstCall": true,
-        "conviction": 0.8,
-        "quote": "CUPPF for US investors and CUPR for Canadian investors.",
-        "summary": "The post promotes Super Copper Corp as a copper explorer in Chile, citing high-grade samples and a funded drill program, driven by a projected copper deficit from AI demand.",
+        "conviction": 0.9,
+        "quote": "CUPR for Canadian investors",
+        "summary": "Promotes Super Copper Corp as a copper explorer in Chile with high-grade samples and upcoming drill program, benefiting from copper deficit driven by AI demand.",
         "onScreenPrice": null,
         "spark": [
           2.096,
@@ -13334,9 +13157,9 @@
         "ticker": "ORCL",
         "company": "Oracle",
         "isFirstCall": true,
-        "conviction": 0.9,
-        "quote": "Oracle, one of the least hyped stocks but the most essential player in AI bookspace. They're building the AI infrastructure everyone else runs on. Their cloud hosts NVIDIA's AI workloads and massive enterprise data. Revenue is climbing fast and analysts have set price targets for $350 with a 33% upside.",
-        "summary": "The creator recommends buying Oracle as a key AI infrastructure player with strong revenue growth and analyst price target of $350.",
+        "conviction": 0.8,
+        "quote": "Oracle, one of the least hyped stocks but the most essential player in AI bookspace. They're building the AI infrastructure everyone else runs on. Their cloud hosts NVIDIA's AI workloads and massive enterprise data. Revenue is climbing fast and analysts have set price targets for$350 with a 33% upside.",
+        "summary": "The creator recommends buying Oracle (ORCL) as a key AI infrastructure player with strong revenue growth and analyst price target of $350.",
         "onScreenPrice": null,
         "spark": [
           257.9,
@@ -13395,7 +13218,7 @@
         "isFirstCall": true,
         "conviction": 0.9,
         "quote": "At number one is SoFi Technologies. SoFi is a high growth fintech expanding beyond lending into banking, investing and credit cards. As rates stabilize, improving profitability and user growth could drive strong upsides.",
-        "summary": "The creator recommends buying SoFi Technologies, citing its high growth fintech business and potential for strong upside as rates stabilize.",
+        "summary": "The creator recommends buying SoFi Technologies, citing its high growth fintech expansion and potential for strong upsides as rates stabilize.",
         "onScreenPrice": null,
         "spark": [
           26.29,
@@ -13452,9 +13275,9 @@
         "ticker": "CUPPF",
         "company": "Super Copper",
         "isFirstCall": true,
-        "conviction": 0.8,
-        "quote": "CUPPF for US investors and CUPR for Canadian investors.",
-        "summary": "The post promotes Super Copper Corp as a copper explorer in Chile, citing high-grade samples and a funded drill program, driven by a projected copper deficit from AI demand.",
+        "conviction": 0.9,
+        "quote": "CUPPF for US investors",
+        "summary": "Promotes Super Copper Corp as a copper explorer in Chile with high-grade samples and upcoming drill program, benefiting from copper deficit driven by AI demand.",
         "onScreenPrice": null,
         "spark": [
           0.5134,
@@ -13627,23 +13450,23 @@
     "funnel": [
       {
         "label": "Reels (12mo)",
-        "value": 63
+        "value": 0
       },
       {
         "label": "Named a stock",
-        "value": 297
+        "value": 303
       },
       {
         "label": "Bullish buy call",
-        "value": 229
+        "value": 226
       },
       {
         "label": "First call (unique ticker)",
-        "value": 73
+        "value": 72
       },
       {
         "label": "Beat SPY (to date)",
-        "value": 32
+        "value": 31
       }
     ],
     "cumExcess": [
@@ -13685,327 +13508,327 @@
       },
       {
         "t": "2025-11-13",
-        "v": -0.0747
+        "v": -0.0753
       },
       {
         "t": "2025-11-17",
-        "v": -0.0833
+        "v": -0.0827
       },
       {
         "t": "2025-11-19",
-        "v": -0.0856
+        "v": -0.0851
       },
       {
         "t": "2025-11-21",
-        "v": -0.1169
+        "v": -0.1162
       },
       {
         "t": "2025-11-25",
-        "v": -0.0884
+        "v": -0.0846
       },
       {
         "t": "2025-11-28",
-        "v": -0.0697
+        "v": -0.0656
       },
       {
         "t": "2025-12-02",
-        "v": -0.0667
+        "v": -0.0645
       },
       {
         "t": "2025-12-04",
-        "v": -0.0484
+        "v": -0.0511
       },
       {
         "t": "2025-12-05",
-        "v": -0.0492
+        "v": -0.0534
       },
       {
         "t": "2025-12-09",
-        "v": -0.0342
+        "v": -0.0393
       },
       {
         "t": "2025-12-11",
-        "v": -0.0527
+        "v": -0.0562
       },
       {
         "t": "2025-12-15",
-        "v": -0.0904
+        "v": -0.0873
       },
       {
         "t": "2025-12-17",
-        "v": -0.0895
+        "v": -0.083
       },
       {
         "t": "2025-12-19",
-        "v": -0.0525
+        "v": -0.0537
       },
       {
         "t": "2025-12-23",
-        "v": -0.053
+        "v": -0.0523
       },
       {
         "t": "2025-12-26",
-        "v": -0.0474
+        "v": -0.0445
       },
       {
         "t": "2025-12-30",
-        "v": -0.044
+        "v": -0.0404
       },
       {
         "t": "2026-01-02",
-        "v": -0.0184
+        "v": -0.0165
       },
       {
         "t": "2026-01-06",
-        "v": -0.0041
+        "v": -0.0008
       },
       {
         "t": "2026-01-07",
-        "v": -0.0083
+        "v": -0.0049
       },
       {
         "t": "2026-01-09",
-        "v": -0.0014
+        "v": 0.0012
       },
       {
         "t": "2026-01-13",
-        "v": 0.0245
+        "v": 0.0251
       },
       {
         "t": "2026-01-15",
-        "v": 0.0255
+        "v": 0.0229
       },
       {
         "t": "2026-01-20",
-        "v": 0.0396
+        "v": 0.0367
       },
       {
         "t": "2026-01-22",
-        "v": 0.0354
+        "v": 0.0344
       },
       {
         "t": "2026-01-26",
-        "v": 0.0359
+        "v": 0.0324
       },
       {
         "t": "2026-01-28",
-        "v": 0.0689
-      },
-      {
-        "t": "2026-01-30",
-        "v": 0.022
-      },
-      {
-        "t": "2026-02-03",
-        "v": 0.0375
-      },
-      {
-        "t": "2026-02-05",
-        "v": -0.0225
-      },
-      {
-        "t": "2026-02-06",
-        "v": -0.001
-      },
-      {
-        "t": "2026-02-10",
-        "v": 0.0168
-      },
-      {
-        "t": "2026-02-12",
-        "v": 0.0141
-      },
-      {
-        "t": "2026-02-17",
-        "v": 0.0044
-      },
-      {
-        "t": "2026-02-19",
-        "v": 0.0236
-      },
-      {
-        "t": "2026-02-23",
-        "v": 0.0204
-      },
-      {
-        "t": "2026-02-25",
-        "v": 0.0372
-      },
-      {
-        "t": "2026-02-27",
-        "v": 0.0269
-      },
-      {
-        "t": "2026-03-03",
-        "v": 0.0197
-      },
-      {
-        "t": "2026-03-05",
-        "v": 0.023
-      },
-      {
-        "t": "2026-03-09",
-        "v": 0.023
-      },
-      {
-        "t": "2026-03-11",
-        "v": 0.0435
-      },
-      {
-        "t": "2026-03-12",
-        "v": 0.0422
-      },
-      {
-        "t": "2026-03-16",
-        "v": 0.0564
-      },
-      {
-        "t": "2026-03-18",
-        "v": 0.0514
-      },
-      {
-        "t": "2026-03-20",
-        "v": 0.0391
-      },
-      {
-        "t": "2026-03-24",
-        "v": 0.05
-      },
-      {
-        "t": "2026-03-26",
-        "v": 0.0339
-      },
-      {
-        "t": "2026-03-30",
-        "v": 0.0202
-      },
-      {
-        "t": "2026-04-01",
-        "v": 0.0529
-      },
-      {
-        "t": "2026-04-06",
         "v": 0.0636
       },
       {
+        "t": "2026-01-30",
+        "v": 0.0201
+      },
+      {
+        "t": "2026-02-03",
+        "v": 0.0372
+      },
+      {
+        "t": "2026-02-05",
+        "v": -0.0192
+      },
+      {
+        "t": "2026-02-06",
+        "v": -0.0025
+      },
+      {
+        "t": "2026-02-10",
+        "v": 0.014
+      },
+      {
+        "t": "2026-02-12",
+        "v": 0.0104
+      },
+      {
+        "t": "2026-02-17",
+        "v": 0.0024
+      },
+      {
+        "t": "2026-02-19",
+        "v": 0.0199
+      },
+      {
+        "t": "2026-02-23",
+        "v": 0.0189
+      },
+      {
+        "t": "2026-02-25",
+        "v": 0.034
+      },
+      {
+        "t": "2026-02-27",
+        "v": 0.0303
+      },
+      {
+        "t": "2026-03-03",
+        "v": 0.0247
+      },
+      {
+        "t": "2026-03-05",
+        "v": 0.0278
+      },
+      {
+        "t": "2026-03-09",
+        "v": 0.0275
+      },
+      {
+        "t": "2026-03-11",
+        "v": 0.0458
+      },
+      {
+        "t": "2026-03-12",
+        "v": 0.0447
+      },
+      {
+        "t": "2026-03-16",
+        "v": 0.0573
+      },
+      {
+        "t": "2026-03-18",
+        "v": 0.0528
+      },
+      {
+        "t": "2026-03-20",
+        "v": 0.0401
+      },
+      {
+        "t": "2026-03-24",
+        "v": 0.0509
+      },
+      {
+        "t": "2026-03-26",
+        "v": 0.0349
+      },
+      {
+        "t": "2026-03-30",
+        "v": 0.0237
+      },
+      {
+        "t": "2026-04-01",
+        "v": 0.0553
+      },
+      {
+        "t": "2026-04-06",
+        "v": 0.0656
+      },
+      {
         "t": "2026-04-08",
-        "v": 0.0823
+        "v": 0.0831
       },
       {
         "t": "2026-04-10",
-        "v": 0.0978
+        "v": 0.0952
       },
       {
         "t": "2026-04-13",
-        "v": 0.1127
+        "v": 0.1084
       },
       {
         "t": "2026-04-15",
-        "v": 0.1338
+        "v": 0.128
       },
       {
         "t": "2026-04-17",
-        "v": 0.1384
+        "v": 0.1337
       },
       {
         "t": "2026-04-21",
-        "v": 0.1251
+        "v": 0.1204
       },
       {
         "t": "2026-04-23",
-        "v": 0.1126
+        "v": 0.1072
       },
       {
         "t": "2026-04-27",
-        "v": 0.1109
+        "v": 0.1073
       },
       {
         "t": "2026-04-29",
-        "v": 0.0893
+        "v": 0.0845
       },
       {
         "t": "2026-05-01",
-        "v": 0.1217
+        "v": 0.1167
       },
       {
         "t": "2026-05-05",
-        "v": 0.1472
+        "v": 0.1405
       },
       {
         "t": "2026-05-07",
-        "v": 0.1393
+        "v": 0.1323
       },
       {
         "t": "2026-05-11",
-        "v": 0.1783
+        "v": 0.1765
       },
       {
         "t": "2026-05-12",
-        "v": 0.1672
+        "v": 0.1668
       },
       {
         "t": "2026-05-14",
-        "v": 0.1954
+        "v": 0.1944
       },
       {
         "t": "2026-05-18",
-        "v": 0.1505
+        "v": 0.1508
       },
       {
         "t": "2026-05-20",
-        "v": 0.1445
+        "v": 0.1454
       },
       {
         "t": "2026-05-22",
-        "v": 0.174
+        "v": 0.1746
       },
       {
         "t": "2026-05-27",
-        "v": 0.1697
+        "v": 0.1705
       },
       {
         "t": "2026-05-29",
-        "v": 0.1799
+        "v": 0.18
       },
       {
         "t": "2026-06-02",
-        "v": 0.234
+        "v": 0.2332
       },
       {
         "t": "2026-06-04",
-        "v": 0.1884
+        "v": 0.1889
       },
       {
         "t": "2026-06-08",
-        "v": 0.1107
+        "v": 0.1106
       },
       {
         "t": "2026-06-10",
-        "v": 0.0637
+        "v": 0.0638
       },
       {
         "t": "2026-06-11",
-        "v": 0.0946
+        "v": 0.0953
       },
       {
         "t": "2026-06-15",
-        "v": 0.1677
+        "v": 0.168
       },
       {
         "t": "2026-06-17",
-        "v": 0.1263
+        "v": 0.1244
       },
       {
         "t": "2026-06-22",
-        "v": 0.1455
+        "v": 0.1446
       },
       {
         "t": "2026-06-24",
-        "v": 0.0937
+        "v": 0.0935
       },
       {
         "t": "2026-06-26",
-        "v": 0.0766
+        "v": 0.0768
       }
     ]
   },
