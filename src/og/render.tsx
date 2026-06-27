@@ -29,6 +29,18 @@ export type OgCard =
       handle: string;
       excess3m: number | null;
       closes?: number[]; // symbol price series for the line-graph background
+    }
+  | {
+      // Cross-creator ticker card (the /t/<symbol> "all" view): creator-agnostic,
+      // so the byline reports creator/call counts instead of one creator's name.
+      kind: "ticker-all";
+      theme: OgTheme;
+      symbol: string;
+      company?: string;
+      creatorCount: number;
+      callCount: number;
+      avgExcess: number | null; // fraction — avg 3-month excess vs SPY across creators
+      closes?: number[]; // symbol price series for the line-graph background
     };
 
 // NOTE: resvg runs twice per render (background here, final card in renderOgPng)
@@ -182,6 +194,25 @@ function cardTree(card: OgCard, pal: OgPalette, bg: string): React.ReactElement 
       </Frame>
     );
   }
+  if (card.kind === "ticker-all") {
+    return (
+      <Frame pal={pal} bg={bg}>
+        <TopBar pal={pal} kicker="Across creators" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 20 }}>
+            <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 700, fontSize: 96, lineHeight: 1, color: pal.fg }}>{card.symbol}</div>
+            {card.company ? (
+              <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, lineHeight: 1, paddingBottom: 14, color: pal.fgMuted }}>{card.company}</div>
+            ) : null}
+          </div>
+          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 600, fontSize: 32, color: pal.fgMuted }}>
+            {card.creatorCount} creators · {card.callCount} calls
+          </div>
+        </div>
+        <Stat pal={pal} value={card.avgExcess} />
+      </Frame>
+    );
+  }
   return (
     <Frame pal={pal} bg={bg}>
       <TopBar pal={pal} kicker={`@${card.handle}`} />
@@ -208,17 +239,21 @@ export async function renderOgPng(card: OgCard): Promise<Buffer> {
         ? "changelog"
         : card.kind === "ticker"
           ? `${card.handle}:${card.symbol}` // separator avoids handle/symbol concat collisions
-          : card.handle;
+          : card.kind === "ticker-all"
+            ? `all:${card.symbol}`
+            : card.handle;
   // No-data ticker (null excess) renders neutral-positive (teal); Stat still shows "—".
   const up =
     card.kind === "creator"
       ? card.excess3m >= 0
       : card.kind === "ticker"
         ? (card.excess3m ?? 0) >= 0
-        : true;
+        : card.kind === "ticker-all"
+          ? (card.avgExcess ?? 0) >= 0
+          : true;
   // Line color tracks the 3m-excess sign (the card's hero stat), not raw price direction.
   const bgSvg =
-    card.kind === "ticker" && card.closes && card.closes.length > 0
+    (card.kind === "ticker" || card.kind === "ticker-all") && card.closes && card.closes.length > 0
       ? buildLineChartBackgroundSvg({
           closes: card.closes,
           up,

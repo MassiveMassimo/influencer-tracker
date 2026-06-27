@@ -23,6 +23,7 @@ import { Route as TSymbolCreatorRouteImport } from './routes/t.$symbol.$creator'
 import { Route as ApiPricesSymbolRouteImport } from './routes/api/prices.$symbol'
 import { Route as ApiDatasetHandleRouteImport } from './routes/api/dataset.$handle'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
+import { Route as ApiOgTSymbolRevRouteImport } from './routes/api/og/t.$symbol.$rev'
 import { Route as ApiOgCHandleRevRouteImport } from './routes/api/og/c.$handle.$rev'
 import { Route as ApiOgTHandleSymbolRevRouteImport } from './routes/api/og/t.$handle.$symbol.$rev'
 
@@ -96,6 +97,11 @@ const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
   path: '/ticker/$symbol',
   getParentRoute: () => CHandleRoute,
 } as any)
+const ApiOgTSymbolRevRoute = ApiOgTSymbolRevRouteImport.update({
+  id: '/api/og/t/$symbol/$rev',
+  path: '/api/og/t/$symbol/$rev',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOgCHandleRevRoute = ApiOgCHandleRevRouteImport.update({
   id: '/api/og/c/$handle/$rev',
   path: '/api/og/c/$handle/$rev',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/t/$symbol/': typeof TSymbolIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
   '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
+  '/api/og/t/$symbol/$rev': typeof ApiOgTSymbolRevRoute
   '/api/og/t/$handle/$symbol/$rev': typeof ApiOgTHandleSymbolRevRoute
 }
 export interface FileRoutesByTo {
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/t/$symbol': typeof TSymbolIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
   '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
+  '/api/og/t/$symbol/$rev': typeof ApiOgTSymbolRevRoute
   '/api/og/t/$handle/$symbol/$rev': typeof ApiOgTHandleSymbolRevRoute
 }
 export interface FileRoutesById {
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/t/$symbol/': typeof TSymbolIndexRoute
   '/c/$handle/ticker/$symbol': typeof CHandleTickerSymbolRoute
   '/api/og/c/$handle/$rev': typeof ApiOgCHandleRevRoute
+  '/api/og/t/$symbol/$rev': typeof ApiOgTSymbolRevRoute
   '/api/og/t/$handle/$symbol/$rev': typeof ApiOgTHandleSymbolRevRoute
 }
 export interface FileRouteTypes {
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/t/$symbol/'
     | '/c/$handle/ticker/$symbol'
     | '/api/og/c/$handle/$rev'
+    | '/api/og/t/$symbol/$rev'
     | '/api/og/t/$handle/$symbol/$rev'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/t/$symbol'
     | '/c/$handle/ticker/$symbol'
     | '/api/og/c/$handle/$rev'
+    | '/api/og/t/$symbol/$rev'
     | '/api/og/t/$handle/$symbol/$rev'
   id:
     | '__root__'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/t/$symbol/'
     | '/c/$handle/ticker/$symbol'
     | '/api/og/c/$handle/$rev'
+    | '/api/og/t/$symbol/$rev'
     | '/api/og/t/$handle/$symbol/$rev'
   fileRoutesById: FileRoutesById
 }
@@ -231,6 +243,7 @@ export interface RootRouteChildren {
   TSymbolCreatorRoute: typeof TSymbolCreatorRoute
   TSymbolIndexRoute: typeof TSymbolIndexRoute
   ApiOgCHandleRevRoute: typeof ApiOgCHandleRevRoute
+  ApiOgTSymbolRevRoute: typeof ApiOgTSymbolRevRoute
   ApiOgTHandleSymbolRevRoute: typeof ApiOgTHandleSymbolRevRoute
 }
 
@@ -334,6 +347,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CHandleTickerSymbolRouteImport
       parentRoute: typeof CHandleRoute
     }
+    '/api/og/t/$symbol/$rev': {
+      id: '/api/og/t/$symbol/$rev'
+      path: '/api/og/t/$symbol/$rev'
+      fullPath: '/api/og/t/$symbol/$rev'
+      preLoaderRoute: typeof ApiOgTSymbolRevRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/og/c/$handle/$rev': {
       id: '/api/og/c/$handle/$rev'
       path: '/api/og/c/$handle/$rev'
@@ -378,6 +398,7 @@ const rootRouteChildren: RootRouteChildren = {
   TSymbolCreatorRoute: TSymbolCreatorRoute,
   TSymbolIndexRoute: TSymbolIndexRoute,
   ApiOgCHandleRevRoute: ApiOgCHandleRevRoute,
+  ApiOgTSymbolRevRoute: ApiOgTSymbolRevRoute,
   ApiOgTHandleSymbolRevRoute: ApiOgTHandleSymbolRevRoute,
 }
 export const routeTree = rootRouteImport
