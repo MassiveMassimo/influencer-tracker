@@ -1,0 +1,7 @@
+{
+  "$schema": "https://oxc.rs/schemas/oxfmtrc.json",
+  "sortTailwindcss": {
+    "stylesheet": "./src/styles.css",
+    "functions": ["cn", "clsx", "cva", "twMerge"]
+  }
+}
