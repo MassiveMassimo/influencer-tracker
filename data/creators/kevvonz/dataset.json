@@ -3,7 +3,7 @@
     "handle": "kevvonz",
     "name": "Kevin Hu"
   },
-  "generatedAt": "2026-06-30",
+  "generatedAt": "2026-07-01",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -12,35 +12,35 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "Hims and MD are tied for my largest positions... this completely clears the legal risk of being sued by big pharma, so it's a fantastic starting point.",
-      "summary": "The creator is bullish on HIMS due to a rumored partnership with Noval that clears legal risk, and it is one of his largest positions.",
+      "conviction": 0.8,
+      "quote": "Him stock is up 40% aftermarket today. ... This completely clears the legal risk of being sued by big pharma, so it's a fantastic starting point.",
+      "summary": "The creator is bullish on HIMS due to a rumored partnership with Noval that clears legal risk, and it is one of their largest positions.",
       "onScreenPrice": null,
       "spark": [
         22.16,
         23.84,
         23.15,
         22.46,
-        20.86,
+        19.38,
         19.84,
         19.5,
-        19.43,
+        21.15,
         26.99,
-        29.76,
-        30.56,
+        29.01,
+        29.39,
         27.17,
-        26.33,
+        26.88,
         29.14,
         24.24,
-        22.44,
+        23.04,
         23.85,
-        26.15,
-        27.51,
+        27.76,
+        28.01,
         28.98,
-        26.82,
-        31.89,
-        32.7,
-        33.39
+        30.17,
+        35.47,
+        32.71,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -59,9 +59,9 @@
           "excess": 0.09446046384653717
         },
         "toDate": {
-          "stock": 0.5067689359008634,
-          "spy": 0.09248526200834073,
-          "excess": 0.41428367389252263
+          "stock": 0.5645306140646995,
+          "spy": 0.10099222732465774,
+          "excess": 0.4635383867400418
         }
       }
     },
@@ -71,35 +71,35 @@
       "ticker": "MD",
       "company": "Pediatrix Medical",
       "isFirstCall": true,
-      "conviction": 0.8,
+      "conviction": 0.6,
       "quote": "Hims and MD are tied for my largest positions",
-      "summary": "The creator holds MD as one of his largest positions, indicating a bullish view.",
+      "summary": "The creator states MD is tied for their largest positions, indicating a current long position.",
       "onScreenPrice": null,
       "spark": [
         20.1,
         19.46,
         19.83,
         20.6,
-        20.98,
+        20.5,
         20.7,
         21.74,
-        21.45,
+        21.81,
         22.21,
-        22.88,
-        23.04,
+        22.85,
+        23.39,
         22.51,
-        20.83,
+        22.21,
         23.37,
         23.48,
-        23.01,
+        22.47,
         21.56,
-        21.54,
-        21.84,
+        21.62,
+        22.37,
         23.66,
-        24.3,
-        23.55,
-        24.22,
-        24.69
+        24.37,
+        23.61,
+        24.11,
+        25.33
       ],
       "returns": {
         "1w": {
@@ -118,9 +118,9 @@
           "excess": 0.03747685674006074
         },
         "toDate": {
-          "stock": 0.22835821221274366,
-          "spy": 0.09248526200834073,
-          "excess": 0.13587295020440293
+          "stock": 0.26019897726260166,
+          "spy": 0.10099222732465774,
+          "excess": 0.15920674993794393
         }
       }
     },
@@ -130,9 +130,9 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.7,
-      "quote": "HIMS is down 23%! OMG! Kevans, what do I do? Do I sell? Relax! ... The only time I will sell my position is if the fundamentals in the company have changed and I have a more bearish outlook on the vision for the future.",
-      "summary": "The creator advises holding HIMS despite a 23% drop after an earnings miss, citing long-term investing and personal risk tolerance.",
+      "conviction": 0.9,
+      "quote": "HIMS is down 23%! ... Don't be a donkey and panic sell for no reason.",
+      "summary": "The creator advises holding HIMS despite a 23% drop, citing long-term investing and fundamental soundness.",
       "onScreenPrice": null,
       "spark": [
         59.15,
@@ -141,24 +141,24 @@
         36.26,
         39.76,
         37.88,
-        35.56,
+        35.05,
         33.41,
         31.32,
         30.28,
         23.48,
-        16.27,
+        15.84,
         14.52,
-        23.47,
-        22.02,
-        20.76,
-        21.15,
+        25.88,
+        22.46,
+        19.84,
+        21.36,
         28.15,
-        27.27,
-        24.24,
-        23.85,
-        26.19,
-        31.47,
-        33.39
+        26.33,
+        25.05,
+        25.2,
+        27.17,
+        31.89,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -177,9 +177,9 @@
           "excess": -0.515485385095708
         },
         "toDate": {
-          "stock": -0.43550298346078875,
-          "spy": 0.12163959731432006,
-          "excess": -0.5571425807751088
+          "stock": -0.41386310609346766,
+          "spy": 0.1303735816375684,
+          "excess": -0.5442366877310361
         }
       }
     },
@@ -191,7 +191,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I personally plan on holding for the long term because Nebius is a winner and I don't want to sell my winners.",
-      "summary": "Creator is bullish on Nebius, highlighting its AI cloud infrastructure and strong financials, and states a long-term hold position.",
+      "summary": "The creator is bullish on Nebius, highlighting its AI cloud infrastructure and strong financials, and plans to hold long-term.",
       "onScreenPrice": null,
       "spark": [
         264.5,
@@ -213,7 +213,8 @@
         259.7,
         256.6,
         240.3,
-        261.1
+        261.1,
+        276.2
       ],
       "returns": {
         "1w": {
@@ -232,9 +233,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": -0.012702792881516434,
-          "spy": -0.023123340279253557,
-          "excess": 0.010420547397737123
+          "stock": 0.04408152142310606,
+          "spy": -0.015516596141316952,
+          "excess": 0.059598117564423014
         }
       }
     },
@@ -244,9 +245,9 @@
       "ticker": "NOW",
       "company": "ServiceNow",
       "isFirstCall": false,
-      "conviction": 0.7,
-      "quote": "I decided to start my first position at $130... I'm still pulling the trigger because I usually never FOMO into stocks like this and my investing strategy is to buy the dips and accumulate when the prices are lower.",
-      "summary": "The creator started a position in ServiceNow at $130, buying the dip as the stock is down 43% from all-time highs, despite normally avoiding FOMO.",
+      "conviction": 0.6,
+      "quote": "I decided to start my first position at $130",
+      "summary": "The creator started a position in ServiceNow at $130, buying the dip despite chasing a pump, as the stock is still down 43% from all-time highs.",
       "onScreenPrice": null,
       "spark": [
         117.9,
@@ -266,7 +267,8 @@
         93.8,
         89.52,
         98.34,
-        99.97
+        99.97,
+        99.28
       ],
       "returns": {
         "1w": {
@@ -285,9 +287,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": -0.15207803285091703,
-          "spy": -0.0175540814671743,
-          "excess": -0.13452395138374273
+          "stock": -0.15793047078540512,
+          "spy": -0.00990397061922399,
+          "excess": -0.14802650016618113
         }
       }
     },
@@ -298,34 +300,34 @@
       "company": "Reddit",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "I just spent $6,000 on one brand new stock investment... that stock is Reddit, ticker RDDT.",
-      "summary": "The creator bought Reddit (RDDT) citing strong revenue growth, high gross margins, and low capex, while acknowledging bear case regarding Google search traffic dependency.",
+      "quote": "that stock is Reddit, ticker RDDT",
+      "summary": "The creator bought Reddit stock, citing strong revenue growth, high gross profit margin, and low capital expenditure, while acknowledging bear case related to Google search algorithm dependency.",
       "onScreenPrice": null,
       "spark": [
         150,
         141.7,
         144.6,
         154.2,
-        167.7,
         176,
+        177.9,
         169.1,
         169.5,
         183.9,
         173.4,
         171.1,
         178.1,
-        172.2,
         173.3,
         162.1,
         181.9,
         175.4,
         165.9,
+        175,
         170.4,
         165.6,
-        160.7,
         158,
         166.9,
-        174.4
+        174.4,
+        173.6
       ],
       "returns": {
         "1w": {
@@ -344,9 +346,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": 0.1622901039263518,
-          "spy": -0.002315772795898785,
-          "excess": 0.16460587672225058
+          "stock": 0.15689155957258705,
+          "spy": 0.005452995729051002,
+          "excess": 0.15143856384353604
         }
       }
     },
@@ -357,34 +359,34 @@
       "company": "IREN",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Iron is my favorite AI stock right now and it's carrying my portfolio. I had to press the buy button.",
-      "summary": "The creator is bullish on Iren (IREN) as a top AI stock, having bought it at a low and holding for long-term growth.",
+      "quote": "Iron is my favorite AI stock right now and it's carrying my portfolio.",
+      "summary": "The creator is bullish on Iren (IREN), considering it a top AI stock, and has a long-term investment with no plans to take profits.",
       "onScreenPrice": null,
       "spark": [
         57.82,
         52.36,
         53.08,
-        41.83,
+        46.15,
         42.22,
         42.36,
         41.39,
         38.84,
         44.94,
-        41.29,
-        35.09,
-        35.13,
+        42.16,
+        31.62,
+        35.74,
         43.07,
         48.72,
         48.36,
-        45.66,
-        61.2,
-        52.94,
-        56.83,
-        65.33,
+        49.48,
+        55.15,
+        50.46,
+        59.78,
+        66.6,
         59.19,
-        59.77,
-        56.87,
-        45.91
+        60.85,
+        54.72,
+        45.73
       ],
       "returns": {
         "1w": {
@@ -403,9 +405,9 @@
           "excess": -0.18948389627170736
         },
         "toDate": {
-          "stock": -0.2059840869988493,
-          "spy": 0.07133566892869547,
-          "excess": -0.27731975592754476
+          "stock": -0.20909720194395176,
+          "spy": 0.07967794657274863,
+          "excess": -0.2887751485167004
         }
       }
     },
@@ -417,7 +419,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "AMD is becoming a leader in inference and they're creating personalized chips at a massive scale. I think they're gonna be an AI giant next to NVIDIA.",
-      "summary": "Creator is bullish on AMD, citing its leadership in inference and personalized chips, and considers it a major AI player.",
+      "summary": "The creator is bullish on AMD, citing its leadership in inference and personalized chips, and considers it a major AI player.",
       "onScreenPrice": null,
       "spark": [
         151.4,
@@ -427,23 +429,23 @@
         259.7,
         233.5,
         206,
-        217.6,
-        209.2,
+        216,
+        198.1,
         215.3,
         221,
         252,
-        208.4,
-        200.1,
-        199.4,
+        216,
+        196.6,
+        192.4,
         199.5,
         203.4,
-        246.8,
-        347.8,
-        408.5,
-        447.6,
-        521.5,
-        547.3,
-        539.5
+        255.1,
+        334.6,
+        455.2,
+        449.6,
+        542.5,
+        507.3,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -462,9 +464,9 @@
           "excess": 0.40670445998636384
         },
         "toDate": {
-          "stock": 2.5631066454388,
-          "spy": 0.1420556701793183,
-          "excess": 2.4210509752594818
+          "stock": 2.8366683778761774,
+          "spy": 0.15094863039889916,
+          "excess": 2.685719747477278
         }
       }
     },
@@ -474,9 +476,9 @@
       "ticker": "DUOL",
       "company": "Duolingo",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "Duolingo, which is down 50% from all-time highs. And I think it's about damn time to buy this dip.",
-      "summary": "Creator recommends buying Duolingo on the dip, citing its top app status and strong revenue growth.",
+      "conviction": 0.9,
+      "quote": "I think it's about damn time to buy this dip.",
+      "summary": "The creator recommends buying Duolingo on the dip, believing the decline is unjustified given its strong app performance and revenue growth.",
       "onScreenPrice": null,
       "spark": [
         271.3,
@@ -486,23 +488,23 @@
         306.7,
         201.2,
         168,
-        185.3,
-        186.8,
+        188.4,
+        183.9,
         177.1,
         165.8,
         146.1,
-        119.4,
-        112.9,
-        101.5,
+        118.9,
+        106.1,
+        101.9,
         100.1,
         98.57,
-        93.53,
-        103.4,
-        113.6,
-        106.8,
-        109.9,
-        127.1,
-        116
+        91.46,
+        103.3,
+        108,
+        105.6,
+        107.4,
+        128.1,
+        115
       ],
       "returns": {
         "1w": {
@@ -521,9 +523,9 @@
           "excess": -0.28719440962028864
         },
         "toDate": {
-          "stock": -0.5722869385822488,
-          "spy": 0.1420556701793183,
-          "excess": -0.7143426087615671
+          "stock": -0.5760100370074009,
+          "spy": 0.15094863039889916,
+          "excess": -0.7269586674063001
         }
       }
     },
@@ -534,34 +536,34 @@
       "company": "Bitcoin USD",
       "isFirstCall": true,
       "conviction": 0.8,
-      "quote": "I think it will top out somewhere between 150 to 225,000.",
-      "summary": "The creator predicts Bitcoin will dip 10-20% then skyrocket to 150-225k, planning to buy the dip.",
-      "onScreenPrice": null,
+      "quote": "Bitcoin is sitting at 118,000 USD right now and I anticipate there to be about a 10 to 20% dip before we skyrocket and really finish off the bull market. I think it will top out somewhere between 150 to 225,000.",
+      "summary": "The creator predicts a 10-20% dip in Bitcoin before a rally to a top between $150k-$225k, with a conservative estimate of $170k by Q4 2025 or early 2026.",
+      "onScreenPrice": 118000,
       "spark": [
         111200,
         115700,
         122300,
-        110800,
+        108200,
         113000,
         106000,
         86810,
         89270,
         88100,
-        87510,
-        95320,
-        88270,
+        88730,
+        96930,
+        89100,
         70260,
         68000,
         68140,
-        71250,
-        68230,
-        74480,
-        78660,
-        80660,
+        69910,
+        68080,
+        74180,
+        77370,
+        82140,
         75490,
-        64010,
-        65600,
-        60140
+        63800,
+        64420,
+        58560
       ],
       "returns": {
         "1w": {
@@ -580,9 +582,9 @@
           "excess": -0.25059200059365283
         },
         "toDate": {
-          "stock": -0.459029702824177,
-          "spy": 0.1420556701793183,
-          "excess": -0.6010853730034953
+          "stock": -0.47323815283157367,
+          "spy": 0.15094863039889916,
+          "excess": -0.6241867832304728
         }
       }
     },
@@ -592,35 +594,35 @@
       "ticker": "ETH-USD",
       "company": "Ethereum USD",
       "isFirstCall": true,
-      "conviction": 0.7,
-      "quote": "there's more upside in buying altcoins like Ethereum",
-      "summary": "The creator believes Ethereum has more upside and could 10x during altcoin season, planning to buy.",
+      "conviction": 0.9,
+      "quote": "I personally think there's more upside in buying altcoins like Ethereum, Solana, or even smaller market cap coins because when it's altcoin season, those things are going to be the ones 10xing your money.",
+      "summary": "The creator is bullish on Ethereum as an altcoin with higher upside potential than Bitcoin, expecting significant gains during altcoin season.",
       "onScreenPrice": null,
       "spark": [
         4305,
         4482,
         4515,
-        3987,
+        3895,
         3982,
         3568,
         2802,
         3040,
         2978,
-        2967,
-        3322,
-        2926,
+        3000,
+        3355,
+        3022,
         2089,
         1974,
         1979,
-        2204,
-        2105,
-        2371,
-        2370,
-        2327,
+        2137,
+        2139,
+        2323,
+        2303,
+        2369,
         2065,
-        1812,
-        1790,
-        1610
+        1770,
+        1748,
+        1570
       ],
       "returns": {
         "1w": {
@@ -639,9 +641,9 @@
           "excess": -0.3474881161899912
         },
         "toDate": {
-          "stock": -0.6259986558322725,
-          "spy": 0.1420556701793183,
-          "excess": -0.7680543260115908
+          "stock": -0.6354338865001647,
+          "spy": 0.15094863039889916,
+          "excess": -0.7863825168990639
         }
       }
     },
@@ -652,8 +654,8 @@
       "company": "Amazon.com",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "your favorite Mag 7 stocks... Amazon, Google, Nvidia, Meta",
-      "summary": "The creator includes Amazon as a recommended Mag 7 stock for a 20% portfolio allocation.",
+      "quote": "So these are Amazon, Google, Nvidia, Meta.",
+      "summary": "The creator recommends allocating 20% to Mag 7 stocks including Amazon, considering them too big to fail.",
       "onScreenPrice": null,
       "spark": [
         226.9,
@@ -668,18 +670,18 @@
         207.9,
         213.2,
         211.7,
-        207.2,
-        210.6,
-        238.4,
-        248.3,
-        259.7,
-        275,
-        267.2,
-        266.3,
-        256.5,
-        238,
-        244.4,
-        240.1
+        211.7,
+        209.8,
+        239.9,
+        249.9,
+        263,
+        271.2,
+        264.1,
+        265.3,
+        250,
+        241.5,
+        232.8,
+        238.3
       ],
       "returns": {
         "1w": {
@@ -698,9 +700,9 @@
           "excess": -0.043837232105947366
         },
         "toDate": {
-          "stock": 0.058398342966386796,
-          "spy": 0.08391965640393706,
-          "excess": -0.025521313437550264
+          "stock": 0.050464969716794705,
+          "spy": 0.0923599230540808,
+          "excess": -0.0418949533372861
         }
       }
     },
@@ -711,8 +713,8 @@
       "company": "Alphabet Inc.",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "your favorite Mag 7 stocks... Amazon, Google, Nvidia, Meta",
-      "summary": "The creator includes Google as a recommended Mag 7 stock for a 20% portfolio allocation.",
+      "quote": "So these are Amazon, Google, Nvidia, Meta.",
+      "summary": "The creator recommends allocating 20% to Mag 7 stocks including Google, considering them too big to fail.",
       "onScreenPrice": null,
       "spark": [
         313.7,
@@ -727,18 +729,18 @@
         307.4,
         298.5,
         305.6,
-        290.4,
-        297.4,
-        317.2,
-        337.4,
-        349.8,
+        290.9,
+        295.8,
+        321.3,
+        332.3,
+        349.9,
         398,
-        401.1,
-        383,
-        361.9,
-        356.4,
-        368,
-        353.6
+        396.8,
+        388.9,
+        359,
+        357.8,
+        349.7,
+        357.4
       ],
       "returns": {
         "1w": {
@@ -757,9 +759,9 @@
           "excess": -0.03199461652480162
         },
         "toDate": {
-          "stock": 0.1272790785426854,
-          "spy": 0.08391965640393706,
-          "excess": 0.04335942213874833
+          "stock": 0.13913678989748712,
+          "spy": 0.0923599230540808,
+          "excess": 0.04677686684340632
         }
       }
     },
@@ -768,10 +770,10 @@
       "postDate": "2025-12-06",
       "ticker": "NVDA",
       "company": "NVIDIA",
-      "isFirstCall": false,
+      "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "your favorite Mag 7 stocks... Amazon, Google, Nvidia, Meta",
-      "summary": "The creator includes Nvidia as a recommended Mag 7 stock for a 20% portfolio allocation.",
+      "quote": "So these are Amazon, Google, Nvidia, Meta.",
+      "summary": "The creator recommends allocating 20% to Mag 7 stocks including Nvidia, considering them too big to fail.",
       "onScreenPrice": null,
       "spark": [
         185.6,
@@ -786,18 +788,18 @@
         184.9,
         177.8,
         183.2,
-        175.2,
-        175.8,
-        188.6,
-        202.1,
-        213.2,
-        207.8,
-        235.7,
-        215.3,
-        222.8,
-        200.4,
-        210.7,
-        195
+        178.7,
+        177.4,
+        189.3,
+        199.9,
+        209.3,
+        211.5,
+        225.3,
+        214.9,
+        214.8,
+        204.9,
+        208.6,
+        200.1
       ],
       "returns": {
         "1w": {
@@ -816,9 +818,9 @@
           "excess": -0.025203636139805585
         },
         "toDate": {
-          "stock": 0.05076797636224062,
-          "spy": 0.08391965640393706,
-          "excess": -0.03315168004169644
+          "stock": 0.07836159012121913,
+          "spy": 0.0923599230540808,
+          "excess": -0.013998332932861679
         }
       }
     },
@@ -829,8 +831,8 @@
       "company": "Meta Platforms",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "your favorite Mag 7 stocks... Amazon, Google, Nvidia, Meta",
-      "summary": "The creator includes Meta as a recommended Mag 7 stock for a 20% portfolio allocation.",
+      "quote": "So these are Amazon, Google, Nvidia, Meta.",
+      "summary": "The creator recommends allocating 20% to Mag 7 stocks including Meta, considering them too big to fail.",
       "onScreenPrice": null,
       "spark": [
         666.8,
@@ -845,18 +847,18 @@
         657,
         644.9,
         627.5,
-        592.9,
-        579.2,
-        629.9,
-        670.9,
-        671.3,
-        612.9,
-        618.4,
-        610.3,
-        597.6,
-        571,
-        577.2,
-        562.6
+        594.9,
+        574.5,
+        634.5,
+        668.8,
+        669.1,
+        616.8,
+        614.2,
+        612.3,
+        623,
+        568.4,
+        563.8,
+        563.3
       ],
       "returns": {
         "1w": {
@@ -875,9 +877,9 @@
           "excess": -0.016447153492768818
         },
         "toDate": {
-          "stock": -0.15626876741842977,
-          "spy": 0.08391965640393706,
-          "excess": -0.24018842382236683
+          "stock": -0.15523397069671707,
+          "spy": 0.0923599230540808,
+          "excess": -0.24759389375079788
         }
       }
     },
@@ -888,8 +890,8 @@
       "company": "Chipotle Mexican Grill",
       "isFirstCall": true,
       "conviction": 0.5,
-      "quote": "if you love Chipotle, buy some Chipotle stock",
-      "summary": "The creator suggests buying Chipotle stock if you like the company, as part of a 5% individual stock allocation.",
+      "quote": "If you love Chipotle, buy some Chipotle stock.",
+      "summary": "The creator suggests buying Chipotle stock as an example of an individual stock for the final 5% allocation.",
       "onScreenPrice": null,
       "spark": [
         33.61,
@@ -904,18 +906,18 @@
         38.05,
         35.37,
         34.08,
-        32.76,
-        32.63,
-        34.09,
-        35.83,
-        32.87,
-        32.74,
-        32.09,
-        32.89,
-        29.26,
-        30.42,
-        32.49,
-        32.97
+        32.5,
+        33.16,
+        34.59,
+        36.05,
+        32.99,
+        33.27,
+        32.65,
+        32.31,
+        28.74,
+        31.25,
+        30.54,
+        34
       ],
       "returns": {
         "1w": {
@@ -934,9 +936,9 @@
           "excess": 0.06882158664681715
         },
         "toDate": {
-          "stock": -0.019041933294441038,
-          "spy": 0.08391965640393706,
-          "excess": -0.1029615896983781
+          "stock": 0.011603671007620386,
+          "spy": 0.0923599230540808,
+          "excess": -0.08075625204646042
         }
       }
     },
@@ -947,34 +949,34 @@
       "company": "SoFi",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "I'll be holding this stock for the long term.",
-      "summary": "Creator is bullish on SoFi, citing its disruption of the financial sector and long-term growth potential, and states he will hold for the long term.",
+      "quote": "SoFi, one of my favorite growth stocks, has just hit a new all-time high today.",
+      "summary": "The creator is bullish on SoFi, citing its disruption of financial services and long-term growth potential, and states he will hold the stock.",
       "onScreenPrice": null,
       "spark": [
         32.21,
         25.19,
-        29.51,
+        29.07,
         27.07,
         27.35,
         27.46,
-        26.6,
+        27.14,
         26.09,
         22.08,
         20.55,
-        19.02,
-        18.61,
+        18.22,
+        18.7,
         17.7,
         17.15,
-        15.88,
-        16.22,
-        18.83,
+        15.63,
+        17.05,
+        19.06,
         16.1,
-        15.75,
-        15.23,
-        18.22,
+        16.26,
+        15.69,
+        18.58,
         16.47,
-        17.42,
-        18.19
+        17.91,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -993,9 +995,9 @@
           "excess": -0.3552295638871721
         },
         "toDate": {
-          "stock": -0.43526851750745943,
-          "spy": 0.08431618529293705,
-          "excess": -0.5195847028003965
+          "stock": -0.4433405521635291,
+          "spy": 0.09275953963462502,
+          "excess": -0.5361000917981541
         }
       }
     },
@@ -1005,35 +1007,35 @@
       "ticker": "BTC-USD",
       "company": "Bitcoin USD",
       "isFirstCall": false,
-      "conviction": 0.6,
-      "quote": "I'm personally still holding, even though some of my altcoins have been bleeding like crazy and it's getting pretty painful.",
-      "summary": "The creator is still holding Bitcoin despite a price drop from $126k to $93-94k, expressing concern about market manipulation but maintaining a long position.",
+      "conviction": 0.5,
+      "quote": "I'm personally still holding",
+      "summary": "The creator is still holding Bitcoin despite its recent price drop, expressing uncertainty but maintaining a long position.",
       "onScreenPrice": null,
       "spark": [
         92090,
         91290,
-        89270,
+        90410,
         87840,
         87300,
         93880,
-        96930,
+        95550,
         89110,
         75630,
         68860,
-        67660,
-        72710,
+        64620,
+        70840,
         71210,
         70520,
-        66890,
-        70750,
-        78200,
+        66930,
+        74480,
+        78270,
         78660,
-        81730,
-        77540,
-        73580,
+        80480,
+        75490,
+        71320,
         61450,
-        63540,
-        60140
+        64240,
+        58560
       ],
       "returns": {
         "1w": {
@@ -1052,9 +1054,9 @@
           "excess": -0.27887304167795646
         },
         "toDate": {
-          "stock": -0.3469882887841347,
-          "spy": 0.11316420902820079,
-          "excess": -0.46015249781233547
+          "stock": -0.3641394786026758,
+          "spy": 0.12183219718957883,
+          "excess": -0.48597167579225464
         }
       }
     },
@@ -1064,35 +1066,35 @@
       "ticker": "ROOT",
       "company": "Root",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "Root is the least risky because I have bought this stock about a week ago and today I'm double downing and buying even more because I have such high conviction.",
-      "summary": "The creator is doubling down on Root due to improving fundamentals and a technical breakout pattern.",
+      "summary": "The creator is doubling down on Root Insurance due to strong fundamentals and a technical breakout pattern.",
       "onScreenPrice": null,
       "spark": [
         81.84,
         75.54,
         78.44,
         90.86,
-        72.61,
-        76.93,
+        69.03,
+        77.52,
         81.02,
         74.29,
         75.24,
         68.41,
         62.13,
         58.73,
-        54.31,
-        48,
-        46.66,
-        43.9,
-        46.62,
-        53.93,
+        57.81,
+        47.98,
+        44.59,
+        43.29,
+        44,
+        55.47,
         55.05,
         57.08,
-        57.38,
-        52.64,
-        57.17,
-        57.73
+        58.32,
+        53.54,
+        48.5,
+        55.92
       ],
       "returns": {
         "1w": {
@@ -1111,9 +1113,9 @@
           "excess": -0.16440560042238994
         },
         "toDate": {
-          "stock": -0.29459919201501417,
-          "spy": 0.10742468526922977,
-          "excess": -0.40202387728424394
+          "stock": -0.3167155343205308,
+          "spy": 0.11604798090133772,
+          "excess": -0.4327635152218685
         }
       }
     },
@@ -1125,33 +1127,33 @@
       "isFirstCall": true,
       "conviction": 0.6,
       "quote": "The second stock I bought was NAC, a rare earth mineral mining company that's based out of Alaska and their market cap is only $1 billion.",
-      "summary": "The creator bought NAC, a rare earth mining company, citing Trump approval and small market cap.",
+      "summary": "The creator bought NAC, a rare earth mining company, citing Trump's approval and a small market cap.",
       "onScreenPrice": null,
       "spark": [
         11.62,
         11.66,
         11.85,
         12.1,
+        11.74,
         11.82,
-        11.81,
         11.91,
         11.78,
         11.92,
         11.82,
         11.94,
         11.91,
-        11.91,
-        11.92,
+        11.95,
         11.93,
-        11.46,
+        11.91,
+        11.4,
+        11.76,
         11.77,
-        11.79,
         11.95,
         11.96,
-        11.75,
-        12.08,
-        11.91,
-        12.1
+        11.86,
+        12.01,
+        11.88,
+        12.12
       ],
       "returns": {
         "1w": {
@@ -1170,68 +1172,9 @@
           "excess": -0.009725375546174586
         },
         "toDate": {
-          "stock": 0.04130813258502464,
-          "spy": 0.10742468526922977,
-          "excess": -0.06611655268420513
-        }
-      }
-    },
-    {
-      "shortcode": "DPhGb-VkRYs",
-      "postDate": "2025-10-07",
-      "ticker": "KRKNF",
-      "company": "Kraken Robotics",
-      "isFirstCall": true,
-      "conviction": 0.6,
-      "quote": "The third stock I'm buying is Kraken Robotics. They're the leaders in creating underwater technology right now like submarines and advanced sonar detectors.",
-      "summary": "The creator bought Kraken Robotics for its underwater technology and potential in ocean infrastructure.",
-      "onScreenPrice": null,
-      "spark": [
-        4.3,
-        4.15,
-        4.8,
-        4.09,
-        3.75,
-        4.01,
-        4.46,
-        4.568,
-        5.296,
-        5.5,
-        5.89,
-        5.85,
-        5.835,
-        6.444,
-        7.36,
-        5.97,
-        6.1,
-        5.996,
-        5.45,
-        5.19,
-        5.307,
-        5.909,
-        5.01,
-        4.42
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.03209302449368212,
-          "spy": -0.010297128614772277,
-          "excess": 0.0423901531084544
-        },
-        "1m": {
-          "stock": -0.11162796190714452,
-          "spy": 0.0017784589462130906,
-          "excess": -0.11340642085335761
-        },
-        "3m": {
-          "stock": 0.20604642796864936,
-          "spy": 0.02779766816366025,
-          "excess": 0.1782487598049891
-        },
-        "toDate": {
-          "stock": 0.027906948892152172,
-          "spy": 0.10742468526922977,
-          "excess": -0.0795177363770776
+          "stock": 0.04302926032050847,
+          "spy": 0.11604798090133772,
+          "excess": -0.07301872058082925
         }
       }
     },
@@ -1241,9 +1184,9 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "I still think there's a potential long-term disruption story in motion right now, where HIMS becomes the future platform for healthcare... I'm backing that vision and willing to take the risk because I believe in the potential upside more than the downside right now at these current price levels.",
-      "summary": "Creator remains bullish on HIMS despite legal issues, holding position and believing in long-term disruption potential.",
+      "conviction": 0.9,
+      "quote": "I'm not selling any shares yet. I still think there's a potential long-term disruption story in motion right now, where HIMS becomes the future platform for healthcare.",
+      "summary": "The creator is holding HIMS despite legal issues and a 52-week low, believing in the long-term disruption potential and platform growth.",
       "onScreenPrice": null,
       "spark": [
         19.33,
@@ -1253,23 +1196,23 @@
         15.88,
         25.88,
         24.98,
-        22.46,
-        19.38,
+        21.34,
+        18.78,
         20.33,
         19.43,
         26.99,
-        29.01,
-        27.91,
-        27.27,
+        28.15,
+        26.33,
+        26.33,
         29.14,
         25.05,
-        24.01,
-        25.38,
-        27.51,
-        28.98,
-        31.47,
-        32.96,
-        33.39
+        23.75,
+        26.15,
+        28.01,
+        27.78,
+        31.89,
+        32.7,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -1288,9 +1231,9 @@
           "excess": 0.4421507744548665
         },
         "toDate": {
-          "stock": 0.7273667626195583,
-          "spy": 0.06780025501164189,
-          "excess": 0.6595665076079165
+          "stock": 0.7935850132325395,
+          "spy": 0.07611500309111685,
+          "excess": 0.7174700101414226
         }
       }
     },
@@ -1301,34 +1244,34 @@
       "company": "Root",
       "isFirstCall": true,
       "conviction": 0.3,
-      "quote": "The first stock is Root, Ticker ROOT, which is an insurance company which rivals one of my favorite stocks actually, Lemonade. They're currently only trading at 1.03x their sales which just screams undervalued.",
-      "summary": "The creator bought Root, an insurance company, citing undervaluation at 1.03x sales, 32.4% revenue growth, profitability, and zero debt, expecting it to double by year-end.",
+      "quote": "The first stock is Root, Ticker ROOT, which is an insurance company which rivals one of my favorite stocks actually, Lemonade.",
+      "summary": "The creator bought Root as a high-risk high-reward play, citing undervaluation at 1.03x sales, strong revenue growth, profitability, and zero debt.",
       "onScreenPrice": null,
       "spark": [
         89.51,
         81.39,
         78.05,
         80.79,
-        82.2,
-        78.94,
+        81.84,
+        81.5,
         80.65,
         73.88,
         70.9,
         72.72,
         69.85,
         62.08,
-        61.59,
-        47.8,
-        43.76,
-        47.1,
-        44.56,
-        54.7,
+        60.52,
+        48.68,
+        44.3,
+        47.9,
+        46.44,
+        55.67,
         54.48,
         59.24,
-        57.38,
-        52.64,
-        57.17,
-        57.73
+        58.32,
+        53.54,
+        48.5,
+        55.92
       ],
       "returns": {
         "1w": {
@@ -1347,9 +1290,9 @@
           "excess": -0.2058054692762561
         },
         "toDate": {
-          "stock": -0.3550441496540946,
-          "spy": 0.11231199998021024,
-          "excess": -0.46735614963430483
+          "stock": -0.3752653688485291,
+          "spy": 0.12097335215933236,
+          "excess": -0.4962387210078615
         }
       }
     },
@@ -1360,34 +1303,34 @@
       "company": "FuboTV",
       "isFirstCall": true,
       "conviction": 0.3,
-      "quote": "The next stock I bought was Fubo, which is a streaming service. Today, their shareholders just approved the plan to merge with Disney. ... If Fubo gets approved to merge with Disney, this stock is gonna go flying through the roof.",
-      "summary": "The creator bought Fubo, expecting a surge if the Disney merger is approved by the Department of Justice within 3-6 months.",
+      "quote": "If Fubo gets approved to merge with Disney, this stock is gonna go flying through the roof.",
+      "summary": "The creator bought Fubo expecting a surge if the Disney merger is approved, but notes it's a high-risk play.",
       "onScreenPrice": null,
       "spark": [
         49.8,
         44.16,
         41.64,
         41.52,
-        44.64,
-        37.32,
+        43.32,
+        36.12,
         34.56,
         32.52,
         31.08,
         30.96,
         28.44,
         18.96,
-        15.24,
-        14.4,
-        14.28,
-        10.85,
-        12.46,
-        13.1,
+        14.88,
+        14.88,
+        14.04,
+        9.66,
+        12.05,
+        13.29,
         12.32,
         9.83,
-        9.75,
-        10.16,
-        9.28,
-        9.46
+        9.52,
+        9.54,
+        8.9,
+        9.2
       ],
       "returns": {
         "1w": {
@@ -1406,9 +1349,9 @@
           "excess": -0.41325159970359115
         },
         "toDate": {
-          "stock": -0.8100401569663689,
-          "spy": 0.11231199998021024,
-          "excess": -0.9223521569465791
+          "stock": -0.8152610451765105,
+          "spy": 0.12097335215933236,
+          "excess": -0.9362343973358429
         }
       }
     },
@@ -1418,35 +1361,35 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "My main investments like HIMS, AMD, SoFi, those are still my big dogs and I'm still banking on those to make me the most returns.",
-      "summary": "The creator holds HIMS as a main investment and expects it to generate the most returns.",
+      "summary": "The creator holds HIMS as a core investment and expects it to generate the most returns.",
       "onScreenPrice": null,
       "spark": [
         56.72,
         53.95,
         47.46,
         44.39,
-        36.05,
-        37.09,
+        36.98,
+        38.4,
         39.82,
         35.56,
         33.41,
         31.32,
         29.68,
         23.02,
-        15.82,
-        15.82,
-        24.77,
-        20.84,
-        19.5,
-        28.82,
+        15.63,
+        16.45,
+        24.88,
+        20.86,
+        19.39,
+        31.01,
         27.17,
         25.03,
-        23.75,
-        28.01,
-        31.47,
-        33.39
+        23.85,
+        26.19,
+        31.89,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -1465,9 +1408,9 @@
           "excess": -0.43132988887919144
         },
         "toDate": {
-          "stock": -0.41131878224535556,
-          "spy": 0.11231199998021024,
-          "excess": -0.5236307822255658
+          "stock": -0.3887518084839081,
+          "spy": 0.12097335215933236,
+          "excess": -0.5097251606432405
         }
       }
     },
@@ -1477,35 +1420,35 @@
       "ticker": "AMD",
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "My main investments like HIMS, AMD, SoFi, those are still my big dogs and I'm still banking on those to make me the most returns.",
-      "summary": "The creator holds AMD as a main investment and expects it to generate the most returns.",
+      "summary": "The creator holds AMD as a core investment and expects it to generate the most returns.",
       "onScreenPrice": null,
       "spark": [
         161.8,
         214.9,
         230.2,
         259.6,
-        248,
-        206.1,
+        246.8,
+        214.2,
         221.6,
         213.4,
         223.5,
         223.6,
         252,
         208.4,
-        203.4,
-        190.9,
-        193.4,
-        220.3,
-        221.5,
-        278.4,
+        200.1,
+        202.1,
+        196.6,
+        203.8,
+        231.8,
+        275,
         354.5,
         448.3,
-        467.5,
-        523.2,
-        507.3,
-        539.5
+        503.9,
+        466.4,
+        512.5,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -1524,9 +1467,9 @@
           "excess": 0.3001247780294458
         },
         "toDate": {
-          "stock": 2.3345077731739745,
-          "spy": 0.11231199998021024,
-          "excess": 2.2221957731937643
+          "stock": 2.5905185564670004,
+          "spy": 0.12097335215933236,
+          "excess": 2.4695452043076678
         }
       }
     },
@@ -1536,35 +1479,35 @@
       "ticker": "SOFI",
       "company": "SoFi",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "My main investments like HIMS, AMD, SoFi, those are still my big dogs and I'm still banking on those to make me the most returns.",
-      "summary": "The creator holds SoFi as a main investment and expects it to generate the most returns.",
+      "summary": "The creator holds SoFi as a core investment and expects it to generate the most returns.",
       "onScreenPrice": null,
       "spark": [
         26.42,
         26.19,
         27.19,
         30.63,
-        28.39,
-        28.33,
+        27.82,
+        28.49,
         26.83,
         27.24,
         27.46,
         26.67,
         25.46,
         20.86,
-        19.3,
-        18.61,
-        17.76,
-        16.56,
-        16.11,
-        19.43,
+        19.02,
+        18.7,
+        17.63,
+        15.87,
+        16.49,
+        19.5,
         16.1,
         15.9,
-        15.62,
-        17.15,
-        17.71,
-        18.19
+        15.98,
+        16.03,
+        17.42,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -1583,9 +1526,9 @@
           "excess": -0.01738868975096497
         },
         "toDate": {
-          "stock": -0.31150641629334874,
-          "spy": 0.11231199998021024,
-          "excess": -0.423818416273559
+          "stock": -0.3213474544512225,
+          "spy": 0.12097335215933236,
+          "excess": -0.44232080661055484
         }
       }
     },
@@ -1595,35 +1538,35 @@
       "ticker": "META",
       "company": "Meta Platforms",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "I buy more meta",
-      "summary": "The creator is bullish on Meta, citing Zuckerberg's talent acquisition and AI efforts, and states they buy more.",
+      "conviction": 0.9,
+      "quote": "I think it's gotta be meta",
+      "summary": "The creator states that Meta is their favorite stock, praises Mark Zuckerberg, and says they buy more Meta.",
       "onScreenPrice": null,
       "spark": [
         765.2,
         727,
         717.5,
         750.8,
-        618.9,
+        621.7,
         590.3,
         647.1,
-        644.2,
+        647.5,
         663.3,
-        646.1,
-        613,
+        653.1,
+        647.6,
         691.7,
-        639.8,
+        639.3,
         648.2,
         654.9,
-        604.1,
+        592.9,
         573,
-        676.9,
-        671.3,
+        688.5,
+        669.1,
         598.9,
-        607.4,
-        623,
-        600.2,
-        562.6
+        610.3,
+        627.6,
+        567.6,
+        563.3
       ],
       "returns": {
         "1w": {
@@ -1642,9 +1585,9 @@
           "excess": -0.16245287299690936
         },
         "toDate": {
-          "stock": -0.2647289516807123,
-          "spy": 0.11121104036636464,
-          "excess": -0.37593999204707695
+          "stock": -0.26382717627998065,
+          "spy": 0.11986381959207937,
+          "excess": -0.38369099587206
         }
       }
     },
@@ -1654,9 +1597,9 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "HIMS is my second largest stock holding after AMD. I entered this stock at $15 and I rode it all the way up to $70 before it came crashing back down towards $15, and today I'm holding at $29.",
-      "summary": "The creator is bullish on HIMS as a long-term investment, citing its potential in health longevity and recent partnerships, despite short-term challenges.",
+      "conviction": 0.8,
+      "quote": "HIMS is an asymmetric bet that either goes to zero or 100x in 10, 20, 30 years.",
+      "summary": "The creator is bullish on HIMS as a long-term investment, citing its potential in health longevity and the peptide market, despite short-term challenges.",
       "onScreenPrice": null,
       "spark": [
         28.98,
@@ -1672,7 +1615,8 @@
         32.7,
         32.71,
         33.94,
-        33.39
+        33.39,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -1691,127 +1635,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": 0.1521739101819115,
-          "spy": 0.00535921887585844,
-          "excess": 0.14681469130605307
-        }
-      }
-    },
-    {
-      "shortcode": "DP4ELiUkeZM",
-      "postDate": "2025-10-16",
-      "ticker": "NVDA",
-      "company": "NVIDIA",
-      "isFirstCall": true,
-      "conviction": 0.9,
-      "quote": "I'm so bullish on that stock.",
-      "summary": "The creator explains their investment in Nvidia in 2021 due to high GPU demand and expresses current bullishness.",
-      "onScreenPrice": null,
-      "spark": [
-        181.8,
-        201,
-        188.1,
-        181.4,
-        177,
-        183.8,
-        181,
-        188.9,
-        183.1,
-        186.5,
-        171.9,
-        185,
-        177.2,
-        184.8,
-        172.7,
-        174.4,
-        189.3,
-        199.6,
-        198.5,
-        235.7,
-        214.9,
-        205.1,
-        207.4,
-        195
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.0019251202255960997,
-          "spy": 0.016832154987016734,
-          "excess": -0.014907034761420634
-        },
-        "1m": {
-          "stock": 0.026346232931322433,
-          "spy": 0.007613780803749082,
-          "excess": 0.01873245212757335
-        },
-        "3m": {
-          "stock": 0.007315339359300399,
-          "spy": 0.04498663423973892,
-          "excess": -0.03767129488043852
-        },
-        "toDate": {
-          "stock": 0.07238327836107117,
-          "spy": 0.12163959731432006,
-          "excess": -0.04925631895324889
-        }
-      }
-    },
-    {
-      "shortcode": "DP4ELiUkeZM",
-      "postDate": "2025-10-16",
-      "ticker": "PLTR",
-      "company": "Palantir",
-      "isFirstCall": true,
-      "conviction": 0.9,
-      "quote": "it's destined to not fail.",
-      "summary": "The creator bought Palantir due to government involvement and believes it is destined not to fail.",
-      "onScreenPrice": null,
-      "spark": [
-        178.1,
-        189.6,
-        175.1,
-        167.3,
-        168.4,
-        187.9,
-        193.4,
-        167.9,
-        178.4,
-        167.5,
-        130,
-        133,
-        137.2,
-        151.1,
-        150.7,
-        146.3,
-        132.4,
-        141.6,
-        146,
-        133.7,
-        136.6,
-        135.5,
-        133.3,
-        115.7
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.013249498512499347,
-          "spy": 0.016832154987016734,
-          "excess": -0.0035826564745173872
-        },
-        "1m": {
-          "stock": -0.038569477349624015,
-          "spy": 0.007613780803749082,
-          "excess": -0.0461832581533731
-        },
-        "3m": {
-          "stock": 0.0015719671399758717,
-          "spy": 0.04498663423973892,
-          "excess": -0.04341466709976305
-        },
-        "toDate": {
-          "stock": -0.3504379063556473,
-          "spy": 0.12163959731432006,
-          "excess": -0.47207750366996737
+          "stock": 0.19634226075180594,
+          "spy": 0.013187751033531647,
+          "excess": 0.1831545097182743
         }
       }
     },
@@ -1823,7 +1649,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I just spent $2,000 on a brand new stock that I think has the potential to 3x in the near future. That stock is Grab and they're basically the Uber of Southeast Asia.",
-      "summary": "Creator bought Grab, citing its dominance in Southeast Asia as the Uber equivalent, strong financials with revenue growth and constant expenses, institutional buying, and founder-led CEO, expecting a 3x return.",
+      "summary": "Creator bought Grab, citing strong user base, revenue growth, institutional buying, and founder-led CEO, expecting 3x potential.",
       "onScreenPrice": null,
       "spark": [
         6.35,
@@ -1834,22 +1660,22 @@
         5.33,
         5.27,
         5.18,
+        5.13,
         5.08,
-        5.08,
-        4.51,
+        4.4,
         4.41,
-        4.27,
+        4.13,
         4.31,
-        3.87,
+        3.89,
         3.64,
-        3.62,
-        3.92,
-        3.86,
-        3.72,
         3.56,
-        3.41,
-        3.49,
-        3.74
+        4.02,
+        3.82,
+        3.65,
+        3.51,
+        3.46,
+        3.45,
+        3.77
       ],
       "returns": {
         "1w": {
@@ -1868,9 +1694,9 @@
           "excess": -0.24687212066570519
         },
         "toDate": {
-          "stock": -0.4110236116998569,
-          "spy": 0.11889588541250018,
-          "excess": -0.5299194971123571
+          "stock": -0.4062992066856326,
+          "spy": 0.12760850499720378,
+          "excess": -0.5339077116828364
         }
       }
     },
@@ -1882,7 +1708,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "First up is Hims and Hers, which makes up 40% of my portfolio.",
-      "summary": "The creator is bullish on Hims & Hers, a telehealth company, and it makes up 40% of his portfolio.",
+      "summary": "The creator is bullish on Hims & Hers, citing its telehealth business, visionary founder, and large portfolio allocation, and recommends buying during the dip.",
       "onScreenPrice": null,
       "spark": [
         54.73,
@@ -1890,25 +1716,25 @@
         44.39,
         36.05,
         37.09,
-        39.2,
+        39.12,
         34.97,
         33.04,
         32.34,
-        30.52,
+        29.62,
         25.54,
         16.3,
-        15.82,
-        22.16,
+        15.6,
+        23.47,
         24.16,
-        18.78,
-        19.43,
-        29.01,
+        20.76,
+        21.15,
+        28.15,
         27.27,
-        24.14,
-        23.85,
-        26.19,
-        31.47,
-        33.39
+        24.24,
+        25.2,
+        27.17,
+        31.89,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -1927,9 +1753,9 @@
           "excess": -0.4575427336541754
         },
         "toDate": {
-          "stock": -0.3899141299301373,
-          "spy": 0.11757967024039861,
-          "excess": -0.5074938001705359
+          "stock": -0.3665266132116496,
+          "spy": 0.12628204071950133,
+          "excess": -0.4928086539311509
         }
       }
     },
@@ -1941,7 +1767,7 @@
       "isFirstCall": false,
       "conviction": 0.8,
       "quote": "Next up, I got SoFi, who's modernizing the banking experience.",
-      "summary": "The creator is bullish on SoFi for modernizing banking and attracting younger generation.",
+      "summary": "The creator is bullish on SoFi for modernizing banking and attracting younger customers, and recommends buying during the dip.",
       "onScreenPrice": null,
       "spark": [
         27.14,
@@ -1949,25 +1775,25 @@
         30.63,
         28.39,
         28.33,
-        27.78,
+        27.61,
         25.27,
         26.56,
         26.6,
-        26.09,
+        25.85,
         21.76,
         19.61,
-        19.29,
-        18.79,
+        19.1,
+        18.29,
         17.08,
-        15.15,
-        16.22,
-        19.06,
+        15.88,
+        17.05,
+        18.32,
         16.2,
-        15.31,
-        15.98,
-        16.03,
-        17.71,
-        18.19
+        16.02,
+        16.17,
+        16.5,
+        17.42,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -1986,9 +1812,9 @@
           "excess": -0.06834032220785724
         },
         "toDate": {
-          "stock": -0.32977152014986677,
-          "spy": 0.11757967024039861,
-          "excess": -0.4473511903902654
+          "stock": -0.3393514845835065,
+          "spy": 0.12628204071950133,
+          "excess": -0.46563352530300783
         }
       }
     },
@@ -1998,9 +1824,9 @@
       "ticker": "NBIS",
       "company": "Nebius",
       "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "Third, I got Nebius, which I actually shared at $60 and ever since it's been on a crazy run-up, but I still think we're just getting started.",
-      "summary": "The creator is bullish on Nebius as an AI infrastructure company, still early despite past run-up.",
+      "conviction": 0.9,
+      "quote": "Third, I got Nebius, which I actually shared at$60 and ever since it's been on a crazy run-up, but I still think we're just getting started.",
+      "summary": "The creator is bullish on Nebius as an AI infrastructure company, believing the stock is still early in its growth despite past run-up, and recommends buying during the dip.",
       "onScreenPrice": null,
       "spark": [
         135.5,
@@ -2008,25 +1834,25 @@
         120.5,
         88.63,
         88.88,
-        98.04,
+        100.3,
         75.45,
         85.17,
         107.3,
-        96.85,
+        94.5,
         89.95,
         98.01,
-        106.1,
-        94.94,
+        104.9,
+        96.43,
         121.5,
-        92.26,
-        145,
-        156.1,
+        103.8,
+        154.6,
+        157.1,
         176.4,
-        207.3,
-        208.1,
-        227.8,
-        265.1,
-        261.1
+        221.1,
+        208.4,
+        218,
+        280.9,
+        276.2
       ],
       "returns": {
         "1w": {
@@ -2045,68 +1871,9 @@
           "excess": -0.25610633149335726
         },
         "toDate": {
-          "stock": 0.9278752469584084,
-          "spy": 0.11757967024039861,
-          "excess": 0.8102955767180098
-        }
-      }
-    },
-    {
-      "shortcode": "DPuHy_FElpv",
-      "postDate": "2025-10-12",
-      "ticker": "IREN",
-      "company": "IREN",
-      "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "I actually researched Iran and it's crazy. They're a data center company for AI and there is just incredible demand. I think the stock's just gonna keep going higher.",
-      "summary": "The creator is bullish on IREN as an AI data center company with strong demand.",
-      "onScreenPrice": null,
-      "spark": [
-        64.14,
-        55.86,
-        67.75,
-        48.65,
-        47.47,
-        44.71,
-        33.78,
-        38.3,
-        50.33,
-        52.26,
-        54.39,
-        42.22,
-        44.03,
-        38.84,
-        41.66,
-        31.62,
-        39.32,
-        48.39,
-        49.48,
-        55.17,
-        59.78,
-        54.35,
-        59.18,
-        45.91
-      ],
-      "returns": {
-        "1w": {
-          "stock": -0.07670717517561054,
-          "spy": 0.012457785411672972,
-          "excess": -0.08916496058728351
-        },
-        "1m": {
-          "stock": -0.1053944244755356,
-          "spy": 0.03010379861564405,
-          "excess": -0.13549822309117965
-        },
-        "3m": {
-          "stock": -0.21531022279402368,
-          "spy": 0.04844352705963506,
-          "excess": -0.26375374985365874
-        },
-        "toDate": {
-          "stock": -0.28422200991131397,
-          "spy": 0.11757967024039861,
-          "excess": -0.4018016801517126
+          "stock": 1.0387568266631613,
+          "spy": 0.12628204071950133,
+          "excess": 0.9124747859436599
         }
       }
     },
@@ -2117,8 +1884,8 @@
       "company": "Root",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "I'm gonna go high risk, high reward, and go with Root, which is an insurance company. Their market cap is only $1 billion and based on fundamentals, like their financial statements, they are severely undervalued right now.",
-      "summary": "The creator is bullish on Root as an undervalued insurance company with small market cap.",
+      "quote": "And for my last pick, I'm gonna go high risk, high reward, and go with Root, which is an insurance company. Their market cap is only$1 billion and based on fundamentals, like their financial statements, they are severely undervalued right now.",
+      "summary": "The creator is bullish on Root as a high-risk, high-reward insurance company that is severely undervalued based on fundamentals, and recommends buying during the dip.",
       "onScreenPrice": null,
       "spark": [
         83.28,
@@ -2126,25 +1893,25 @@
         80.79,
         82.2,
         78.94,
-        80.05,
+        80.31,
         76.17,
         73.51,
         79.6,
-        68.94,
+        68.91,
         61.86,
         58.68,
-        61.09,
-        45.21,
+        57.72,
+        44.37,
         44.74,
-        43.29,
-        44,
-        55.47,
+        44.17,
+        45.58,
+        53.96,
         52.54,
-        57.08,
-        58.32,
-        53.54,
-        57.17,
-        57.73
+        56.54,
+        54.15,
+        54.92,
+        48.5,
+        55.92
       ],
       "returns": {
         "1w": {
@@ -2163,9 +1930,9 @@
           "excess": -0.0926318118713132
         },
         "toDate": {
-          "stock": -0.3067963449996134,
-          "spy": 0.11757967024039861,
-          "excess": -0.424376015240012
+          "stock": -0.32853027151044056,
+          "spy": 0.12628204071950133,
+          "excess": -0.4548123122299419
         }
       }
     },
@@ -2177,7 +1944,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I am not selling any shares, especially after this news. I think they're still undervalued.",
-      "summary": "The creator holds a large personal position in AMD, is bullish on the stock due to a partnership with OpenAI, and believes it remains undervalued.",
+      "summary": "The creator is bullish on AMD, citing a multi-year partnership with OpenAI and high personal conviction, and states they are holding and not selling.",
       "onScreenPrice": null,
       "spark": [
         203.7,
@@ -2186,11 +1953,11 @@
         233.5,
         223.6,
         215.2,
-        221.4,
-        214.9,
-        214.4,
-        231.8,
-        252.2,
+        210.8,
+        215,
+        210,
+        231.9,
+        236.7,
         213.6,
         196.6,
         199.4,
@@ -2198,12 +1965,12 @@
         202,
         236.6,
         284.5,
-        354.5,
-        448.3,
-        467.5,
-        523.2,
-        507.3,
-        539.5
+        360.5,
+        445.5,
+        503.9,
+        466.4,
+        512.5,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -2222,9 +1989,68 @@
           "excess": 0.06128113264306534
         },
         "toDate": {
-          "stock": 1.6483234620484168,
-          "spy": 0.10331891449188979,
-          "excess": 1.545004547556527
+          "stock": 1.8516516322169796,
+          "spy": 0.11191023930405697,
+          "excess": 1.7397413929129226
+        }
+      }
+    },
+    {
+      "shortcode": "DQxQi7nE3E2",
+      "postDate": "2025-11-07",
+      "ticker": "HIMS",
+      "company": "Hims & Hers Health",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "HIMS, my number one investment is down 41% from all-time highs and everyone is asking me the same question. When are you gonna cut your losses and sell? My response? Y'all need to stop asking these dumbass motherfucking questions.",
+      "summary": "The creator defends holding HIMS despite a 41% drop, emphasizing long-term focus and citing his own history of holding through drawdowns.",
+      "onScreenPrice": null,
+      "spark": [
+        41.03,
+        36.26,
+        39.76,
+        39.82,
+        34.77,
+        33.04,
+        33.87,
+        30.47,
+        29.87,
+        19.33,
+        15.82,
+        16.48,
+        25.88,
+        22.02,
+        20.76,
+        19.43,
+        29.76,
+        27.17,
+        28.27,
+        22.44,
+        26.15,
+        28.98,
+        35.47,
+        34.67
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.09870824658917898,
+          "spy": 0.0014307972257687762,
+          "excess": -0.10013904381494776
+        },
+        "1m": {
+          "stock": -0.04655130158999343,
+          "spy": 0.0188682574965624,
+          "excess": -0.06541955908655583
+        },
+        "3m": {
+          "stock": -0.42773579720202226,
+          "spy": 0.009911061156870904,
+          "excess": -0.43764685835889316
+        },
+        "toDate": {
+          "stock": -0.15500854983112322,
+          "spy": 0.11297085136119045,
+          "excess": -0.26797940119231367
         }
       }
     },
@@ -2245,24 +2071,24 @@
         639.6,
         644.2,
         664.9,
-        658.8,
-        615.5,
-        672.4,
-        669,
-        639.8,
-        653.7,
+        660.6,
+        620.8,
+        673,
+        670.2,
+        639.3,
+        657,
         647.4,
         615.7,
         525.7,
         612.4,
         688.5,
         671.3,
-        616.8,
-        611.2,
-        635.3,
-        585.4,
-        567.6,
-        562.6
+        609.6,
+        602.6,
+        632.5,
+        584.6,
+        577.2,
+        563.3
       ],
       "returns": {
         "1w": {
@@ -2281,9 +2107,9 @@
           "excess": 0.09006597531549887
         },
         "toDate": {
-          "stock": -0.11778087814015781,
-          "spy": 0.08437962197219084,
-          "excess": -0.20216050011234865
+          "stock": -0.11669887783024913,
+          "spy": 0.09282347028267535,
+          "excess": -0.20952234811292447
         }
       }
     },
@@ -2293,9 +2119,9 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "I'm making a huge bet on this company because I've been buying since it was about $15.",
-      "summary": "The creator is bullish on Hims & Hers, a telehealth company, and has been buying the dip, increasing his average price to $27.",
+      "conviction": 0.9,
+      "quote": "I'm making a huge bet on this company because I've been buying since it was about $15. My average buying price was around $20, but I've been buying the recent dip so much that it increased my average buying price to $27.",
+      "summary": "Creator is heavily buying Hims & Hers, a telehealth company with a visionary founder modernizing healthcare, expecting 10x growth.",
       "onScreenPrice": null,
       "spark": [
         42.35,
@@ -2310,18 +2136,18 @@
         34.67,
         33.87,
         30.52,
-        24.4,
-        15.84,
+        23.48,
         15.82,
-        24.88,
-        19.38,
-        19.43,
-        28.15,
-        26.88,
-        22.44,
+        16.45,
+        24.98,
+        18.78,
+        21.15,
+        30.56,
+        25.65,
+        23.04,
         27.51,
-        30.17,
-        33.39
+        31.47,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -2340,9 +2166,9 @@
           "excess": -0.12059432628399736
         },
         "toDate": {
-          "stock": -0.21157023393868268,
-          "spy": 0.14874818079653496,
-          "excess": -0.36031841473521764
+          "stock": -0.18134594054044217,
+          "spy": 0.1576932542643945,
+          "excess": -0.3390391948048367
         }
       }
     },
@@ -2352,9 +2178,9 @@
       "ticker": "SOFI",
       "company": "SoFi",
       "isFirstCall": true,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "Next up, I have SoFi, which is disrupting the financial institution sector and it's growing at a very rapid pace.",
-      "summary": "The creator is bullish on SoFi, a fintech company disrupting financial institutions with rapid growth.",
+      "summary": "Creator picks SoFi as a current buy, citing its disruption of financial services and rapid growth.",
       "onScreenPrice": null,
       "spark": [
         25.54,
@@ -2369,18 +2195,18 @@
         27.48,
         27.72,
         26.09,
-        20.75,
-        19.54,
-        18.61,
-        17.63,
-        15.23,
-        16.22,
-        18.32,
-        16.3,
-        15.23,
-        17.74,
-        17.13,
-        18.19
+        19.46,
+        19.3,
+        18.7,
+        17.37,
+        15.15,
+        17.05,
+        18.44,
+        16,
+        15.69,
+        16.68,
+        17.71,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -2399,9 +2225,9 @@
           "excess": 0.10422747518464903
         },
         "toDate": {
-          "stock": -0.2877838730616963,
-          "spy": 0.14874818079653496,
-          "excess": -0.43653205385823124
+          "stock": -0.29796399129042217,
+          "spy": 0.1576932542643945,
+          "excess": -0.4556572455548167
         }
       }
     },
@@ -2411,9 +2237,9 @@
       "ticker": "NBIS",
       "company": "Nebius",
       "isFirstCall": true,
-      "conviction": 0.7,
-      "quote": "Next up, I have Nebius, which creates large-scale cloud infrastructure for AI. ... they have great financials to back up what they're doing.",
-      "summary": "The creator is bullish on Nebius, an AI cloud infrastructure company with strong financials, despite a cautious view on the AI sector.",
+      "conviction": 0.8,
+      "quote": "Next up, I have Nebius, which creates large-scale cloud infrastructure for AI. ... Nebius Group, they have great financials to back up what they're doing. And they're scaling alongside NVIDIA's GPUs.",
+      "summary": "Creator recommends Nebius for its AI cloud infrastructure, strong financials, and scaling with NVIDIA GPUs.",
       "onScreenPrice": null,
       "spark": [
         68.32,
@@ -2428,18 +2254,18 @@
         91.13,
         97.3,
         96.85,
-        82.39,
-        101.8,
-        86.8,
-        129.9,
-        100.8,
-        145,
-        157.1,
-        195.1,
-        197.7,
-        260.6,
-        260.1,
-        261.1
+        73.87,
+        107.6,
+        97.78,
+        116.3,
+        92.26,
+        154.6,
+        147.2,
+        184.8,
+        191.8,
+        251.7,
+        265.1,
+        276.2
       ],
       "returns": {
         "1w": {
@@ -2458,9 +2284,9 @@
           "excess": 0.3291751628983599
         },
         "toDate": {
-          "stock": 2.822453089329691,
-          "spy": 0.14874818079653496,
-          "excess": 2.673704908533156
+          "stock": 3.042301151366317,
+          "spy": 0.1576932542643945,
+          "excess": 2.8846078971019224
         }
       }
     },
@@ -2471,8 +2297,8 @@
       "company": "Lemonade",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "My last pick is Lemonade, which is just another great growth stock that's disrupting its industry.",
-      "summary": "The creator is bullish on Lemonade, an insurance company disrupting its industry with a growth stock thesis.",
+      "quote": "My last pick is Lemonade, which is just another great growth stock that's disrupting its industry. Lemonade does insurance.",
+      "summary": "Creator picks Lemonade as a growth stock disrupting the insurance industry.",
       "onScreenPrice": null,
       "spark": [
         52.9,
@@ -2487,18 +2313,18 @@
         79.8,
         80.76,
         96.57,
-        74.18,
-        65.73,
-        51.86,
-        57.74,
-        60.7,
-        54.45,
-        66.14,
-        53,
-        53.97,
-        58.06,
-        60.75,
-        62.18
+        68.46,
+        61.67,
+        54.77,
+        66.87,
+        58.72,
+        58.74,
+        65.71,
+        54.43,
+        57.36,
+        52.66,
+        60.74,
+        65.05
       ],
       "returns": {
         "1w": {
@@ -2517,9 +2343,9 @@
           "excess": 0.41731129587058957
         },
         "toDate": {
-          "stock": 0.17542530267710976,
-          "spy": 0.14874818079653496,
-          "excess": 0.026677121880574806
+          "stock": 0.22967866116100355,
+          "spy": 0.1576932542643945,
+          "excess": 0.07198540689660904
         }
       }
     },
@@ -2531,7 +2357,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "my new big bets are HIMS by far",
-      "summary": "The creator states HIMS is his biggest new bet, indicating strong bullish conviction.",
+      "summary": "The creator lists HIMS as his top new big bet, indicating a strong bullish conviction.",
       "onScreenPrice": null,
       "spark": [
         47.78,
@@ -2539,25 +2365,25 @@
         52.54,
         59.15,
         46.63,
-        41.05,
+        39.75,
         34.71,
         39.2,
         34.77,
-        32.47,
+        33.41,
         31.32,
         28.67,
-        19.33,
-        15.51,
+        17.24,
+        15.46,
         15.74,
-        23.15,
-        20.76,
-        21.36,
+        24.16,
+        19.84,
+        24.29,
         29.39,
-        25.65,
-        23.04,
-        27.51,
-        30.17,
-        33.39
+        28.27,
+        24.01,
+        28.01,
+        31.47,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -2576,9 +2402,9 @@
           "excess": -0.21386686965021617
         },
         "toDate": {
-          "stock": -0.3011720334300979,
-          "spy": 0.1361370954693275,
-          "excess": -0.4373091288994254
+          "stock": -0.27438260664067116,
+          "spy": 0.14498396892551613,
+          "excess": -0.4193665755661873
         }
       }
     },
@@ -2589,8 +2415,8 @@
       "company": "SoFi",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "my new big bets are HIMS by far, and then SoFi, AMD, Oscar, and Lemonade",
-      "summary": "The creator includes SoFi as one of his new big bets, indicating a bullish view.",
+      "quote": "and then SoFi",
+      "summary": "The creator includes SoFi as one of his new big bets, expressing a bullish view.",
       "onScreenPrice": null,
       "spark": [
         25.52,
@@ -2598,25 +2424,25 @@
         25.24,
         26.6,
         30.9,
-        30.54,
+        30.95,
         25.19,
         27.78,
         26.29,
-        26.18,
+        27.46,
         26.67,
         24.6,
-        21.35,
-        18.22,
+        21.18,
+        18.66,
         18.9,
-        17.18,
-        15.88,
-        17.91,
+        17.08,
+        15.63,
+        18.79,
         18.76,
-        16,
-        15.69,
-        16.68,
-        17.13,
-        18.19
+        15.75,
+        15.65,
+        17.15,
+        17.71,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -2635,9 +2461,9 @@
           "excess": 0.0040622844678748216
         },
         "toDate": {
-          "stock": -0.2872256971874829,
-          "spy": 0.1361370954693275,
-          "excess": -0.4233627926568104
+          "stock": -0.2974137937477531,
+          "spy": 0.14498396892551613,
+          "excess": -0.44239776267326925
         }
       }
     },
@@ -2648,8 +2474,8 @@
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "my new big bets are HIMS by far, and then SoFi, AMD, Oscar, and Lemonade",
-      "summary": "The creator includes AMD as one of his new big bets, indicating a bullish view.",
+      "quote": "AMD",
+      "summary": "The creator names AMD as one of his new big bets, indicating a bullish outlook.",
       "onScreenPrice": null,
       "spark": [
         159.5,
@@ -2657,25 +2483,25 @@
         164.7,
         234.6,
         264.3,
-        244,
+        237.5,
         203.8,
         218,
         201.1,
-        214.2,
+        223.5,
         223.6,
         252.7,
-        216,
-        196.6,
+        213.6,
+        213.8,
         192.4,
-        199.5,
-        203.4,
-        255.1,
+        205.3,
+        210.2,
+        258.1,
         334.6,
-        408.5,
-        447.6,
-        542.5,
-        547.3,
-        539.5
+        455.2,
+        449.6,
+        523.2,
+        507.3,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -2694,9 +2520,9 @@
           "excess": 0.3418487620760422
         },
         "toDate": {
-          "stock": 2.3815344925256894,
-          "spy": 0.1361370954693275,
-          "excess": 2.2453973970563617
+          "stock": 2.641155807889982,
+          "spy": 0.14498396892551613,
+          "excess": 2.496171838964466
         }
       }
     },
@@ -2707,8 +2533,8 @@
       "company": "Oscar Health",
       "isFirstCall": true,
       "conviction": 0.8,
-      "quote": "my new big bets are HIMS by far, and then SoFi, AMD, Oscar, and Lemonade",
-      "summary": "The creator includes Oscar as one of his new big bets, indicating a bullish view.",
+      "quote": "Oscar",
+      "summary": "The creator includes Oscar (OSCR) as one of his new big bets, expressing a bullish view.",
       "onScreenPrice": null,
       "spark": [
         19.48,
@@ -2716,25 +2542,25 @@
         21.66,
         21.03,
         18.91,
-        14.61,
+        14.85,
         13.48,
         16.77,
         14.8,
-        14.37,
+        14.97,
         16.69,
         14.87,
-        12.66,
-        12.45,
+        12.88,
+        12.3,
         13.84,
-        13.56,
-        11.47,
-        15.29,
+        13.3,
+        11.73,
+        15.59,
         17.18,
-        20.87,
-        23.42,
-        20.5,
-        29.14,
-        29.45
+        21.31,
+        22.14,
+        23.6,
+        28.56,
+        28.52
       ],
       "returns": {
         "1w": {
@@ -2753,9 +2579,9 @@
           "excess": -0.17663345831667343
         },
         "toDate": {
-          "stock": 0.5118070562109756,
-          "spy": 0.1361370954693275,
-          "excess": 0.37566996074164805
+          "stock": 0.4640657663223713,
+          "spy": 0.14498396892551613,
+          "excess": 0.31908179739685516
         }
       }
     },
@@ -2766,8 +2592,8 @@
       "company": "Lemonade",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "my new big bets are HIMS by far, and then SoFi, AMD, Oscar, and Lemonade",
-      "summary": "The creator includes Lemonade as one of his new big bets, indicating a bullish view.",
+      "quote": "Lemonade",
+      "summary": "The creator names Lemonade as one of his new big bets, indicating a bullish outlook.",
       "onScreenPrice": null,
       "spark": [
         49.18,
@@ -2775,25 +2601,25 @@
         54.52,
         47.55,
         60.71,
-        78.87,
+        79.14,
         67.35,
         78.97,
         82.82,
-        71.18,
+        75.96,
         81.14,
         92.06,
-        72.8,
-        50.51,
+        71.6,
+        52.22,
         55.13,
-        64.42,
-        62.68,
-        62.47,
+        64.54,
+        61.07,
+        65.86,
         65.6,
-        54.43,
-        57.36,
-        52.66,
-        60.75,
-        62.18
+        55.01,
+        57.05,
+        51.57,
+        60.74,
+        65.05
       ],
       "returns": {
         "1w": {
@@ -2812,9 +2638,9 @@
           "excess": 0.5625307026983322
         },
         "toDate": {
-          "stock": 0.2643350939270299,
-          "spy": 0.1361370954693275,
-          "excess": 0.1281979984577024
+          "stock": 0.3226922051261527,
+          "spy": 0.14498396892551613,
+          "excess": 0.17770823620063658
         }
       }
     },
@@ -2825,8 +2651,8 @@
       "company": "Hims & Hers Health",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "First up, all my OGs know him's and hers. It's a telehealth company that sells products like GLP1s and I'm banking that peptides get regulated this summer.",
-      "summary": "The creator is bullish on Hims & Hers, expecting regulatory approval for peptides to boost the stock.",
+      "quote": "I'm banking that peptides get regulated this summer.",
+      "summary": "The creator is bullish on Hims & Hers, a telehealth company, expecting a catalyst from peptide regulation.",
       "onScreenPrice": null,
       "spark": [
         27.51,
@@ -2846,7 +2672,8 @@
         32.7,
         32.71,
         33.94,
-        33.39
+        33.39,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -2865,9 +2692,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": 0.21374042573047247,
-          "spy": -0.0175540814671743,
-          "excess": 0.23129450719764677
+          "stock": 0.2602689160484424,
+          "spy": -0.00990397061922399,
+          "excess": 0.27017288666766637
         }
       }
     },
@@ -2878,8 +2705,8 @@
       "company": "SoFi",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "Next stock is SoFi which is down 50% but they're building the future layer of finances for the next up and coming generation. I really like the CEO who recently bought more shares which shows his conviction in SoFi and they have great revenue numbers to back up their growth.",
-      "summary": "The creator is bullish on SoFi, citing CEO conviction and strong revenue growth as key factors.",
+      "quote": "I really like the CEO who recently bought more shares which shows his conviction in SoFi and they have great revenue numbers to back up their growth.",
+      "summary": "The creator is bullish on SoFi, citing CEO conviction and strong revenue growth.",
       "onScreenPrice": null,
       "spark": [
         16.68,
@@ -2899,7 +2726,8 @@
         17.31,
         17.3,
         17.88,
-        18.19
+        18.19,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -2918,9 +2746,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": 0.0905275900032978,
-          "spy": -0.0175540814671743,
-          "excess": 0.1080816714704721
+          "stock": 0.07494004659053433,
+          "spy": -0.00990397061922399,
+          "excess": 0.08484401720975832
         }
       }
     },
@@ -2930,9 +2758,9 @@
       "ticker": "RDDT",
       "company": "Reddit",
       "isFirstCall": false,
-      "conviction": 0.7,
-      "quote": "Next is Reddit which is my most recent big bet which I put 5% of my portfolio towards. Down 37% from all-time highs. I'm bullish because we're seeing a rotation into software stocks right now and Reddit has a really interesting relationship with AI Labs.",
-      "summary": "The creator is bullish on Reddit, having allocated 5% of his portfolio, citing a rotation into software and AI lab relationships.",
+      "conviction": 0.8,
+      "quote": "I'm bullish because we're seeing a rotation into software stocks right now and Reddit has a really interesting relationship with AI Labs.",
+      "summary": "The creator is bullish on Reddit, citing a rotation into software and AI lab relationships, and has a 5% portfolio position.",
       "onScreenPrice": null,
       "spark": [
         169.5,
@@ -2952,7 +2780,8 @@
         160.7,
         158,
         166.9,
-        174.4
+        174.4,
+        173.6
       ],
       "returns": {
         "1w": {
@@ -2971,9 +2800,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": 0.028910223244296374,
-          "spy": -0.0175540814671743,
-          "excess": 0.04646430471147067
+          "stock": 0.02413119479222381,
+          "spy": -0.00990397061922399,
+          "excess": 0.0340351654114478
         }
       }
     },
@@ -2984,8 +2813,8 @@
       "company": "Lemonade",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Lemonade is my fourth largest stock holding and if you want to view my entire stock portfolio, it's public and free.",
-      "summary": "Creator is bullish on Lemonade as a disruptive growth stock, holds it as a top position, and recommends it.",
+      "quote": "Lemonade is my fourth largest stock holding",
+      "summary": "The creator highlights Lemonade as a growth stock disrupting insurance, notes it is their fourth largest holding, and implies a current bullish position.",
       "onScreenPrice": null,
       "spark": [
         78.73,
@@ -3000,18 +2829,18 @@
         74.26,
         65.73,
         51.74,
-        55.1,
-        64.42,
-        60.7,
-        58.94,
-        70.94,
-        65.77,
-        54.43,
-        54.48,
-        58.04,
-        52.97,
-        57.28,
-        62.18
+        55.43,
+        64.54,
+        58.72,
+        55.63,
+        68.67,
+        56,
+        55.01,
+        53.97,
+        58,
+        53.58,
+        58.84,
+        65.05
       ],
       "returns": {
         "1w": {
@@ -3030,9 +2859,9 @@
           "excess": 0.03266216329149696
         },
         "toDate": {
-          "stock": -0.21021214716232173,
-          "spy": 0.09359777636675348,
-          "excess": -0.3038099235290752
+          "stock": -0.17375841130293834,
+          "spy": 0.10211340461097462,
+          "excess": -0.27587181591391297
         }
       }
     },
@@ -3044,33 +2873,33 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "ever since November I've been aggressively buying up this stock because I knew it was undervalued and now our patience has been rewarded.",
-      "summary": "Creator is bullish on Meta, citing its post-earnings rise and their own aggressive buying since November, believing it was undervalued.",
+      "summary": "Creator is bullish on Meta, citing its post-earnings rise and their own aggressive buying since November, viewing it as undervalued.",
       "onScreenPrice": null,
       "spark": [
         738.3,
-        669,
+        670.2,
         668.7,
-        643.2,
+        644.8,
         653.7,
-        655.1,
+        667.7,
         654.1,
-        627.5,
+        622.7,
         604.1,
-        525.7,
+        536.4,
         573,
-        629.9,
+        634.5,
         688.5,
-        659.2,
+        675,
         611.9,
-        612.9,
+        616.8,
         616.6,
-        602.6,
+        605.1,
         635.3,
-        597.6,
+        623,
         584.6,
-        593.5,
+        600.2,
         562.2,
-        562.6
+        563.3
       ],
       "returns": {
         "1w": {
@@ -3089,9 +2918,9 @@
           "excess": -0.11898640186291609
         },
         "toDate": {
-          "stock": -0.2379894929686518,
-          "spy": 0.06766184003712561,
-          "excess": -0.3056513330057774
+          "stock": -0.2370549228779203,
+          "spy": 0.07597551030674032,
+          "excess": -0.3130304331846606
         }
       }
     },
@@ -3103,33 +2932,33 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I said this would be a 10x stock, so I'm holding this for the long run, baby.",
-      "summary": "The creator is bullish on Nebius Group (NBIS) due to a $17 billion Microsoft partnership and believes it will 10x, holding for the long term.",
+      "summary": "Creator is bullish on Nebius Group, citing a $17 billion Microsoft partnership and a 10x potential, and states he is holding long-term.",
       "onScreenPrice": null,
       "spark": [
         95.72,
         106.6,
-        125.9,
+        128,
         125.8,
         121.8,
         109.9,
-        84.64,
+        83.26,
         102.8,
         75.45,
         83.71,
-        105.4,
-        97.87,
+        102,
+        100.4,
         92.88,
         100.6,
-        95.65,
-        118.6,
-        103.8,
+        89.33,
+        121.5,
+        101.9,
         161.9,
-        147.2,
-        184.8,
-        191.8,
+        145,
+        177.1,
+        219.9,
         251.7,
-        260.1,
-        261.1
+        265.1,
+        276.2
       ],
       "returns": {
         "1w": {
@@ -3148,9 +2977,9 @@
           "excess": -0.003043443280314806
         },
         "toDate": {
-          "stock": 1.7282698554751028,
-          "spy": 0.1394214945142691,
-          "excess": 1.5888483609608337
+          "stock": 1.8851860625342534,
+          "spy": 0.14829394293218212,
+          "excess": 1.7368921196020712
         }
       }
     },
@@ -3161,34 +2990,34 @@
       "company": "Hims & Hers Health",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "I'm making a huge bet on this company. I've made over $20,000 with my HIMS investments, and I'm gonna continue holding this stock for many years because I do view it as a long-term investment.",
-      "summary": "The creator is bullish on HIMS, holding a long-term position and viewing it as a long-term investment.",
+      "quote": "I'm making a huge bet on this company",
+      "summary": "The creator is bullish on Hims & Hers (HIMS), viewing it as a long-term investment and continuing to hold.",
       "onScreenPrice": null,
       "spark": [
         62.76,
         48.23,
         43.73,
         35.58,
-        38.4,
+        39.76,
         39.82,
         35.56,
-        32.47,
+        33.41,
         32.2,
-        29.62,
-        24.4,
+        30.28,
+        23.48,
         16.27,
-        15.6,
+        14.52,
         23.47,
         22.02,
-        20.76,
+        19.84,
         21.15,
-        29.01,
-        27.27,
+        28.15,
+        26.33,
         24.24,
-        23.85,
-        26.19,
-        31.47,
-        33.39
+        25.2,
+        27.17,
+        31.89,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -3207,9 +3036,9 @@
           "excess": -0.529930910576642
         },
         "toDate": {
-          "stock": -0.4679732268540836,
-          "spy": 0.11400096071395627,
-          "excess": -0.5819741875680399
+          "stock": -0.44757808960855405,
+          "spy": 0.12267546449418676,
+          "excess": -0.5702535541027408
         }
       }
     },
@@ -3220,8 +3049,8 @@
       "company": "EchoStar",
       "isFirstCall": true,
       "conviction": 0.6,
-      "quote": "I just bought a brand new stock that can benefit from the SpaceX IPO that nobody is talking about. I trimmed some of my AMD at 332% profits to buy EchoStar, ticker S-A-T-S.",
-      "summary": "The creator bought EchoStar (SATS) as a short-term trade, betting on its SpaceX proxy value and short squeeze potential.",
+      "quote": "I trimmed some of my AMD at 332% profits to buy EchoStar, ticker S-A-T-S.",
+      "summary": "The creator bought EchoStar as a short-term trade, betting on its SpaceX proxy value and short squeeze potential.",
       "onScreenPrice": 109.4,
       "spark": [
         109.2,
@@ -3230,7 +3059,8 @@
         99.86,
         97.19,
         97.39,
-        100.8
+        100.8,
+        101.5
       ],
       "returns": {
         "1w": {
@@ -3249,9 +3079,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": -0.07621141187479608,
-          "spy": -0.007686732074672187,
-          "excess": -0.06852467980012389
+          "stock": -0.07025738112659541,
+          "spy": 0.00004021385926522569,
+          "excess": -0.07029759498586063
         }
       }
     },
@@ -3263,20 +3093,21 @@
       "isFirstCall": true,
       "conviction": 0.6,
       "quote": "I personally only own inflection and I've been making videos on it for months now.",
-      "summary": "The speaker owns Inflection and is bullish on quantum technology, but cautions that the sector is speculative and early-stage.",
+      "summary": "The creator owns Inflection and is bullish on quantum technology, but notes the sector is speculative and early.",
       "onScreenPrice": 15.95,
       "spark": [
         15.96,
         14.1,
         12.79,
         13.63,
-        13.82
+        13.82,
+        13.32
       ],
       "returns": {
         "1w": {
-          "stock": null,
-          "spy": null,
-          "excess": null
+          "stock": -0.16541355495067211,
+          "spy": 0.017980318621180214,
+          "excess": -0.18339387357185233
         },
         "1m": {
           "stock": null,
@@ -3289,9 +3120,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": -0.1340852342235469,
-          "spy": 0.01011475604200851,
-          "excess": -0.1441999902655554
+          "stock": -0.16541355495067211,
+          "spy": 0.017980318621180214,
+          "excess": -0.18339387357185233
         }
       }
     },
@@ -3303,7 +3134,7 @@
       "isFirstCall": false,
       "conviction": 0.6,
       "quote": "I still think Lemonade has room to run",
-      "summary": "The creator is bullish on Lemonade due to its partnership with Tesla for FSD insurance, believes it has room to run, but is not adding to his position at current prices.",
+      "summary": "The creator holds Lemonade, bought at $32, and believes it has further upside due to Tesla partnership, but is not buying more at current prices.",
       "onScreenPrice": null,
       "spark": [
         96.57,
@@ -3311,25 +3142,25 @@
         74.18,
         68.49,
         61.67,
-        51.85,
+        55.17,
         54.77,
         54.08,
         64.42,
-        65.47,
+        67.11,
         62.68,
         58.94,
-        62.47,
-        66.06,
+        65.86,
+        66.5,
         65.77,
-        55.05,
-        55.05,
-        54.48,
+        57.17,
+        55.14,
+        53.97,
         57.36,
-        58.72,
-        52.97,
-        60.75,
-        57.51,
-        62.18
+        58.06,
+        53.58,
+        60.74,
+        57.89,
+        65.05
       ],
       "returns": {
         "1w": {
@@ -3348,68 +3179,65 @@
           "excess": -0.3436454923619383
         },
         "toDate": {
-          "stock": -0.3561147302301546,
-          "spy": 0.07550294784451927,
-          "excess": -0.4316176780746739
+          "stock": -0.3263953271479171,
+          "spy": 0.08387767526014667,
+          "excess": -0.41027300240806375
         }
       }
     },
     {
-      "shortcode": "DUY7FMmkssW",
-      "postDate": "2026-02-05",
-      "ticker": "BTC-USD",
-      "company": "Bitcoin USD",
+      "shortcode": "DZBWKkGO5QE",
+      "postDate": "2026-05-31",
+      "ticker": "RDDT",
+      "company": "Reddit",
       "isFirstCall": false,
-      "conviction": 0.95,
-      "quote": "buy and accumulate Bitcoin at cheaper prices",
-      "summary": "The creator advises accumulating Bitcoin at current lower prices, expecting further decline but long-term appreciation to exceed $125,000.",
+      "conviction": 0.7,
+      "quote": "I bought $6,000 worth of Reddit last month and I'm already up 30% on that position.",
+      "summary": "The creator bought Reddit last month and is up 30%, indicating a current long position.",
       "onScreenPrice": null,
       "spark": [
-        62700,
-        66990,
-        66430,
-        64080,
-        68780,
-        65970,
-        72790,
-        68710,
-        66340,
-        66890,
-        71770,
-        74810,
-        76350,
-        77370,
-        79830,
-        82140,
-        78130,
-        75490,
-        73370,
-        63800,
-        61450,
-        65600,
-        62670,
-        60140
+        177.9,
+        169.1,
+        169.5,
+        183.9,
+        173.4,
+        171.1,
+        178.1,
+        172.2,
+        173.3,
+        162.1,
+        181.9,
+        175.4,
+        165.9,
+        175,
+        170.4,
+        165.6,
+        160.7,
+        158,
+        166.9,
+        174.4,
+        173.6
       ],
       "returns": {
         "1w": {
-          "stock": 0.05613442333374885,
-          "spy": 0.005386535876101606,
-          "excess": 0.050747887457647245
+          "stock": -0.03778465555290356,
+          "spy": -0.02546999220062507,
+          "excess": -0.012314663352278488
         },
         "1m": {
-          "stock": 0.07289223589945437,
-          "spy": 0.0009592757279102138,
-          "excess": 0.07193296017154416
+          "stock": -0.024009019544118715,
+          "spy": -0.015516596141316952,
+          "excess": -0.008492423402801763
         },
         "3m": {
-          "stock": 0.2986412623132313,
-          "spy": 0.08295213006950197,
-          "excess": 0.21568913224372932
+          "stock": null,
+          "spy": null,
+          "excess": null
         },
         "toDate": {
-          "stock": -0.0408872883975111,
-          "spy": 0.09353325660328471,
-          "excess": -0.1344205450007958
+          "stock": -0.024009019544118715,
+          "spy": -0.015516596141316952,
+          "excess": -0.008492423402801763
         }
       }
     },
@@ -3419,9 +3247,9 @@
       "ticker": "NOW",
       "company": "ServiceNow",
       "isFirstCall": true,
-      "conviction": 0.7,
+      "conviction": 0.6,
       "quote": "My next plan is to buy ServiceNow. Even though I'm a little late to the party, I think that this stock is still really undervalued.",
-      "summary": "The creator plans to buy ServiceNow, believing it is undervalued despite being late to the party.",
+      "summary": "The creator plans to buy ServiceNow, believing it is undervalued.",
       "onScreenPrice": null,
       "spark": [
         135.9,
@@ -3443,7 +3271,8 @@
         93.8,
         89.52,
         98.34,
-        99.97
+        99.97,
+        99.28
       ],
       "returns": {
         "1w": {
@@ -3452,9 +3281,9 @@
           "excess": -0.134032422576298
         },
         "1m": {
-          "stock": null,
-          "spy": null,
-          "excess": null
+          "stock": -0.26924776730986966,
+          "spy": -0.015516596141316952,
+          "excess": -0.2537311711685527
         },
         "3m": {
           "stock": null,
@@ -3462,9 +3291,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": -0.2641689918181399,
-          "spy": -0.023123340279253557,
-          "excess": -0.24104565153888635
+          "stock": -0.26924776730986966,
+          "spy": -0.015516596141316952,
+          "excess": -0.2537311711685527
         }
       }
     },
@@ -3475,8 +3304,8 @@
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "I am now up$10,000 on my AMD position and it's my second highest allocation in my portfolio.",
-      "summary": "The creator is bullish on AMD, highlighting their long-term conviction and current large position.",
+      "quote": "I've been holding AMD since 2024 and the stock was down 50% at one time where everyone called me stupid for investing into Lisa Sue and AMD. And now all these haters are all of a sudden gonna come into my comments and call me a genius when in reality I didn't really do anything. I just held the stock because I had conviction in it and I let its fundamentals do its thing.",
+      "summary": "The creator expresses a bullish view on AMD, citing their long position and conviction through a past drawdown, implying continued confidence.",
       "onScreenPrice": null,
       "spark": [
         347.8,
@@ -3485,24 +3314,24 @@
         341.5,
         421.4,
         455.2,
-        458.8,
-        445.5,
-        424.1,
-        414,
-        449.6,
-        503.9,
+        448.3,
+        449.7,
+        421,
+        447.6,
+        467.5,
+        495.5,
         518.1,
         510.1,
         542.5,
         466.4,
         475.5,
         488.5,
-        511.6,
-        507.3,
-        537.4,
-        519.8,
-        532.6,
-        539.5
+        547.3,
+        512.5,
+        551.6,
+        519.7,
+        521.6,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -3521,9 +3350,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": 0.5511054714391581,
-          "spy": 0.037902341185616084,
-          "excess": 0.513203130253542
+          "stock": 0.6701934309598687,
+          "spy": 0.04598428016020595,
+          "excess": 0.6242091507996628
         }
       }
     },
@@ -3535,33 +3364,33 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I just spent $2,000 on a stock that I think can double by the end of this year. That stock is Zeta, ticker ZETA.",
-      "summary": "Creator bought ZETA, citing its AI-driven marketing tech, OpenAI partnership, and strong revenue growth, expecting it to double by year-end.",
+      "summary": "Creator bought ZETA, citing its AI-driven marketing tech, OpenAI partnership, Fortune 100 adoption, and 25% revenue growth, expecting it to double by year-end.",
       "onScreenPrice": null,
       "spark": [
         21.07,
         18.68,
         16.89,
         15.46,
-        16.31,
+        14.98,
         16.95,
         18.84,
-        18.05,
+        17.84,
         17.23,
-        16.36,
-        15.73,
+        16.08,
+        15.79,
         15.32,
-        17.37,
+        17.42,
         18.16,
         17.81,
-        17.85,
+        17.23,
         16.25,
-        19.19,
-        19.65,
+        18.3,
+        19.46,
         25.25,
-        21.76,
-        19.77,
-        18.47,
-        19.73
+        21.08,
+        19.73,
+        19.51,
+        19.68
       ],
       "returns": {
         "1w": {
@@ -3580,9 +3409,9 @@
           "excess": -0.1738268755270056
         },
         "toDate": {
-          "stock": -0.06359754019916086,
-          "spy": 0.06968085818746728,
-          "excess": -0.13327839838662814
+          "stock": -0.06597054626393217,
+          "spy": 0.07801025014960761,
+          "excess": -0.14398079641353978
         }
       }
     },
@@ -3593,8 +3422,8 @@
       "company": "Amazon.com",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "I genuinely think Amazon is one of the strongest companies in the world, rapidly expanding in AI infrastructure, cloud infrastructure, and still the king of e-commerce.",
-      "summary": "The creator is bullish on Amazon due to its strong fundamentals and expansion in AI and cloud, and plans to add to his long-term portfolio.",
+      "quote": "My first stock is Amazon, which has been trading flat for the past five years... I genuinely think Amazon is one of the strongest companies in the world, rapidly expanding in AI infrastructure, cloud infrastructure, and still the king of e-commerce.",
+      "summary": "Amazon is undervalued and trading flat; creator plans to add it for long-term growth due to its strength in AI, cloud, and e-commerce.",
       "onScreenPrice": null,
       "spark": [
         199.6,
@@ -3603,24 +3432,24 @@
         208.7,
         213.5,
         207.7,
-        208.8,
-        211.7,
-        208.3,
-        213.8,
-        239.9,
-        250.6,
+        205.4,
+        207.5,
+        210.6,
+        221.3,
+        249,
+        248.3,
         264,
         265.1,
         275,
         265.8,
         264.9,
         266.3,
-        270.6,
-        253.8,
-        238,
+        261.3,
         246,
-        234.1,
-        240.1
+        241.5,
+        237.5,
+        234.3,
+        238.3
       ],
       "returns": {
         "1w": {
@@ -3639,9 +3468,9 @@
           "excess": 0.2637593617085481
         },
         "toDate": {
-          "stock": 0.2031061725775105,
-          "spy": 0.08767445910778138,
-          "excess": 0.11543171346972914
+          "stock": 0.19408812149175914,
+          "spy": 0.09614396365932487,
+          "excess": 0.09794415783243426
         }
       }
     },
@@ -3651,9 +3480,9 @@
       "ticker": "SOFI",
       "company": "SoFi",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "My second choice is SoFi, which is down 40% from all-time highs. A lot of young people, Gen Z, are using SoFi as their future layer of banking and finances.",
-      "summary": "The creator is bullish on SoFi, citing its popularity among Gen Z and the potential as a future banking layer, and sees the current dip as a buying opportunity.",
+      "summary": "SoFi is down 40% from highs; creator sees it as a long-term pick due to its adoption by Gen Z for banking and finance.",
       "onScreenPrice": null,
       "spark": [
         19.3,
@@ -3662,24 +3491,24 @@
         18.61,
         18.79,
         17.76,
-        17.08,
-        16.56,
-        15.88,
-        16.11,
-        17.05,
-        19.43,
+        16.9,
+        15.87,
+        15.63,
+        16.49,
+        17.91,
+        19.5,
         18.44,
         16.1,
         16.3,
         15.9,
         15.71,
         15.62,
-        18.22,
-        17.15,
-        15.87,
-        17.71,
-        17.29,
-        18.19
+        18.58,
+        16.03,
+        16.67,
+        17.42,
+        17.31,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -3698,9 +3527,9 @@
           "excess": -0.29633303299272895
         },
         "toDate": {
-          "stock": -0.057512888439470555,
-          "spy": 0.08767445910778138,
-          "excess": -0.14518734754725193
+          "stock": -0.07098440342184287,
+          "spy": 0.09614396365932487,
+          "excess": -0.16712836708116774
         }
       }
     },
@@ -3710,9 +3539,9 @@
       "ticker": "IREN",
       "company": "IREN",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "My last pick is IREN. And if you're a big believer in AI like I am, then you gotta invest in the data centers that power it.",
-      "summary": "The creator is bullish on IREN as a play on AI data centers, recommending investment for AI believers.",
+      "summary": "IREN is a data center play for AI; creator recommends it for those bullish on AI infrastructure.",
       "onScreenPrice": null,
       "spark": [
         40.03,
@@ -3721,24 +3550,24 @@
         38.85,
         38.84,
         41.58,
-        41.66,
-        41.43,
-        34.28,
-        35.74,
-        43.07,
-        48.12,
+        41.29,
+        37.45,
+        34.09,
+        36.83,
+        47.37,
+        48.72,
         50.64,
         45.51,
         60.98,
         56.56,
         50.46,
         56.83,
-        63.54,
-        61.86,
-        51.52,
-        59.18,
-        54.72,
-        45.91
+        65.33,
+        54.35,
+        56.71,
+        58.11,
+        50.3,
+        45.73
       ],
       "returns": {
         "1w": {
@@ -3757,9 +3586,9 @@
           "excess": 0.2886189992355752
         },
         "toDate": {
-          "stock": 0.14688986378776292,
-          "spy": 0.08767445910778138,
-          "excess": 0.05921540467998154
+          "stock": 0.1423932284976095,
+          "spy": 0.09614396365932487,
+          "excess": 0.04624926483828462
         }
       }
     },
@@ -3770,34 +3599,34 @@
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "This is the third largest allocation in my personal stock portfolio, so I've spent many hours researching this stock and have very high conviction in it.",
-      "summary": "The creator is bullish on AMD, citing its AI hardware potential and Elon Musk's endorsement, and considers it a buying opportunity.",
+      "quote": "This is the third largest allocation in my personal stock portfolio, so I've spent many hours researching this stock and have very high conviction in it. Without further ado, that stock is AMD.",
+      "summary": "Creator is bullish on AMD, citing Elon Musk's tweet, rapid GPU iteration, and AI infrastructure demand, and holds it as a top position.",
       "onScreenPrice": null,
       "spark": [
         158.6,
         161.3,
         211.5,
         240.6,
-        254.8,
+        256.1,
         258.9,
         206.1,
-        221.1,
+        221.6,
         213.4,
-        223.5,
-        227.9,
+        221.1,
+        231.8,
         252.2,
         213.6,
         213.8,
         202.7,
-        205.3,
+        201.3,
         210.2,
-        255.1,
-        334.6,
+        258.1,
+        323.2,
         455.2,
-        447.6,
-        542.5,
-        547.3,
-        539.5
+        449.6,
+        523.2,
+        507.3,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -3816,9 +3645,9 @@
           "excess": 0.3481070628367777
         },
         "toDate": {
-          "stock": 2.402219621087055,
-          "spy": 0.12715053052152525,
-          "excess": 2.2750690905655295
+          "stock": 2.6634290616937344,
+          "spy": 0.13592742738490982,
+          "excess": 2.5275016343088246
         }
       }
     },
@@ -3829,8 +3658,8 @@
       "company": "IREN",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "I had to press the buy button",
-      "summary": "Creator is buying IREN because it's down over 50% and they believe the AI narrative is not a bubble, with top tech companies still investing in its infrastructure.",
+      "quote": "I had to press the buy button. And that stock is Iran, ticker I-R-E-N.",
+      "summary": "Creator bought IREN because it was oversold over 50% in a month, citing strong demand from top tech companies for AI data centers.",
       "onScreenPrice": null,
       "spark": [
         33.78,
@@ -3838,25 +3667,25 @@
         48.24,
         52.99,
         52.26,
-        59.84,
+        53.74,
         41.83,
         40.97,
         44.03,
-        43.84,
+        40.13,
         41.37,
         41.29,
-        35.09,
-        35.74,
+        31.62,
+        36.83,
         48.82,
-        48.39,
-        45.51,
-        61.2,
+        52.02,
+        45.66,
+        55.15,
         50.46,
-        59.78,
-        65.48,
-        56.71,
-        59.96,
-        45.91
+        67.84,
+        61.86,
+        59.77,
+        56.87,
+        45.73
       ],
       "returns": {
         "1w": {
@@ -3875,9 +3704,9 @@
           "excess": 0.27266707415612257
         },
         "toDate": {
-          "stock": 0.35908826247647707,
-          "spy": 0.10366394556907865,
-          "excess": 0.2554243169073984
+          "stock": 0.35375965644686125,
+          "spy": 0.11225795706957808,
+          "excess": 0.24150169937728316
         }
       }
     },
@@ -3887,35 +3716,35 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "it's my number one position alongside AMD and SoFi; if it dips below my average buying price into the $25 range, that's where I'm gonna consider doubling down and buying more shares",
-      "summary": "The creator discusses HIMS as his top position, acknowledges volatility and risks, but maintains a bullish long-term thesis and plans to buy more if it dips to $25.",
+      "conviction": 0.8,
+      "quote": "it's my number one position alongside AMD and SoFi",
+      "summary": "Creator discusses HIMS as his top position, acknowledges recent decline but maintains long-term bullish thesis, and plans to double down if price dips to $25.",
       "onScreenPrice": null,
       "spark": [
         28.89,
         28.67,
-        25.54,
+        24.4,
         17.24,
         15.84,
         15.82,
-        15.82,
+        16.45,
         23.47,
         24.98,
         21.34,
-        18.78,
-        19.5,
+        20.76,
+        19.39,
         21.36,
         29.76,
-        29.39,
-        27.27,
-        29.14,
+        27.91,
+        26.33,
+        25.03,
         22.29,
-        23.75,
-        27.76,
-        27.17,
+        23.85,
+        27.51,
+        28.98,
         30.17,
-        33.54,
-        33.39
+        32.96,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -3934,9 +3763,9 @@
           "excess": 0.002860109562420332
         },
         "toDate": {
-          "stock": 0.15576324316615908,
-          "spy": 0.08112047505902709,
-          "excess": 0.074642768107132
+          "stock": 0.20006919007993829,
+          "spy": 0.08953894504111193,
+          "excess": 0.11053024503882636
         }
       }
     },
@@ -3946,35 +3775,35 @@
       "ticker": "AMD",
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "it's my number one position alongside AMD and SoFi",
-      "summary": "The creator lists AMD as one of his top positions, indicating a current bullish stance.",
+      "conviction": 0.6,
+      "quote": "my number one position alongside AMD and SoFi",
+      "summary": "Creator states AMD is one of his current long positions alongside HIMS and SoFi.",
       "onScreenPrice": null,
       "spark": [
         249.8,
         252.7,
-        242.1,
+        200.2,
         213.6,
         200.1,
         210.9,
-        190.9,
+        202.1,
         203.2,
         196.3,
         205.4,
-        196,
-        221.5,
+        203.4,
+        231.8,
         255.1,
         284.5,
-        334.6,
-        341.5,
-        458.8,
+        323.2,
+        355.3,
+        448.3,
         421,
-        467.5,
-        510.1,
-        490.3,
+        503.9,
+        521.5,
+        475.5,
         547.3,
-        551.6,
-        539.5
+        519.8,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -3993,9 +3822,9 @@
           "excess": 0.11161689737138802
         },
         "toDate": {
-          "stock": 1.1596876847219026,
-          "spy": 0.08112047505902709,
-          "excess": 1.0785672096628756
+          "stock": 1.3255002644021925,
+          "spy": 0.08953894504111193,
+          "excess": 1.2359613193610806
         }
       }
     },
@@ -4005,35 +3834,35 @@
       "ticker": "SOFI",
       "company": "SoFi",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "it's my number one position alongside AMD and SoFi",
-      "summary": "The creator lists SoFi as one of his top positions, indicating a current bullish stance.",
+      "conviction": 0.6,
+      "quote": "my number one position alongside AMD and SoFi",
+      "summary": "Creator states SoFi is one of his current long positions alongside HIMS and AMD.",
       "onScreenPrice": null,
       "spark": [
         25.64,
         24.6,
-        21.76,
+        20.75,
         21.18,
         19.54,
         19.29,
-        18.61,
+        18.7,
         18.29,
         17.37,
         16.7,
-        15.15,
-        16.11,
+        15.88,
+        16.49,
         17.91,
         18.83,
-        18.76,
-        16.2,
-        16.26,
+        18.36,
+        16.02,
+        15.9,
         15.71,
-        15.62,
-        18.58,
-        16.5,
+        15.98,
+        17.74,
+        16.47,
         17.13,
-        17.1,
-        18.19
+        17.29,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -4052,9 +3881,9 @@
           "excess": -0.29285475601738775
         },
         "toDate": {
-          "stock": -0.29056158474787586,
-          "spy": 0.08112047505902709,
-          "excess": -0.37168205980690294
+          "stock": -0.3007019995322383,
+          "spy": 0.08953894504111193,
+          "excess": -0.39024094457335023
         }
       }
     },
@@ -4065,8 +3894,8 @@
       "company": "Hims & Hers Health",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Hims and hers. This is my number one position for a reason.",
-      "summary": "The creator lists Hims & Hers as their top position, citing strong execution and expansion to Canada.",
+      "quote": "I gotta stay loyal. Hims and hers. This is my number one position for a reason, but whoo, it's been a roller coaster. I'm embracing the stock price volatility because they've been executing like crazy. They just expanded to Canada.",
+      "summary": "The creator recommends Hims & Hers as their top position, citing strong execution and expansion to Canada.",
       "onScreenPrice": null,
       "spark": [
         39.2,
@@ -4075,24 +3904,24 @@
         33.41,
         32.34,
         28.89,
-        29.87,
-        23.02,
-        16.27,
-        15.82,
-        15.88,
-        24.77,
+        27.09,
+        19.33,
+        15.84,
+        15.6,
+        15.74,
+        24.88,
         21.34,
         19.84,
         19.43,
         31.01,
         27.91,
         26.88,
-        24.24,
-        23.75,
+        25.05,
+        23.85,
         27.51,
-        27.78,
-        35.47,
-        33.39
+        28.87,
+        33.54,
+        34.67
       ],
       "returns": {
         "1w": {
@@ -4111,9 +3940,9 @@
           "excess": -0.5885102308184108
         },
         "toDate": {
-          "stock": -0.1482143178625629,
-          "spy": 0.08066326964322346,
-          "excess": -0.22887758750578635
+          "stock": -0.11556128841397639,
+          "spy": 0.08907817945772534,
+          "excess": -0.20463946787170173
         }
       }
     },
@@ -4124,8 +3953,8 @@
       "company": "SoFi",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Second stock is SoFi, a fintech company that's one of my favorite growth stocks.",
-      "summary": "The creator recommends SoFi as a favorite growth stock building the next layer of banking.",
+      "quote": "Second stock is SoFi, a fintech company that's one of my favorite growth stocks. They're building the next layer of banking for the upcoming generation.",
+      "summary": "The creator recommends SoFi as a favorite growth stock, highlighting its role in next-generation banking.",
       "onScreenPrice": null,
       "spark": [
         27.78,
@@ -4134,24 +3963,24 @@
         27.46,
         26.6,
         25.64,
-        24.36,
-        20.86,
-        19.51,
-        19.29,
-        19.25,
-        17.76,
+        22.81,
+        21.35,
+        19.54,
+        19.1,
+        18.9,
+        17.63,
         16.7,
         15.63,
         16.22,
         19.5,
         18.36,
         16.3,
-        16.02,
-        15.62,
-        17.74,
-        15.87,
-        17.91,
-        18.19
+        15.61,
+        15.98,
+        16.68,
+        16.67,
+        17.1,
+        17.93
       ],
       "returns": {
         "1w": {
@@ -4170,9 +3999,9 @@
           "excess": -0.3006677193625984
         },
         "toDate": {
-          "stock": -0.3452123799693795,
-          "spy": 0.08066326964322346,
-          "excess": -0.42587564961260294
+          "stock": -0.3545716392370304,
+          "spy": 0.08907817945772534,
+          "excess": -0.4436498186947557
         }
       }
     },
@@ -4183,8 +4012,8 @@
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Next is AMD. ... I think it has a much better upside potential compared to NVIDIA in the AI race.",
-      "summary": "The creator is bullish on AMD, seeing better upside than NVIDIA in AI.",
+      "quote": "Next is AMD. And for so long, everyone was calling this stock the advanced money destroyer, which is why patience is so important. Now the stock is skyrocketing, and I think it has a much better upside potential compared to NVIDIA in the AI race.",
+      "summary": "The creator recommends AMD, believing it has better upside potential than NVIDIA in AI.",
       "onScreenPrice": null,
       "spark": [
         218,
@@ -4193,24 +4022,24 @@
         223.5,
         207.7,
         249.8,
-        252.2,
-        208.4,
-        203.1,
-        210.9,
-        199.4,
-        193.4,
+        236.7,
+        216,
+        200.1,
+        203.7,
+        192.4,
+        196.6,
         205.4,
         210.2,
         245,
         275,
         323.2,
         421.4,
-        449.7,
-        467.5,
-        521.5,
-        452.4,
-        537.4,
-        539.5
+        424.1,
+        503.9,
+        542.5,
+        488.5,
+        551.6,
+        580.9
       ],
       "returns": {
         "1w": {
@@ -4229,9 +4058,9 @@
           "excess": -0.0785781067795972
         },
         "toDate": {
-          "stock": 1.4750653173053863,
-          "spy": 0.08066326964322346,
-          "excess": 1.3944020476621628
+          "stock": 1.665091388224278,
+          "spy": 0.08907817945772534,
+          "excess": 1.5760132087665526
         }
       }
     },
@@ -4242,8 +4071,8 @@
       "company": "Lemonade",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Number four is Lemonade, one of my best performing growth stocks this year.",
-      "summary": "The creator highlights Lemonade as a top growth stock disrupting the insurance industry.",
+      "quote": "Number four is Lemonade, one of my best performing growth stocks this year. They're an insurance company that's disrupting the industry.",
+      "summary": "The creator recommends Lemonade as a top growth stock disrupting the insurance industry.",
       "onScreenPrice": null,
       "spark": [
         78.97,
@@ -4252,24 +4081,24 @@
         75.96,
         86.51,
         85.36,
-        91.28,
-        74.26,
-        64.59,
-        51.85,
-        55.04,
-        55.15,
+        86.73,
+        72.8,
+        65.73,
+        55.17,
+        55.13,
+        57.74,
         65.47,
         61.07,
         54.45,
         68.67,
         65.77,
         53,
-        53.78,
-        56.52,
-        58.06,
-        55.86,
-        58.84,
-        62.18
+        51.35,
+        57.36,
+        52.66,
+        57.18,
+        57.51,
+        65.05
       ],
       "returns": {
         "1w": {
@@ -4288,9 +4117,9 @@
           "excess": -0.2966387315965655
         },
         "toDate": {
-          "stock": -0.2126123927566257,
-          "spy": 0.08066326964322346,
-          "excess": -0.29327566239984915
+          "stock": -0.17626944350731488,
+          "spy": 0.08907817945772534,
+          "excess": -0.2653476229650402
         }
       }
     },
@@ -4299,10 +4128,10 @@
       "postDate": "2025-12-05",
       "ticker": "IREN",
       "company": "IREN",
-      "isFirstCall": false,
+      "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "Last but not least, I have Iran, which is in a recent dip actually. They're a data center company that I think will power the future of Bitcoin and AI.",
-      "summary": "The creator is bullish on IREN (likely Iris Energy), citing its data center role for Bitcoin and AI and recent dip as an opportunity.",
+      "quote": "Last but not least, I have Iran, which is in a recent dip actually. They're a data center company that I think will power the future of Bitcoin and AI. Also, their growth and expansion has been next level.",
+      "summary": "The creator recommends IREN (Iris Energy) as a data center company powering Bitcoin and AI, noting a recent dip as a buying opportunity.",
       "onScreenPrice": null,
       "spark": [
         44.71,
@@ -4311,24 +4140,24 @@
         42.7,
         50.33,
         53.48,
-        59.84,
-        41.83,
-        40.97,
-        44.03,
-        40.13,
-        41.58,
+        53.74,
+        46.15,
+        42.08,
+        44.24,
+        36.7,
+        44.94,
         41.12,
         34.09,
         39.32,
         48.72,
         44.44,
         60.98,
-        58.4,
-        56.83,
-        66.6,
-        51.52,
-        59.96,
-        45.91
+        52.94,
+        59.78,
+        65.48,
+        56.71,
+        56.87,
+        45.73
       ],
       "returns": {
         "1w": {
@@ -4347,31 +4176,31 @@
           "excess": -0.09616201344585962
         },
         "toDate": {
-          "stock": 0.026839650805454918,
-          "spy": 0.08066326964322346,
-          "excess": -0.05382361883776854
+          "stock": 0.02281369891859164,
+          "spy": 0.08907817945772534,
+          "excess": -0.0662644805391337
         }
       }
     }
   ],
   "scorecard": {
-    "totalCalls": 75,
-    "uniqueTickers": 27,
+    "totalCalls": 72,
+    "uniqueTickers": 25,
     "hitRate": {
-      "1m": 0.5833333333333334,
-      "3m": 0.30434782608695654
+      "1m": 0.6521739130434783,
+      "3m": 0.2857142857142857
     },
     "hitRateN": {
-      "1m": 24,
-      "3m": 23
+      "1m": 23,
+      "3m": 21
     },
     "avgExcess": {
-      "1w": -0.014242893422249162,
-      "1m": 0.055011941921549144,
-      "3m": -0.05535402556752284,
-      "toDate": -0.041454102651610814
+      "1w": -0.025232587751617977,
+      "1m": 0.062033551144547075,
+      "3m": -0.05847225169570569,
+      "toDate": 0.004367384805083323
     },
-    "callsPerWeek": 0.6342281879194631,
+    "callsPerWeek": 0.587248322147651,
     "best": [
       {
         "shortcode": "DN81ADRgfln",
@@ -4379,9 +4208,9 @@
         "ticker": "NBIS",
         "company": "Nebius",
         "isFirstCall": true,
-        "conviction": 0.7,
-        "quote": "Next up, I have Nebius, which creates large-scale cloud infrastructure for AI. ... they have great financials to back up what they're doing.",
-        "summary": "The creator is bullish on Nebius, an AI cloud infrastructure company with strong financials, despite a cautious view on the AI sector.",
+        "conviction": 0.8,
+        "quote": "Next up, I have Nebius, which creates large-scale cloud infrastructure for AI. ... Nebius Group, they have great financials to back up what they're doing. And they're scaling alongside NVIDIA's GPUs.",
+        "summary": "Creator recommends Nebius for its AI cloud infrastructure, strong financials, and scaling with NVIDIA GPUs.",
         "onScreenPrice": null,
         "spark": [
           68.32,
@@ -4396,18 +4225,18 @@
           91.13,
           97.3,
           96.85,
-          82.39,
-          101.8,
-          86.8,
-          129.9,
-          100.8,
-          145,
-          157.1,
-          195.1,
-          197.7,
-          260.6,
-          260.1,
-          261.1
+          73.87,
+          107.6,
+          97.78,
+          116.3,
+          92.26,
+          154.6,
+          147.2,
+          184.8,
+          191.8,
+          251.7,
+          265.1,
+          276.2
         ],
         "returns": {
           "1w": {
@@ -4426,9 +4255,9 @@
             "excess": 0.3291751628983599
           },
           "toDate": {
-            "stock": 2.822453089329691,
-            "spy": 0.14874818079653496,
-            "excess": 2.673704908533156
+            "stock": 3.042301151366317,
+            "spy": 0.1576932542643945,
+            "excess": 2.8846078971019224
           }
         }
       },
@@ -4440,7 +4269,7 @@
         "isFirstCall": true,
         "conviction": 0.9,
         "quote": "AMD is becoming a leader in inference and they're creating personalized chips at a massive scale. I think they're gonna be an AI giant next to NVIDIA.",
-        "summary": "Creator is bullish on AMD, citing its leadership in inference and personalized chips, and considers it a major AI player.",
+        "summary": "The creator is bullish on AMD, citing its leadership in inference and personalized chips, and considers it a major AI player.",
         "onScreenPrice": null,
         "spark": [
           151.4,
@@ -4450,23 +4279,23 @@
           259.7,
           233.5,
           206,
-          217.6,
-          209.2,
+          216,
+          198.1,
           215.3,
           221,
           252,
-          208.4,
-          200.1,
-          199.4,
+          216,
+          196.6,
+          192.4,
           199.5,
           203.4,
-          246.8,
-          347.8,
-          408.5,
-          447.6,
-          521.5,
-          547.3,
-          539.5
+          255.1,
+          334.6,
+          455.2,
+          449.6,
+          542.5,
+          507.3,
+          580.9
         ],
         "returns": {
           "1w": {
@@ -4485,9 +4314,9 @@
             "excess": 0.40670445998636384
           },
           "toDate": {
-            "stock": 2.5631066454388,
-            "spy": 0.1420556701793183,
-            "excess": 2.4210509752594818
+            "stock": 2.8366683778761774,
+            "spy": 0.15094863039889916,
+            "excess": 2.685719747477278
           }
         }
       },
@@ -4498,8 +4327,8 @@
         "company": "Oscar Health",
         "isFirstCall": true,
         "conviction": 0.8,
-        "quote": "my new big bets are HIMS by far, and then SoFi, AMD, Oscar, and Lemonade",
-        "summary": "The creator includes Oscar as one of his new big bets, indicating a bullish view.",
+        "quote": "Oscar",
+        "summary": "The creator includes Oscar (OSCR) as one of his new big bets, expressing a bullish view.",
         "onScreenPrice": null,
         "spark": [
           19.48,
@@ -4507,25 +4336,25 @@
           21.66,
           21.03,
           18.91,
-          14.61,
+          14.85,
           13.48,
           16.77,
           14.8,
-          14.37,
+          14.97,
           16.69,
           14.87,
-          12.66,
-          12.45,
+          12.88,
+          12.3,
           13.84,
-          13.56,
-          11.47,
-          15.29,
+          13.3,
+          11.73,
+          15.59,
           17.18,
-          20.87,
-          23.42,
-          20.5,
-          29.14,
-          29.45
+          21.31,
+          22.14,
+          23.6,
+          28.56,
+          28.52
         ],
         "returns": {
           "1w": {
@@ -4544,68 +4373,9 @@
             "excess": -0.17663345831667343
           },
           "toDate": {
-            "stock": 0.5118070562109756,
-            "spy": 0.1361370954693275,
-            "excess": 0.37566996074164805
-          }
-        }
-      },
-      {
-        "shortcode": "DYnp40jvWlS",
-        "postDate": "2026-05-21",
-        "ticker": "RDDT",
-        "company": "Reddit",
-        "isFirstCall": true,
-        "conviction": 0.9,
-        "quote": "I just spent $6,000 on one brand new stock investment... that stock is Reddit, ticker RDDT.",
-        "summary": "The creator bought Reddit (RDDT) citing strong revenue growth, high gross margins, and low capex, while acknowledging bear case regarding Google search traffic dependency.",
-        "onScreenPrice": null,
-        "spark": [
-          150,
-          141.7,
-          144.6,
-          154.2,
-          167.7,
-          176,
-          169.1,
-          169.5,
-          183.9,
-          173.4,
-          171.1,
-          178.1,
-          172.2,
-          173.3,
-          162.1,
-          181.9,
-          175.4,
-          165.9,
-          170.4,
-          165.6,
-          160.7,
-          158,
-          166.9,
-          174.4
-        ],
-        "returns": {
-          "1w": {
-            "stock": 0.11763536353680126,
-            "spy": 0.01599526786867722,
-            "excess": 0.10164009566812404
-          },
-          "1m": {
-            "stock": 0.135963810104748,
-            "spy": 0.0022485512860674906,
-            "excess": 0.13371525881868052
-          },
-          "3m": {
-            "stock": null,
-            "spy": null,
-            "excess": null
-          },
-          "toDate": {
-            "stock": 0.1622901039263518,
-            "spy": -0.002315772795898785,
-            "excess": 0.16460587672225058
+            "stock": 0.4640657663223713,
+            "spy": 0.14498396892551613,
+            "excess": 0.31908179739685516
           }
         }
       },
@@ -4615,35 +4385,35 @@
         "ticker": "MD",
         "company": "Pediatrix Medical",
         "isFirstCall": true,
-        "conviction": 0.8,
+        "conviction": 0.6,
         "quote": "Hims and MD are tied for my largest positions",
-        "summary": "The creator holds MD as one of his largest positions, indicating a bullish view.",
+        "summary": "The creator states MD is tied for their largest positions, indicating a current long position.",
         "onScreenPrice": null,
         "spark": [
           20.1,
           19.46,
           19.83,
           20.6,
-          20.98,
+          20.5,
           20.7,
           21.74,
-          21.45,
+          21.81,
           22.21,
-          22.88,
-          23.04,
+          22.85,
+          23.39,
           22.51,
-          20.83,
+          22.21,
           23.37,
           23.48,
-          23.01,
+          22.47,
           21.56,
-          21.54,
-          21.84,
+          21.62,
+          22.37,
           23.66,
-          24.3,
-          23.55,
-          24.22,
-          24.69
+          24.37,
+          23.61,
+          24.11,
+          25.33
         ],
         "returns": {
           "1w": {
@@ -4662,9 +4432,68 @@
             "excess": 0.03747685674006074
           },
           "toDate": {
-            "stock": 0.22835821221274366,
-            "spy": 0.09248526200834073,
-            "excess": 0.13587295020440293
+            "stock": 0.26019897726260166,
+            "spy": 0.10099222732465774,
+            "excess": 0.15920674993794393
+          }
+        }
+      },
+      {
+        "shortcode": "DYnp40jvWlS",
+        "postDate": "2026-05-21",
+        "ticker": "RDDT",
+        "company": "Reddit",
+        "isFirstCall": true,
+        "conviction": 0.9,
+        "quote": "that stock is Reddit, ticker RDDT",
+        "summary": "The creator bought Reddit stock, citing strong revenue growth, high gross profit margin, and low capital expenditure, while acknowledging bear case related to Google search algorithm dependency.",
+        "onScreenPrice": null,
+        "spark": [
+          150,
+          141.7,
+          144.6,
+          154.2,
+          176,
+          177.9,
+          169.1,
+          169.5,
+          183.9,
+          173.4,
+          171.1,
+          178.1,
+          173.3,
+          162.1,
+          181.9,
+          175.4,
+          165.9,
+          175,
+          170.4,
+          165.6,
+          158,
+          166.9,
+          174.4,
+          173.6
+        ],
+        "returns": {
+          "1w": {
+            "stock": 0.11763536353680126,
+            "spy": 0.01599526786867722,
+            "excess": 0.10164009566812404
+          },
+          "1m": {
+            "stock": 0.135963810104748,
+            "spy": 0.0022485512860674906,
+            "excess": 0.13371525881868052
+          },
+          "3m": {
+            "stock": null,
+            "spy": null,
+            "excess": null
+          },
+          "toDate": {
+            "stock": 0.15689155957258705,
+            "spy": 0.005452995729051002,
+            "excess": 0.15143856384353604
           }
         }
       }
@@ -4677,34 +4506,34 @@
         "company": "FuboTV",
         "isFirstCall": true,
         "conviction": 0.3,
-        "quote": "The next stock I bought was Fubo, which is a streaming service. Today, their shareholders just approved the plan to merge with Disney. ... If Fubo gets approved to merge with Disney, this stock is gonna go flying through the roof.",
-        "summary": "The creator bought Fubo, expecting a surge if the Disney merger is approved by the Department of Justice within 3-6 months.",
+        "quote": "If Fubo gets approved to merge with Disney, this stock is gonna go flying through the roof.",
+        "summary": "The creator bought Fubo expecting a surge if the Disney merger is approved, but notes it's a high-risk play.",
         "onScreenPrice": null,
         "spark": [
           49.8,
           44.16,
           41.64,
           41.52,
-          44.64,
-          37.32,
+          43.32,
+          36.12,
           34.56,
           32.52,
           31.08,
           30.96,
           28.44,
           18.96,
-          15.24,
-          14.4,
-          14.28,
-          10.85,
-          12.46,
-          13.1,
+          14.88,
+          14.88,
+          14.04,
+          9.66,
+          12.05,
+          13.29,
           12.32,
           9.83,
-          9.75,
-          10.16,
-          9.28,
-          9.46
+          9.52,
+          9.54,
+          8.9,
+          9.2
         ],
         "returns": {
           "1w": {
@@ -4723,9 +4552,9 @@
             "excess": -0.41325159970359115
           },
           "toDate": {
-            "stock": -0.8100401569663689,
-            "spy": 0.11231199998021024,
-            "excess": -0.9223521569465791
+            "stock": -0.8152610451765105,
+            "spy": 0.12097335215933236,
+            "excess": -0.9362343973358429
           }
         }
       },
@@ -4735,35 +4564,35 @@
         "ticker": "ETH-USD",
         "company": "Ethereum USD",
         "isFirstCall": true,
-        "conviction": 0.7,
-        "quote": "there's more upside in buying altcoins like Ethereum",
-        "summary": "The creator believes Ethereum has more upside and could 10x during altcoin season, planning to buy.",
+        "conviction": 0.9,
+        "quote": "I personally think there's more upside in buying altcoins like Ethereum, Solana, or even smaller market cap coins because when it's altcoin season, those things are going to be the ones 10xing your money.",
+        "summary": "The creator is bullish on Ethereum as an altcoin with higher upside potential than Bitcoin, expecting significant gains during altcoin season.",
         "onScreenPrice": null,
         "spark": [
           4305,
           4482,
           4515,
-          3987,
+          3895,
           3982,
           3568,
           2802,
           3040,
           2978,
-          2967,
-          3322,
-          2926,
+          3000,
+          3355,
+          3022,
           2089,
           1974,
           1979,
-          2204,
-          2105,
-          2371,
-          2370,
-          2327,
+          2137,
+          2139,
+          2323,
+          2303,
+          2369,
           2065,
-          1812,
-          1790,
-          1610
+          1770,
+          1748,
+          1570
         ],
         "returns": {
           "1w": {
@@ -4782,9 +4611,9 @@
             "excess": -0.3474881161899912
           },
           "toDate": {
-            "stock": -0.6259986558322725,
-            "spy": 0.1420556701793183,
-            "excess": -0.7680543260115908
+            "stock": -0.6354338865001647,
+            "spy": 0.15094863039889916,
+            "excess": -0.7863825168990639
           }
         }
       },
@@ -4794,9 +4623,9 @@
         "ticker": "DUOL",
         "company": "Duolingo",
         "isFirstCall": true,
-        "conviction": 0.8,
-        "quote": "Duolingo, which is down 50% from all-time highs. And I think it's about damn time to buy this dip.",
-        "summary": "Creator recommends buying Duolingo on the dip, citing its top app status and strong revenue growth.",
+        "conviction": 0.9,
+        "quote": "I think it's about damn time to buy this dip.",
+        "summary": "The creator recommends buying Duolingo on the dip, believing the decline is unjustified given its strong app performance and revenue growth.",
         "onScreenPrice": null,
         "spark": [
           271.3,
@@ -4806,23 +4635,23 @@
           306.7,
           201.2,
           168,
-          185.3,
-          186.8,
+          188.4,
+          183.9,
           177.1,
           165.8,
           146.1,
-          119.4,
-          112.9,
-          101.5,
+          118.9,
+          106.1,
+          101.9,
           100.1,
           98.57,
-          93.53,
-          103.4,
-          113.6,
-          106.8,
-          109.9,
-          127.1,
-          116
+          91.46,
+          103.3,
+          108,
+          105.6,
+          107.4,
+          128.1,
+          115
         ],
         "returns": {
           "1w": {
@@ -4841,9 +4670,9 @@
             "excess": -0.28719440962028864
           },
           "toDate": {
-            "stock": -0.5722869385822488,
-            "spy": 0.1420556701793183,
-            "excess": -0.7143426087615671
+            "stock": -0.5760100370074009,
+            "spy": 0.15094863039889916,
+            "excess": -0.7269586674063001
           }
         }
       },
@@ -4854,34 +4683,34 @@
         "company": "Bitcoin USD",
         "isFirstCall": true,
         "conviction": 0.8,
-        "quote": "I think it will top out somewhere between 150 to 225,000.",
-        "summary": "The creator predicts Bitcoin will dip 10-20% then skyrocket to 150-225k, planning to buy the dip.",
-        "onScreenPrice": null,
+        "quote": "Bitcoin is sitting at 118,000 USD right now and I anticipate there to be about a 10 to 20% dip before we skyrocket and really finish off the bull market. I think it will top out somewhere between 150 to 225,000.",
+        "summary": "The creator predicts a 10-20% dip in Bitcoin before a rally to a top between $150k-$225k, with a conservative estimate of $170k by Q4 2025 or early 2026.",
+        "onScreenPrice": 118000,
         "spark": [
           111200,
           115700,
           122300,
-          110800,
+          108200,
           113000,
           106000,
           86810,
           89270,
           88100,
-          87510,
-          95320,
-          88270,
+          88730,
+          96930,
+          89100,
           70260,
           68000,
           68140,
-          71250,
-          68230,
-          74480,
-          78660,
-          80660,
+          69910,
+          68080,
+          74180,
+          77370,
+          82140,
           75490,
-          64010,
-          65600,
-          60140
+          63800,
+          64420,
+          58560
         ],
         "returns": {
           "1w": {
@@ -4900,9 +4729,9 @@
             "excess": -0.25059200059365283
           },
           "toDate": {
-            "stock": -0.459029702824177,
-            "spy": 0.1420556701793183,
-            "excess": -0.6010853730034953
+            "stock": -0.47323815283157367,
+            "spy": 0.15094863039889916,
+            "excess": -0.6241867832304728
           }
         }
       },
@@ -4914,7 +4743,7 @@
         "isFirstCall": true,
         "conviction": 0.9,
         "quote": "I just spent $2,000 on a brand new stock that I think has the potential to 3x in the near future. That stock is Grab and they're basically the Uber of Southeast Asia.",
-        "summary": "Creator bought Grab, citing its dominance in Southeast Asia as the Uber equivalent, strong financials with revenue growth and constant expenses, institutional buying, and founder-led CEO, expecting a 3x return.",
+        "summary": "Creator bought Grab, citing strong user base, revenue growth, institutional buying, and founder-led CEO, expecting 3x potential.",
         "onScreenPrice": null,
         "spark": [
           6.35,
@@ -4925,22 +4754,22 @@
           5.33,
           5.27,
           5.18,
+          5.13,
           5.08,
-          5.08,
-          4.51,
+          4.4,
           4.41,
-          4.27,
+          4.13,
           4.31,
-          3.87,
+          3.89,
           3.64,
-          3.62,
-          3.92,
-          3.86,
-          3.72,
           3.56,
-          3.41,
-          3.49,
-          3.74
+          4.02,
+          3.82,
+          3.65,
+          3.51,
+          3.46,
+          3.45,
+          3.77
         ],
         "returns": {
           "1w": {
@@ -4959,9 +4788,9 @@
             "excess": -0.24687212066570519
           },
           "toDate": {
-            "stock": -0.4110236116998569,
-            "spy": 0.11889588541250018,
-            "excess": -0.5299194971123571
+            "stock": -0.4062992066856326,
+            "spy": 0.12760850499720378,
+            "excess": -0.5339077116828364
           }
         }
       }
@@ -4973,15 +4802,15 @@
       },
       {
         "label": "Named a stock",
-        "value": 99
+        "value": 94
       },
       {
         "label": "Bullish buy call",
-        "value": 75
+        "value": 72
       },
       {
         "label": "First call (unique ticker)",
-        "value": 27
+        "value": 25
       },
       {
         "label": "Beat SPY (to date)",
@@ -5035,115 +4864,115 @@
       },
       {
         "t": "2025-10-07",
-        "v": 0.1023
+        "v": 0.1096
       },
       {
         "t": "2025-10-09",
-        "v": 0.1202
+        "v": 0.1288
       },
       {
         "t": "2025-10-13",
-        "v": 0.1026
+        "v": 0.1101
       },
       {
         "t": "2025-10-16",
-        "v": 0.0695
+        "v": 0.0918
       },
       {
         "t": "2025-10-20",
-        "v": 0.0397
+        "v": 0.0581
       },
       {
         "t": "2025-10-22",
-        "v": 0.0199
+        "v": 0.0274
       },
       {
         "t": "2025-10-27",
-        "v": 0.0712
+        "v": 0.0828
       },
       {
         "t": "2025-10-29",
-        "v": 0.0602
+        "v": 0.0653
       },
       {
         "t": "2025-10-31",
-        "v": 0.0528
+        "v": 0.0581
       },
       {
         "t": "2025-11-05",
-        "v": 0.0585
+        "v": 0.0632
       },
       {
         "t": "2025-11-07",
-        "v": 0.0033
+        "v": 0.0159
       },
       {
         "t": "2025-11-11",
-        "v": -0.0112
+        "v": -0.0017
       },
       {
-        "t": "2025-11-13",
-        "v": -0.0575
+        "t": "2025-11-14",
+        "v": -0.0573
       },
       {
         "t": "2025-11-18",
-        "v": -0.0655
+        "v": -0.0559
       },
       {
         "t": "2025-11-20",
-        "v": -0.1113
+        "v": -0.1052
       },
       {
-        "t": "2025-11-24",
-        "v": -0.0794
+        "t": "2025-11-25",
+        "v": -0.0801
       },
       {
         "t": "2025-11-28",
-        "v": -0.0649
+        "v": -0.0508
       },
       {
         "t": "2025-12-02",
-        "v": -0.0921
+        "v": -0.077
       },
       {
-        "t": "2025-12-04",
-        "v": -0.06
+        "t": "2025-12-05",
+        "v": -0.0593
       },
       {
         "t": "2025-12-09",
-        "v": -0.048
+        "v": -0.0341
       },
       {
         "t": "2025-12-11",
-        "v": -0.0626
+        "v": -0.0523
       },
       {
-        "t": "2025-12-15",
-        "v": -0.0977
+        "t": "2025-12-16",
+        "v": -0.08
       },
       {
         "t": "2025-12-18",
-        "v": -0.0961
+        "v": -0.09
       },
       {
         "t": "2025-12-22",
-        "v": -0.0735
+        "v": -0.0661
       },
       {
-        "t": "2025-12-24",
-        "v": -0.0829
+        "t": "2025-12-26",
+        "v": -0.0902
       },
       {
         "t": "2025-12-30",
-        "v": -0.1029
+        "v": -0.0993
       },
       {
         "t": "2026-01-02",
-        "v": -0.0807
+        "v": -0.0734
       },
       {
-        "t": "2026-01-06",
-        "v": -0.062
+        "t": "2026-01-07",
+        "v": -0.0615
       },
       {
         "t": "2026-01-09",
@@ -5151,203 +4980,203 @@
       },
       {
         "t": "2026-01-13",
-        "v": -0.0424
+        "v": -0.0454
       },
       {
-        "t": "2026-01-15",
-        "v": -0.0551
+        "t": "2026-01-16",
+        "v": -0.0479
       },
       {
         "t": "2026-01-21",
-        "v": -0.0656
+        "v": -0.0581
       },
       {
         "t": "2026-01-23",
-        "v": -0.0439
+        "v": -0.0412
       },
       {
-        "t": "2026-01-27",
-        "v": -0.055
+        "t": "2026-01-28",
+        "v": -0.0524
       },
       {
         "t": "2026-01-30",
-        "v": -0.1044
+        "v": -0.0998
       },
       {
-        "t": "2026-02-03",
-        "v": -0.1217
+        "t": "2026-02-04",
+        "v": -0.172
       },
       {
-        "t": "2026-02-05",
-        "v": -0.2013
+        "t": "2026-02-06",
+        "v": -0.1875
       },
       {
         "t": "2026-02-10",
-        "v": -0.1864
+        "v": -0.1932
       },
       {
-        "t": "2026-02-12",
-        "v": -0.2152
+        "t": "2026-02-13",
+        "v": -0.2059
       },
       {
-        "t": "2026-02-17",
-        "v": -0.2033
+        "t": "2026-02-18",
+        "v": -0.2008
       },
       {
         "t": "2026-02-20",
-        "v": -0.2099
+        "v": -0.2196
       },
       {
-        "t": "2026-02-24",
-        "v": -0.2102
+        "t": "2026-02-25",
+        "v": -0.2121
       },
       {
-        "t": "2026-02-26",
-        "v": -0.1964
+        "t": "2026-02-27",
+        "v": -0.2394
       },
       {
         "t": "2026-03-03",
-        "v": -0.2114
+        "v": -0.2358
       },
       {
-        "t": "2026-03-05",
-        "v": -0.1943
+        "t": "2026-03-06",
+        "v": -0.2227
       },
       {
-        "t": "2026-03-09",
-        "v": -0.1804
+        "t": "2026-03-10",
+        "v": -0.2042
       },
       {
         "t": "2026-03-12",
-        "v": -0.1645
+        "v": -0.1886
       },
       {
-        "t": "2026-03-16",
-        "v": -0.1414
+        "t": "2026-03-17",
+        "v": -0.1628
       },
       {
-        "t": "2026-03-18",
-        "v": -0.1418
+        "t": "2026-03-19",
+        "v": -0.1594
       },
       {
         "t": "2026-03-23",
-        "v": -0.1379
+        "v": -0.159
       },
       {
-        "t": "2026-03-25",
-        "v": -0.1457
+        "t": "2026-03-26",
+        "v": -0.1776
       },
       {
-        "t": "2026-03-27",
-        "v": -0.1775
+        "t": "2026-03-30",
+        "v": -0.2052
       },
       {
         "t": "2026-04-01",
-        "v": -0.1845
+        "v": -0.2002
       },
       {
-        "t": "2026-04-06",
-        "v": -0.1657
+        "t": "2026-04-07",
+        "v": -0.1787
       },
       {
-        "t": "2026-04-08",
-        "v": -0.1716
+        "t": "2026-04-09",
+        "v": -0.1767
       },
       {
         "t": "2026-04-13",
-        "v": -0.1407
+        "v": -0.1466
       },
       {
-        "t": "2026-04-15",
-        "v": -0.1153
-      },
-      {
-        "t": "2026-04-17",
+        "t": "2026-04-16",
         "v": -0.1054
       },
       {
-        "t": "2026-04-21",
-        "v": -0.1103
+        "t": "2026-04-20",
+        "v": -0.1028
       },
       {
-        "t": "2026-04-24",
-        "v": -0.1051
+        "t": "2026-04-22",
+        "v": -0.1044
       },
       {
-        "t": "2026-04-28",
-        "v": -0.1262
+        "t": "2026-04-27",
+        "v": -0.1052
       },
       {
-        "t": "2026-04-30",
-        "v": -0.1342
+        "t": "2026-04-29",
+        "v": -0.1332
       },
       {
-        "t": "2026-05-05",
-        "v": -0.1245
+        "t": "2026-05-01",
+        "v": -0.1145
       },
       {
-        "t": "2026-05-07",
-        "v": -0.0987
+        "t": "2026-05-06",
+        "v": -0.0716
       },
       {
-        "t": "2026-05-11",
-        "v": -0.0961
+        "t": "2026-05-08",
+        "v": -0.0692
       },
       {
-        "t": "2026-05-14",
-        "v": -0.0827
+        "t": "2026-05-12",
+        "v": -0.0771
       },
       {
-        "t": "2026-05-18",
-        "v": -0.097
+        "t": "2026-05-15",
+        "v": -0.0679
       },
       {
-        "t": "2026-05-20",
-        "v": -0.0982
+        "t": "2026-05-19",
+        "v": -0.0865
       },
       {
-        "t": "2026-05-26",
-        "v": -0.0809
+        "t": "2026-05-21",
+        "v": -0.0605
       },
       {
-        "t": "2026-05-28",
-        "v": -0.0577
+        "t": "2026-05-27",
+        "v": -0.0514
       },
       {
-        "t": "2026-06-01",
-        "v": -0.0159
+        "t": "2026-05-29",
+        "v": -0.0271
       },
       {
-        "t": "2026-06-04",
-        "v": -0.0466
+        "t": "2026-06-02",
+        "v": -0.0178
       },
       {
-        "t": "2026-06-08",
-        "v": -0.0677
+        "t": "2026-06-05",
+        "v": -0.059
       },
       {
-        "t": "2026-06-10",
-        "v": -0.076
+        "t": "2026-06-09",
+        "v": -0.0469
       },
       {
-        "t": "2026-06-15",
-        "v": -0.0287
+        "t": "2026-06-11",
+        "v": -0.0349
       },
       {
-        "t": "2026-06-17",
-        "v": -0.033
+        "t": "2026-06-16",
+        "v": -0.0023
       },
       {
-        "t": "2026-06-22",
-        "v": -0.0282
+        "t": "2026-06-18",
+        "v": 0.0171
       },
       {
-        "t": "2026-06-25",
-        "v": -0.0658
+        "t": "2026-06-23",
+        "v": 0.0059
       },
       {
-        "t": "2026-06-29",
-        "v": -0.0415
+        "t": "2026-06-26",
+        "v": -0.0191
+      },
+      {
+        "t": "2026-06-30",
+        "v": 0.0044
       }
     ]
   },
