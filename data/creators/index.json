@@ -2,12 +2,12 @@
   {
     "handle": "kevvonz",
     "name": "Kevin Hu",
-    "totalCalls": 73,
-    "firstCalls": 27,
-    "hitRate3m": 0.391304347826087,
-    "hitRate3mN": 23,
-    "avgExcess3m": -0.03305634262034065,
-    "generatedAt": "2026-07-02",
+    "totalCalls": 76,
+    "firstCalls": 28,
+    "hitRate3m": 0.3333333333333333,
+    "hitRate3mN": 24,
+    "avgExcess3m": -0.04833771066539925,
+    "generatedAt": "2026-07-03",
     "avatar": "/avatars/kevvonz.jpg"
   },
   {
@@ -36,22 +36,22 @@
     "handle": "roadto100kportfolio",
     "name": "@roadto100kportfolio",
     "totalCalls": 224,
-    "firstCalls": 68,
-    "hitRate3m": 0.5263157894736842,
-    "hitRate3mN": 38,
-    "avgExcess3m": 0.07339460394348489,
-    "generatedAt": "2026-07-02",
+    "firstCalls": 70,
+    "hitRate3m": 0.5714285714285714,
+    "hitRate3mN": 42,
+    "avgExcess3m": 0.09604791000594608,
+    "generatedAt": "2026-07-03",
     "avatar": "/avatars/roadto100kportfolio.jpg"
   },
   {
     "handle": "johnnylixf",
     "name": "Johnny Li",
-    "totalCalls": 153,
-    "firstCalls": 73,
-    "hitRate3m": 0.4772727272727273,
-    "hitRate3mN": 44,
-    "avgExcess3m": 0.06945872522460225,
-    "generatedAt": "2026-07-02",
+    "totalCalls": 148,
+    "firstCalls": 69,
+    "hitRate3m": 0.47619047619047616,
+    "hitRate3mN": 42,
+    "avgExcess3m": 0.071675326886224,
+    "generatedAt": "2026-07-03",
     "avatar": "/avatars/johnnylixf.jpg"
   }
 ]
