@@ -3,7 +3,7 @@
     "handle": "thelonginvest",
     "name": "The Long Invest"
   },
-  "generatedAt": "2026-07-04",
+  "generatedAt": "2026-07-05",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -82964,28 +82964,28 @@
       "spark": [
         44.12,
         52.31,
-        53.09,
+        54.53,
         56.05,
         60.95,
-        60.6,
-        58.57,
-        59.97,
-        56.35,
-        60.87,
-        62.12,
-        45.17,
-        48.35,
-        42.47,
-        48.58,
-        51.61,
-        52.78,
-        50.28,
-        46.56,
-        47.71,
-        55,
-        74.96,
-        78.52,
-        88.5
+        59.86,
+        55.89,
+        60.88,
+        58.54,
+        62.32,
+        60.01,
+        44.86,
+        45.4,
+        47.32,
+        50.37,
+        55.34,
+        50.88,
+        47.55,
+        45.96,
+        57.18,
+        73.08,
+        78.88,
+        80.64,
+        76.71
       ],
       "returns": {
         "1w": {
@@ -83004,9 +83004,9 @@
           "excess": 0.37769104522389996
         },
         "toDate": {
-          "stock": 1.0058930676002933,
+          "stock": 0.7386672924199837,
           "spy": 0.09483000560582777,
-          "excess": 0.9110630619944655
+          "excess": 0.643837286814156
         }
       }
     },
@@ -132095,10 +132095,146 @@
           "excess": null
         }
       }
+    },
+    {
+      "shortcode": "2073443536087773431",
+      "postDate": "2026-07-04",
+      "ticker": "ZETA",
+      "company": "Zeta Global",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Buy companies where the management never stops cooking",
+      "summary": "The creator recommends buying ZETA because the management is continuously innovative and aggressive.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2073443536087773431",
+      "postDate": "2026-07-04",
+      "ticker": "HIMS",
+      "company": "Hims & Hers Health",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Buy companies where the management never stops cooking",
+      "summary": "The creator recommends buying HIMS because the management is continuously innovative and aggressive.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2073443536087773431",
+      "postDate": "2026-07-04",
+      "ticker": "OSCR",
+      "company": "Oscar Health",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Buy companies where the management never stops cooking",
+      "summary": "The creator recommends buying OSCR because the management is continuously innovative and aggressive.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2073443536087773431",
+      "postDate": "2026-07-04",
+      "ticker": "ADUR",
+      "company": "Aduro Clean Technologies Inc.",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Buy companies where the management never stops cooking",
+      "summary": "The creator recommends buying ADUR because the management is continuously innovative and aggressive.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 2300,
+    "totalCalls": 2304,
     "uniqueTickers": 122,
     "hitRate": {
       "1m": 0.47863247863247865,
@@ -132112,7 +132248,7 @@
       "1w": 0.0075961965365693674,
       "1m": -0.000031225917518635965,
       "3m": 0.021008598301404367,
-      "toDate": -0.04712649859656002
+      "toDate": -0.04933497607738902
     },
     "callsPerWeek": 2.3788300835654597,
     "best": [
@@ -132712,15 +132848,15 @@
     "funnel": [
       {
         "label": "Tweets (12mo)",
-        "value": 8582
+        "value": 8586
       },
       {
         "label": "Named a stock",
-        "value": 5887
+        "value": 5891
       },
       {
         "label": "Bullish buy call",
-        "value": 2300
+        "value": 2304
       },
       {
         "label": "First call (unique ticker)",
@@ -133086,11 +133222,11 @@
       },
       {
         "t": "2026-06-29",
-        "v": -0.0298
+        "v": -0.0302
       },
       {
         "t": "2026-07-02",
-        "v": -0.0474
+        "v": -0.0496
       }
     ]
   },
