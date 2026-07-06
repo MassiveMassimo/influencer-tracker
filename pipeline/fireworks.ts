@@ -2,18 +2,21 @@ import { FIREWORKS_KEY } from "./config";
 
 // Fireworks is OpenAI-compatible; calls.ts/classify target it by passing this as
 // the `client`. Used for all text + vision classification (deepseek-v4-flash text,
-// kimi-k2p5 vision) across both the IG and high-volume X paths.
+// minimax-m3 vision) across both the IG and high-volume X paths.
 const BASE = "https://api.fireworks.ai/inference/v1";
 
 // Text classifier. Bake-off on real TheProfInvestor tweets: deepseek-v4-flash
 // scored 11/11 vs gpt-oss-120b's 8/11 (the latter under-flagged implicit calls
 // like "going higher"/"your cue" as non-buys), runs ~3s, and is cheapest on output.
 export const FIREWORKS_MODEL = "accounts/fireworks/models/deepseek-v4-flash";
-// Vision OCR for ticker/price. kimi-k2p5 matched qwen3p6-plus accuracy (3/3) but
-// at ~7s/image vs ~57s (qwen's latency was timing out the extract). The cheaper
-// small VLMs (qwen3-vl-8b, gemma-4, llama-vision) are on-demand-GPU only — 404 on
-// serverless — so kimi-k2p5 is the best serverless balance.
-export const FIREWORKS_VISION_MODEL = "accounts/fireworks/models/kimi-k2p5";
+// Vision OCR for ticker/price. Fireworks undeployed kimi-k2p5 from serverless
+// (404 NOT_FOUND), which hard-stalled IG ingest 2026-07-04..06. Re-bakeoff (2026-07-06,
+// 4 live serverless VLMs × 9 real frames): minimax-m3 is the only model that reliably
+// honors the "compact JSON, no prose" contract parseHint expects — kimi-k2p6/kimi-k2p7-code/
+// qwen3p7-plus leak chain-of-thought, so parseHint fails and the hint silently goes null.
+// minimax-m3 read BTC-USD/AAOI exactly, is cheapest ($0.30/$1.20 per 1M in/out) and fast
+// (~2s). The OCR-specialist models (paddleocr, rolm, firesearch) list as serverless but 404.
+export const FIREWORKS_VISION_MODEL = "accounts/fireworks/models/minimax-m3";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

@@ -146,17 +146,23 @@ Fireworks for everything else. No external LLM API depends on Groq anymore.**
 | Stage | Pipeline | Provider | Model |
 |---|---|---|---|
 | transcribe (audio→text) | IG only | **Parakeet (self-hosted, CPU/ONNX)** | `nemo-parakeet-tdt-0.6b-v2` via `onnx-asr` (`pipeline/transcribe.ts` → `pipeline/asr/transcribe_parakeet.py`) |
-| frames / image hints (vision OCR) | IG + X | **Fireworks** | `FIREWORKS_VISION_MODEL` (`kimi-k2p5`) |
+| frames / image hints (vision OCR) | IG + X | **Fireworks** | `FIREWORKS_VISION_MODEL` (`minimax-m3`) |
 | extract (classification) | IG + X | **Fireworks** | `FIREWORKS_MODEL` (`deepseek-v4-flash`) |
 
 Vision + classification (IG *and* X) run on **Fireworks** (`pipeline/fireworks.ts`),
 which isn't throttled like Groq's free tier (Groq's TPM limits were stalling IG
 vision/extract into multi-minute 429 backoffs). Models picked by a bake-off on
 real TheProfInvestor data: deepseek-v4-flash beat gpt-oss-120b on call-detection
-(it under-flagged implicit "going higher"-style calls); kimi-k2p5 matched
-qwen3p6-plus's OCR accuracy at ~8x the speed. The cheap small VLMs (qwen3-vl-8b,
-gemma-4, llama-vision) are **on-demand-GPU only** on Fireworks — they 404 on
-serverless. All paths reuse the same `CLASSIFY_SYS` + parse.
+(it under-flagged implicit "going higher"-style calls). Vision was **kimi-k2p5**
+until Fireworks undeployed it from serverless (404 NOT_FOUND, stalled IG ingest
+2026-07-04..06); a 2026-07-06 re-bakeoff (4 live serverless VLMs × 9 real frames)
+picked **minimax-m3** — the only candidate that reliably honors the "compact JSON,
+no prose" contract `parseHint` needs (kimi-k2p6 / kimi-k2p7-code / qwen3p7-plus leak
+chain-of-thought → parse fails → the hint silently goes null), read BTC-USD/AAOI
+exactly, and is cheapest + fast (~2s). Note: many models the catalog lists as
+`serverless` actually 404 on inference (kimi-k2p5, qwen3p6-plus, the OCR-specialist
+paddleocr/rolm/firesearch) — verify by an inference call, not the listing. All paths
+reuse the same `CLASSIFY_SYS` + parse.
 
 **Fireworks billing & cost.** Prepaid-credits, pay-as-you-go drawdown (Fireworks account
 "Meeting.ai DEV TOOLS", Tier 3, $5,000/mo hard cap; the `monthlySpendThreshold` is a $100
@@ -164,11 +170,13 @@ serverless. All paths reuse the same `CLASSIFY_SYS` + parse.
 (`/v1/accounts/...`) exposes only the spend-threshold + resource quotas; check remaining
 balance + MTD spend in the Fireworks dashboard. Inference responses carry per-call token
 `usage` (sum it for an exact run cost). Live per-1M-token prices (standard tier): **text
-`deepseek-v4-flash` $0.14 in / $0.028 cached / $0.28 out**; **vision `kimi-k2p5` $0.60 in /
-$0.10 cached / $3.00 out**. Extract is **1 text call/tweet + 1 vision call/image**, so cost
-is vision-dominated. **Measured** (onboarding @thelonginvest, 2026-06-14): 8,248 tweets /
-2,226 image calls → deepseek 4.4M tok + kimi 6.1M tok → **~$12** off the prepaid balance
-(real-time, no billing lag). Budget **~$1.5/1k tweets**, vision is ~⅔ of it (images log
+`deepseek-v4-flash` $0.14 in / $0.028 cached / $0.28 out**; **vision `minimax-m3` $0.30 in /
+$1.20 out** (cached price not listed; ~half the retired kimi-k2p5 rate of $0.60/$3.00, so vision
+cost roughly halves vs the figures below). Extract is **1 text call/tweet + 1 vision call/image**,
+so cost is vision-dominated. **Measured** (onboarding @thelonginvest, 2026-06-14, on the then-current
+kimi-k2p5 vision model): 8,248 tweets / 2,226 image calls → deepseek 4.4M tok + kimi 6.1M tok →
+**~$12** off the prepaid balance (real-time, no billing lag). Budget **~$1.5/1k tweets**, vision is
+~⅔ of it (images log
 ~2.7k tok each — higher-res than naive estimates). Earlier ~$0.50/1k guesses were ~3× low;
 trust the balance-ledger delta, not token×list-price math.
 
