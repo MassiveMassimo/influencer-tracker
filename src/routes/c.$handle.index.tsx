@@ -28,6 +28,7 @@ import { ogRev } from "#/og/og-rev.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { type HalalInfo } from "#/lib/halal/types.ts";
+import { ProofViewer } from "#/components/proof-viewer.tsx";
 import {
   PreviewCard,
   PreviewCardTrigger,
@@ -454,6 +455,22 @@ function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: D
   const visible = calls.slice(start, start + CALLS_PER_PAGE);
   const allTickers = useMemo(() => calls.map((c) => c.ticker), [calls]);
   const getHalal = useHalalStatus(allTickers);
+  // Row-click opens proof; siblings = other tickers named in the same post.
+  const [selected, setSelected] = useState<Call | null>(null);
+  const siblings = useMemo(
+    () =>
+      selected
+        ? {
+            [selected.shortcode]: calls.reduce<{ ticker: string; company: string }[]>((acc, c) => {
+              if (c.shortcode === selected.shortcode && c.ticker !== selected.ticker) {
+                acc.push({ ticker: c.ticker, company: c.company });
+              }
+              return acc;
+            }, []),
+          }
+        : undefined,
+    [selected, calls],
+  );
 
   return (
     <section
@@ -475,6 +492,7 @@ function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: D
             handle={handle}
             call={c}
             halalInfo={getHalal(c.ticker)}
+            onSelect={setSelected}
           />
         ))}
         {calls.length === 0 && (
@@ -490,6 +508,12 @@ function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: D
         </div>
       )}
       <span className="sr-only">{ds.creator.handle} calls list</span>
+      <ProofViewer
+        call={selected}
+        handle={handle}
+        siblings={siblings}
+        onClose={() => setSelected(null)}
+      />
     </section>
   );
 }
@@ -570,10 +594,12 @@ function CallRow({
   handle,
   call,
   halalInfo,
+  onSelect,
 }: {
   handle: string;
   call: Call;
   halalInfo: HalalInfo;
+  onSelect: (call: Call) => void;
 }) {
   const excess = call.returns.toDate.excess;
   // Status dot: pending when no elapsed return, else beat/lag vs SPY.
@@ -582,15 +608,30 @@ function CallRow({
   const up = (excess ?? 0) >= 0;
   return (
     <li>
-      <Link
-        to="/t/$symbol/$creator"
-        params={{ symbol: call.ticker, creator: handle }}
-        className="flex items-center gap-4 px-5 py-3 no-underline transition-colors hover:bg-foreground/[0.03]"
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`View proof for ${call.ticker}`}
+        onClick={() => onSelect(call)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect(call);
+          }
+        }}
+        className="flex cursor-pointer items-center gap-4 px-5 py-3 transition-colors hover:bg-foreground/[0.03]"
       >
         <span className={`size-2 shrink-0 rounded-full ${dot}`} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="shrink-0 font-mono text-sm text-foreground">{call.ticker}</span>
+            <Link
+              to="/t/$symbol/$creator"
+              params={{ symbol: call.ticker, creator: handle }}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0 font-mono text-sm text-foreground no-underline hover:underline"
+            >
+              {call.ticker}
+            </Link>
             <HalalIndicator info={halalInfo} />
             {call.isFirstCall && (
               <span
@@ -625,7 +666,7 @@ function CallRow({
             </>
           )}
         </div>
-      </Link>
+      </div>
     </li>
   );
 }
