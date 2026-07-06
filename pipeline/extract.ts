@@ -69,8 +69,10 @@ export async function extract(handle: string) {
   // Durable post-date store is the source of truth for anchors (see post-dates.ts). Load once;
   // collect any date a worker resolves from info.json (i.e. not already in the store) so it is
   // frozen here and used directly on every future run, independent of raw/.
-  const store = await loadPostDates(handle);
-  const datasetAnchors = await loadDatasetAnchors(handle);
+  const [store, datasetAnchors] = await Promise.all([
+    loadPostDates(handle),
+    loadDatasetAnchors(handle),
+  ]);
   const discovered: Record<string, string> = {};
   // Transcribed reels with no resolvable anchor: their calls are dropped this run. Collected for
   // a single loud summary — the sub-guard-threshold tripwire guard-no-shrink can't see (< 5%).
