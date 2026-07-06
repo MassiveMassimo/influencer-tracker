@@ -46,12 +46,12 @@
   {
     "handle": "johnnylixf",
     "name": "Johnny Li",
-    "totalCalls": 148,
-    "firstCalls": 69,
-    "hitRate3m": 0.47619047619047616,
-    "hitRate3mN": 42,
-    "avgExcess3m": 0.071675326886224,
-    "generatedAt": "2026-07-03",
+    "totalCalls": 159,
+    "firstCalls": 78,
+    "hitRate3m": 0.45652173913043476,
+    "hitRate3mN": 46,
+    "avgExcess3m": 0.06290964111957308,
+    "generatedAt": "2026-07-06",
     "avatar": "/avatars/johnnylixf.jpg"
   }
 ]

@@ -3,7 +3,7 @@
     "handle": "johnnylixf",
     "name": "Johnny Li"
   },
-  "generatedAt": "2026-07-03",
+  "generatedAt": "2026-07-06",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -14,8 +14,8 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I believe Meta is incredibly mispriced at these levels. So I'll be buying up this stock.",
-      "summary": "Creator is bullish on Meta due to new cloud computing venture and believes current price drop is overdone, plans to buy.",
-      "onScreenPrice": null,
+      "summary": "Creator believes Meta is mispriced due to cloud computing opportunity and plans to buy the stock.",
+      "onScreenPrice": 630,
       "spark": [
         631.1,
         613,
@@ -72,8 +72,8 @@
       "company": "Micron Technology",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "this is still one of the best stock plays that you could possibly pick. They have a four-word PE of 9.2. ... Micron technology could literally double from here, making it a $1 trillion company.",
-      "summary": "Creator recommends Micron as a top AI stock play due to AI memory bottleneck, low PE, and potential to double.",
+      "quote": "Micron technology could literally double from here, making it a $1 trillion company.",
+      "summary": "The creator recommends buying Micron (MU) now, citing a low P/E of 9.2 and potential to double, making it a $1 trillion company, as part of the AI memory bottleneck thesis.",
       "onScreenPrice": null,
       "spark": [
         419.4,
@@ -132,7 +132,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Every time Nebius went up or dipped back down to support levels, I just buy because it's a clear winner.",
-      "summary": "The creator is bullish on Nebius, viewing it as a long-term winner in AI data center plays and recommending buying on dips.",
+      "summary": "The creator is bullish on Nebius, considering it a long-term winner in AI data center plays, and recommends buying on dips.",
       "onScreenPrice": null,
       "spark": [
         145,
@@ -189,9 +189,9 @@
       "ticker": "PG",
       "company": "The Procter & Gamble Company",
       "isFirstCall": true,
-      "conviction": 0.7,
+      "conviction": 0.9,
       "quote": "Number one is Procter & Gamble, Ticker PG. It currently trades at $159. Their Super Bowl commercial is going to be Spruce, a weed killer that's very pet-friendly and also plant healthy.",
-      "summary": "PG is a top pick because of its Super Bowl ad for Spruce, a pet-friendly weed killer.",
+      "summary": "Procter & Gamble is a top pick for Super Bowl commercial stocks, with a pet-friendly weed killer ad.",
       "onScreenPrice": 159,
       "spark": [
         157.3,
@@ -248,9 +248,9 @@
       "ticker": "GOOGL",
       "company": "Alphabet Inc.",
       "isFirstCall": true,
-      "conviction": 0.7,
-      "quote": "Number two is Google, trading at $323. They're going to be advertising Gemini, Google's own AI. More specifically, their AI image creation. And just so you know, it's free for students.",
-      "summary": "GOOGL is a buy due to its Super Bowl ad promoting Gemini AI image creation.",
+      "conviction": 0.9,
+      "quote": "Number two is Google, trading at $323. They're going to be advertising Gemini, Google's own AI. More specifically, their AI image creation.",
+      "summary": "Google is a top pick for Super Bowl commercial stocks, advertising its Gemini AI image creation.",
       "onScreenPrice": 323,
       "spark": [
         324.3,
@@ -307,9 +307,9 @@
       "ticker": "INTU",
       "company": "Intuit",
       "isFirstCall": true,
-      "conviction": 0.7,
-      "quote": "Number three is Intuit, trading at $443. The company does technology services and information packaging. More specifically, they own TurboTax. And TurboTax basically helps you organize your taxes better. They're going to be advertising drama-free taxes.",
-      "summary": "INTU is a pick because of its Super Bowl ad for TurboTax, promoting drama-free taxes.",
+      "conviction": 0.9,
+      "quote": "And number three is Intuit, trading at $443. The company does technology services and information packaging. More specifically, they own TurboTax. And TurboTax basically helps you organize your taxes better. They're going to be advertising drama-free taxes.",
+      "summary": "Intuit is a top pick for Super Bowl commercial stocks, promoting TurboTax for drama-free taxes.",
       "onScreenPrice": 443,
       "spark": [
         437.5,
@@ -368,7 +368,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I'm a Tesla bull. I put $5,000 at $155 and I'm up over $10,000 in Tesla. And I'm not selling a single share unless Elon Musk steps down as CEO.",
-      "summary": "Creator is bullish on Tesla, holding a long position and citing its future positioning in EV and AI.",
+      "summary": "The creator is bullish on Tesla, citing its position as the top EV company in North America and its AI potential, and states they are holding long.",
       "onScreenPrice": null,
       "spark": [
         467.3,
@@ -427,7 +427,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "I'm buying the stock here at Resistance.",
-      "summary": "The creator is buying Novo Nordisk at $48, citing the anti-obesity deal with Trump and the drug's effectiveness.",
+      "summary": "Creator is buying Novo Nordisk due to Trump's anti-obesity deal and the drug's effectiveness.",
       "onScreenPrice": null,
       "spark": [
         45.68,
@@ -486,7 +486,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "Trump invested up to five million dollars and he recently just said go out and buy a Dell and this was May the eighth and it's only up five percent since then so we're still early",
-      "summary": "The creator reports Trump invested up to $5M and recently said to buy Dell, noting it's only up 5% since May 8, suggesting early entry.",
+      "summary": "The post claims Trump recently recommended buying Dell, and the stock is only up 5% since then, suggesting it's still early.",
       "onScreenPrice": null,
       "spark": [
         242,
@@ -545,7 +545,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "Trump invested up to five million dollars and the stock is only up thirty five percent this month They do manufacturing for other companies and they're a leader in building physical hardware infrastructure for powering AI",
-      "summary": "The creator reports Trump invested up to $5M in Jabil, up 35% this month, and highlights its role in manufacturing and AI hardware infrastructure.",
+      "summary": "The post claims Trump invested up to $5 million in Jabil, which is up 35% this month, and the company manufactures hardware for AI infrastructure.",
       "onScreenPrice": null,
       "spark": [
         339.8,
@@ -604,7 +604,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "Trump invested up to$5.5 million into the company and he bought the stock over 13 times the highest amongst all his stock picks They do analog semiconductors and embedded processors which is needed for AI devices",
-      "summary": "The creator reports Trump invested up to $5.5M in Texas Instruments, bought it over 13 times, and notes its analog semiconductors and embedded processors for AI devices.",
+      "summary": "The post claims Trump invested $5.5 million in Texas Instruments, buying it over 13 times, and the company makes analog semiconductors and embedded processors for AI devices.",
       "onScreenPrice": null,
       "spark": [
         302.7,
@@ -662,8 +662,8 @@
       "company": "Bitmine Immersion",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "BMNR basically holds a shit ton of Ethereum... just added another $400 million into ETH on this dip.",
-      "summary": "Bullish on BMNR due to its large Ethereum holdings and recent ETH price surge.",
+      "quote": "BMNR basically holds a shit ton of Ethereum. Right now they hold like 2% of the entire world's circling supply of ETH.",
+      "summary": "Bullish on BMNR due to its large Ethereum holdings and recent ETH price recovery.",
       "onScreenPrice": null,
       "spark": [
         56.85,
@@ -722,7 +722,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Reddit just dipped past $200 and this is a perfect buying opportunity.",
-      "summary": "Bullish on Reddit due to expected strong Q4 ad revenue.",
+      "summary": "Bullish on Reddit due to expected strong Q4 performance from ad revenue.",
       "onScreenPrice": 200,
       "spark": [
         203.7,
@@ -779,9 +779,9 @@
       "ticker": "ROOT",
       "company": "Root",
       "isFirstCall": false,
-      "conviction": 0.85,
+      "conviction": 0.9,
       "quote": "Root is sitting at like $80 right now. I bought the stock at $90. I'm going to average all the way down.",
-      "summary": "Bullish on Root due to data-driven insurance pricing and projected price target of $120.",
+      "summary": "Bullish on Root due to its data-driven insurance pricing and projected price target of $120.",
       "onScreenPrice": 80,
       "spark": [
         83.28,
@@ -833,6 +833,65 @@
       }
     },
     {
+      "shortcode": "DUtJjPlCVQK",
+      "postDate": "2026-02-13",
+      "ticker": "RDDT",
+      "company": "Reddit",
+      "isFirstCall": false,
+      "conviction": 0.6,
+      "quote": "I bought $10,000 worth of Reddit stock and the stock is down 30%.",
+      "summary": "Creator discusses their long position in Reddit, noting strong fundamentals but competition from Google AI, and plans further analysis.",
+      "onScreenPrice": null,
+      "spark": [
+        139.6,
+        150.2,
+        151.3,
+        147.3,
+        137.1,
+        144.3,
+        141,
+        121.8,
+        136,
+        138.4,
+        158.5,
+        156.8,
+        147.9,
+        169.1,
+        155.8,
+        156.3,
+        146.7,
+        154.2,
+        169.1,
+        171.1,
+        181.9,
+        170.4,
+        166.9,
+        194.7
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.07533121899209605,
+          "spy": 0.011265115769389489,
+          "excess": 0.06406610322270656
+        },
+        "1m": {
+          "stock": 0.002506309479505253,
+          "spy": -0.018657822813531344,
+          "excess": 0.021164132293036597
+        },
+        "3m": {
+          "stock": 0.11929827705154517,
+          "spy": 0.09742571750664641,
+          "excess": 0.02187255954489875
+        },
+        "toDate": {
+          "stock": 0.39398501021951016,
+          "spy": 0.0924532882975797,
+          "excess": 0.30153172192193045
+        }
+      }
+    },
+    {
       "shortcode": "DPU7N79ga06",
       "postDate": "2025-10-03",
       "ticker": "RUM",
@@ -840,7 +899,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I'm personally buying at $7.30 right around the support at around $7.",
-      "summary": "Creator is bullish on Rumble due to Tether's $775M investment and new crypto strategy, expecting billions more and an uptrend.",
+      "summary": "Creator is bullish on Rumble due to Tether's $775M investment and new crypto strategy, expecting significant growth.",
       "onScreenPrice": null,
       "spark": [
         8.56,
@@ -899,8 +958,8 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I bought 100 shares or 2000 plus dollars into USAR because the Trump administration invested $1.5 billion into the company for 10%.",
-      "summary": "The creator is bullish on USAR because Trump invested $1.5B for 10%, and he is buying in the consolidation dip, expecting a similar run-up as seen with other Trump-invested companies.",
-      "onScreenPrice": 22,
+      "summary": "The creator is bullish on USAR, buying in consolidation after Trump's investment, citing technicals and Trump's Midas touch despite poor fundamentals.",
+      "onScreenPrice": null,
       "spark": [
         22.11,
         23.44,
@@ -956,9 +1015,9 @@
       "ticker": "IRDM",
       "company": "Iridium Communications Inc.",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "I'm personally very bullish on IRDM because out of all of the stocks I listed, this is the only stock that's trending upwards. And I only buy in the stocks that are trending upwards.",
-      "summary": "The creator is bullish on IRDM due to its upward trend and his personal position, recommending it as a play on SpaceX's upcoming IPO.",
+      "conviction": 0.85,
+      "quote": "I'm personally very bullish on IRDM because out of all of the stocks I listed, this is the only stock that's trending upwards. And I only buy in the stocks that are trending upwards. Right now I'm currently up 30 to 40% on IRDM.",
+      "summary": "The creator is bullish on IRDM, citing its upward trend and his personal long position with gains of 30-40%.",
       "onScreenPrice": null,
       "spark": [
         24.51,
@@ -1017,8 +1076,8 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "The super app stock of Southeast Asia is extremely undervalued and is expected to 2x from here.",
-      "summary": "Creator is bullish on Grab, citing its monopoly in Southeast Asia, strong cash position, recent profitability, and expects 2x upside to $7.",
-      "onScreenPrice": null,
+      "summary": "The creator is bullish on Grab, citing its monopoly in Southeast Asia, strong cash position, and recent profitability, with a price target of $7 implying a 2x return.",
+      "onScreenPrice": 3.64,
       "spark": [
         3.79,
         3.57,
@@ -1076,7 +1135,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Don't buy RKLB instead buy Spire.",
-      "summary": "The creator recommends buying Spire, which has contracts with SpaceX, expecting it to rise when SpaceX goes public.",
+      "summary": "The post recommends buying Spire, citing its contract with SpaceX and potential upside from the SpaceX IPO.",
       "onScreenPrice": null,
       "spark": [
         23.75,
@@ -1135,7 +1194,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Don't buy ASTS instead buy SATL",
-      "summary": "The creator recommends buying SATL, which has contracts with SpaceX, expecting it to rise when SpaceX goes public.",
+      "summary": "The post recommends buying SATL, citing its contract with SpaceX and potential upside from the SpaceX IPO.",
       "onScreenPrice": null,
       "spark": [
         10.74,
@@ -1192,9 +1251,9 @@
       "ticker": "KRKNF",
       "company": "Kraken Robotics",
       "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "Kraken Robotics or Ticker KRKNF. It currently trades at $6.80 and they're known for their synthetic aperture sonar or SAS for short that currently has millions of dollars worth of orders for the United States.",
-      "summary": "The creator recommends Kraken Robotics as a top pick for detecting sea mines in the Iran war, citing its SAS sonar technology and US orders.",
+      "conviction": 0.85,
+      "quote": "Kraken Robotics or Ticker KRKNF. It currently trades at $6.80 and they're known for their synthetic aperture sonar or SAS for short that currently has millions of dollars worth of orders for the United States. Kraken's SAS is able to simultaneously perform imaging and also bathmetric mapping which is crucial for war.",
+      "summary": "Bullish on Kraken Robotics due to its SAS sonar technology and US Navy orders, seen as a key stock for sea mine detection in the Iran war.",
       "onScreenPrice": 6.8,
       "spark": [
         7.01,
@@ -1252,8 +1311,8 @@
       "company": "Robinhood Markets",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
-      "summary": "The creator holds Hood as a top position and believes in the company, planning to hold until take profit prices.",
+      "quote": "Unrealized positions are Hood, AMD, and MBIS. Top positions in my portfolio are Grab, Hood, HIMS, AMD, Oscar, and ASML. All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
+      "summary": "The creator holds Hood as a top position and believes in the company, planning to hold until take-profit prices.",
       "onScreenPrice": null,
       "spark": [
         127.1,
@@ -1311,8 +1370,8 @@
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
-      "summary": "The creator holds AMD as a top position and believes in the company, planning to hold until take profit prices.",
+      "quote": "Unrealized positions are Hood, AMD, and MBIS. Top positions in my portfolio are Grab, Hood, HIMS, AMD, Oscar, and ASML. All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
+      "summary": "The creator holds AMD as a top position and believes in the company, planning to hold until take-profit prices despite selling half.",
       "onScreenPrice": null,
       "spark": [
         237.7,
@@ -1370,8 +1429,8 @@
       "company": "Grab",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
-      "summary": "The creator holds Grab as a top position and believes in the company, planning to hold until take profit prices.",
+      "quote": "Top positions in my portfolio are Grab, Hood, HIMS, AMD, Oscar, and ASML. All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
+      "summary": "The creator holds Grab as a top position and believes in the company, planning to hold until take-profit prices.",
       "onScreenPrice": null,
       "spark": [
         5.63,
@@ -1428,9 +1487,9 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
-      "summary": "The creator holds HIMS as a top position and also bought more, believing it will outperform.",
+      "conviction": 0.9,
+      "quote": "Top positions in my portfolio are Grab, Hood, HIMS, AMD, Oscar, and ASML. All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices. With the cash, I did funnel it into other companies like Root, HIMS, PNG, Reddit, ASST, and all these other stocks that I do believe are going to do better in returns compared to Google or Amazon.",
+      "summary": "The creator holds HIMS as a top position and also added more, believing it will outperform Google and Amazon.",
       "onScreenPrice": null,
       "spark": [
         41.52,
@@ -1488,8 +1547,8 @@
       "company": "Oscar Health",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
-      "summary": "The creator holds Oscar as a top position and believes in the company, planning to hold until take profit prices.",
+      "quote": "Top positions in my portfolio are Grab, Hood, HIMS, AMD, Oscar, and ASML. All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
+      "summary": "The creator holds Oscar as a top position and believes in the company, planning to hold until take-profit prices.",
       "onScreenPrice": null,
       "spark": [
         16.56,
@@ -1547,8 +1606,8 @@
       "company": "ASML Holding",
       "isFirstCall": true,
       "conviction": 0.8,
-      "quote": "All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
-      "summary": "The creator holds ASML as a top position and believes in the company, planning to hold until take profit prices.",
+      "quote": "Top positions in my portfolio are Grab, Hood, HIMS, AMD, Oscar, and ASML. All of these are companies that I truly believe in still, and I just cut a little bit of profits on some of them. I'm going to hold all these companies until they hit my take profit prices.",
+      "summary": "The creator holds ASML as a top position and believes in the company, planning to hold until take-profit prices.",
       "onScreenPrice": null,
       "spark": [
         1029,
@@ -1606,8 +1665,8 @@
       "company": "Root",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "With the cash, I did funnel it into other companies like Root, HIMS, PNG, Reddit, ASST, and all these other stocks that I do believe are going to do better in returns compared to Google or Amazon.",
-      "summary": "The creator bought Root, believing it will deliver better returns than Google or Amazon.",
+      "quote": "With the cash, I did funnel it into other companies like Root, HIMS, PNG, Reddit, ASST, and all these other stocks that I do believe are going to do better in returns compared to Google or Amazon. But these stocks are far more riskier than Google and Amazon in my opinion.",
+      "summary": "The creator bought Root with cash from sales, believing it will have better returns than Google and Amazon, though riskier.",
       "onScreenPrice": null,
       "spark": [
         81.01,
@@ -1665,8 +1724,8 @@
       "company": "Reddit",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "With the cash, I did funnel it into other companies like Root, HIMS, PNG, Reddit, ASST, and all these other stocks that I do believe are going to do better in returns compared to Google or Amazon.",
-      "summary": "The creator bought Reddit, believing it will deliver better returns than Google or Amazon.",
+      "quote": "With the cash, I did funnel it into other companies like Root, HIMS, PNG, Reddit, ASST, and all these other stocks that I do believe are going to do better in returns compared to Google or Amazon. But these stocks are far more riskier than Google and Amazon in my opinion.",
+      "summary": "The creator bought Reddit with cash from sales, believing it will have better returns than Google and Amazon, though riskier.",
       "onScreenPrice": null,
       "spark": [
         183.6,
@@ -1724,8 +1783,8 @@
       "company": "Strive",
       "isFirstCall": false,
       "conviction": 0.7,
-      "quote": "With the cash, I did funnel it into other companies like Root, HIMS, PNG, Reddit, ASST, and all these other stocks that I do believe are going to do better in returns compared to Google or Amazon.",
-      "summary": "The creator bought ASST, believing it will deliver better returns than Google or Amazon.",
+      "quote": "With the cash, I did funnel it into other companies like Root, HIMS, PNG, Reddit, ASST, and all these other stocks that I do believe are going to do better in returns compared to Google or Amazon. But these stocks are far more riskier than Google and Amazon in my opinion.",
+      "summary": "The creator bought ASST with cash from sales, believing it will have better returns than Google and Amazon, though riskier.",
       "onScreenPrice": null,
       "spark": [
         29,
@@ -1842,8 +1901,8 @@
       "company": "ServiceNow",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "ServiceNow or TickerNow. It's currently trading at $86 and I already bought in.",
-      "summary": "Creator is bullish on ServiceNow, citing its AI Suite revenue growth and high renewal rates, and believes the market misprices it.",
+      "quote": "ServiceNow or TickerNow. It's currently trading at$86 and I already bought in.",
+      "summary": "Creator is bullish on ServiceNow, citing its AI Suite revenue growth and high renewal rates, and has bought shares at $86.",
       "onScreenPrice": null,
       "spark": [
         96.66,
@@ -1901,8 +1960,8 @@
       "company": "Salesforce",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "Salesforce or Ticker CRM and it's currently trading at $180. I also bought in recently.",
-      "summary": "Creator is bullish on Salesforce, citing its AI agent revenue growth and large customer base with custom workflows.",
+      "quote": "Salesforce or Ticker CRM and it's currently trading at$180. I also bought in recently.",
+      "summary": "Creator is bullish on Salesforce, highlighting its AI agent revenue growth and large customer base, and has bought shares at $180.",
       "onScreenPrice": null,
       "spark": [
         182.1,
@@ -1954,6 +2013,65 @@
       }
     },
     {
+      "shortcode": "DPmb5fngY8E",
+      "postDate": "2025-10-09",
+      "ticker": "VIV",
+      "company": "Telefônica Brasil",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "At number one, we got VIV. This is the most no-skill investment. Anybody can buy the stock and make money. In 10 to 20 years, you will be making money no matter what. This is the safest investment in the world. The SP 500, the top 500 companies in the United States.",
+      "summary": "The creator ranks VIV as the top investment, calling it a no-skill, safe bet that tracks the S&P 500 and will generate returns over 10-20 years.",
+      "onScreenPrice": null,
+      "spark": [
+        11.99,
+        12.18,
+        11.93,
+        13.21,
+        12.78,
+        12.16,
+        11.97,
+        11.83,
+        12.43,
+        13.61,
+        14.66,
+        15.72,
+        16.57,
+        16.27,
+        15.19,
+        16.18,
+        16.55,
+        16.05,
+        16.2,
+        14.02,
+        13.33,
+        12.81,
+        13,
+        13.25
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.004170157772254934,
+          "spy": -0.015674293636441794,
+          "excess": 0.01150413586418686
+        },
+        "1m": {
+          "stock": 0.05004173418877156,
+          "spy": 0.015316809267857279,
+          "excess": 0.03472492492091428
+        },
+        "3m": {
+          "stock": 0.012510473316764692,
+          "spy": 0.027445087136246382,
+          "excess": -0.01493461381948169
+        },
+        "toDate": {
+          "stock": 0.10508759407293389,
+          "spy": 0.10969077283828121,
+          "excess": -0.004603178765347327
+        }
+      }
+    },
+    {
       "shortcode": "DRupAA5j2e2",
       "postDate": "2025-12-01",
       "ticker": "MU",
@@ -1961,7 +2079,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I am betting my money in this company right now.",
-      "summary": "The speaker is bullish on Micron as the only American DRAM manufacturer, benefiting from AI-driven demand for RAM.",
+      "summary": "Creator is bullish on Micron as the only American DRAM manufacturer, benefiting from AI-driven demand for RAM.",
       "onScreenPrice": null,
       "spark": [
         240.5,
@@ -2013,73 +2131,14 @@
       }
     },
     {
-      "shortcode": "DVgvFhsCfO0",
-      "postDate": "2026-03-05",
-      "ticker": "KRKNF",
-      "company": "Kraken Robotics",
-      "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "We're going to use Kraken Robotics as an example. ... Kraken Robotics provides deep sea batteries to nuclear warhead submarines for the US.",
-      "summary": "The creator uses Kraken Robotics as a model investment, highlighting its growing revenues, strong moat in defense, and uptrending price.",
-      "onScreenPrice": null,
-      "spark": [
-        6.444,
-        7.33,
-        7.01,
-        6.48,
-        6.519,
-        5.79,
-        6.18,
-        5.94,
-        6.48,
-        5.996,
-        5.89,
-        5.76,
-        5.27,
-        5.08,
-        5.3,
-        5.73,
-        5.95,
-        6.08,
-        5.42,
-        5.092,
-        5.01,
-        5.019,
-        4.611,
-        4.5
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.09869648965998112,
-          "spy": -0.022383349803535624,
-          "excess": 0.12107983946351675
-        },
-        "1m": {
-          "stock": -0.040968334652084604,
-          "spy": -0.03284849035389026,
-          "excess": -0.008119844298194345
-        },
-        "3m": {
-          "stock": -0.1278708739136396,
-          "spy": 0.10704377293320011,
-          "excess": -0.23491464684683971
-        },
-        "toDate": {
-          "stock": -0.3016759524367497,
-          "spy": 0.0931588145861939,
-          "excess": -0.3948347670229436
-        }
-      }
-    },
-    {
       "shortcode": "DYLKyCfBHbq",
       "postDate": "2026-05-10",
       "ticker": "BB",
       "company": "BlackBerry",
       "isFirstCall": true,
-      "conviction": 0.8,
+      "conviction": 0.7,
       "quote": "I'm personally looking to buy BlackBerry at around $5 to $5.5.",
-      "summary": "The creator is bullish on BlackBerry because Nvidia is using their QNX OS for AI self-driving cars and robotics, and they plan to buy at $5-$5.5.",
+      "summary": "The creator is bullish on BlackBerry due to its QNX software being used in 275 million vehicles and Nvidia's partnership, and plans to buy at $5-$5.5.",
       "onScreenPrice": null,
       "spark": [
         6.22,
@@ -2137,8 +2196,8 @@
       "company": "Marvell Technology",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Don't buy Broadcom instead buy Marvell",
-      "summary": "The creator recommends buying Marvell because Nvidia invested $2B in it and called it the next trillion-dollar company.",
+      "quote": "Don't buy Broadcom instead buy Marvell.",
+      "summary": "The creator recommends buying Marvell because Nvidia invested $2 billion and called it the next trillion-dollar company.",
       "onScreenPrice": null,
       "spark": [
         288.9,
@@ -2190,8 +2249,8 @@
       "company": "Micron Technology",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Don't buy Nvidia instead buy Micron",
-      "summary": "The creator recommends buying Micron because Nvidia's newest chips use its memory and it is sold out for 2026.",
+      "quote": "its newest chips run on Micron's memory and Micron has already sold out for 2026.",
+      "summary": "The creator recommends buying Micron because its memory is used in Nvidia's chips and it is sold out for 2026.",
       "onScreenPrice": null,
       "spark": [
         949.3,
@@ -2237,6 +2296,44 @@
       }
     },
     {
+      "shortcode": "DaMLYN6BZBm",
+      "postDate": "2026-06-30",
+      "ticker": "BOT",
+      "company": "Robostrategy",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "instead buy bot",
+      "summary": "The creator recommends buying BOT for diversified exposure to the robotics and automation sector.",
+      "onScreenPrice": null,
+      "spark": [
+        39.75,
+        39.66,
+        35.63
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": -0.10364777187131491,
+          "spy": -0.0026647966339411466,
+          "excess": -0.10098297523737376
+        }
+      }
+    },
+    {
       "shortcode": "DQh0g73kpls",
       "postDate": "2025-11-01",
       "ticker": "HIMS",
@@ -2244,7 +2341,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Hims and Hers, a telehealth company selling in securities.",
-      "summary": "The creator is buying Hims & Hers for a new account, citing it as a telehealth company with securities sales.",
+      "summary": "The creator recommends Hims and Hers as a telehealth stock for a new investment account.",
       "onScreenPrice": null,
       "spark": [
         44.39,
@@ -2303,7 +2400,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Meta. They just dipped. Everybody knows Facebook and Meta.",
-      "summary": "The creator is buying Meta after a dip, noting its well-known status as Facebook's parent.",
+      "summary": "The creator includes Meta in a list of 10 stocks, noting it recently dipped.",
       "onScreenPrice": null,
       "spark": [
         637.7,
@@ -2362,7 +2459,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "KRKNF, Subsea Technology that has a major moat.",
-      "summary": "The creator is buying KRKNF for its subsea technology and competitive moat.",
+      "summary": "The creator recommends KRKNF as a subsea technology stock with a major moat.",
       "onScreenPrice": null,
       "spark": [
         4.19,
@@ -2420,8 +2517,8 @@
       "company": "Disc Medicine",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "Iron, AI Data Centers. Not MBIS because this account is too poor.",
-      "summary": "The creator is buying Iron for AI data centers, avoiding MBIS due to account size.",
+      "quote": "Iron, AI Data Centers.",
+      "summary": "The creator includes Iron as an AI data center stock in the investment list.",
       "onScreenPrice": null,
       "spark": [
         84.69,
@@ -2480,7 +2577,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "BMNR. Basically like investing into Ethereum.",
-      "summary": "The creator is buying BMNR as a proxy for investing in Ethereum.",
+      "summary": "The creator recommends BMNR as a stock similar to investing in Ethereum.",
       "onScreenPrice": null,
       "spark": [
         42.86,
@@ -2539,7 +2636,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "Lemonade, AI Insurance that's gonna go crazy.",
-      "summary": "The creator is buying Lemonade for its AI-driven insurance model, expecting strong performance.",
+      "summary": "The creator includes Lemonade as an AI insurance stock expected to perform well.",
       "onScreenPrice": null,
       "spark": [
         61.54,
@@ -2598,7 +2695,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "ONDS, drone military technology.",
-      "summary": "The creator is buying ONDS for its drone military technology.",
+      "summary": "The creator recommends ONDS as a drone military technology stock.",
       "onScreenPrice": null,
       "spark": [
         6.15,
@@ -2657,7 +2754,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Oscar Health, Health Insurance with $3.5 billion in extra cash.",
-      "summary": "The creator is buying Oscar Health for its health insurance business and $3.5 billion cash reserve.",
+      "summary": "The creator includes Oscar Health as a health insurance stock with extra cash.",
       "onScreenPrice": null,
       "spark": [
         17.66,
@@ -2716,7 +2813,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Grab, the WeChat of Southeast Asia.",
-      "summary": "The creator is buying Grab, comparing it to WeChat for its super-app dominance in Southeast Asia.",
+      "summary": "The creator recommends Grab as the WeChat of Southeast Asia.",
       "onScreenPrice": null,
       "spark": [
         6.07,
@@ -2775,7 +2872,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "TEM AI Precision Healthcare.",
-      "summary": "The creator is buying TEM for its AI precision healthcare focus.",
+      "summary": "The creator includes TEM as an AI precision healthcare stock.",
       "onScreenPrice": null,
       "spark": [
         88.71,
@@ -2832,9 +2929,9 @@
       "ticker": "MSFT",
       "company": "Microsoft",
       "isFirstCall": false,
-      "conviction": 0.7,
-      "quote": "Don't buy Micron instead buy Microsoft.",
-      "summary": "The creator recommends buying Microsoft over Micron, citing Trump's recent purchase and upcoming earnings report within two months.",
+      "conviction": 0.9,
+      "quote": "instead buy Microsoft",
+      "summary": "The creator recommends buying Microsoft over Micron, as Trump bought it in his last filing and it reports earnings soon.",
       "onScreenPrice": null,
       "spark": [
         460.5,
@@ -2890,9 +2987,9 @@
       "ticker": "ORCL",
       "company": "Oracle",
       "isFirstCall": false,
-      "conviction": 0.7,
-      "quote": "Don't buy Intel instead buy Oracle.",
-      "summary": "The creator recommends buying Oracle over Intel, noting Trump bought Oracle in his last filing and it reports earnings soon.",
+      "conviction": 0.9,
+      "quote": "instead buy Oracle",
+      "summary": "The creator recommends buying Oracle over Intel, as Trump bought it in his last filing and it reports earnings soon.",
       "onScreenPrice": null,
       "spark": [
         248.1,
@@ -2948,9 +3045,9 @@
       "ticker": "IBM",
       "company": "IBM",
       "isFirstCall": false,
-      "conviction": 0.7,
-      "quote": "And definitely don't buy Dell instead buy IBM.",
-      "summary": "The creator recommends buying IBM over Dell, highlighting Trump's purchase of IBM and its upcoming earnings report.",
+      "conviction": 0.9,
+      "quote": "instead buy IBM",
+      "summary": "The creator recommends buying IBM over Dell, as Trump bought it in his last filing and it reports earnings soon.",
       "onScreenPrice": null,
       "spark": [
         320.4,
@@ -3006,9 +3103,9 @@
       "ticker": "MBLY",
       "company": "Mobileye Global",
       "isFirstCall": true,
-      "conviction": 0.85,
+      "conviction": 0.9,
       "quote": "Mobile Out or Ticker MBLY is currently trading at $9.60. And they make the brains and self-driving cars in 230 million vehicles. And now they're using that same technology to teach humanoid robots how to see and move.",
-      "summary": "The creator recommends buying MBLY because its self-driving technology is being applied to humanoid robots, and the stock recently dipped.",
+      "summary": "Creator recommends buying MBLY due to its technology for self-driving cars being applied to humanoid robots, and current dip.",
       "onScreenPrice": null,
       "spark": [
         9.77,
@@ -3064,10 +3161,10 @@
       "postDate": "2026-05-20",
       "ticker": "OUST",
       "company": "Ouster",
-      "isFirstCall": true,
-      "conviction": 0.85,
+      "isFirstCall": false,
+      "conviction": 0.9,
       "quote": "Oster or Ticker OUST. It's currently trading at $28. Auster makes the best LiDAR sensors in the West and every single humano robot needs to see the real world. And they just partnered with Fujifilm to create the world's first LiDAR sensors that allow robots to see in color.",
-      "summary": "The creator recommends buying OUST because its LiDAR sensors are essential for humanoid robots, and a recent partnership with Fujifilm is a positive catalyst.",
+      "summary": "Creator recommends buying OUST for its LiDAR sensors essential for humanoid robots, citing a partnership with Fujifilm.",
       "onScreenPrice": null,
       "spark": [
         30.87,
@@ -3124,9 +3221,9 @@
       "ticker": "VPG",
       "company": "Vishay Precision",
       "isFirstCall": true,
-      "conviction": 0.85,
+      "conviction": 0.9,
       "quote": "Vichet Precision Group or Ticker VPG. It's currently trading at $98. They make these tiny sensors that go on the hands of robots that allow them to feel pressure and also to grip things.",
-      "summary": "The creator recommends buying VPG because its pressure sensors are used in robot hands, and the stock recently dipped.",
+      "summary": "Creator recommends buying VPG for its sensors that enable robots to feel pressure and grip, and current dip.",
       "onScreenPrice": null,
       "spark": [
         100.7,
@@ -3183,9 +3280,9 @@
       "ticker": "META",
       "company": "Meta Platforms",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "I will be holding the stock until it goes above $850",
-      "summary": "Creator holds Meta stock with a bullish price target of $850, viewing it as undervalued after a dip.",
+      "conviction": 0.7,
+      "quote": "I will be holding the stock until it goes above $850.",
+      "summary": "Creator holds Meta stock with a fair value target of $850, bought at $647 during a dip, and plans to hold until that target is reached.",
       "onScreenPrice": null,
       "spark": [
         738.3,
@@ -3244,7 +3341,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I bought over $5,000 into Novo Nordisk because America has a major obesity issue and Novo Nordisk sells the world's best selling drug for weight loss... later on they're going to release a pill version of this drug and once they do release the pill version of this drug the stock is going to soar.",
-      "summary": "The creator is bullish on Novo Nordisk due to its obesity drug and upcoming pill version, seeing a risk-reward opportunity after a 60% decline.",
+      "summary": "The creator is bullish on Novo Nordisk due to its weight loss drug and upcoming pill version, seeing a good risk/reward after a 60% decline.",
       "onScreenPrice": null,
       "spark": [
         49.16,
@@ -3303,7 +3400,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "This dip is just noise. The shortage is still real. And Micron Technologies is only going to move up from here.",
-      "summary": "Creator is bullish on Micron Technology after earnings beat, viewing the dip as noise due to AI memory shortage and expecting continued growth.",
+      "summary": "Creator is bullish on Micron after earnings beat, citing AI memory shortage and growth, viewing the post-earnings dip as noise.",
       "onScreenPrice": null,
       "spark": [
         461.7,
@@ -3355,61 +3452,95 @@
       }
     },
     {
-      "shortcode": "DRtqZKpjrLA",
-      "postDate": "2025-12-01",
-      "ticker": "ONDS",
-      "company": "Ondas",
+      "shortcode": "DaWSWYSBm03",
+      "postDate": "2026-07-03",
+      "ticker": "NBIS",
+      "company": "Nebius",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "I still bought into ONDS and I'm up over 40% there.",
-      "summary": "The creator states he bought ONDS and is up over 40%, indicating a bullish position.",
+      "quote": "Don't buy Microsoft instead buy Nebius.",
+      "summary": "Creator recommends buying Nebius as an alternative to Microsoft, citing a $17 billion contract with Microsoft.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DRtqZKpjrLA",
+      "postDate": "2025-12-01",
+      "ticker": "CIFR",
+      "company": "Cipher Digital",
+      "isFirstCall": false,
+      "conviction": 0.7,
+      "quote": "I still think the company is a very strong hold.",
+      "summary": "The creator called Cypher Mining at $13.5, it rose over 50%, and they still consider it a strong hold despite suggesting taking some profits.",
       "onScreenPrice": null,
       "spark": [
-        7.58,
-        9.23,
-        7.8,
-        8.46,
-        12.18,
-        12.16,
-        12.26,
-        9.68,
-        9.31,
-        10.4,
-        10.51,
-        10.16,
-        10.9,
-        8.81,
-        9.13,
-        10.73,
-        9.49,
-        8.89,
-        10.62,
-        10.8,
-        11.97,
-        9.33,
-        7.68,
-        7.41
+        19.69,
+        19.56,
+        15.15,
+        15.08,
+        16.08,
+        18.8,
+        18.75,
+        14.25,
+        16.42,
+        17.12,
+        16.04,
+        14.08,
+        14.89,
+        12.64,
+        16.53,
+        19.29,
+        16.92,
+        20.68,
+        20.33,
+        25.16,
+        25.55,
+        24.5,
+        26.22,
+        20.04
       ],
       "returns": {
         "1w": {
-          "stock": 0.1899736871439921,
+          "stock": -0.010665362423838087,
           "spy": 0.004939193636488204,
-          "excess": 0.1850344935075039
+          "excess": -0.015604556060326291
         },
         "1m": {
-          "stock": 0.28759898774641734,
+          "stock": -0.25038091272005825,
           "spy": 0.0024254536162613416,
-          "excess": 0.285173534130156
+          "excess": -0.2528063663363196
         },
         "3m": {
-          "stock": 0.40765173927298815,
+          "stock": -0.1995937124723839,
           "spy": 0.00898170605221238,
-          "excess": 0.39867003322077577
+          "excess": -0.20857541852459627
         },
         "toDate": {
-          "stock": -0.022427450924145664,
+          "stock": 0.017775539460465506,
           "spy": 0.09483000560582777,
-          "excess": -0.11725745652997344
+          "excess": -0.07705446614536227
         }
       }
     },
@@ -3419,9 +3550,9 @@
       "ticker": "HIMS",
       "company": "Hims & Hers Health",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "We bought four shares of these. Currently, we're right now down $15. But that's okay. We're just going to buy more of the stock if it dips down even lower.",
-      "summary": "The creator bought Hims & Hers shares and plans to buy more on dips, expressing a bullish view.",
+      "summary": "The creator bought shares of Hims & Hers and plans to buy more on dips, expressing a bullish view.",
       "onScreenPrice": null,
       "spark": [
         42.79,
@@ -3473,6 +3604,124 @@
       }
     },
     {
+      "shortcode": "DQpLb7UEgms",
+      "postDate": "2025-11-04",
+      "ticker": "KRKNF",
+      "company": "Kraken Robotics",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "The next two stocks that I'm looking to buy are KRKNF and Meta. Both of these stocks have amazing potential in the next 5 to 10 years.",
+      "summary": "The creator is looking to buy KRKNF, believing it has amazing potential over 5-10 years.",
+      "onScreenPrice": null,
+      "spark": [
+        4.05,
+        3.66,
+        3.84,
+        4.364,
+        4.3,
+        4.75,
+        5.296,
+        5.759,
+        6.627,
+        5.96,
+        5.99,
+        6.23,
+        7.33,
+        6.48,
+        5.79,
+        5.94,
+        5.996,
+        5.76,
+        5.08,
+        5.73,
+        6.08,
+        5.092,
+        5.019,
+        4.5
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.03283953806373041,
+          "spy": 0.011492224805778273,
+          "excess": -0.044331762869508684
+        },
+        "1m": {
+          "stock": 0.07753077483326587,
+          "spy": 0.013550773867653465,
+          "excess": 0.0639800009656124
+        },
+        "3m": {
+          "stock": 0.4849381866013238,
+          "spy": 0.02987083585371675,
+          "excess": 0.45506735074760707
+        },
+        "toDate": {
+          "stock": 0.11111105878330463,
+          "spy": 0.10298566445740676,
+          "excess": 0.008125394325897872
+        }
+      }
+    },
+    {
+      "shortcode": "DQpLb7UEgms",
+      "postDate": "2025-11-04",
+      "ticker": "META",
+      "company": "Meta Platforms",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "The next two stocks that I'm looking to buy are KRKNF and Meta. Both of these stocks have amazing potential in the next 5 to 10 years.",
+      "summary": "The creator is looking to buy Meta, believing it has amazing potential over 5-10 years.",
+      "onScreenPrice": null,
+      "spark": [
+        627.3,
+        609.9,
+        613,
+        661.5,
+        657.2,
+        663.3,
+        648.7,
+        620.3,
+        668.7,
+        661.5,
+        643.2,
+        648.2,
+        654.9,
+        593.7,
+        572.1,
+        629.9,
+        668.8,
+        611.9,
+        598.9,
+        605.1,
+        597.6,
+        568.4,
+        562.2,
+        582.9
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.0003825642918654504,
+          "spy": 0.011492224805778273,
+          "excess": -0.011874789097643723
+        },
+        "1m": {
+          "stock": 0.054533605772556504,
+          "spy": 0.013550773867653465,
+          "excess": 0.04098283190490304
+        },
+        "3m": {
+          "stock": 0.1260759499089854,
+          "spy": 0.02987083585371675,
+          "excess": 0.09620511405526866
+        },
+        "toDate": {
+          "stock": -0.07080912834204989,
+          "spy": 0.10298566445740676,
+          "excess": -0.17379479279945664
+        }
+      }
+    },
+    {
       "shortcode": "DUbpG9UEpaS",
       "postDate": "2026-02-06",
       "ticker": "NVO",
@@ -3480,7 +3729,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I bought a bunch of Novo Nordes shares on this massive dip.",
-      "summary": "Creator is bullish on Novo Nordisk, betting it wins the legal battle against Hims & Hers, and bought shares on the dip.",
+      "summary": "Creator bought shares of Novo Nordisk on a dip, betting the company wins the legal battle against Hims & Hers.",
       "onScreenPrice": null,
       "spark": [
         47.64,
@@ -3539,7 +3788,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "this is a money-printing machine",
-      "summary": "ONDS provides AI-powered drones and robotics, winning military defense contracts, and is presented as a top military stock to buy.",
+      "summary": "ONDS provides AI-powered drones and robotics, winning military defense contracts, and is seen as a high-growth opportunity.",
       "onScreenPrice": 9.83,
       "spark": [
         9.83,
@@ -3598,7 +3847,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "we are very early",
-      "summary": "KRKNF provides deep sea batteries for defense, is early stage with growth potential, and is presented as a top military stock to buy.",
+      "summary": "KRKNF provides deep sea batteries for defense, is undervalued with limited exchange listings, and is considered an early-stage investment.",
       "onScreenPrice": 6.14,
       "spark": [
         6.14,
@@ -3656,9 +3905,9 @@
       "company": "Mitek Systems",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "These AI deepfake accounts are getting millions of views and nobody can tell they're fake. And it's becoming a massive problem because criminals are using the same technology to impersonate people to bypass bank security. And there's one company I'm buying built entirely to stop AI scams just like this. Matech Systems or Ticker MITK currently trades at around $15 and they help banks and financial institutions detect AI fraud.",
-      "summary": "The creator is bullish on MITK, a company that uses AI to detect fraud for banks, citing 99% accuracy, 19% revenue growth, and a cheap stock price.",
-      "onScreenPrice": null,
+      "quote": "Matech Systems or Ticker MITK currently trades at around $15 and they help banks and financial institutions detect AI fraud.",
+      "summary": "The creator is buying MITK because it uses AI to detect fraud with 99% accuracy, revenue grew 19% last quarter, and the stock is cheap.",
+      "onScreenPrice": 15,
       "spark": [
         13.87,
         14.3,
@@ -3716,8 +3965,8 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I'm going to be swing trading HIMS at $48.",
-      "summary": "Creator is bullish on HIMS, swing trading with buy at $48, targeting $56-$60, based on trend line and revenue growth.",
-      "onScreenPrice": null,
+      "summary": "Creator is bullish on HIMS, swing trading with a buy at $48, targeting $56-$60, citing a proven trend line strategy and strong revenue outlook.",
+      "onScreenPrice": 48,
       "spark": [
         48.49,
         44.39,
@@ -3774,8 +4023,8 @@
       "company": "Synaptics Incorporated",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "At number one is Synaptics or Ticker SYNA. It currently trades at$88 and this stock is a pure Edge AI play.",
-      "summary": "The creator is personally buying Synaptics, citing its leadership in Edge AI and partnership with Google for Astra.",
+      "quote": "At number one is Synaptics or Ticker SYNA. It currently trades at $88 and this stock is a pure Edge AI play.",
+      "summary": "The creator is buying Synaptics as a pure Edge AI play, citing advantages like speed, privacy, and lower costs, with leadership in patents and a partnership with Google.",
       "onScreenPrice": 88,
       "spark": [
         85.6,
@@ -3829,59 +4078,59 @@
     {
       "shortcode": "DT3YLRIEkzg",
       "postDate": "2026-01-23",
-      "ticker": "NVO",
-      "company": "Novo Nordisk A/S",
-      "isFirstCall": false,
+      "ticker": "MVO",
+      "company": "MV Oil Trust",
+      "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "At number two is Nova Nordisk or Ticker MVO. It currently sits at$62 and the company sells weight loss pills.",
-      "summary": "The creator is personally buying Novo Nordisk, believing weight loss pills will become a daily taken pill due to rising diabetes rates.",
+      "quote": "At number two is Nova Nordisk or Ticker MVO. It currently sits at $62 and the company sells weight loss pills.",
+      "summary": "The creator is buying Nova Nordisk (MVO) for its weight loss pills, believing they will become a daily taken pill due to rising diabetes rates.",
       "onScreenPrice": 62,
       "spark": [
-        62.26,
-        59.43,
-        47.64,
-        48.93,
-        47.42,
-        37.45,
-        38.58,
-        38.02,
-        37.08,
-        36.4,
-        36.98,
-        37.52,
-        40.93,
-        38.52,
-        42.22,
-        45.8,
-        45.8,
-        45.07,
-        45.51,
-        43.75,
-        43.96,
-        43.52,
-        47.64,
-        50.43
+        1.82,
+        1.54,
+        1.41,
+        1.42,
+        1.83,
+        2.07,
+        2.52,
+        2.55,
+        2.25,
+        2.23,
+        2.29,
+        2.74,
+        2.78,
+        2.6,
+        2.53,
+        2.22,
+        2.1,
+        1.86,
+        1.86,
+        1.73,
+        1.58,
+        1.44,
+        1.44,
+        1.68
       ],
       "returns": {
         "1w": {
-          "stock": -0.045454514819327274,
+          "stock": -0.15384619919203613,
           "spy": 0.003975436809222188,
-          "excess": -0.04942995162854946
+          "excess": -0.15782163600125831
         },
         "1m": {
-          "stock": -0.36347571255219857,
+          "stock": 0.016483500288558606,
           "spy": -0.009924068908988226,
-          "excess": -0.35355164364321034
+          "excess": 0.026407569197546832
         },
         "3m": {
-          "stock": -0.3813041841274646,
+          "stock": 0.42857133500056044,
           "spy": 0.027886238676398722,
-          "excess": -0.4091904228038633
+          "excess": 0.4006850963241617
         },
         "toDate": {
-          "stock": -0.19000961026794483,
+          "stock": -0.07692313234582193,
           "spy": 0.0805972612949093,
-          "excess": -0.2706068715628541
+          "excess": -0.15752039364073123
         }
       }
     },
@@ -3892,8 +4141,8 @@
       "company": "Meta Platforms",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "At number three is Meta. It's trading at$647 and the company is down 17% from all-time highs because of one massive expenditure that should not be reflected in the actual stock price.",
-      "summary": "The creator is personally buying Meta, considering it the most undervalued mega cap due to a temporary expenditure.",
+      "quote": "At number three is Meta. It's trading at $647 and the company is down 17% from all-time highs because of one massive expenditure that should not be reflected in the actual stock price.",
+      "summary": "The creator is buying Meta as the most undervalued mega cap, arguing a recent expenditure is overblown and the stock is down 17% from highs.",
       "onScreenPrice": 647,
       "spark": [
         658.8,
@@ -3951,8 +4200,8 @@
       "company": "Nebius",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "I think that the companies both of them are still incredibly undervalued.",
-      "summary": "The creator believes Nebius is undervalued and will continue to rise due to strong demand from big tech.",
+      "quote": "you are right now up 10% on MBIS and I think that the company is still incredibly undervalued",
+      "summary": "The creator recommends NBIS as an undervalued AI data center company with strong demand from big tech, expecting further upside.",
       "onScreenPrice": null,
       "spark": [
         88.88,
@@ -4010,8 +4259,8 @@
       "company": "Cipher Digital",
       "isFirstCall": false,
       "conviction": 0.8,
-      "quote": "I think that the companies both of them are still incredibly undervalued.",
-      "summary": "The creator believes Cypher Mining is undervalued and will continue to rise due to strong demand from big tech.",
+      "quote": "near 20% on Cypher Mining and I think that the company is still incredibly undervalued",
+      "summary": "The creator recommends CIFR as an undervalued AI data center company with strong demand from big tech, expecting further upside.",
       "onScreenPrice": null,
       "spark": [
         17.52,
@@ -4068,9 +4317,9 @@
       "ticker": "LULU",
       "company": "lululemon athletica",
       "isFirstCall": false,
-      "conviction": 0.9,
+      "conviction": 0.8,
       "quote": "I do think Lululemon is extremely undervalued. It should be valued at at least $230 to $250 just based off their financials.",
-      "summary": "Creator calls LULU undervalued with strong free cash flow, setting a price target of $230-$250, despite fashion trend concerns.",
+      "summary": "Creator is bullish on LULU, citing undervaluation and price target of $230-$250 based on strong financials, despite fashion trend concerns.",
       "onScreenPrice": null,
       "spark": [
         206.3,
@@ -4128,8 +4377,8 @@
       "company": "Hims & Hers Health",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "It's time to buy. ... I'm very bullish on him's ... I still hold 93 shares of this.",
-      "summary": "The creator is bullish on Hims & Hers, recommends buying, and holds a significant position, citing strong revenue growth and a well-established business model.",
+      "quote": "I'm very bullish on him's... It's time to buy.",
+      "summary": "Creator is bullish on HIMS, citing strong revenue growth and a well-established business, and advises buying on dips while holding a long position.",
       "onScreenPrice": null,
       "spark": [
         51.36,
@@ -4188,7 +4437,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "I'm personally bullish on Coreweave and I bought the dip at around $100.",
-      "summary": "Creator is bullish on CoreWeave due to its large contract backlog, Nvidia investment, and partnership with Dell, betting on revenue conversion in Q4.",
+      "summary": "Creator is bullish on CoreWeave due to its large contract backlog, Nvidia's investment, and partnership with Dell, expecting revenue conversion in Q4.",
       "onScreenPrice": 100,
       "spark": [
         106.7,
@@ -4235,7 +4484,7 @@
       "company": "Strive",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "ASST is going to become the next beyond meat. It's going to 5x because of one tweet by Mike Alfred... Overall, I'm still very fucking bullish on the company.",
+      "quote": "ASST is going to become the next beyond meat. It's going to 5x because of one tweet by Mike Alfred... I'm still very fucking bullish on the company.",
       "summary": "The creator is bullish on ASST due to high sentiment and potential for 5x growth, despite concerns about warrants.",
       "onScreenPrice": null,
       "spark": [
@@ -4295,7 +4544,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "Get Costco and pay them back. Buy that stock and make money.",
-      "summary": "The speaker recommends buying Costco stock based on observed consumer behavior like rising membership prices and longer lines, indicating increased revenue.",
+      "summary": "The speaker recommends buying Costco stock based on observed increases in membership prices and customer traffic, indicating strong business performance.",
       "onScreenPrice": null,
       "spark": [
         925.6,
@@ -4353,8 +4602,8 @@
       "company": "Warner Bros. Discovery",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "I do think somebody is going to acquire Warner Bros. And the stock price is going to continue moving up from here just because of this massive bidding award that's happening right now.",
-      "summary": "The creator believes Warner Bros will be acquired and its stock price will rise due to a bidding war.",
+      "quote": "I do think somebody is going to acquire Warner Bros. And the stock price is going to continue moving up from here just because of this massive bidding award.",
+      "summary": "The speaker is bullish on Warner Bros, expecting the stock to rise due to a potential acquisition bid at $30 per share.",
       "onScreenPrice": null,
       "spark": [
         28.26,
@@ -4412,9 +4661,9 @@
       "company": "Ondas",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "At number one we have on this sitting at$5.20.",
-      "summary": "The creator is bullish on this AI autonomous drone stock, citing a technical play using the 100 EMA and recommending buying.",
-      "onScreenPrice": 5.2,
+      "quote": "I said to buy at around 100 EMA or the 100 exponential moving average which is basically a major support line",
+      "summary": "The creator recommends buying ONDS, an AI autonomous drone company, citing a technical play at the 100 EMA support line and expecting gains from increased government military spending.",
+      "onScreenPrice": null,
       "spark": [
         7.18,
         8.44,
@@ -4472,7 +4721,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I've personally been stacking up Lumen at around $10, aiming for $20 as my price target.",
-      "summary": "The creator is bullish on Lumen because it owns the largest long-distance fiber network and has signed AI fiber contracts with major tech companies, with a price target of $20.",
+      "summary": "The creator is bullish on Lumen, citing its fiber network and contracts with major AI companies, with a price target of $20.",
       "onScreenPrice": 11,
       "spark": [
         9.98,
@@ -4528,7 +4777,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "You need to be buying meta right now at this 10% dip",
-      "summary": "The creator recommends buying Meta during a 10% dip, citing revenue growth and a one-time payment miss, with upside potential and specific support levels to buy at.",
+      "summary": "The creator recommends buying META during a 10% dip, citing revenue growth and a one-time payment miss, with upside potential and support levels at $648, $580, and $478.",
       "onScreenPrice": null,
       "spark": [
         648.3,
@@ -4580,14 +4829,73 @@
       }
     },
     {
+      "shortcode": "DXVNLC1jy7r",
+      "postDate": "2026-04-19",
+      "ticker": "OUST",
+      "company": "Ouster",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "I'm extremely bullish on the stock.",
+      "summary": "The creator is bullish on OUST, an AI LiDAR company that turned profitable, acquired Stereo Labs, and is projected to go 60% higher.",
+      "onScreenPrice": null,
+      "spark": [
+        27.14,
+        27.76,
+        28.22,
+        25.54,
+        26.45,
+        28.6,
+        24.51,
+        27.1,
+        34.86,
+        30.74,
+        30.87,
+        37.03,
+        42.33,
+        44.93,
+        43.96,
+        39.68,
+        38.52,
+        39.8,
+        42.73,
+        46.57,
+        45.16,
+        42.02,
+        62.52,
+        49.84
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.00810609131547746,
+          "spy": 0.00910093192468131,
+          "excess": -0.01720702324015877
+        },
+        "1m": {
+          "stock": 0.09506263749917765,
+          "spy": 0.035288986905240405,
+          "excess": 0.059773650593937244
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.8364038789034587,
+          "spy": 0.05088054532733799,
+          "excess": 0.7855233335761207
+        }
+      }
+    },
+    {
       "shortcode": "DQ3U5zgEX7R",
       "postDate": "2025-11-10",
       "ticker": "ASST",
       "company": "Strive",
       "isFirstCall": false,
       "conviction": 0.6,
-      "quote": "ASST is up 15% since I called to buy at under$1.30 and it's right now trading at$1.50 over here.",
-      "summary": "The creator is bullish on ASST, holding a long position bought at $1.30, expects price to go higher from $1.30 support, but notes warrant selling pressure above $1.35.",
+      "quote": "ASST is up 15% since I called to buy at under $1.30 and it's right now trading at $1.50 over here. And here is my official buy. I said to basically hold this long term.",
+      "summary": "The creator is bullish on ASST, citing a bounce off $1.30 support and a long-term hold, despite warrant selling pressure above $1.35.",
       "onScreenPrice": null,
       "spark": [
         29.6,
@@ -4646,7 +4954,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "Root is an extremely undervalued company right now sitting at $75 per share and I think it's gonna 2x so I bought 20 more shares.",
-      "summary": "The creator is bullish on Root, citing undervaluation, revenue growth, analyst target of $130, and technical support, and has added to their position.",
+      "summary": "The creator is bullish on Root, citing undervaluation, data advantage, revenue growth, analyst target of $130, and technical support, and has added to position.",
       "onScreenPrice": null,
       "spark": [
         77.69,
@@ -4705,7 +5013,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "You should be buying the meta dip.",
-      "summary": "Creator recommends buying Meta on the dip, explaining the sell-off is due to a one-time payment that will lower future taxes, making it a bullish opportunity.",
+      "summary": "Creator recommends buying Meta on the dip, explaining the sell-off is due to a one-time payment that will lower future taxes, making it a bullish long-term opportunity.",
       "onScreenPrice": null,
       "spark": [
         648.3,
@@ -4764,7 +5072,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "At first place, we have Oscar. Oscar is around 13% of my portfolio, and I'm currently up 33% in it, which is pretty good.",
-      "summary": "The creator holds Oscar as their top portfolio position, up 33%, indicating a bullish view.",
+      "summary": "The creator holds Oscar as their top portfolio position at 13% and is up 33%, indicating a bullish view.",
       "onScreenPrice": null,
       "spark": [
         20.28,
@@ -4823,7 +5131,7 @@
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "At second place, we got AMD. AMD is at 11%, and I'm currently up 28%, which is also pretty good.",
-      "summary": "The creator holds AMD as a top holding, up 28%, reflecting a bullish stance.",
+      "summary": "The creator holds AMD as 11% of their portfolio and is up 28%, showing a bullish stance.",
       "onScreenPrice": null,
       "spark": [
         151.4,
@@ -4882,7 +5190,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "Third place, we got HIMS. HIMS represents 11% of my portfolio only, and it's up 70% currently in the year, which is amazing.",
-      "summary": "The creator holds HIMS as a top holding, up 70% year-to-date, showing strong bullish conviction.",
+      "summary": "The creator holds HIMS at 11% of their portfolio with a 70% gain, expressing strong bullishness.",
       "onScreenPrice": null,
       "spark": [
         49.64,
@@ -4941,7 +5249,7 @@
       "isFirstCall": true,
       "conviction": 0.6,
       "quote": "At fourth place, we got Grab. Grab is at 10% of my portfolio, and I'm only up like 1%, which is kind of really bad for a 10% holding, but who really cares, right? I do, but okay.",
-      "summary": "The creator holds Grab as a top holding despite being only up 1%, indicating a long-term bullish view.",
+      "summary": "The creator holds Grab at 10% of their portfolio with only 1% gain, but still maintains the position, indicating a neutral-to-bullish view.",
       "onScreenPrice": null,
       "spark": [
         5.19,
@@ -5000,7 +5308,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "At fifth place, we got Hood at 8.7%, and it's up 130%, which is incredible. I should have bought more of this stock instead.",
-      "summary": "The creator holds Hood as a top holding, up 130%, expressing regret for not buying more, indicating strong bullishness.",
+      "summary": "The creator holds Hood at 8.7% of their portfolio with a 130% gain, expressing strong bullishness and regret for not buying more.",
       "onScreenPrice": null,
       "spark": [
         117.3,
@@ -5057,10 +5365,10 @@
       "ticker": "BMNR",
       "company": "Bitmine Immersion",
       "isFirstCall": false,
-      "conviction": 0.95,
+      "conviction": 0.9,
       "quote": "I basically call the stock all the way back down around $40 and I've been posting so much about it, begging, pleading, getting on my knees for people to buy this stock because I believe this is like the next generation of wealth play.",
-      "summary": "The creator is bullish on BMNR, a Bitcoin/Ethereum mining holding company, comparing it to MicroStrategy. He believes the stock will run to $60 and plans to take profits at $65, selling 25% of his shares.",
-      "onScreenPrice": 55,
+      "summary": "The creator is bullish on BMNR, a Bitcoin/Ethereum mining holding company, and recommends buying it, expecting a run to $60-$65.",
+      "onScreenPrice": null,
       "spark": [
         55.93,
         53.22,
@@ -5117,8 +5425,8 @@
       "company": "Harmonic",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "I think the stock could go up over 100%, just like Nokia, that recently ran up over 200% because they both do the same thing.",
-      "summary": "The creator is bullish on Harmonic (HLIT) because it provides software for Comcast and Charter to upgrade their internet infrastructure to AI-ready, with high switching costs, and they see potential for over 100% gain.",
+      "quote": "I think the stock could go up over 100%, just like Nokia... I already bought into Harmonic and I'm aiming for $16.",
+      "summary": "The creator is bullish on Harmonic due to its partnership with Comcast and Charter for next-gen internet OS, high switching costs, and potential for over 100% gain.",
       "onScreenPrice": 13.3,
       "spark": [
         12.48,
@@ -5175,9 +5483,9 @@
       "ticker": "ASTS",
       "company": "AST SpaceMobile",
       "isFirstCall": true,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "ASTS is up 15%.",
-      "summary": "The creator is bullish on ASTS due to its aerospace and government/military contracts, expecting re-rating from SpaceX IPO.",
+      "summary": "The creator highlights ASTS as an aerospace stock with government and military contracts, calling it undervalued and bullish due to potential SpaceX IPO re-rating.",
       "onScreenPrice": null,
       "spark": [
         93.86,
@@ -5234,9 +5542,9 @@
       "ticker": "PL",
       "company": "Planet Labs PBC",
       "isFirstCall": true,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "PL, RKLB, IRDM, all of these aerospace stocks don't only do aerospace, they actually work with the military and the government.",
-      "summary": "The creator is bullish on PL due to its aerospace and government/military contracts, expecting re-rating from SpaceX IPO.",
+      "summary": "The creator includes PL as an aerospace stock with government and military contracts, considered undervalued and bullish due to potential SpaceX IPO re-rating.",
       "onScreenPrice": null,
       "spark": [
         24.59,
@@ -5293,9 +5601,9 @@
       "ticker": "RKLB",
       "company": "Rocket Lab",
       "isFirstCall": true,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "PL, RKLB, IRDM, all of these aerospace stocks don't only do aerospace, they actually work with the military and the government.",
-      "summary": "The creator is bullish on RKLB due to its aerospace and government/military contracts, expecting re-rating from SpaceX IPO.",
+      "summary": "The creator includes RKLB as an aerospace stock with government and military contracts, considered undervalued and bullish due to potential SpaceX IPO re-rating.",
       "onScreenPrice": null,
       "spark": [
         70,
@@ -5352,9 +5660,9 @@
       "ticker": "IRDM",
       "company": "Iridium Communications Inc.",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "PL, RKLB, IRDM, all of these aerospace stocks don't only do aerospace, they actually work with the military and the government.",
-      "summary": "The creator is bullish on IRDM due to its aerospace and government/military contracts, expecting re-rating from SpaceX IPO.",
+      "summary": "The creator includes IRDM as an aerospace stock with government and military contracts, considered undervalued and bullish due to potential SpaceX IPO re-rating.",
       "onScreenPrice": null,
       "spark": [
         23.95,
@@ -5406,191 +5714,14 @@
       }
     },
     {
-      "shortcode": "DWk7U4EAQtf",
-      "postDate": "2026-04-01",
-      "ticker": "GOOGL",
-      "company": "Alphabet Inc.",
-      "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "Google: I do think we go down to around$250. This will be my first buy price. My second buy price will be$225.",
-      "summary": "The creator plans to buy Google at $250 and $225, expecting a decline from the current $285.",
-      "onScreenPrice": null,
-      "spark": [
-        297.4,
-        305.5,
-        318.5,
-        332.9,
-        341.7,
-        339.3,
-        344.4,
-        349.9,
-        383.3,
-        398,
-        388.6,
-        401.1,
-        387.7,
-        383,
-        388.8,
-        376.4,
-        372.2,
-        364.3,
-        357.8,
-        373.3,
-        349.7,
-        343.7,
-        353.6,
-        359.9
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.06701634787348754,
-          "spy": 0.031698339296752476,
-          "excess": 0.03531800857673506
-        },
-        "1m": {
-          "stock": 0.29691645127141686,
-          "spy": 0.09982607159903467,
-          "excess": 0.1970903796723822
-        },
-        "3m": {
-          "stock": 0.20168794348948094,
-          "spy": 0.1396893209526715,
-          "excess": 0.061998622536809433
-        },
-        "toDate": {
-          "stock": 0.21022894493475341,
-          "spy": 0.1366522806864583,
-          "excess": 0.07357666424829512
-        }
-      }
-    },
-    {
-      "shortcode": "DWk7U4EAQtf",
-      "postDate": "2026-04-01",
-      "ticker": "META",
-      "company": "Meta Platforms",
-      "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "Meta: I do think we go even lower to my first buy price of hopefully$450. My second buy price will be$360.",
-      "summary": "The creator plans to buy Meta at $450 and $360, expecting a decline from the current $570.",
-      "onScreenPrice": null,
-      "spark": [
-        579.2,
-        575,
-        628.4,
-        662.5,
-        688.5,
-        674.7,
-        675,
-        669.1,
-        610.4,
-        616.8,
-        598.9,
-        618.4,
-        602.6,
-        610.3,
-        635.3,
-        600.5,
-        627.6,
-        584.6,
-        568.4,
-        600.2,
-        563.8,
-        542.9,
-        562.6,
-        582.9
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.057300215045061664,
-          "spy": 0.031698339296752476,
-          "excess": 0.02560187574830919
-        },
-        "1m": {
-          "stock": 0.05096424654566478,
-          "spy": 0.09982607159903467,
-          "excess": -0.04886182505336989
-        },
-        "3m": {
-          "stock": -0.0275192979971558,
-          "spy": 0.1396893209526715,
-          "excess": -0.1672086189498273
-        },
-        "toDate": {
-          "stock": 0.006336073872320158,
-          "spy": 0.1366522806864583,
-          "excess": -0.13031620681413814
-        }
-      }
-    },
-    {
-      "shortcode": "DWk7U4EAQtf",
-      "postDate": "2026-04-01",
-      "ticker": "AMZN",
-      "company": "Amazon.com",
-      "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "Amazon: I think we go all the way down to$170 and then$150. These are my two buy prices for Amazon.",
-      "summary": "The creator plans to buy Amazon at $170 and $150, expecting a decline from the current $208.",
-      "onScreenPrice": null,
-      "spark": [
-        210.6,
-        213.8,
-        233.6,
-        249,
-        250.6,
-        255.4,
-        264,
-        263,
-        272,
-        271.2,
-        269,
-        267.2,
-        259.3,
-        266.3,
-        271.9,
-        261.3,
-        253.8,
-        244.2,
-        241.5,
-        246,
-        232.8,
-        227,
-        240.1,
-        242.7
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.05071943916180355,
-          "spy": 0.031698339296752476,
-          "excess": 0.019021099865051072
-        },
-        "1m": {
-          "stock": 0.27397065315470037,
-          "spy": 0.09982607159903467,
-          "excess": 0.1741445815556657
-        },
-        "3m": {
-          "stock": 0.1318800781106204,
-          "spy": 0.1396893209526715,
-          "excess": -0.0078092428420510895
-        },
-        "toDate": {
-          "stock": 0.15244331922020393,
-          "spy": 0.1366522806864583,
-          "excess": 0.015791038533745638
-        }
-      }
-    },
-    {
       "shortcode": "DPaUePQkTso",
       "postDate": "2025-10-05",
       "ticker": "RDDT",
       "company": "Reddit",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.6,
       "quote": "I bought around 2,000 USD worth of shares, upping my position to around 15 shares in total.",
-      "summary": "The creator bought more Reddit shares for their portfolio, indicating a bullish view.",
+      "summary": "The creator bought additional shares of Reddit, increasing their position.",
       "onScreenPrice": null,
       "spark": [
         203.6,
@@ -5647,9 +5778,9 @@
       "ticker": "LULU",
       "company": "lululemon athletica",
       "isFirstCall": true,
-      "conviction": 0.7,
+      "conviction": 0.5,
       "quote": "I bought $3,500 of this undervalued company.",
-      "summary": "The creator bought Lululemon shares, considering it undervalued and a good buy.",
+      "summary": "The creator bought Lululemon shares, considering it undervalued despite personal dislike.",
       "onScreenPrice": null,
       "spark": [
         174.1,
@@ -5706,9 +5837,9 @@
       "ticker": "RUM",
       "company": "RUM",
       "isFirstCall": false,
-      "conviction": 0.7,
+      "conviction": 0.4,
       "quote": "I bought 2,000 USD or 2,500 USD of this year because Tether or a multi-billion dollar crypto company is announcing that they're going to partner up more with Rumble and basically help bring them up essentially.",
-      "summary": "The creator bought Rumble shares due to a partnership with Tether, expecting upside.",
+      "summary": "The creator bought Rumble shares due to a partnership announcement with Tether.",
       "onScreenPrice": null,
       "spark": [
         8.49,
@@ -5767,7 +5898,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "i personally just bought into marvel at around three hundred dollars and i'm holding this company until it hits one trillion dollars",
-      "summary": "The creator is bullish on MRVL, citing Jensen Huang's endorsement and the company's role in connecting AI chips, and states they bought and are holding for a $1 trillion valuation.",
+      "summary": "The creator is bullish on Marvell Technology based on Jensen Huang's endorsement and its role in connecting AI chips, and has personally bought shares.",
       "onScreenPrice": null,
       "spark": [
         263.5,
@@ -5821,7 +5952,7 @@
       "isFirstCall": true,
       "conviction": 0.7,
       "quote": "I'm personally looking to buy Five9 at around $24.",
-      "summary": "The creator is bullish on Five9 because its platform is essential for AI agents to connect to phones and company systems, and it was previously targeted for acquisition by Zoom at a much higher valuation.",
+      "summary": "The creator is bullish on Five9, citing its platform as essential for AI agents and noting that a previous acquisition offer was much higher. They plan to buy at around $24.",
       "onScreenPrice": 24,
       "spark": [
         26.26,
@@ -5879,8 +6010,8 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I'm bullish on Qualcomm at $205.",
-      "summary": "The creator is bullish on Qualcomm because its chips are cheaper and more efficient, and its acquisition of Modular AI could challenge NVIDIA's CUDA dominance.",
-      "onScreenPrice": 205,
+      "summary": "Creator is bullish on Qualcomm because its chip solves AI bottleneck by using everyday memory and acquired AI software to challenge NVIDIA's CUDA.",
+      "onScreenPrice": null,
       "spark": [
         204.9,
         189.4,
@@ -5920,7 +6051,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I'm bidding this right now at $45 per share.",
-      "summary": "Buying Hims & Hers at $45, citing strong earnings and revenue growth in telehealth and insecurity products.",
+      "summary": "The creator is buying HIMS at $45, citing strong earnings and revenue growth in telehealth and insecurity-related products.",
       "onScreenPrice": null,
       "spark": [
         45.46,
@@ -5979,7 +6110,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I'm going to be buying this stock and hopefully it goes all the way back up to around $55 per share, my price target.",
-      "summary": "Buying BMNR, a crypto treasury fund holding Ethereum, at $45 with a price target of $55.",
+      "summary": "The creator is buying BMNR, a crypto treasury fund that holds Ethereum, with a price target of $55.",
       "onScreenPrice": null,
       "spark": [
         46.65,
@@ -6037,9 +6168,9 @@
       "company": "Kraken Robotics",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Three stocks I'm buying more of. Number one is Kraken Robotics or Ticker KRKNF. It currently trades at $7 and I first bought in around $3. I'm up 50% right now, my position, and I'm thinking of adding more.",
-      "summary": "Bullish on Kraken Robotics due to contracts with Andro and US government, and strong execution.",
-      "onScreenPrice": null,
+      "quote": "I'm thinking of adding more",
+      "summary": "Bullish on Kraken Robotics due to contracts with Andro and US government, executing on plans.",
+      "onScreenPrice": 7,
       "spark": [
         7.004,
         6.741,
@@ -6096,9 +6227,9 @@
       "company": "Iridium Communications Inc.",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Number two is Iridium Communications or Ticker IRDM. It currently trades at $26 and I first bought in around $16 and I'm up over 50% as well. And I'm very bullish on Iridium.",
-      "summary": "Bullish on Iridium Communications due to monopoly in LEO satellites and aerospace boom.",
-      "onScreenPrice": null,
+      "quote": "I'm adding more to my IRDM position",
+      "summary": "Bullish on Iridium due to monopoly in LEO satellites, aerospace boom, US government spending, and SpaceX re-rating.",
+      "onScreenPrice": 26,
       "spark": [
         25.52,
         26.3,
@@ -6154,10 +6285,10 @@
       "ticker": "MITK",
       "company": "Mitek Systems",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "Number three is Matech Systems or Ticker MITK. It currently trades at $14.50 and they do AI fraud detection. With the rise of fraud AI right now, they're absolutely killing it.",
-      "summary": "Bullish on Matech Systems due to AI fraud detection growth and legacy connections.",
-      "onScreenPrice": null,
+      "conviction": 0.85,
+      "quote": "Matech Systems is going to grow as well",
+      "summary": "Bullish on Matech Systems due to AI fraud detection growth and legacy connections with major financial institutions.",
+      "onScreenPrice": 14.5,
       "spark": [
         14.3,
         14.7,
@@ -6215,8 +6346,8 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I'm buying Nokia between $11 and $13.",
-      "summary": "Creator is bullish on Nokia due to Nvidia's $1 billion investment and Nokia's role in AI networking, and recommends buying between $11 and $13.",
-      "onScreenPrice": 13,
+      "summary": "Creator is bullish on Nokia due to Nvidia's $1 billion investment and its role in AI networking, recommending buying between $11 and $13.",
+      "onScreenPrice": null,
       "spark": [
         13.14,
         13.19,
@@ -6273,8 +6404,8 @@
       "company": "Bitmine Immersion",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "It's basically a crypto holding company. They got Bitcoin and Ethereum, but mostly they got over a million in ETH. Their CEO is also like a Giga Chat. This guy bought a new company. It's already up like 2,000%. I'm very bullish on where this company is going to go.",
-      "summary": "The creator is bullish on BMNR as a crypto holding company with significant ETH holdings and a CEO who acquired a company that surged 2000%.",
+      "quote": "I'm very bullish on where this company is going to go. So I bought 65 of the stock.",
+      "summary": "The speaker is bullish on BMNR as a crypto holding company with significant ETH holdings and a CEO who acquired a company that surged 2000%, and they bought shares.",
       "onScreenPrice": null,
       "spark": [
         45.6,
@@ -6332,8 +6463,8 @@
       "company": "Hims & Hers Health",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "I bought 40 of this stock recently just because they're releasing a new thing like testosterone pills that are going to come out tomorrow. Testosterone is major market. A lot of people are insecure right now. ... I believe the stock market is going to go crazy with this one.",
-      "summary": "The creator is bullish on HIMS due to new testosterone pill release and market for insecurity products.",
+      "quote": "I bought 40 of this stock recently just because they're releasing a new thing like testosterone pills... I believe the stock market is going to go crazy with this one.",
+      "summary": "The speaker is bullish on HIMS due to upcoming testosterone pill release and the growing market for insecurity-related health products, and they bought shares.",
       "onScreenPrice": null,
       "spark": [
         47.78,
@@ -6391,8 +6522,8 @@
       "company": "Reddit",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "Reddit has been dialing in on their ad game. Once their ad game is fully good and once all their ads are like optimized fully, the big fish are going to come. ... it's going to be like a $100 billion company, a 2X from right now.",
-      "summary": "The creator is bullish on RDDT due to ad optimization potential and margin expansion, targeting $100B valuation.",
+      "quote": "Even at 240 all-time highs, this is a generational wealth company.",
+      "summary": "The speaker is bullish on Reddit, expecting ad optimization to drive profit margins higher and potentially double the company's valuation to $100 billion.",
       "onScreenPrice": null,
       "spark": [
         259,
@@ -6451,7 +6582,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I bought $2,000 of NBIS today because they own Avrive at 87% ownership and Uber just launched RoboTaxis with Avrive in Austin, Texas. This is extremely goddamn bullish.",
-      "summary": "The creator bought NBIS due to its 87% ownership of Avrive, which partnered with Uber for robotaxis in Austin, and expects the stock to double to $200.",
+      "summary": "The creator is bullish on NBIS due to its 87% ownership of Avrive, which partnered with Uber for robotaxis in Austin. They bought $2,000 and see a minimum $200 valuation, a 2x from current price, and analysts target $150. They urge viewers to buy.",
       "onScreenPrice": null,
       "spark": [
         100.3,
@@ -6508,9 +6639,9 @@
       "ticker": "RDDT",
       "company": "Reddit",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "I bought $10,000 worth of Reddit stock. I'm currently down like 20-30%. But I think this company is timeless. And for AI to actually make improvements, they're going to continue partnering with Reddit and continue selling your data to make money. And that's why I bought into the company. I'm very bullish on unethical ways of making money.",
-      "summary": "Creator is bullish on Reddit due to its data licensing deals with Google and OpenAI, viewing it as undervalued and timeless.",
+      "conviction": 0.8,
+      "quote": "I bought $10,000 worth of Reddit stock. I'm very bullish on unethical ways of making money.",
+      "summary": "Creator is bullish on Reddit due to its data licensing deals with Google and OpenAI, viewing the company as undervalued and timeless.",
       "onScreenPrice": null,
       "spark": [
         142.5,
@@ -6564,71 +6695,12 @@
     {
       "shortcode": "DSYFiONksLy",
       "postDate": "2025-12-17",
-      "ticker": "HUT",
-      "company": "Hut 8",
-      "isFirstCall": true,
-      "conviction": 0.9,
-      "quote": "another $7 billion deal today with HUT",
-      "summary": "The post highlights Google's $7 billion deal with HUT, indicating strong demand for AI data centers, and the creator is bullish and recommends buying.",
-      "onScreenPrice": null,
-      "spark": [
-        40.16,
-        49.64,
-        58.35,
-        61.48,
-        55.12,
-        55.83,
-        56.89,
-        53.62,
-        54.82,
-        51.36,
-        48.32,
-        52.94,
-        46.91,
-        63.42,
-        74.9,
-        76.87,
-        78.08,
-        107.3,
-        96.51,
-        124.8,
-        119.6,
-        120.2,
-        116.1,
-        97.14
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.31474102185443487,
-          "spy": 0.02826925793652446,
-          "excess": 0.2864717639179104
-        },
-        "1m": {
-          "stock": 0.48530880857866143,
-          "spy": 0.030175674700265054,
-          "excess": 0.4551331338783964
-        },
-        "3m": {
-          "stock": 0.28959166116293367,
-          "spy": -0.0009086183564726014,
-          "excess": 0.29050027951940627
-        },
-        "toDate": {
-          "stock": 1.4188246951875447,
-          "spy": 0.10929401580950482,
-          "excess": 1.30953067937804
-        }
-      }
-    },
-    {
-      "shortcode": "DSYFiONksLy",
-      "postDate": "2025-12-17",
       "ticker": "CIFR",
       "company": "Cipher Digital",
       "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "a $7 billion deal with Cypher Mining",
-      "summary": "The post mentions Google's $7 billion deal with Cypher Mining and the creator states they are invested, signaling a bullish view.",
+      "conviction": 0.8,
+      "quote": "I'm in very similar companies like MBIS, Iron, Cypher Mining",
+      "summary": "Creator holds a position in Cypher Mining, a similar AI data center company.",
       "onScreenPrice": null,
       "spark": [
         14.39,
@@ -6686,8 +6758,8 @@
       "company": "Cipher Digital",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "Cypher Mining is going to 2-3x from here within the next couple of years.",
-      "summary": "The post recommends Cipher Mining as an undervalued AI data center company with large contracts and high profit margins, expecting significant upside.",
+      "quote": "I believe Cypher Mining is going to 2-3x from here within the next couple of years.",
+      "summary": "The post recommends Cipher Mining as an undervalued AI data center company with large contracts and high profit margins, expecting 2-3x growth.",
       "onScreenPrice": null,
       "spark": [
         14.15,
@@ -6739,14 +6811,73 @@
       }
     },
     {
+      "shortcode": "DU9rmv-Ebp7",
+      "postDate": "2026-02-20",
+      "ticker": "2802.T",
+      "company": "Ajinomoto Co., Inc.",
+      "isFirstCall": true,
+      "conviction": 0.65,
+      "quote": "if you are looking for a solid AI pick, pick Ajinomoto because they're the only reason why the AI semiconductors actually work as efficiently as they do",
+      "summary": "Recommends Ajinomoto as a solid AI pick due to its monopoly on ABF used in semiconductors, but notes the stock has run up 50% and advises caution.",
+      "onScreenPrice": 4500,
+      "spark": [
+        4602,
+        4968,
+        4494,
+        4468,
+        4478,
+        4176,
+        4530,
+        4659,
+        4776,
+        4617,
+        4607,
+        4758,
+        5090,
+        5499,
+        5269,
+        5176,
+        5289,
+        5262,
+        4806,
+        5158,
+        5340,
+        5652,
+        5816,
+        6167
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.07953063885267264,
+          "spy": -0.004989632708108704,
+          "excess": 0.08452027156078135
+        },
+        "1m": {
+          "stock": -0.09256844850065193,
+          "spy": -0.049388608204896434,
+          "excess": -0.0431798402957555
+        },
+        "3m": {
+          "stock": 0.12472837896566702,
+          "spy": 0.07729570600854974,
+          "excess": 0.04743267295711728
+        },
+        "toDate": {
+          "stock": 0.3400695349847893,
+          "spy": 0.08028376660300474,
+          "excess": 0.2597857683817846
+        }
+      }
+    },
+    {
       "shortcode": "DUB_fVlkkpj",
       "postDate": "2026-01-27",
       "ticker": "AB",
       "company": "AllianceBernstein Holding L.P",
       "isFirstCall": true,
       "conviction": 0.8,
-      "quote": "I would probably pick AB Holdings from here it is up eight percent but I think it's going to go a heck of a lot higher",
-      "summary": "Creator recommends buying AB following Nancy Pelosi's purchase, citing high dividend yield and potential for further upside.",
+      "quote": "I would probably pick AB Holdings from here",
+      "summary": "Creator recommends AB based on Nancy Pelosi's insider purchase, citing high dividend yield and potential upside.",
       "onScreenPrice": null,
       "spark": [
         42.32,
@@ -6798,14 +6929,82 @@
       }
     },
     {
+      "shortcode": "DabimqwPLPO",
+      "postDate": "2026-07-05",
+      "ticker": "CRDO",
+      "company": "Credo Technology Group Holding",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "I invest in a company called Credo Semiconductor... they built high-speed connections that link AI chips all together and get this, he was a major early backer of Credo way before he was even the CEO of Intel.",
+      "summary": "The creator recommends Credo (CRDO) as a key AI interconnect play, citing Intel CEO's early backing and its role in solving the AI bottleneck.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DabimqwPLPO",
+      "postDate": "2026-07-05",
+      "ticker": "ALAB",
+      "company": "Astera Labs",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "The second company he mentioned was Astera Labs or Ticker A Lab. They make connectivity chips that move data inside racks and they're already designed in some of the biggest AI chip systems in the world.",
+      "summary": "The creator recommends Astera Labs (ALAB) as another AI connectivity play, already designed into major AI systems.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
       "shortcode": "DPU7nlugRXH",
       "postDate": "2025-10-03",
       "ticker": "ROOT",
       "company": "Root",
       "isFirstCall": true,
-      "conviction": 0.8,
-      "quote": "I just bought into this company. It's called Root... DCF fair value model is at $157 at 74% upside.",
-      "summary": "The creator bought Root (ROOT) shares, citing a DCF fair value of $157 (74% upside) and technical support at $90, viewing it as undervalued and profitable.",
+      "conviction": 0.7,
+      "quote": "I just bought into this company. It's called Root, basically their auto insurance company... DCF fair value model is at $157 at 74% upside.",
+      "summary": "The creator bought Root (ROOT) based on a DCF valuation of $157 and technical support at $90, seeing 74% upside.",
       "onScreenPrice": null,
       "spark": [
         86.76,
@@ -6862,9 +7061,9 @@
       "ticker": "BMNR",
       "company": "Bitmine Immersion",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "I bought five shares of this company. I really just like them. Basically the same thing as buying Ethereum.",
-      "summary": "The creator bought BMNR for their sister, comparing it to Ethereum and expressing a bullish view.",
+      "summary": "The creator bought BMNR shares, likening it to buying Ethereum, and expresses a positive view.",
       "onScreenPrice": null,
       "spark": [
         41.15,
@@ -6921,9 +7120,9 @@
       "ticker": "META",
       "company": "Meta Platforms",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "Meta, you can never go wrong with Meta. You're watching this on Meta. So I'm just going to keep putting money and pouring it into Meta.",
-      "summary": "The creator is bullish on Meta, planning to continue investing and recommending it.",
+      "summary": "The creator is bullish on Meta, planning to continue investing in it.",
       "onScreenPrice": null,
       "spark": [
         631.8,
@@ -6980,9 +7179,9 @@
       "ticker": "ONDS",
       "company": "Ondas",
       "isFirstCall": false,
-      "conviction": 0.8,
-      "quote": "ONDS, we bought four shares of these because it did so goddamn much and it's right now at support... it's a drone technology so pair drones with AI and boom you have drone striking with facial recognition and wars are gonna go crazy",
-      "summary": "The creator bought ONDS at support, citing drone and AI technology for future warfare.",
+      "conviction": 0.9,
+      "quote": "we bought four shares of these because it did so goddamn much and it's right now at support... drone technology... pair drones with AI... wars are gonna go crazy",
+      "summary": "The creator bought ONDS shares, citing drone technology and AI as catalysts.",
       "onScreenPrice": null,
       "spark": [
         5.88,
@@ -7039,9 +7238,9 @@
       "ticker": "TEM",
       "company": "Tempus AI",
       "isFirstCall": false,
-      "conviction": 0.8,
+      "conviction": 0.9,
       "quote": "we bought two shares of TEM Tempest AI I believe that if any company is gonna basically be the future of medicine and AI it's gonna be them they have the most information in the goddamn world",
-      "summary": "The creator bought TEM, believing it will be the future of medicine and AI.",
+      "summary": "The creator is bullish on Tempest AI, believing it will lead in medicine and AI.",
       "onScreenPrice": null,
       "spark": [
         71.78,
@@ -7098,9 +7297,9 @@
       "ticker": "ALMU",
       "company": "Aeluma",
       "isFirstCall": true,
-      "conviction": 0.7,
+      "conviction": 0.8,
       "quote": "I bought into the company ALMU. And yes, this is very risky and very early stage. Revenue is still small, around $4 to $6 million. But come on, the government is backing them. And Tower Semi is validating their tech.",
-      "summary": "Creator is bullish on ALMU due to a $4M government contract and a partnership with Tower Semiconductor, validating the company's photonics technology despite early stage and high risk.",
+      "summary": "The creator is bullish on ALMU due to a $4 million government contract and a partnership with Tower Semiconductor, validating the company's photonics technology.",
       "onScreenPrice": null,
       "spark": [
         16.67,
@@ -7158,8 +7357,8 @@
       "company": "One Stop Systems",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "instead by OneStaw Systems",
-      "summary": "The creator recommends OneStop Systems as a better alternative to Supermicro, citing its AI rugged computers for military use.",
+      "quote": "Don't buy Supermicro instead by OneStaw Systems.",
+      "summary": "The creator recommends buying OneStop Systems as a better alternative to Supermicro for AI rugged computers used in military applications.",
       "onScreenPrice": null,
       "spark": [
         18.19,
@@ -7202,8 +7401,8 @@
       "company": "Trio-Tech",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "instead by Triotech",
-      "summary": "The creator recommends TrioTech as a better alternative to Applied Optoelectronics, citing its back-end chip testing and partnership with Micron.",
+      "quote": "Don't buy Applied Optoelectronics instead by Triotech.",
+      "summary": "The creator recommends buying TrioTech as a better alternative to Applied Optoelectronics for AI optics back-end testing, with a secret partnership with Micron.",
       "onScreenPrice": null,
       "spark": [
         14.5,
@@ -7246,8 +7445,8 @@
       "company": "AmpliTech",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "instead by Amplitech",
-      "summary": "The creator recommends Amplitech as a better alternative to Nokia, citing its open network carrier technology.",
+      "quote": "And definitely don't buy Nokia instead by Amplitech.",
+      "summary": "The creator recommends buying Amplitech as a better alternative to Nokia for 5G open network carrier infrastructure.",
       "onScreenPrice": null,
       "spark": [
         8.45,
@@ -7280,6 +7479,150 @@
           "stock": -0.2911242714407717,
           "spy": 0.0005239385816071529,
           "excess": -0.29164821002237884
+        }
+      }
+    },
+    {
+      "shortcode": "DZlLGHbSbJO",
+      "postDate": "2026-06-14",
+      "ticker": "KTOS",
+      "company": "Kratos Defense & Security",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "buy Krato",
+      "summary": "The creator recommends buying Krato as a cheaper alternative to Broadcom for AI networking cables.",
+      "onScreenPrice": null,
+      "spark": [
+        57.02,
+        56.34,
+        56.16,
+        54.21,
+        51.09,
+        50.8,
+        47.95,
+        46.32,
+        47.21,
+        46.95,
+        49.86,
+        53.04,
+        55.35
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.10399860150068396,
+          "spy": -0.013830931739647001,
+          "excess": -0.09016766976103696
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": -0.02928800368705009,
+          "spy": -0.013314239716797793,
+          "excess": -0.015973763970252297
+        }
+      }
+    },
+    {
+      "shortcode": "DZlLGHbSbJO",
+      "postDate": "2026-06-14",
+      "ticker": "HLIT",
+      "company": "Harmonic",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "buy Harmonic",
+      "summary": "The creator recommends buying Harmonic as a cheaper alternative to Nokia for broadband software.",
+      "onScreenPrice": null,
+      "spark": [
+        15.07,
+        14.8,
+        14.85,
+        15.08,
+        14.96,
+        14.66,
+        14.54,
+        14.85,
+        14.9,
+        15.76,
+        16.33,
+        15.78,
+        14.07
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.007299247438938283,
+          "spy": -0.013830931739647001,
+          "excess": 0.006531684300708718
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": -0.06635700200733574,
+          "spy": -0.013314239716797793,
+          "excess": -0.05304276229053795
+        }
+      }
+    },
+    {
+      "shortcode": "DZlLGHbSbJO",
+      "postDate": "2026-06-14",
+      "ticker": "CLFD",
+      "company": "Clearfield",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "buy Clearfield",
+      "summary": "The creator recommends buying Clearfield as a cheaper alternative to Corning for fiber hardware.",
+      "onScreenPrice": null,
+      "spark": [
+        40.09,
+        39.53,
+        38.88,
+        40.45,
+        40.01,
+        37.16,
+        36.96,
+        37.63,
+        38.63,
+        38.75,
+        39.79,
+        38.5,
+        33.97
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.001995555768276147,
+          "spy": -0.013830931739647001,
+          "excess": 0.011835375971370854
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": -0.15265649559968153,
+          "spy": -0.013314239716797793,
+          "excess": -0.13934225588288374
         }
       }
     },
@@ -7350,7 +7693,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "I personally think USA Rare Earth Minerals Ticker USAR is going to double from here and I'm placing many orders overnight right now",
-      "summary": "The creator recommends buying USAR, citing a $1.6 billion investment by the Trump administration and expecting the stock to double.",
+      "summary": "The creator recommends buying USAR because the Trump administration invested $1.6 billion, and they expect the stock to double, citing past similar investments that rose significantly.",
       "onScreenPrice": null,
       "spark": [
         26.72,
@@ -7409,7 +7752,7 @@
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I am fully convinced in this company. I bought in at around $35 and I have held this position. And I've continued to buy more into Nebius.",
-      "summary": "Nebius is a data center company that missed revenue due to capacity constraints but has strong demand and large contracts; the creator is bullish and advises holding.",
+      "summary": "The creator is bullish on Nebius, citing strong financials, large contracts with Meta and Microsoft, and increasing institutional ownership, and advises holding the stock.",
       "onScreenPrice": null,
       "spark": [
         84.64,
@@ -7467,8 +7810,8 @@
       "company": "Welltower",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "This healthcare stock is criminally undervalued and is 50% cheaper than it should be. ... I'm going to be investing my money into it.",
-      "summary": "The creator is bullish on WellHealth (WELL), citing its undervaluation, analyst price target of $7.5, and the upcoming IPO of its subsidiary WellStar as catalysts.",
+      "quote": "This healthcare stock is criminally undervalued and is 50% cheaper than it should be.",
+      "summary": "The creator recommends WellHealth as undervalued due to its stake in WellStar, which is set to IPO, and analyst price targets suggest a 2x upside.",
       "onScreenPrice": 4.4,
       "spark": [
         206.2,
@@ -7585,8 +7928,8 @@
       "company": "Microsoft",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "Microsoft. They provide cloud computing and the government is pouring billions of dollars of spending into the company. And just recently, Donald Trump bought up to $5 million.",
-      "summary": "The creator recommends Microsoft as a Trump-related stock due to government cloud spending and Trump's investment.",
+      "quote": "And number one is Microsoft. They provide cloud computing and the government is pouring billions of dollars of spending into the company. And just recently, Donald Trump bought up to$5 million.",
+      "summary": "The creator recommends Microsoft as a top stock due to government cloud spending and Trump's investment.",
       "onScreenPrice": null,
       "spark": [
         460.5,
@@ -7643,8 +7986,8 @@
       "company": "Oracle",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "Oracle. They run the cloud and databases for the government's biggest systems. And Trump invested up to $5 million.",
-      "summary": "The creator recommends Oracle as a Trump-related stock due to its role in government systems and Trump's investment.",
+      "quote": "And number two is Oracle. They run the cloud and databases for the government's biggest systems. And Trump invested up to$5 million.",
+      "summary": "The creator recommends Oracle as a top stock due to government cloud/database systems and Trump's investment.",
       "onScreenPrice": null,
       "spark": [
         248.1,
@@ -7701,8 +8044,8 @@
       "company": "IBM",
       "isFirstCall": true,
       "conviction": 0.7,
-      "quote": "IBM. They run the IT backbone for the government and Donald Trump invested up to $2 million.",
-      "summary": "The creator recommends IBM as a Trump-related stock due to its government IT role and Trump's investment.",
+      "quote": "And number three is IBM. They run the IT backbone for the government and Donald Trump invested up to$2 million.",
+      "summary": "The creator recommends IBM as a top stock due to government IT backbone and Trump's investment.",
       "onScreenPrice": null,
       "spark": [
         320.4,
@@ -7759,8 +8102,8 @@
       "company": "Toyota Motor",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "TM is up 12% on the day. If you've been following me on the stock play, you know I called the stock a couple days ago at around$80. Now it's at$87.",
-      "summary": "The creator is bullish on TM, highlighting its AI-powered cardiac imaging system regulatory approval, monopoly on medical information, and future of medicine. They hold shares and are scaling in.",
+      "quote": "I currently hold 25 of this stock and I bought around 50. I'm still scaling into the play and I do believe this is the future of medicine.",
+      "summary": "The creator is bullish on TM, a medical AI company with a monopoly on information, after regulators approved its AI cardiac imaging system, and they are holding and scaling into the position.",
       "onScreenPrice": null,
       "spark": [
         196.1,
@@ -7819,7 +8162,7 @@
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "ASST is an undervalued stock that can hit $2 all the way up to $5.",
-      "summary": "The creator believes ASST is undervalued with potential to reach $2-$5, citing insider buying and catalysts, but warns of warrant selling pressure.",
+      "summary": "The post says ASST is undervalued with a price target of $2-$5, citing insider buying and long-term catalysts, but warns of warrant selling pressure.",
       "onScreenPrice": 1.47,
       "spark": [
         25,
@@ -7877,8 +8220,8 @@
       "company": "Hims & Hers Health",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "This is the best time to buy him hers on the$41 support.",
-      "summary": "The creator is bullish on Hims & Hers Health, recommending buying at $41 support, citing a trend line and risk/reward ratio.",
+      "quote": "this is the best time to buy him hers on the $41 support",
+      "summary": "The creator is bullish on HIMS, citing a trend line support at $41 and a favorable risk/reward ratio, and is buying more at these levels.",
       "onScreenPrice": null,
       "spark": [
         41.05,
@@ -7930,14 +8273,191 @@
       }
     },
     {
+      "shortcode": "DUgrW2vkuKo",
+      "postDate": "2026-02-08",
+      "ticker": "MRK",
+      "company": "Merck &",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "the top three stocks by margin is Merck at 81%",
+      "summary": "Creator highlights Merck as one of the top three stocks by margin in Trump's new drug program, recommending investment.",
+      "onScreenPrice": null,
+      "spark": [
+        117.7,
+        121.4,
+        123.8,
+        123.8,
+        116.1,
+        115.9,
+        114.5,
+        116.4,
+        118.1,
+        119.3,
+        120.2,
+        119.1,
+        111.9,
+        109.2,
+        113.6,
+        113.4,
+        114.2,
+        119.7,
+        115.2,
+        119.5,
+        119.1,
+        113.9,
+        128.7,
+        129.6
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.03331915102511118,
+          "spy": -0.01599544120734475,
+          "excess": 0.049314592232455934
+        },
+        "1m": {
+          "stock": -0.004759925038038348,
+          "spy": -0.024166033916354857,
+          "excess": 0.019406108878316508
+        },
+        "3m": {
+          "stock": -0.054143669051979204,
+          "spy": 0.06535049324620212,
+          "excess": -0.11949416229818133
+        },
+        "toDate": {
+          "stock": 0.10123243415424055,
+          "spy": 0.07324737545314619,
+          "excess": 0.027985058701094356
+        }
+      }
+    },
+    {
+      "shortcode": "DUgrW2vkuKo",
+      "postDate": "2026-02-08",
+      "ticker": "NVO",
+      "company": "Novo Nordisk A/S",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Nova Nordisk at 85%",
+      "summary": "Creator notes Novo Nordisk was down but listed on Trump's program, and after a Discord post it rose 10%, recommending investment.",
+      "onScreenPrice": null,
+      "spark": [
+        49.37,
+        49.57,
+        39.63,
+        37.45,
+        39.07,
+        38.02,
+        37.45,
+        36.89,
+        35.29,
+        36.91,
+        37.98,
+        40.52,
+        41.17,
+        42.22,
+        45.76,
+        47.08,
+        44.28,
+        44.19,
+        44.07,
+        41.02,
+        43.88,
+        43.19,
+        48.07,
+        50.43
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0,
+          "spy": -0.01599544120734475,
+          "excess": 0.01599544120734475
+        },
+        "1m": {
+          "stock": -0.21571800570373367,
+          "spy": -0.024166033916354857,
+          "excess": -0.19155197178737882
+        },
+        "3m": {
+          "stock": -0.06015793944220116,
+          "spy": 0.06535049324620212,
+          "excess": -0.12550843268840328
+        },
+        "toDate": {
+          "stock": 0.021470556941949548,
+          "spy": 0.07324737545314619,
+          "excess": -0.05177681851119664
+        }
+      }
+    },
+    {
+      "shortcode": "DUgrW2vkuKo",
+      "postDate": "2026-02-08",
+      "ticker": "LLY",
+      "company": "Eli Lilly and Company",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "Eli and Lilly at 72%",
+      "summary": "Creator highlights Eli Lilly as one of the top three stocks by margin in Trump's new drug program, recommending investment.",
+      "onScreenPrice": null,
+      "spark": [
+        1045,
+        1040,
+        1059,
+        1052,
+        983.3,
+        977.3,
+        918,
+        903,
+        886.6,
+        931.1,
+        929.5,
+        927,
+        884,
+        934.6,
+        987,
+        1016,
+        1021,
+        1065,
+        1082,
+        1149,
+        1133,
+        1099,
+        1208,
+        1214
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.008251404514896477,
+          "spy": -0.01599544120734475,
+          "excess": 0.007744036692448275
+        },
+        "1m": {
+          "stock": -0.0414677041908581,
+          "spy": -0.024166033916354857,
+          "excess": -0.017301670274503245
+        },
+        "3m": {
+          "stock": -0.07435845811905373,
+          "spy": 0.06535049324620212,
+          "excess": -0.13970895136525585
+        },
+        "toDate": {
+          "stock": 0.1620032958877824,
+          "spy": 0.07324737545314619,
+          "excess": 0.0887559204346362
+        }
+      }
+    },
+    {
       "shortcode": "DQgbr6DEY_Y",
       "postDate": "2025-11-01",
       "ticker": "RDDT",
       "company": "Reddit",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "I personally think Reddit is not going anywhere in the near future... I think it'd go upwards of like $300 all the way up to like $400 at this current price point.",
-      "summary": "The creator is bullish on Reddit, citing a strong earnings beat, profit margin growth potential, and a price target of $300-$400, and is actively buying.",
+      "quote": "I personally think Reddit is not going anywhere in the near future... I think it'd go upwards of like $300 all the way up to like $400 at this current price point. So I'm loading up on Reddit, stacking a huge position.",
+      "summary": "Creator is bullish on Reddit, citing strong earnings beat, profit margin growth potential, and price target of $300-$400; he is actively buying and holding.",
       "onScreenPrice": null,
       "spark": [
         205,
@@ -7995,8 +8515,8 @@
       "company": "Advanced Micro Devices",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "This is massive for AMD holders. The stock is already up 35%, hitting $225. As an AMD holder myself, I am super pumped.",
-      "summary": "The creator is bullish on AMD due to a multi-billion dollar partnership with OpenAI for AI infrastructure starting in 2026, and they are a holder themselves.",
+      "quote": "AMD just announced a partnership with OpenAI for a multi-billion dollar contract to build AI infrastructure starting in 2026. This is massive for AMD holders. As an AMD holder myself, I am super pumped.",
+      "summary": "Creator is bullish on AMD due to a major partnership with OpenAI for AI infrastructure, and they are a current holder.",
       "onScreenPrice": null,
       "spark": [
         211.5,
@@ -8050,12 +8570,71 @@
     {
       "shortcode": "DYnTrVTSW8E",
       "postDate": "2026-05-21",
+      "ticker": "NOW",
+      "company": "ServiceNow",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "He bought into Software Now",
+      "summary": "The creator plans to invest in ServiceNow following Donald Trump's purchase, expecting a rotation into AI software.",
+      "onScreenPrice": null,
+      "spark": [
+        99.69,
+        102.1,
+        99.92,
+        108.7,
+        124.4,
+        135.9,
+        127.7,
+        119.4,
+        112.4,
+        114.2,
+        107,
+        106.1,
+        102.2,
+        104.2,
+        101.3,
+        95.48,
+        95.04,
+        95.94,
+        93.8,
+        89.52,
+        98.34,
+        99.28,
+        105.8,
+        106.3
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.09068111840844506,
+          "spy": 0.01599526786867722,
+          "excess": 0.07468585053976784
+        },
+        "1m": {
+          "stock": -0.06700772536445687,
+          "spy": 0.0022485512860674906,
+          "excess": -0.06925627665052436
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.06650613994432208,
+          "spy": 0.002773667970446203,
+          "excess": 0.06373247197387588
+        }
+      }
+    },
+    {
+      "shortcode": "DYnTrVTSW8E",
+      "postDate": "2026-05-21",
       "ticker": "WDAY",
       "company": "Workday",
       "isFirstCall": true,
-      "conviction": 0.9,
-      "quote": "He bought into Software Now, Workday, and even Palantir",
-      "summary": "The creator notes Trump is buying Workday and plans to invest similarly, expecting rotation into AI software.",
+      "conviction": 0.8,
+      "quote": "He bought into Workday",
+      "summary": "The creator plans to invest in Workday following Donald Trump's purchase, expecting a rotation into AI software.",
       "onScreenPrice": null,
       "spark": [
         121.8,
@@ -8112,9 +8691,9 @@
       "ticker": "PLTR",
       "company": "Palantir",
       "isFirstCall": true,
-      "conviction": 0.9,
-      "quote": "He bought into Software Now, Workday, and even Palantir",
-      "summary": "The creator notes Trump is buying Palantir and plans to invest similarly, expecting rotation into AI software.",
+      "conviction": 0.8,
+      "quote": "He bought into Palantir",
+      "summary": "The creator plans to invest in Palantir following Donald Trump's purchase, expecting a rotation into AI software.",
       "onScreenPrice": null,
       "spark": [
         137.4,
@@ -8166,65 +8745,6 @@
       }
     },
     {
-      "shortcode": "DYnTrVTSW8E",
-      "postDate": "2026-05-21",
-      "ticker": "NOW",
-      "company": "ServiceNow",
-      "isFirstCall": false,
-      "conviction": 0.9,
-      "quote": "He bought into Software Now",
-      "summary": "The creator notes Trump is buying ServiceNow and plans to invest similarly, expecting rotation into AI software.",
-      "onScreenPrice": null,
-      "spark": [
-        99.69,
-        102.1,
-        99.92,
-        108.7,
-        124.4,
-        135.9,
-        127.7,
-        119.4,
-        112.4,
-        114.2,
-        107,
-        106.1,
-        102.2,
-        104.2,
-        101.3,
-        95.48,
-        95.04,
-        95.94,
-        93.8,
-        89.52,
-        98.34,
-        99.28,
-        105.8,
-        106.3
-      ],
-      "returns": {
-        "1w": {
-          "stock": 0.09068111840844506,
-          "spy": 0.01599526786867722,
-          "excess": 0.07468585053976784
-        },
-        "1m": {
-          "stock": -0.06700772536445687,
-          "spy": 0.0022485512860674906,
-          "excess": -0.06925627665052436
-        },
-        "3m": {
-          "stock": null,
-          "spy": null,
-          "excess": null
-        },
-        "toDate": {
-          "stock": 0.06650613994432208,
-          "spy": 0.002773667970446203,
-          "excess": 0.06373247197387588
-        }
-      }
-    },
-    {
       "shortcode": "DQDYo4IiZyS",
       "postDate": "2025-10-21",
       "ticker": "AMZN",
@@ -8232,7 +8752,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "buy into Amazon now because they're not going anywhere anytime soon.",
-      "summary": "The post argues that the AWS outage demonstrates Amazon's critical importance, making it a strong buy.",
+      "summary": "The post argues that the AWS outage demonstrates its critical importance, making Amazon a strong buy.",
       "onScreenPrice": null,
       "spark": [
         222,
@@ -8291,7 +8811,7 @@
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "Number two is Slumberger or Ticker SLB, the world's number one oil supply services company. And they are 100% going to benefit off of this by selling contracts.",
-      "summary": "The creator recommends buying Schlumberger (SLB) as the top oil services company that will benefit from selling contracts in Venezuela.",
+      "summary": "The post recommends buying Schlumberger (SLB) as the top oil services company that will benefit from selling contracts in Venezuela.",
       "onScreenPrice": null,
       "spark": [
         43.8,
@@ -8349,8 +8869,8 @@
       "company": "Valero Energy",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "And number three is Valor or Ticker VLO, sitting at $165. They're one of the biggest refineries in Texas... perfectly positioned for Venezuelan crude heavy oil.",
-      "summary": "The creator recommends buying Valero (VLO) as a major refiner positioned to process Venezuelan crude oil.",
+      "quote": "And number three is Valor or Ticker VLO, sitting at$165. They're one of the biggest refineries in Texas with 15 facilities alongside the US Gulf Coast. And that is perfectly positioned for Venezuelan crude heavy oil.",
+      "summary": "The post recommends buying Valero (VLO) as a top refiner positioned for Venezuelan crude heavy oil.",
       "onScreenPrice": 165,
       "spark": [
         180.6,
@@ -8408,8 +8928,8 @@
       "company": "Toyota Motor",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "one stock that a lot of people are not looking after is TM. ... I'm betting my chips in this. And you should too.",
-      "summary": "The creator is bullish on TM, an AI healthcare company with dominant market share in medical data, expecting future profitability despite current losses.",
+      "quote": "one stock that a lot of people are not looking after is TM. TM is like the planter of like the medicine though. Basically, they're like an AI company... I'm betting my chips in this. And you should too.",
+      "summary": "Bullish on TM as an AI healthcare company with dominant market share in academic medical centers, expecting future profitability despite current losses.",
       "onScreenPrice": null,
       "spark": [
         202.8,
@@ -8467,9 +8987,9 @@
       "company": "Ondas",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Ondus sitting at $5.20 that dropped 20%. They're an AI autonomous drone company specifically for military and defense purposes. They just acquired another company, Centrix, for $200 million and they're slowly racking in the acquisitions.",
-      "summary": "The creator recommends buying ONDS after a 20% drop, citing its AI drone business for defense and recent acquisitions.",
-      "onScreenPrice": null,
+      "quote": "At number one we have Ondus sitting at$5.20 that dropped 20%.",
+      "summary": "AI autonomous drone company for military and defense, acquired Centrix, dropped 20% after market crash.",
+      "onScreenPrice": 5.2,
       "spark": [
         5.88,
         7.5,
@@ -8526,9 +9046,9 @@
       "company": "Nebius",
       "isFirstCall": true,
       "conviction": 0.9,
-      "quote": "Nebius or MBIS sitting at $109. This is the number one data AI infrastructure company out there. I previously bought into the stock at $40 and I am not worried about buying more into this stock because they are the number one infrastructure company in the world. And they signed a contract deal with Microsoft and that only solidifies their position as number one.",
-      "summary": "The creator recommends buying NBIS, highlighting its leading AI infrastructure and a Microsoft contract, and expresses willingness to add to his position.",
-      "onScreenPrice": null,
+      "quote": "At number two, we have Nebius or MBIS sitting at$109.",
+      "summary": "Number one AI infrastructure company, signed contract with Microsoft, creator previously bought at $40 and is buying more.",
+      "onScreenPrice": 109,
       "spark": [
         109.9,
         95.07,
@@ -8585,9 +9105,9 @@
       "company": "Tempus AI",
       "isFirstCall": false,
       "conviction": 0.9,
-      "quote": "Tempest AI or TEM that dropped 12% and they're trading at $74 a share. Tempest AI does AI precision healthcare and they have a monopoly of data in the US. Currently they're partnered with 65% of medical scholars in the US, 50% of all oncologists in the US for cancer research. They're the number one AI company out there with the most amount of data and I'm very bullish on this company.",
-      "summary": "The creator recommends buying TEM after a 12% drop, citing its AI precision healthcare, data monopoly, and partnerships with medical scholars and oncologists.",
-      "onScreenPrice": null,
+      "quote": "At number three, we have Tempest AI or TEM that dropped 12% and they're trading at$74 a share.",
+      "summary": "AI precision healthcare company with monopoly on US data, partnered with 65% of medical scholars and 50% of oncologists, creator is very bullish.",
+      "onScreenPrice": 74,
       "spark": [
         71.78,
         69.09,
@@ -8639,23 +9159,23 @@
     }
   ],
   "scorecard": {
-    "totalCalls": 148,
-    "uniqueTickers": 69,
+    "totalCalls": 159,
+    "uniqueTickers": 78,
     "hitRate": {
       "1m": 0.5,
-      "3m": 0.47619047619047616
+      "3m": 0.45652173913043476
     },
     "hitRateN": {
-      "1m": 62,
-      "3m": 42
+      "1m": 66,
+      "3m": 46
     },
     "avgExcess": {
-      "1w": 0.006338302662770596,
-      "1m": 0.04598785738850583,
-      "3m": 0.071675326886224,
-      "toDate": 0.05508066265902498
+      "1w": -0.004930191899567644,
+      "1m": 0.029327867888042595,
+      "3m": 0.06290964111957308,
+      "toDate": 0.03453832092735468
     },
-    "callsPerWeek": 1.654109589041096,
+    "callsPerWeek": 1.8079470198675496,
     "best": [
       {
         "shortcode": "DRupAA5j2e2",
@@ -8665,7 +9185,7 @@
         "isFirstCall": true,
         "conviction": 0.9,
         "quote": "I am betting my money in this company right now.",
-        "summary": "The speaker is bullish on Micron as the only American DRAM manufacturer, benefiting from AI-driven demand for RAM.",
+        "summary": "Creator is bullish on Micron as the only American DRAM manufacturer, benefiting from AI-driven demand for RAM.",
         "onScreenPrice": null,
         "spark": [
           240.5,
@@ -8724,7 +9244,7 @@
         "isFirstCall": true,
         "conviction": 0.8,
         "quote": "At second place, we got AMD. AMD is at 11%, and I'm currently up 28%, which is also pretty good.",
-        "summary": "The creator holds AMD as a top holding, up 28%, reflecting a bullish stance.",
+        "summary": "The creator holds AMD as 11% of their portfolio and is up 28%, showing a bullish stance.",
         "onScreenPrice": null,
         "spark": [
           151.4,
@@ -8776,73 +9296,14 @@
         }
       },
       {
-        "shortcode": "DSYFiONksLy",
-        "postDate": "2025-12-17",
-        "ticker": "HUT",
-        "company": "Hut 8",
-        "isFirstCall": true,
-        "conviction": 0.9,
-        "quote": "another $7 billion deal today with HUT",
-        "summary": "The post highlights Google's $7 billion deal with HUT, indicating strong demand for AI data centers, and the creator is bullish and recommends buying.",
-        "onScreenPrice": null,
-        "spark": [
-          40.16,
-          49.64,
-          58.35,
-          61.48,
-          55.12,
-          55.83,
-          56.89,
-          53.62,
-          54.82,
-          51.36,
-          48.32,
-          52.94,
-          46.91,
-          63.42,
-          74.9,
-          76.87,
-          78.08,
-          107.3,
-          96.51,
-          124.8,
-          119.6,
-          120.2,
-          116.1,
-          97.14
-        ],
-        "returns": {
-          "1w": {
-            "stock": 0.31474102185443487,
-            "spy": 0.02826925793652446,
-            "excess": 0.2864717639179104
-          },
-          "1m": {
-            "stock": 0.48530880857866143,
-            "spy": 0.030175674700265054,
-            "excess": 0.4551331338783964
-          },
-          "3m": {
-            "stock": 0.28959166116293367,
-            "spy": -0.0009086183564726014,
-            "excess": 0.29050027951940627
-          },
-          "toDate": {
-            "stock": 1.4188246951875447,
-            "spy": 0.10929401580950482,
-            "excess": 1.30953067937804
-          }
-        }
-      },
-      {
         "shortcode": "DVcWNKbgf9t",
         "postDate": "2026-03-04",
         "ticker": "IRDM",
         "company": "Iridium Communications Inc.",
         "isFirstCall": true,
-        "conviction": 0.8,
-        "quote": "I'm personally very bullish on IRDM because out of all of the stocks I listed, this is the only stock that's trending upwards. And I only buy in the stocks that are trending upwards.",
-        "summary": "The creator is bullish on IRDM due to its upward trend and his personal position, recommending it as a play on SpaceX's upcoming IPO.",
+        "conviction": 0.85,
+        "quote": "I'm personally very bullish on IRDM because out of all of the stocks I listed, this is the only stock that's trending upwards. And I only buy in the stocks that are trending upwards. Right now I'm currently up 30 to 40% on IRDM.",
+        "summary": "The creator is bullish on IRDM, citing its upward trend and his personal long position with gains of 30-40%.",
         "onScreenPrice": null,
         "spark": [
           24.51,
@@ -8900,9 +9361,9 @@
         "company": "Nebius",
         "isFirstCall": true,
         "conviction": 0.9,
-        "quote": "Nebius or MBIS sitting at $109. This is the number one data AI infrastructure company out there. I previously bought into the stock at $40 and I am not worried about buying more into this stock because they are the number one infrastructure company in the world. And they signed a contract deal with Microsoft and that only solidifies their position as number one.",
-        "summary": "The creator recommends buying NBIS, highlighting its leading AI infrastructure and a Microsoft contract, and expresses willingness to add to his position.",
-        "onScreenPrice": null,
+        "quote": "At number two, we have Nebius or MBIS sitting at$109.",
+        "summary": "Number one AI infrastructure company, signed contract with Microsoft, creator previously bought at $40 and is buying more.",
+        "onScreenPrice": 109,
         "spark": [
           109.9,
           95.07,
@@ -8951,6 +9412,65 @@
             "excess": 0.8681229629857516
           }
         }
+      },
+      {
+        "shortcode": "DYLKyCfBHbq",
+        "postDate": "2026-05-10",
+        "ticker": "BB",
+        "company": "BlackBerry",
+        "isFirstCall": true,
+        "conviction": 0.7,
+        "quote": "I'm personally looking to buy BlackBerry at around $5 to $5.5.",
+        "summary": "The creator is bullish on BlackBerry due to its QNX software being used in 275 million vehicles and Nvidia's partnership, and plans to buy at $5-$5.5.",
+        "onScreenPrice": null,
+        "spark": [
+          6.22,
+          6.1,
+          6.18,
+          6.38,
+          6.21,
+          6.65,
+          7.91,
+          8.67,
+          9,
+          9.72,
+          10.18,
+          10.34,
+          9.29,
+          8.84,
+          9.29,
+          9.19,
+          9.17,
+          8.38,
+          8.79,
+          8.62,
+          10.34,
+          12.48,
+          12.65,
+          11.51
+        ],
+        "returns": {
+          "1w": {
+            "stock": 0.025723525666604186,
+            "spy": -0.0008791605432681981,
+            "excess": 0.026602686209872384
+          },
+          "1m": {
+            "stock": 0.42122193742317027,
+            "spy": -0.003043419501083666,
+            "excess": 0.42426535692425393
+          },
+          "3m": {
+            "stock": null,
+            "spy": null,
+            "excess": null
+          },
+          "toDate": {
+            "stock": 0.8504824143293404,
+            "spy": 0.0074124734132159364,
+            "excess": 0.8430699409161244
+          }
+        }
       }
     ],
     "worst": [
@@ -8961,8 +9481,8 @@
         "company": "Bitmine Immersion",
         "isFirstCall": true,
         "conviction": 0.9,
-        "quote": "It's basically a crypto holding company. They got Bitcoin and Ethereum, but mostly they got over a million in ETH. Their CEO is also like a Giga Chat. This guy bought a new company. It's already up like 2,000%. I'm very bullish on where this company is going to go.",
-        "summary": "The creator is bullish on BMNR as a crypto holding company with significant ETH holdings and a CEO who acquired a company that surged 2000%.",
+        "quote": "I'm very bullish on where this company is going to go. So I bought 65 of the stock.",
+        "summary": "The speaker is bullish on BMNR as a crypto holding company with significant ETH holdings and a CEO who acquired a company that surged 2000%, and they bought shares.",
         "onScreenPrice": null,
         "spark": [
           45.6,
@@ -9080,7 +9600,7 @@
         "isFirstCall": true,
         "conviction": 0.8,
         "quote": "Don't buy ASTS instead buy SATL",
-        "summary": "The creator recommends buying SATL, which has contracts with SpaceX, expecting it to rise when SpaceX goes public.",
+        "summary": "The post recommends buying SATL, citing its contract with SpaceX and potential upside from the SpaceX IPO.",
         "onScreenPrice": null,
         "spark": [
           10.74,
@@ -9137,9 +9657,9 @@
         "ticker": "INTU",
         "company": "Intuit",
         "isFirstCall": true,
-        "conviction": 0.7,
-        "quote": "Number three is Intuit, trading at $443. The company does technology services and information packaging. More specifically, they own TurboTax. And TurboTax basically helps you organize your taxes better. They're going to be advertising drama-free taxes.",
-        "summary": "INTU is a pick because of its Super Bowl ad for TurboTax, promoting drama-free taxes.",
+        "conviction": 0.9,
+        "quote": "And number three is Intuit, trading at $443. The company does technology services and information packaging. More specifically, they own TurboTax. And TurboTax basically helps you organize your taxes better. They're going to be advertising drama-free taxes.",
+        "summary": "Intuit is a top pick for Super Bowl commercial stocks, promoting TurboTax for drama-free taxes.",
         "onScreenPrice": 443,
         "spark": [
           437.5,
@@ -9196,9 +9716,9 @@
         "ticker": "LULU",
         "company": "lululemon athletica",
         "isFirstCall": true,
-        "conviction": 0.7,
+        "conviction": 0.5,
         "quote": "I bought $3,500 of this undervalued company.",
-        "summary": "The creator bought Lululemon shares, considering it undervalued and a good buy.",
+        "summary": "The creator bought Lululemon shares, considering it undervalued despite personal dislike.",
         "onScreenPrice": null,
         "spark": [
           174.1,
@@ -9253,23 +9773,23 @@
     "funnel": [
       {
         "label": "Reels (12mo)",
-        "value": 0
+        "value": 40
       },
       {
         "label": "Named a stock",
-        "value": 201
+        "value": 223
       },
       {
         "label": "Bullish buy call",
-        "value": 148
+        "value": 159
       },
       {
         "label": "First call (unique ticker)",
-        "value": 69
+        "value": 78
       },
       {
         "label": "Beat SPY (to date)",
-        "value": 25
+        "value": 27
       }
     ],
     "cumExcess": [
@@ -9315,323 +9835,323 @@
       },
       {
         "t": "2025-10-09",
-        "v": 0.0804
+        "v": 0.0737
       },
       {
         "t": "2025-10-13",
-        "v": 0.0507
+        "v": 0.0468
       },
       {
         "t": "2025-10-16",
-        "v": 0.0373
+        "v": 0.0353
       },
       {
         "t": "2025-10-20",
-        "v": 0.0235
+        "v": 0.0232
       },
       {
         "t": "2025-10-22",
-        "v": -0.0012
+        "v": 0.0008
       },
       {
         "t": "2025-10-27",
-        "v": 0.0295
+        "v": 0.031
       },
       {
         "t": "2025-10-29",
-        "v": -0.0145
+        "v": -0.0108
       },
       {
         "t": "2025-10-31",
-        "v": -0.0101
+        "v": -0.0108
       },
       {
         "t": "2025-11-04",
-        "v": -0.0388
+        "v": -0.0364
       },
       {
         "t": "2025-11-07",
-        "v": -0.0328
+        "v": -0.0293
       },
       {
         "t": "2025-11-11",
-        "v": -0.0405
+        "v": -0.0355
       },
       {
         "t": "2025-11-13",
-        "v": -0.0629
+        "v": -0.0561
       },
       {
         "t": "2025-11-18",
-        "v": -0.0606
+        "v": -0.0537
       },
       {
         "t": "2025-11-20",
-        "v": -0.1022
+        "v": -0.0944
       },
       {
         "t": "2025-11-24",
-        "v": -0.0397
+        "v": -0.0353
       },
       {
         "t": "2025-11-28",
-        "v": -0.0128
+        "v": -0.0089
       },
       {
         "t": "2025-12-02",
-        "v": -0.0369
+        "v": -0.0323
       },
       {
         "t": "2025-12-04",
-        "v": -0.0029
+        "v": 0
       },
       {
         "t": "2025-12-08",
-        "v": -0.0046
+        "v": -0.004
       },
       {
         "t": "2025-12-11",
-        "v": -0.01
+        "v": -0.0098
       },
       {
         "t": "2025-12-15",
-        "v": -0.0551
+        "v": -0.052
       },
       {
         "t": "2025-12-17",
-        "v": -0.0614
+        "v": -0.0617
       },
       {
         "t": "2025-12-22",
-        "v": -0.0217
+        "v": -0.0319
       },
       {
         "t": "2025-12-24",
-        "v": -0.0278
+        "v": -0.0398
       },
       {
         "t": "2025-12-29",
-        "v": -0.0501
+        "v": -0.0583
       },
       {
         "t": "2026-01-02",
-        "v": -0.0083
+        "v": -0.0179
       },
       {
         "t": "2026-01-06",
-        "v": 0.0339
+        "v": 0.0195
       },
       {
         "t": "2026-01-08",
-        "v": 0.038
+        "v": 0.0241
       },
       {
         "t": "2026-01-13",
-        "v": 0.0536
+        "v": 0.036
       },
       {
         "t": "2026-01-15",
-        "v": 0.0266
+        "v": 0.0128
       },
       {
         "t": "2026-01-20",
-        "v": 0.0361
+        "v": 0.023
       },
       {
         "t": "2026-01-22",
-        "v": 0.0505
+        "v": 0.0426
       },
       {
         "t": "2026-01-27",
-        "v": 0.0417
-      },
-      {
-        "t": "2026-01-29",
-        "v": 0.0188
-      },
-      {
-        "t": "2026-02-02",
-        "v": -0.0185
-      },
-      {
-        "t": "2026-02-05",
-        "v": -0.0933
-      },
-      {
-        "t": "2026-02-09",
-        "v": -0.051
-      },
-      {
-        "t": "2026-02-11",
-        "v": -0.0679
-      },
-      {
-        "t": "2026-02-17",
-        "v": -0.0682
-      },
-      {
-        "t": "2026-02-19",
-        "v": -0.0535
-      },
-      {
-        "t": "2026-02-23",
-        "v": -0.0836
-      },
-      {
-        "t": "2026-02-25",
-        "v": -0.0704
-      },
-      {
-        "t": "2026-03-02",
-        "v": -0.0709
-      },
-      {
-        "t": "2026-03-04",
-        "v": -0.0694
-      },
-      {
-        "t": "2026-03-06",
-        "v": -0.0853
-      },
-      {
-        "t": "2026-03-11",
-        "v": -0.0521
-      },
-      {
-        "t": "2026-03-13",
-        "v": -0.0529
-      },
-      {
-        "t": "2026-03-17",
-        "v": -0.0208
-      },
-      {
-        "t": "2026-03-20",
-        "v": -0.0312
-      },
-      {
-        "t": "2026-03-24",
-        "v": -0.0285
-      },
-      {
-        "t": "2026-03-26",
-        "v": -0.0399
-      },
-      {
-        "t": "2026-03-31",
-        "v": -0.0655
-      },
-      {
-        "t": "2026-04-02",
-        "v": -0.0454
-      },
-      {
-        "t": "2026-04-07",
-        "v": -0.044
-      },
-      {
-        "t": "2026-04-09",
-        "v": -0.0393
-      },
-      {
-        "t": "2026-04-14",
-        "v": -0.0156
-      },
-      {
-        "t": "2026-04-16",
-        "v": 0.0172
-      },
-      {
-        "t": "2026-04-20",
         "v": 0.0264
       },
       {
+        "t": "2026-01-29",
+        "v": 0.001
+      },
+      {
+        "t": "2026-02-02",
+        "v": -0.0268
+      },
+      {
+        "t": "2026-02-05",
+        "v": -0.0917
+      },
+      {
+        "t": "2026-02-09",
+        "v": -0.0568
+      },
+      {
+        "t": "2026-02-11",
+        "v": -0.0685
+      },
+      {
+        "t": "2026-02-17",
+        "v": -0.0661
+      },
+      {
+        "t": "2026-02-19",
+        "v": -0.0494
+      },
+      {
+        "t": "2026-02-23",
+        "v": -0.0716
+      },
+      {
+        "t": "2026-02-25",
+        "v": -0.0601
+      },
+      {
+        "t": "2026-03-02",
+        "v": -0.0432
+      },
+      {
+        "t": "2026-03-04",
+        "v": -0.0585
+      },
+      {
+        "t": "2026-03-06",
+        "v": -0.0649
+      },
+      {
+        "t": "2026-03-11",
+        "v": -0.0405
+      },
+      {
+        "t": "2026-03-13",
+        "v": -0.0375
+      },
+      {
+        "t": "2026-03-17",
+        "v": -0.0123
+      },
+      {
+        "t": "2026-03-20",
+        "v": -0.0195
+      },
+      {
+        "t": "2026-03-24",
+        "v": -0.0221
+      },
+      {
+        "t": "2026-03-26",
+        "v": -0.0285
+      },
+      {
+        "t": "2026-03-31",
+        "v": -0.049
+      },
+      {
+        "t": "2026-04-02",
+        "v": -0.0297
+      },
+      {
+        "t": "2026-04-07",
+        "v": -0.0274
+      },
+      {
+        "t": "2026-04-09",
+        "v": -0.0311
+      },
+      {
+        "t": "2026-04-14",
+        "v": -0.0087
+      },
+      {
+        "t": "2026-04-16",
+        "v": 0.0144
+      },
+      {
+        "t": "2026-04-20",
+        "v": 0.0161
+      },
+      {
         "t": "2026-04-23",
-        "v": 0.0087
+        "v": -0.0016
       },
       {
         "t": "2026-04-27",
-        "v": 0.011
+        "v": 0.0003
       },
       {
         "t": "2026-04-29",
-        "v": -0.0189
+        "v": -0.0265
       },
       {
         "t": "2026-05-04",
-        "v": 0.0258
+        "v": 0.0135
       },
       {
         "t": "2026-05-06",
-        "v": 0.0673
+        "v": 0.0356
       },
       {
         "t": "2026-05-08",
-        "v": 0.0685
+        "v": 0.0334
       },
       {
         "t": "2026-05-12",
-        "v": 0.0718
+        "v": 0.0356
       },
       {
         "t": "2026-05-15",
-        "v": 0.0699
+        "v": 0.0418
       },
       {
         "t": "2026-05-19",
-        "v": 0.052
+        "v": 0.0262
       },
       {
         "t": "2026-05-21",
-        "v": 0.079
+        "v": 0.0484
       },
       {
         "t": "2026-05-27",
-        "v": 0.1574
+        "v": 0.1188
       },
       {
         "t": "2026-05-29",
-        "v": 0.1747
+        "v": 0.131
       },
       {
         "t": "2026-06-02",
-        "v": 0.1827
+        "v": 0.1362
       },
       {
         "t": "2026-06-05",
-        "v": 0.0777
+        "v": 0.0467
       },
       {
         "t": "2026-06-09",
-        "v": 0.0761
+        "v": 0.0438
       },
       {
         "t": "2026-06-11",
-        "v": 0.1082
+        "v": 0.0751
       },
       {
         "t": "2026-06-15",
-        "v": 0.111
+        "v": 0.0727
       },
       {
         "t": "2026-06-18",
-        "v": 0.1124
+        "v": 0.0728
       },
       {
         "t": "2026-06-23",
-        "v": 0.0848
+        "v": 0.0511
       },
       {
         "t": "2026-06-25",
-        "v": 0.0633
+        "v": 0.0325
       },
       {
         "t": "2026-06-30",
-        "v": 0.1157
+        "v": 0.0854
       },
       {
         "t": "2026-07-02",
-        "v": 0.0551
+        "v": 0.0342
       }
     ]
   },
