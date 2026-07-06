@@ -628,7 +628,7 @@ function CallRow({
               to="/t/$symbol/$creator"
               params={{ symbol: call.ticker, creator: handle }}
               onClick={(e) => e.stopPropagation()}
-              className="shrink-0 font-mono text-sm text-foreground no-underline hover:underline"
+              className="shrink-0 font-mono text-sm text-foreground no-underline hover:underline!"
             >
               {call.ticker}
             </Link>
