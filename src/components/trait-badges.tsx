@@ -96,6 +96,9 @@ function TraitBlurb({ trait }: { trait: Trait }) {
   );
 }
 
+// NOTE: no stopPropagation on the trigger — the v1 mounts (creator-overview header
+// + mobile grid cell) are not inside a linked row. If badges are ever reused inside a
+// <Link> (e.g. an explore row), add it like HalalIndicator does or the row navigates.
 function Badge({ trait }: { trait: Trait }) {
   return (
     <PreviewCard>

@@ -151,6 +151,21 @@ describe("traitsFor", () => {
     expect(ids(flat)).not.toContain("calibrated");
   });
 
+  test("null-3m calls are ignored; below-guard traits stay unearned", () => {
+    // 18 calls carry a 3m excess shaped like a lottery winner; 7 more have null 3m.
+    // Scored n = 18 is below the lottery (20) and trajectory/calibration (30) guards.
+    const withEx = roster(18, (i) => (i < 14 ? -0.05 : 1));
+    const nullEx = Array.from({ length: 7 }, (_, i) =>
+      mk({ ticker: `N${i}`, postDate: `2025-06-${String(i + 1).padStart(2, "0")}`, ex3: null }),
+    );
+    const got = ids([...withEx, ...nullEx]); // must not throw on the null-excess rows
+    expect(got).not.toContain("lottery-ticket");
+    expect(got).not.toContain("rising-star");
+    expect(got).not.toContain("fallen-star");
+    expect(got).not.toContain("calibrated");
+    expect(got).not.toContain("confidently-wrong");
+  });
+
   test("results are priority-ordered and input is not mutated", () => {
     // Earns calibrated (conviction-excess corr) and rising-star (improving halves) at once.
     const calls = roster(30, (i) => (i < 15 ? -0.2 + i * 0.01 : 0.05 + i * 0.01), {
