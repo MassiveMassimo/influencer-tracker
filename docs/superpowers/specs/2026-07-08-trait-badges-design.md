@@ -53,8 +53,11 @@ export interface Trait {
   icon: string;       // iconify class, e.g. "icon-[mdi--fire]"
 }
 
-export function traitsFor(sc: Scorecard, calls: Call[]): Trait[];
+export function traitsFor(calls: Call[]): Trait[];
 ```
+
+(No v1 trait reads the Scorecard — all signals derive from `Call[]` — so the
+signature takes only `calls`.)
 
 Flat array of `{ ...meta, test(ctx): boolean }` entries; `traitsFor` builds the ctx once
 (scored first-calls, ordered-by-date excess series, SPY-regime split, conviction pairs)
@@ -78,8 +81,8 @@ Each badge (~28–32 px):
 - **Own SVG silhouette per trait** (user decision — shape variety over uniform pill):
   hexagon (laser-eyes), inverted triangle (martingale), ticket stub (lottery-ticket),
   shield (bull-only), star (rising/fallen-star), rosette/award-seal
-  (calibrated/confidently-wrong). Ticket-stub notches must be legibility-checked at
-  render size; fallback is a scallop-edged rect.
+  (calibrated/confidently-wrong). Ticket stub uses the user-supplied side-notched
+  24×24 path (notches at the horizontal midpoints), scaled to badge size.
 - **Subtle same-hue gradient fill** (`from-{hue}-500/15 to-{hue}-500/5` direction),
   **filled icon** centered, colored darker same hue (`text-{hue}-600
   dark:text-{hue}-400`).
