@@ -38,7 +38,6 @@ const ROSETTE = (() => {
 // 24x24 silhouettes. `ticket` is the user-supplied side-notched stub (spec).
 const SHAPES: Record<Trait["shape"], string> = {
   hexagon: "M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z",
-  "triangle-down": "M3 4h18a1 1 0 0 1 .86 1.5l-9 15.6a1 1 0 0 1-1.73 0l-9-15.6A1 1 0 0 1 3 4z",
   ticket:
     "M19 4C19.7956 4 20.5585 4.3163 21.1211 4.87891C21.6837 5.44152 22 6.20435 22 7V10C22 10.2449 21.9098 10.481 21.7471 10.6641C21.5843 10.8471 21.3604 10.9645 21.1172 10.9932L21 11C20.7452 11.0003 20.4998 11.0976 20.3145 11.2725C20.1291 11.4474 20.0179 11.687 20.0029 11.9414C19.988 12.1958 20.0708 12.4462 20.2344 12.6416C20.3979 12.837 20.6298 12.963 20.8828 12.9932L21 13C21.2652 13 21.5195 13.1054 21.707 13.293C21.8946 13.4805 22 13.7348 22 14V17C22 17.7956 21.6837 18.5585 21.1211 19.1211C20.5585 19.6837 19.7956 20 19 20H5C4.20435 20 3.44152 19.6837 2.87891 19.1211C2.3163 18.5585 2 17.7956 2 17V14C2.00003 13.7551 2.09021 13.519 2.25293 13.3359C2.41565 13.1529 2.63963 13.0355 2.88281 13.0068L3 13C3.25483 12.9997 3.50022 12.9024 3.68555 12.7275C3.87088 12.5526 3.98213 12.313 3.99707 12.0586C4.012 11.8042 3.92917 11.5538 3.76563 11.3584C3.60207 11.163 3.37022 11.037 3.11719 11.0068L3 11C2.73478 11 2.48051 10.8946 2.29297 10.707C2.10543 10.5195 2 10.2652 2 10V7C1.9995 6.25172 2.27948 5.52999 2.78418 4.97754C3.28876 4.42542 3.98162 4.08168 4.72656 4.01465L4.94922 4.00098L19 4Z",
   shield: "M12 2l8 3.2V11c0 4.9-3.4 8.5-8 10.8C7.4 19.5 4 15.9 4 11V5.2L12 2z",
@@ -50,7 +49,6 @@ const SHAPES: Record<Trait["shape"], string> = {
 // Tailwind v4 color custom property driving the SVG gradient stops.
 const HUES: Record<Trait["hue"], { icon: string; v: string }> = {
   orange: { icon: "text-orange-600 dark:text-orange-400", v: "--color-orange-500" },
-  red: { icon: "text-red-600 dark:text-red-400", v: "--color-red-500" },
   violet: { icon: "text-violet-600 dark:text-violet-400", v: "--color-violet-500" },
   amber: { icon: "text-amber-600 dark:text-amber-400", v: "--color-amber-500" },
   emerald: { icon: "text-emerald-600 dark:text-emerald-400", v: "--color-emerald-500" },
@@ -81,9 +79,7 @@ function BadgeShape({ trait }: { trait: Trait }) {
           strokeWidth="1"
         />
       </svg>
-      <span
-        className={`${trait.icon} relative text-[13px] ${hue.icon} ${trait.shape === "triangle-down" ? "-translate-y-0.5" : ""}`}
-      />
+      <span className={`${trait.icon} relative text-[13px] ${hue.icon}`} />
     </span>
   );
 }

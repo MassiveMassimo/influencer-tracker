@@ -110,28 +110,6 @@ describe("traitsFor", () => {
     expect(ids(calls.slice(0, 9))).not.toContain("laser-eyes");
   });
 
-  test("martingale: >=3 re-pitches of an underwater ticker", () => {
-    const calls = [
-      mk({ ticker: "GME", postDate: "2025-01-01", ex3: -0.1 }),
-      mk({ ticker: "GME", postDate: "2025-02-01", ex3: -0.2, isFirstCall: false }),
-      mk({ ticker: "GME", postDate: "2025-03-01", ex3: -0.3, isFirstCall: false }),
-      mk({ ticker: "GME", postDate: "2025-04-01", ex3: 0.05, isFirstCall: false }),
-    ];
-    expect(ids(calls)).toContain("martingale");
-    // Only 2 events → not earned
-    expect(ids(calls.slice(0, 3))).not.toContain("martingale");
-  });
-
-  test("martingale falls back to toDate excess when prior 3m is null", () => {
-    const calls = [
-      mk({ ticker: "GME", postDate: "2025-01-01", exToDate: -0.1 }),
-      mk({ ticker: "GME", postDate: "2025-02-01", exToDate: -0.2, isFirstCall: false }),
-      mk({ ticker: "GME", postDate: "2025-03-01", exToDate: -0.3, isFirstCall: false }),
-      mk({ ticker: "GME", postDate: "2025-04-01", isFirstCall: false }),
-    ];
-    expect(ids(calls)).toContain("martingale");
-  });
-
   test("lottery-ticket: positive skew with negative median, n>=20", () => {
     // 19 small losers + 5 moonshots: skew ≈ 1.44 > 1, median -0.05 < 0
     const calls = roster(24, (i) => (i < 19 ? -0.05 : 1));
@@ -174,24 +152,16 @@ describe("traitsFor", () => {
   });
 
   test("results are priority-ordered and input is not mutated", () => {
-    // Earns calibrated (corr), rising-star (halves), martingale (re-pitches) at once.
-    const base = roster(30, (i) => (i < 15 ? -0.2 + i * 0.01 : 0.05 + i * 0.01), {
+    // Earns calibrated (conviction-excess corr) and rising-star (improving halves) at once.
+    const calls = roster(30, (i) => (i < 15 ? -0.2 + i * 0.01 : 0.05 + i * 0.01), {
       conviction: (i) => i / 30,
     });
-    const gme = [
-      mk({ ticker: "GME", postDate: "2024-12-01", ex3: -0.1 }),
-      mk({ ticker: "GME", postDate: "2024-12-10", ex3: -0.2, isFirstCall: false }),
-      mk({ ticker: "GME", postDate: "2024-12-20", ex3: -0.3, isFirstCall: false }),
-      mk({ ticker: "GME", postDate: "2024-12-28", ex3: -0.3, isFirstCall: false }),
-    ];
-    const calls = [...base, ...gme];
     const snapshot = [...calls];
     const got = ids(calls);
     expect(calls).toEqual(snapshot); // no mutation
-    const priority = ["calibrated", "rising-star", "martingale"];
-    expect(got.filter((id) => priority.includes(id))).toEqual(
-      priority.filter((id) => got.includes(id)),
-    );
-    expect(got).toContain("martingale");
+    expect(got).toContain("calibrated");
+    expect(got).toContain("rising-star");
+    // calibrated outranks rising-star in display priority
+    expect(got.indexOf("calibrated")).toBeLessThan(got.indexOf("rising-star"));
   });
 });

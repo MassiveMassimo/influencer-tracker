@@ -55,7 +55,6 @@ export function pearson(xs: number[], ys: number[]): number {
 // Thresholds (tuned with the roster; see spec).
 const CRYPTO_SHARE = 0.6;
 const CRYPTO_MIN_N = 10;
-const MARTINGALE_EVENTS = 3;
 const LOTTERY_MIN_N = 20;
 const LOTTERY_SKEW = 1;
 const REGIME_MIN_N = 8; // scored calls required in EACH SPY regime
@@ -70,22 +69,19 @@ export interface Trait {
   id: string;
   name: string;
   blurb: string; // one playful line, PERSONA_BLURB voice
-  hue: "orange" | "red" | "violet" | "amber" | "emerald" | "rose" | "teal" | "fuchsia";
-  shape: "hexagon" | "triangle-down" | "ticket" | "shield" | "star" | "rosette";
+  hue: "orange" | "violet" | "amber" | "emerald" | "rose" | "teal" | "fuchsia";
+  shape: "hexagon" | "ticket" | "shield" | "star" | "rosette";
   icon: string; // iconify tailwind class, e.g. "icon-[mdi--fire]"
 }
 
 interface TraitCtx {
   first: Call[]; // isFirstCall, postDate ascending
   ex3: number[]; // non-null 3m excess of first calls, postDate order
-  byDate: Call[]; // all calls, postDate ascending
 }
 
 interface TraitDef extends Trait {
   test(ctx: TraitCtx): boolean;
 }
-
-const ex3OrToDate = (c: Call) => c.returns["3m"].excess ?? c.returns.toDate.excess;
 
 // Pearson r of (conviction, 3m excess); 0 = "no signal" (guards included).
 function calibrationR(first: Call[]): number {
@@ -119,21 +115,6 @@ function trajectoryDelta(ex3: number[]): number {
   if (ex3.length < TRAJECTORY_MIN_N) return 0;
   const half = Math.floor(ex3.length / 2);
   return mean(ex3.slice(half)) - mean(ex3.slice(0, half));
-}
-
-// A re-pitch (non-first call) of a ticker whose most recent prior call is underwater.
-function martingaleEvents(byDate: Call[]): number {
-  let events = 0;
-  const lastByTicker = new Map<string, Call>();
-  for (const c of byDate) {
-    const prior = lastByTicker.get(c.ticker);
-    if (!c.isFirstCall && prior) {
-      const ex = ex3OrToDate(prior);
-      if (ex != null && ex < 0) events++;
-    }
-    lastByTicker.set(c.ticker, c);
-  }
-  return events;
 }
 
 // Array order IS the display priority (most informative first).
@@ -187,15 +168,6 @@ const TRAITS: TraitDef[] = [
     test: ({ ex3 }) => trajectoryDelta(ex3) <= -TRAJECTORY_DELTA,
   },
   {
-    id: "martingale",
-    name: "The Martingale",
-    blurb: "Keeps doubling down on losers. It has to bounce eventually, right?",
-    hue: "red",
-    shape: "triangle-down",
-    icon: "icon-[mdi--trending-down]",
-    test: ({ byDate }) => martingaleEvents(byDate) >= MARTINGALE_EVENTS,
-  },
-  {
     id: "lottery-ticket",
     name: "Lottery Ticket",
     blurb: "Most calls fizzle; the occasional moonshot pays for the rest.",
@@ -223,6 +195,6 @@ export function traitsFor(calls: Call[]): Trait[] {
   const byDate = [...calls].sort((a, b) => a.postDate.localeCompare(b.postDate));
   const first = byDate.filter((c) => c.isFirstCall);
   const ex3 = first.map((c) => c.returns["3m"].excess).filter((x): x is number => x != null);
-  const ctx: TraitCtx = { first, ex3, byDate };
+  const ctx: TraitCtx = { first, ex3 };
   return TRAITS.filter((t) => t.test(ctx)).map(({ test: _test, ...meta }) => meta);
 }
