@@ -4,6 +4,8 @@
 // never fires. Thresholds are tuned against the live roster (scripts/print-traits.ts)
 // the same way K and the bands are in grade.ts.
 
+import type { Call } from "./types";
+
 export function mean(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
 }
@@ -48,4 +50,179 @@ export function pearson(xs: number[], ys: number[]): number {
     syy += dy * dy;
   }
   return sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
+}
+
+// Thresholds (tuned with the roster; see spec).
+const CRYPTO_SHARE = 0.6;
+const CRYPTO_MIN_N = 10;
+const MARTINGALE_EVENTS = 3;
+const LOTTERY_MIN_N = 20;
+const LOTTERY_SKEW = 1;
+const REGIME_MIN_N = 8; // scored calls required in EACH SPY regime
+const REGIME_GAP = 0.3; // hit(SPY-up) - hit(SPY-down)
+const TRAJECTORY_MIN_N = 30;
+const TRAJECTORY_DELTA = 0.08; // mean 3m excess, second half minus first
+const CALIBRATION_MIN_N = 30;
+const CALIBRATION_R = 0.3;
+const CONVICTION_MIN_SD = 0.05; // conviction must actually vary
+
+export interface Trait {
+  id: string;
+  name: string;
+  blurb: string; // one playful line, PERSONA_BLURB voice
+  hue: "orange" | "red" | "violet" | "amber" | "emerald" | "rose" | "teal" | "fuchsia";
+  shape: "hexagon" | "triangle-down" | "ticket" | "shield" | "star" | "rosette";
+  icon: string; // iconify tailwind class, e.g. "icon-[mdi--fire]"
+}
+
+interface TraitCtx {
+  first: Call[]; // isFirstCall, postDate ascending
+  ex3: number[]; // non-null 3m excess of first calls, postDate order
+  byDate: Call[]; // all calls, postDate ascending
+}
+
+interface TraitDef extends Trait {
+  test(ctx: TraitCtx): boolean;
+}
+
+const ex3OrToDate = (c: Call) => c.returns["3m"].excess ?? c.returns.toDate.excess;
+
+// Pearson r of (conviction, 3m excess); 0 = "no signal" (guards included).
+function calibrationR(first: Call[]): number {
+  const scored = first.filter((c) => c.returns["3m"].excess != null);
+  if (scored.length < CALIBRATION_MIN_N) return 0;
+  const conv = scored.map((c) => c.conviction);
+  if (stdev(conv) <= CONVICTION_MIN_SD) return 0;
+  return pearson(
+    conv,
+    scored.map((c) => c.returns["3m"].excess as number),
+  );
+}
+
+// hit(SPY-up) - hit(SPY-down) with the down-regime hit rate, or null below guard.
+function regimeSplit(first: Call[]): { gap: number; downHit: number } | null {
+  const up: boolean[] = [];
+  const down: boolean[] = [];
+  for (const c of first) {
+    const ex = c.returns["3m"].excess;
+    const spy = c.returns["3m"].spy;
+    if (ex == null || spy == null || spy === 0) continue;
+    (spy > 0 ? up : down).push(ex > 0);
+  }
+  if (up.length < REGIME_MIN_N || down.length < REGIME_MIN_N) return null;
+  const hit = (xs: boolean[]) => xs.filter(Boolean).length / xs.length;
+  return { gap: hit(up) - hit(down), downHit: hit(down) };
+}
+
+// Mean 3m excess of the second half of the record minus the first; 0 below guard.
+function trajectoryDelta(ex3: number[]): number {
+  if (ex3.length < TRAJECTORY_MIN_N) return 0;
+  const half = Math.floor(ex3.length / 2);
+  return mean(ex3.slice(half)) - mean(ex3.slice(0, half));
+}
+
+// A re-pitch (non-first call) of a ticker whose most recent prior call is underwater.
+function martingaleEvents(byDate: Call[]): number {
+  let events = 0;
+  const lastByTicker = new Map<string, Call>();
+  for (const c of byDate) {
+    const prior = lastByTicker.get(c.ticker);
+    if (!c.isFirstCall && prior) {
+      const ex = ex3OrToDate(prior);
+      if (ex != null && ex < 0) events++;
+    }
+    lastByTicker.set(c.ticker, c);
+  }
+  return events;
+}
+
+// Array order IS the display priority (most informative first).
+const TRAITS: TraitDef[] = [
+  {
+    id: "calibrated",
+    name: "Calibrated",
+    blurb: "When they say high conviction, believe it — confidence tracks results.",
+    hue: "teal",
+    shape: "rosette",
+    icon: "icon-[mdi--bullseye-arrow]",
+    test: ({ first }) => calibrationR(first) >= CALIBRATION_R,
+  },
+  {
+    id: "confidently-wrong",
+    name: "Confidently Wrong",
+    blurb: "The louder the conviction, the worse the call. Fade the pounding table.",
+    hue: "fuchsia",
+    shape: "rosette",
+    icon: "icon-[mdi--compass-off]",
+    test: ({ first }) => calibrationR(first) <= -CALIBRATION_R,
+  },
+  {
+    id: "bull-only",
+    name: "Bull Market Only",
+    blurb: "Great when SPY's green. When it's red, so are the calls.",
+    hue: "amber",
+    shape: "shield",
+    icon: "icon-[game-icons--bull-horns]",
+    test: ({ first }) => {
+      const r = regimeSplit(first);
+      return r != null && r.gap >= REGIME_GAP && r.downHit < 0.5;
+    },
+  },
+  {
+    id: "rising-star",
+    name: "Rising Star",
+    blurb: "The recent record is way better than the early one. Improving.",
+    hue: "emerald",
+    shape: "star",
+    icon: "icon-[mdi--arrow-up-bold]",
+    test: ({ ex3 }) => trajectoryDelta(ex3) >= TRAJECTORY_DELTA,
+  },
+  {
+    id: "fallen-star",
+    name: "Fallen Star",
+    blurb: "Used to be sharp. The recent calls don't keep up.",
+    hue: "rose",
+    shape: "star",
+    icon: "icon-[mdi--arrow-down-bold]",
+    test: ({ ex3 }) => trajectoryDelta(ex3) <= -TRAJECTORY_DELTA,
+  },
+  {
+    id: "martingale",
+    name: "The Martingale",
+    blurb: "Keeps doubling down on losers. It has to bounce eventually, right?",
+    hue: "red",
+    shape: "triangle-down",
+    icon: "icon-[mdi--trending-down]",
+    test: ({ byDate }) => martingaleEvents(byDate) >= MARTINGALE_EVENTS,
+  },
+  {
+    id: "lottery-ticket",
+    name: "Lottery Ticket",
+    blurb: "Most calls fizzle; the occasional moonshot pays for the rest.",
+    hue: "violet",
+    shape: "ticket",
+    icon: "icon-[mdi--dice-multiple]",
+    test: ({ ex3 }) =>
+      ex3.length >= LOTTERY_MIN_N && skewness(ex3) > LOTTERY_SKEW && median(ex3) < 0,
+  },
+  {
+    id: "laser-eyes",
+    name: "Laser Eyes",
+    blurb: "Portfolio's mostly crypto. Number-go-up technology.",
+    hue: "orange",
+    shape: "hexagon",
+    icon: "icon-[mdi--fire]",
+    test: ({ first }) =>
+      first.length >= CRYPTO_MIN_N &&
+      first.filter((c) => c.ticker.endsWith("-USD")).length / first.length > CRYPTO_SHARE,
+  },
+];
+
+// Earned traits, in display-priority order. Pure; never mutates `calls`.
+export function traitsFor(calls: Call[]): Trait[] {
+  const byDate = [...calls].sort((a, b) => a.postDate.localeCompare(b.postDate));
+  const first = byDate.filter((c) => c.isFirstCall);
+  const ex3 = first.map((c) => c.returns["3m"].excess).filter((x): x is number => x != null);
+  const ctx: TraitCtx = { first, ex3, byDate };
+  return TRAITS.filter((t) => t.test(ctx)).map(({ test: _test, ...meta }) => meta);
 }
