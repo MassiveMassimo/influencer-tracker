@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
-@import 'tailwindcss';
-@plugin '@tailwindcss/typography';
-@plugin '@iconify/tailwind4';
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&family=Manrope:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@plugin "@iconify/tailwind4";
 
-@import 'tw-animate-css';
+@import "tw-animate-css";
 
 @import "tw-animate-css";
 
@@ -168,7 +168,7 @@
 }
 
 @theme inline {
-  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -221,7 +221,7 @@
   --color-chart-foreground: var(----chart-foreground);
   --color-chart-background: var(----chart-background);
   --font-heading: var(--font-mono);
-  --font-mono: 'Geist Mono Variable', monospace;
+  --font-mono: "Geist Mono Variable", monospace;
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
@@ -282,7 +282,7 @@ pre code {
 }
 
 .display-title {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: "Fraunces", Georgia, serif;
 }
 
 .island-shell {
@@ -296,7 +296,11 @@ pre code {
 }
 
 .feature-card {
-  background: linear-gradient(165deg, color-mix(in oklab, var(--surface-strong) 93%, white 7%), var(--surface));
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--surface-strong) 93%, white 7%),
+    var(--surface)
+  );
   box-shadow:
     0 1px 0 var(--inset-glint) inset,
     0 18px 34px rgba(30, 90, 72, 0.1),
@@ -311,7 +315,10 @@ pre code {
 button,
 .island-shell,
 a {
-  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease,
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
     transform 180ms ease;
 }
 
@@ -330,7 +337,7 @@ a {
 }
 
 .nav-link::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   bottom: -8px;
@@ -526,9 +533,22 @@ html[data-reduce-motion="true"] *::after {
 
 :root {
   --expo-out: linear(
-    0 0%, 0.1684 2.66%, 0.3165 5.49%, 0.446 8.52%, 0.5581 11.78%, 0.6535 15.29%,
-    0.7341 19.11%, 0.8011 23.3%, 0.8557 27.93%, 0.8962 32.68%, 0.9283 38.01%,
-    0.9529 44.08%, 0.9711 51.14%, 0.9833 59.06%, 0.9915 68.74%, 1 100%
+    0 0%,
+    0.1684 2.66%,
+    0.3165 5.49%,
+    0.446 8.52%,
+    0.5581 11.78%,
+    0.6535 15.29%,
+    0.7341 19.11%,
+    0.8011 23.3%,
+    0.8557 27.93%,
+    0.8962 32.68%,
+    0.9283 38.01%,
+    0.9529 44.08%,
+    0.9711 51.14%,
+    0.9833 59.06%,
+    0.9915 68.74%,
+    1 100%
   );
 }
 
@@ -764,6 +784,32 @@ number-flow-group {
     transition: none !important;
   }
 }
+/* Grade medallion persona ring: dissolves (blur + fade) on creator switch, swapping
+   its label at the invisible midpoint. Driven by the same useTextSwap phase machine
+   (is-exit / is-enter-start) as .t-text-swap, but blur/fade only — no vertical travel,
+   which would look wrong on a circular ring. The grade letter itself rides .t-text-swap. */
+.t-medallion-ring {
+  filter: blur(0);
+  opacity: 1;
+  transition:
+    filter 150ms ease-in-out,
+    opacity 150ms ease-in-out;
+  will-change: filter, opacity;
+}
+.t-medallion-ring.is-exit {
+  filter: blur(3px);
+  opacity: 0;
+}
+.t-medallion-ring.is-enter-start {
+  filter: blur(3px);
+  opacity: 0;
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-medallion-ring {
+    transition: none !important;
+  }
+}
 /* Scroll-driven edge fade (chanhdai scroll-fade-effect, @ncdai). Pure CSS:
    mask-image fades content to transparent at the leading/trailing edge, with the
    fade band sized by scroll position via animation-timeline: scroll(self).
@@ -816,15 +862,24 @@ number-flow-group {
   --mask-offset-top: 0px;
   --mask-offset-bottom: 0px;
   --scroll-buffer: 2rem;
-  mask-image: linear-gradient(to top, transparent, black 90%),
+  mask-image:
+    linear-gradient(to top, transparent, black 90%),
     linear-gradient(to bottom, transparent 0%, black 100%), linear-gradient(black, black);
-  mask-size: 100% var(--top-mask-height), 100% var(--bottom-mask-height), 100% 100%;
+  mask-size:
+    100% var(--top-mask-height),
+    100% var(--bottom-mask-height),
+    100% 100%;
   mask-repeat: no-repeat, no-repeat, no-repeat;
-  mask-position: 0 var(--mask-offset-top), 0 calc(100% - var(--mask-offset-bottom)), 0 0;
+  mask-position:
+    0 var(--mask-offset-top),
+    0 calc(100% - var(--mask-offset-bottom)),
+    0 0;
   mask-composite: exclude;
   animation-name: show-top-mask, hide-bottom-mask;
   animation-timeline: scroll(self), scroll(self);
-  animation-range: 0 var(--scroll-buffer), calc(100% - var(--scroll-buffer)) 100%;
+  animation-range:
+    0 var(--scroll-buffer),
+    calc(100% - var(--scroll-buffer)) 100%;
   animation-fill-mode: both;
 }
 
@@ -833,15 +888,24 @@ number-flow-group {
   --mask-offset-left: 0px;
   --mask-offset-right: 0px;
   --scroll-buffer: 2rem;
-  mask-image: linear-gradient(to left, transparent, black 90%),
+  mask-image:
+    linear-gradient(to left, transparent, black 90%),
     linear-gradient(to right, transparent 0%, black 100%), linear-gradient(black, black);
-  mask-size: var(--left-mask-width) 100%, var(--right-mask-width) 100%, 100% 100%;
+  mask-size:
+    var(--left-mask-width) 100%,
+    var(--right-mask-width) 100%,
+    100% 100%;
   mask-repeat: no-repeat, no-repeat, no-repeat;
-  mask-position: var(--mask-offset-left) 0, calc(100% - var(--mask-offset-right)) 0, 0 0;
+  mask-position:
+    var(--mask-offset-left) 0,
+    calc(100% - var(--mask-offset-right)) 0,
+    0 0;
   mask-composite: exclude;
   animation-name: show-left-mask, hide-right-mask;
   animation-timeline: scroll(self inline), scroll(self inline);
-  animation-range: 0 var(--scroll-buffer), calc(100% - var(--scroll-buffer)) 100%;
+  animation-range:
+    0 var(--scroll-buffer),
+    calc(100% - var(--scroll-buffer)) 100%;
   animation-fill-mode: both;
 }
 
@@ -873,16 +937,22 @@ number-flow-group {
 @keyframes ticker-stick-fade {
   to {
     opacity: 0;
+    /* Faded-out layer must not eat hover/clicks meant for the risen stat bar. */
+    pointer-events: none;
   }
 }
 @keyframes ticker-stick-rise {
   from {
     opacity: 0;
     transform: translateY(6px);
+    /* At rest this decorative overlay sits atop the grade medallion; stay
+       click-through so the medallion's hover/press works until it risen. */
+    pointer-events: none;
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
   }
 }
 .t-ticker-header {
@@ -914,6 +984,12 @@ number-flow-group {
   animation: ticker-stick-rise linear both;
   animation-timeline: scroll(root block);
   animation-range: 48px 112px;
+  /* Rest state on the element, not only in the keyframe: at rest this decorative
+     overlay sits atop the grade medallion and must stay click-through. Keeping it
+     here (the keyframe still animates to `auto` when risen) means reduced-motion —
+     which sets `animation: none` below — doesn't revert to the default `auto` and
+     leave an invisible click shield over the now-interactive medallion. */
+  pointer-events: none;
 }
 /* Creator stats bar below md (where MobileNav shows the identity): this bar
    starts hidden behind the nav (taken out of flow → no empty bar at the top)
@@ -952,6 +1028,9 @@ number-flow-group {
   .t-creator-bar .t-stick-rise {
     opacity: 1;
     animation: none;
+    /* Visible mobile stat bar (horizontal scroll container) — override the base
+       click-through so it stays touch-scrollable. */
+    pointer-events: auto;
   }
 }
 /* Thin styled scrollbar for the stats strip, matching the sidebar's bar
@@ -986,5 +1065,28 @@ number-flow-group {
   .t-stick-fade,
   .t-stick-rise {
     animation: none;
+  }
+}
+
+/* TOC / hash anchors land below the sticky header, not tucked under it. Scoped to
+   the anchor ids that exist only on the creator + ticker pages. */
+#overview,
+#performance,
+#analytics,
+#price,
+#vs-spy,
+#halal,
+#calls {
+  scroll-margin-top: 5rem;
+}
+
+/* Counter-clockwise spin for the grade medallion ring (@ncdai spinning-circular-text). */
+@theme inline {
+  --animate-spin-ccw: spin-ccw var(--tw-animation-duration, var(--tw-duration, 6s)) linear infinite;
+
+  @keyframes spin-ccw {
+    to {
+      rotate: -360deg;
+    }
   }
 }

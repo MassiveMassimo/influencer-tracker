@@ -8,6 +8,8 @@ import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
 import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
+import { gradeFor } from "#/lib/grade";
+import { GradeDetail } from "#/components/grade-detail";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { ConvictionBars, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
 import {
@@ -35,6 +37,7 @@ import {
   PreviewCardPopup,
 } from "#/components/ui/preview-card.tsx";
 import { TocMinimap } from "#/components/toc-minimap.tsx";
+import { useMediaQuery } from "#/lib/use-media-query.ts";
 import {
   platformOf,
   profileUrl as profileLink,
@@ -242,6 +245,11 @@ function Overview() {
 
   const [statsRef, statsInView] = useInView<HTMLElement>();
 
+  const grade = useMemo(() => gradeFor(ds.scorecard, ds.calls), [ds]);
+  // Header medallion shows at md+, the grid-cell one below md — only animate the
+  // visible one (false on SSR/first paint → both idle until this resolves).
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
   const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
 
   const platform = platformOf(String(ds.calls[0]?.shortcode ?? ""));
@@ -252,7 +260,6 @@ function Overview() {
     <main className="t-creator-main space-y-6 py-8 md:py-10">
       <TocMinimap
         items={[
-          { title: "Overview", url: "#overview", depth: 2 },
           { title: "Performance", url: "#performance", depth: 2 },
           { title: "Analytics", url: "#analytics", depth: 2 },
           { title: "Calls", url: "#calls", depth: 2 },
@@ -283,11 +290,17 @@ function Overview() {
               absolutely stacked so neither sizes the zone. */}
           <div className="relative min-w-0 flex-1 self-stretch">
             <div className="t-stick-fade absolute inset-y-0 right-0 flex items-center justify-end text-right max-md:hidden">
-              <DataAsOf iso={ds.generatedAt} />
-              {ageDays(ds.generatedAt) > 30 && (
-                <span className="ml-2 font-mono text-[10px] tracking-[0.2em] text-amber-600 uppercase dark:text-amber-400">
-                  · data {ageDays(ds.generatedAt)}d old
-                </span>
+              {grade ? (
+                <GradeDetail grade={grade} active={isDesktop} />
+              ) : (
+                <>
+                  <DataAsOf iso={ds.generatedAt} />
+                  {ageDays(ds.generatedAt) > 30 && (
+                    <span className="ml-2 font-mono text-[10px] tracking-[0.2em] text-amber-600 uppercase dark:text-amber-400">
+                      · data {ageDays(ds.generatedAt)}d old
+                    </span>
+                  )}
+                </>
               )}
             </div>
             {/* Persistent stat summary (the overview tiles scroll away → this
@@ -336,6 +349,18 @@ function Overview() {
               <StatTile key={t.label} revealed={statsInView} tile={t} />
             ))}
           </NumberFlowGroup>
+          {/* Fills the empty 6th grid cell on mobile; md+ shows the grade in the
+              header instead, so hide it there to keep the 5-col row full. */}
+          {grade && (
+            <div className="grid place-items-center bg-background p-4 md:hidden">
+              <GradeDetail
+                grade={grade}
+                fontSize="0.4rem"
+                letterClassName="text-xl"
+                active={!isDesktop}
+              />
+            </div>
+          )}
         </section>
 
         <section

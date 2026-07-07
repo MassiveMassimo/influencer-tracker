@@ -31,8 +31,8 @@ function prefersReducedMotion(): boolean {
 // Drives the three-phase swap. Returns the ref to attach to the swapping span and
 // the text it should currently render. State updates here re-render the caller, so
 // call it in the component that also renders any `layout`-animated sibling.
-export function useTextSwap(value: string) {
-  const ref = useRef<HTMLSpanElement>(null);
+export function useTextSwap<T extends HTMLElement = HTMLSpanElement>(value: string) {
+  const ref = useRef<T>(null);
   const [display, setDisplay] = useState(value);
 
   useEffect(() => {

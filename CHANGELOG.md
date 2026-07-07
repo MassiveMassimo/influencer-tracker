@@ -3,6 +3,16 @@
 What's new on Signal Tracker — new features, improvements, and fixes. Entries are
 newest first. Spotted something wrong? Every call has a "Report incorrect" button.
 
+## 2026-07-08
+
+### Improved
+- **Tap a grade to see how it was earned** — Hover or tap a creator's letter grade to open a breakdown: the score out of 100, what the persona nickname means, and exactly how their hit rate and average return vs the S&P moved the number.
+
+## 2026-07-07
+
+### New
+- **Letter grades** — every creator with enough scored calls now gets a report-card grade (A+ to F) for how their picks perform against the S&P 500, plus a persona to match: consistent market-beaters earn "Money Printer", coin-flippers get "Dartboard Monkey", and reliably-wrong callers are crowned "Inverse Cramer".
+
 ## 2026-06-25
 
 ### Improved
