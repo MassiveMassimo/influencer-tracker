@@ -733,14 +733,14 @@ git commit -m "feat(traits): TraitBadges component — per-shape SVG badges + pr
 ### Task 4: Wire into the creator overview
 
 **Files:**
-- Modify: `src/routes/c.$handle.index.tsx` (two `GradeDetail` sites, ~lines 288-301 and ~348-355)
+- Modify: `src/routes/c.$handle.index.tsx` (two `GradeDetail` sites, ~lines 293-304 desktop and ~354-363 mobile)
 
 **Interfaces:**
-- Consumes: `TraitBadges` from Task 3; existing `grade` memo and `ds` in the route.
+- Consumes: `TraitBadges` from Task 3; existing `grade` memo, `ds`, and `isDesktop` in the route.
 
 - [ ] **Step 1: Add the import**
 
-In `src/routes/c.$handle.index.tsx`, next to the existing grade imports (lines 11-12):
+In `src/routes/c.$handle.index.tsx`, next to the existing grade import (line 12: `import { GradeDetail } from "#/components/grade-detail";`):
 
 ```tsx
 import { TraitBadges } from "#/components/trait-badges";
@@ -748,22 +748,21 @@ import { TraitBadges } from "#/components/trait-badges";
 
 - [ ] **Step 2: Desktop — badges left of the medallion in the sticky header**
 
-Find (around line 288):
+Find (the desktop `grade ?` branch — note the existing `active={isDesktop}` prop, keep it):
 
 ```tsx
-            <div className="t-stick-fade absolute inset-y-0 right-0 flex items-center justify-end text-right max-md:hidden">
               {grade ? (
-                <GradeDetail grade={grade} />
+                <GradeDetail grade={grade} active={isDesktop} />
               ) : (
 ```
 
-Replace the `grade ? (...)` branch with:
+Replace with (wrap the medallion in a flex row with the badges before it):
 
 ```tsx
               {grade ? (
                 <div className="flex items-center gap-3">
                   <TraitBadges calls={ds.calls} />
-                  <GradeDetail grade={grade} />
+                  <GradeDetail grade={grade} active={isDesktop} />
                 </div>
               ) : (
 ```
@@ -772,22 +771,32 @@ Replace the `grade ? (...)` branch with:
 
 - [ ] **Step 3: Mobile — badges wrap below the medallion in the 6th grid cell**
 
-Find (around line 350):
+Find (the mobile cell — the `GradeDetail` is multi-line with `active={!isDesktop}`):
 
 ```tsx
           {grade && (
             <div className="grid place-items-center bg-background p-4 md:hidden">
-              <GradeDetail grade={grade} fontSize="0.4rem" letterClassName="text-xl" />
+              <GradeDetail
+                grade={grade}
+                fontSize="0.4rem"
+                letterClassName="text-xl"
+                active={!isDesktop}
+              />
             </div>
           )}
 ```
 
-Replace with:
+Replace with (add `gap-2` to the cell and `TraitBadges` below the medallion):
 
 ```tsx
           {grade && (
             <div className="grid place-items-center gap-2 bg-background p-4 md:hidden">
-              <GradeDetail grade={grade} fontSize="0.4rem" letterClassName="text-xl" />
+              <GradeDetail
+                grade={grade}
+                fontSize="0.4rem"
+                letterClassName="text-xl"
+                active={!isDesktop}
+              />
               <TraitBadges calls={ds.calls} />
             </div>
           )}
