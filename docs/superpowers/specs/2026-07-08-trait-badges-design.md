@@ -22,14 +22,14 @@ stated). Every trait has its own N-guard; below guard it never fires. Thresholds
 starting points to be tuned against the live roster before ship, same as `K` and the
 bands in grade.ts.
 
-| id | Name | Predicate | Guard |
-|---|---|---|---|
-| `laser-eyes` | Laser Eyes | crypto share of calls > 60% (ticker ends `-USD`) | n ≥ 10 |
-| `martingale` | The Martingale | ≥ 3 re-pitch events: a non-first call on a ticker whose most recent prior call is underwater (3m excess < 0; toDate fallback if 3m null) | ≥ 3 events |
-| `lottery-ticket` | Lottery Ticket | Fisher-Pearson skewness of 3m excess > 1 AND median 3m excess < 0 | n ≥ 20 |
-| `bull-only` | Bull Market Only | split calls by sign of `returns["3m"].spy`: hit(SPY-up) − hit(SPY-down) ≥ 0.30 AND hit(SPY-down) < 0.5 | ≥ 8 calls per regime |
-| `rising-star` / `fallen-star` | Rising Star / Fallen Star | order by postDate, split halves: mean 3m excess delta ≥ +0.08 → rising; ≤ −0.08 → fallen | n ≥ 30 |
-| `calibrated` / `confidently-wrong` | Calibrated / Confidently Wrong | Pearson corr(conviction, 3m excess) ≥ +0.3 → calibrated; ≤ −0.3 → confidently wrong | n ≥ 30 AND stdev(conviction) > 0.05 |
+| id                                 | Name                           | Predicate                                                                                                                                | Guard                               |
+| ---------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `laser-eyes`                       | Laser Eyes                     | crypto share of calls > 60% (ticker ends `-USD`)                                                                                         | n ≥ 10                              |
+| `martingale`                       | The Martingale                 | ≥ 3 re-pitch events: a non-first call on a ticker whose most recent prior call is underwater (3m excess < 0; toDate fallback if 3m null) | ≥ 3 events                          |
+| `lottery-ticket`                   | Lottery Ticket                 | Fisher-Pearson skewness of 3m excess > 1 AND median 3m excess < 0                                                                        | n ≥ 20                              |
+| `bull-only`                        | Bull Market Only               | split calls by sign of `returns["3m"].spy`: hit(SPY-up) − hit(SPY-down) ≥ 0.30 AND hit(SPY-down) < 0.5                                   | ≥ 8 calls per regime                |
+| `rising-star` / `fallen-star`      | Rising Star / Fallen Star      | order by postDate, split halves: mean 3m excess delta ≥ +0.08 → rising; ≤ −0.08 → fallen                                                 | n ≥ 30                              |
+| `calibrated` / `confidently-wrong` | Calibrated / Confidently Wrong | Pearson corr(conviction, 3m excess) ≥ +0.3 → calibrated; ≤ −0.3 → confidently wrong                                                      | n ≥ 30 AND stdev(conviction) > 0.05 |
 
 Dual-direction rows are one predicate with two variants — at most one variant fires.
 Max simultaneous traits: 6.
@@ -39,6 +39,15 @@ measurement — needs pre-postDate prices; `spark` starts at postDate), cross-cr
 consensus (needs calls-index join at score time), cadence burstiness (weak signal,
 hard to explain).
 
+**`martingale` cut from v1 (2026-07-08).** The roster sanity pass
+(`scripts/print-traits.ts`) showed it firing for 100% of creators: "re-pitch of an
+underwater ticker" is a base-rate artifact — ~55% of any creator's re-pitches are on
+tickers trailing SPY at the time — so it had no discriminating power (a badge everyone
+earns is meaningless). Conviction-escalation ("re-pitch a loser with higher conviction")
+discriminated only slightly and mostly tracked volume, with coarse (7–11 distinct)
+conviction values. Deferred to v2 pending a genuine signal (price averaging-down
+detection, or finer conviction). v1 ships the remaining five traits (seven variants).
+
 ## Data layer
 
 `src/lib/traits.ts`:
@@ -47,10 +56,10 @@ hard to explain).
 export interface Trait {
   id: string;
   name: string;
-  blurb: string;      // one playful line, PERSONA_BLURB voice
-  hue: string;        // tailwind hue token, drives gradient + icon color
+  blurb: string; // one playful line, PERSONA_BLURB voice
+  hue: string; // tailwind hue token, drives gradient + icon color
   shape: "hexagon" | "triangle-down" | "ticket" | "shield" | "star" | "rosette";
-  icon: string;       // iconify class, e.g. "icon-[mdi--fire]"
+  icon: string; // iconify class, e.g. "icon-[mdi--fire]"
 }
 
 export function traitsFor(calls: Call[]): Trait[];
@@ -85,7 +94,7 @@ Each badge (~28–32 px):
   24×24 path (notches at the horizontal midpoints), scaled to badge size.
 - **Subtle same-hue gradient fill** (`from-{hue}-500/15 to-{hue}-500/5` direction),
   **filled icon** centered, colored darker same hue (`text-{hue}-600
-  dark:text-{hue}-400`).
+dark:text-{hue}-400`).
 - **Icons from one consistent filled set** via the existing Iconify Tailwind plugin
   (`icon-[mdi--*]` / `game-icons` for the bull) — no mixing lucide strokes with filled
   glyphs inside the badge row. Exact slugs picked at implementation with a visual pass.
