@@ -10,6 +10,7 @@ import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { gradeFor } from "#/lib/grade";
 import { GradeDetail } from "#/components/grade-detail";
+import { TraitBadges } from "#/components/trait-badges";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { ConvictionBars, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
 import {
@@ -291,7 +292,10 @@ function Overview() {
           <div className="relative min-w-0 flex-1 self-stretch">
             <div className="t-stick-fade absolute inset-y-0 right-0 flex items-center justify-end text-right max-md:hidden">
               {grade ? (
-                <GradeDetail grade={grade} active={isDesktop} />
+                <div className="flex items-center gap-3">
+                  <TraitBadges calls={ds.calls} />
+                  <GradeDetail grade={grade} active={isDesktop} />
+                </div>
               ) : (
                 <>
                   <DataAsOf iso={ds.generatedAt} />
@@ -352,13 +356,14 @@ function Overview() {
           {/* Fills the empty 6th grid cell on mobile; md+ shows the grade in the
               header instead, so hide it there to keep the 5-col row full. */}
           {grade && (
-            <div className="grid place-items-center bg-background p-4 md:hidden">
+            <div className="grid place-items-center gap-2 bg-background p-4 md:hidden">
               <GradeDetail
                 grade={grade}
                 fontSize="0.4rem"
                 letterClassName="text-xl"
                 active={!isDesktop}
               />
+              <TraitBadges calls={ds.calls} />
             </div>
           )}
         </section>
