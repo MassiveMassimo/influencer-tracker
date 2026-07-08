@@ -101,6 +101,23 @@ multi-stock posts; the array prompt on the same `deepseek-v4-flash` recovered 10
 with zero false-positive buys. Note: existing creators keep one-ticker-per-post history
 until their `extract` stage is re-run with the new prompt — LLM cost, no re-scrape.)
 
+**Unified idempotent extract** (`pipeline/extract-core.ts`). Both IG and X extract
+delegate to a shared engine that tracks classified posts in `extract-done.json`,
+deduplicates existing `reel-calls.json` entries, and only classifies NEW posts via a
+heal-loop (transient errors skip + retry instead of crashing). Each platform provides a
+`BuildPost` callback that resolves a shortcode to a `{ shortcode, postDate, body }`
+post; the core handles classification, done-tracking, dedup, and checkpoint persistence.
+On the first run after this change, the core seeds `extract-done.json` from ALL existing
+shortcodes (when `reel-calls.json` already has calls), so existing posts are NOT
+re-classified — zero API cost. Subsequent daily runs classify only newly-scraped posts
+(typically 0–3 for IG, 0–10 for X). IG's `extract-done.json` is committed (`.gitignore`
+allow-list, like `post-dates.json`) so it survives the VM's `git checkout -- data/` +
+`git clean -fd data/`. X's stays in `raw/` (gitignored) — consistent with `tweets.json`
+as the incremental cursor (purging `raw/` triggers a full re-extract, same as the
+forward-scrape anchor behavior). Without this, IG re-classified ALL 185 transcripts
+through deepseek-v4-flash on every daily run — LLM non-determinism drifted the call set
+(83→76 scored) and tripped guard-no-shrink, freezing kevvonz for 2 days (2026-07-06..08).
+
 **Only explicit bullish calls** (`isExplicitBuy && direction === "bullish"`) are
 scored. Accuracy = forward return vs SPY (excess) at 1w/1m/3m/to-date. **`isExplicitBuy`
 deliberately spans the call formats finfluencers actually use** — a literal buy/hold
