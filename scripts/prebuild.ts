@@ -26,7 +26,6 @@ const DATA = join(ROOT, "data", "creators");
 const PUB = join(ROOT, "public");
 const OG_DIR = join(PUB, "og");
 const DS_DIR = join(PUB, "datasets");
-const PRICES_SRC = join(ROOT, "data", "prices");
 const PRICES_DST = join(PUB, "prices");
 const AVATARS_SRC = join(ROOT, "data", "avatars");
 const AVATARS_DST = join(PUB, "avatars");
@@ -124,9 +123,18 @@ async function main() {
     cpSync(join(DATA, e.handle, "dataset.json"), join(DS_DIR, `${e.handle}.json`));
   }
 
-  if (existsSync(PRICES_SRC)) {
+  // Prices: emit per-symbol JSON from the SQLite store for the CDN fallback.
+  // The DB is the frozen, insert-only source; prebuild unpacks it to the loose
+  // JSON shape the ticker-page fallback fetches at runtime (/prices/<sym>.json).
+  const { listSymbolsDb, readPricesDb, closePricesDb, pricesDbExists } = await import(
+    "../pipeline/prices-db"
+  );
+  if (pricesDbExists()) {
     mkdirSync(PRICES_DST, { recursive: true });
-    cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
+    for (const sym of listSymbolsDb()) {
+      writeFileSync(join(PRICES_DST, `${sym}.json`), JSON.stringify(readPricesDb(sym)));
+    }
+    closePricesDb();
   }
 
   if (existsSync(AVATARS_SRC)) {

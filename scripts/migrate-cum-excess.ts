@@ -6,17 +6,16 @@
 // avgExcess.toDate — a built-in correctness check.
 //
 // Run: bun run scripts/migrate-cum-excess.ts
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildCumExcess } from "../src/lib/cum-excess";
+import { readPricesDb, closePricesDb } from "../pipeline/prices-db";
 import type { OhlcBar } from "../src/lib/types";
 
 const CREATORS = "data/creators";
-const PRICES = "data/prices";
 
 function loadPrices(sym: string): OhlcBar[] {
-  const p = join(PRICES, `${sym}.json`);
-  return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : [];
+  return readPricesDb(sym);
 }
 
 const index: { handle: string }[] = JSON.parse(readFileSync(join(CREATORS, "index.json"), "utf8"));
@@ -45,3 +44,4 @@ for (const { handle } of index) {
   const ref = (ds.scorecard.avgExcess.toDate * 100).toFixed(2);
   console.log(`${handle}: ${cum.length} pts · endpoint ${end} (avgExcess.toDate ${ref}%)`);
 }
+closePricesDb();

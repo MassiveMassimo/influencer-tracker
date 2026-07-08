@@ -1,13 +1,13 @@
 import { readFile, writeFile, readdir, mkdir } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { creatorDir, pricesDir, DATA, ROOT, AVATARS } from "./config";
+import { creatorDir, pricesDir, DATA, AVATARS } from "./config";
 import { computeReturns } from "../src/lib/returns";
 import { dedupeFirstCall, buildScorecard, buildFunnel } from "../src/lib/scorecard";
 import { DatasetSchema } from "../src/lib/schema";
 import { buildSpark } from "../src/lib/spark";
 import { buildCumExcess } from "../src/lib/cum-excess";
-import { mergePrices, detectBasisShift } from "../src/lib/prices-merge";
+import { mergePricesDb, closePricesDb } from "./prices-db";
 import { resolveSymbol } from "../src/lib/symbol";
 import { symbolMeta, isOutOfScope } from "./symbol-scope";
 import { getWriteDb } from "../db/client";
@@ -161,27 +161,20 @@ export async function score(
     (sym) => meta[sym]?.name || undefined,
   );
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
-  // Write deduped per-ticker prices to a shared store (one file per symbol across
-  // all creators) for the ticker-page fallback. Merge so a creator with a shorter
-  // history never truncates another's bars.
-  // `pricesDir(handle)` (read above) is the per-creator price input; this is the
-  // shared cross-creator output store.
-  const sharedDir = join(ROOT, "data", "prices");
-  await mkdir(sharedDir, { recursive: true });
+  // Merge deduped per-ticker prices into the shared SQLite store (one row per
+  // symbol+date across all creators) for the ticker-page fallback. Insert-only:
+  // an existing (symbol, date) row keeps its OHLC; only genuinely-new dates are
+  // appended. detectBasisShift is checked inline by mergePricesDb to catch splits.
   for (const sym of new Set([...ds.calls.map((c) => c.ticker), "SPY"])) {
     const bars = ohlc[sym] ?? [];
     if (!bars.length) continue;
-    const f = join(sharedDir, `${sym}.json`);
-    const existing: OhlcBar[] = existsSync(f) ? JSON.parse(await readFile(f, "utf8")) : [];
-    const shift = detectBasisShift(existing, bars);
-    if (shift != null) {
+    mergePricesDb(sym, bars, (factor) => {
       console.warn(
-        `SPLIT ${sym}: basis shift x${shift.toFixed(4)} — skipping merge, needs OWNER restatement`,
+        `SPLIT ${sym}: basis shift x${factor.toFixed(4)} — skipping merge, needs OWNER restatement`,
       );
-      continue;
-    }
-    await writeFile(f, JSON.stringify(mergePrices(existing, bars)));
+    });
   }
+  closePricesDb();
   await updateIndex(handle, name, ds);
   return ds;
 }

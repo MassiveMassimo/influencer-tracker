@@ -1,6 +1,6 @@
 // Compares DB-reassembled output vs the committed static JSON for the DB at DATABASE_URL.
 // Run AFTER `bun run db:sync` against the target (prod) DB, before flipping USE_DB=1.
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { makeDb } from "../db/client";
 import { readCallsIndex, readDataset, readIndex, readPrices } from "../src/lib/db-read";
@@ -57,17 +57,17 @@ async function main() {
     datasets.push(dbDataset);
     console.log(`✓ ${e.handle}`);
   }
-  // Prices are the frozen-scoring source of truth — verify every per-symbol OHLC file
-  // reassembles byte-identical from the DB, not just creators/calls.
-  const priceFiles = readdirSync(join(ROOT, "data", "prices")).filter((f) => f.endsWith(".json"));
-  if (priceFiles.length === 0) throw new Error("no price files found — refusing to certify parity");
-  for (const f of priceFiles) {
-    const symbol = f.replace(/\.json$/, "");
-    const stat = readJson(join(ROOT, "data", "prices", f));
-    if (!eq(stat, await readPrices(db, symbol)))
+  // Prices are the frozen-scoring source of truth — verify every per-symbol OHLC
+  // reassembles byte-identical from the DB. Reads from the SQLite store (data/prices.db).
+  const { listSymbolsDb, readPricesDb, closePricesDb } = await import("../pipeline/prices-db");
+  const symbols = listSymbolsDb();
+  if (symbols.length === 0) throw new Error("no price symbols in DB — refusing to certify parity");
+  for (const symbol of symbols) {
+    if (!eq(readPricesDb(symbol), await readPrices(db, symbol)))
       throw new Error(`prices parity FAILED for ${symbol}`);
   }
-  console.log(`✓ ${priceFiles.length} price symbols`);
+  closePricesDb();
+  console.log(`✓ ${symbols.length} price symbols`);
   // Reassemble the calls-index from the DB datasets gathered above and assert it equals the
   // materialized artifact — catches a stale/drifted artifact left by a backfill without a
   // re-materialize (review M2). Uses the same readers/builder the serve path uses.
