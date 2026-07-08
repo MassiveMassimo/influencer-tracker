@@ -5,6 +5,9 @@ newest first. Spotted something wrong? Every call has a "Report incorrect" butto
 
 ## 2026-07-08
 
+### New
+- **Trait badges** — Creators now wear at-a-glance badges next to their grade that flag patterns in how they call stocks: *Calibrated* when their high-conviction picks really do land better, *Bull Market Only* when the wins dry up as soon as the market turns, *Rising Star* when the recent record is pulling ahead of the early one, *Laser Eyes* for a mostly-crypto book, and more. Hover or tap any badge to see what it means.
+
 ### Improved
 - **Tap a grade to see how it was earned** — Hover or tap a creator's letter grade to open a breakdown: the score out of 100, what the persona nickname means, and exactly how their hit rate and average return vs the S&P moved the number.
 
