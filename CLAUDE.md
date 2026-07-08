@@ -323,15 +323,16 @@ caps). The split, by granularity:
   → lazy `CumExcessArea`) on the creator overview. Rides the `scorecard` jsonb column,
   so it's DB/parity-neutral; back-filled into existing datasets by
   `scripts/migrate-cum-excess.ts` (clamps prices to `generatedAt`).
-- **Prices** — baked daily OHLC lives in a shared, deduped per-ticker store
-  `data/prices/<symbol>.json` (one file per symbol across **all** creators;
-  `score.ts` merges via `src/lib/prices-merge.ts` so a shorter history never
-  truncates another's). `prebuild.ts` copies it to `public/prices/`; only the
-  ticker-page fallback fetches it, lazily.
+- **Prices** — baked daily OHLC lives in a shared, deduped per-ticker SQLite
+  store `data/prices.db` (one row per `symbol+date` across **all** creators;
+  `score.ts` merges via `pipeline/prices-db.ts` `mergePricesDb` so a shorter
+  history never truncates another's). `prebuild.ts` unpacks it to
+  `public/prices/<symbol>.json` for the CDN fallback; only the ticker-page
+  fallback fetches it, lazily.
 
-`data/prices/` is committed (it's the build-time source for `public/prices/`).
+`data/prices.db` is committed (it's the build-time source for `public/prices/`).
 
-**Prices are insert-only, both stores.** `mergePrices` (`src/lib/prices-merge.ts`) is
+**Prices are insert-only, both stores.** `mergePricesDb` (`pipeline/prices-db.ts`) is
 **existing-wins** on a date collision — an existing bar keeps its OHLC; only
 genuinely-new dates are appended. This mirrors the DB `prices` table (insert-only via
 `onConflictDoNothing` in `db/backfill.ts` `backfillPrices`). Both are insert-only **by
@@ -375,7 +376,7 @@ A prod DB change now surfaces with no redeploy. `USE_DB=0` remains the instant r
 > source path burned through Neon's free-tier **5 GB/mo egress** (daily full-DB `materialize`
 > reads + the 418-symbol price SELECT fan-out + multi-MB SSR pulls), tripping HTTP 402 and
 > suspending Neon compute. Rather than pay, the serve path returned to the committed static
-> assets (`data/creators/*/dataset.json`, `data/prices/`, `index.json`) — which the fail-open
+> assets (`data/creators/*/dataset.json`, `data/prices.db`, `index.json`) — which the fail-open
 > tier already served. **The DB is retained ONLY for the correction loop** (`/api/report` writes
 > `call_reports`; `apply-override` writes `call_overrides`; `score` reads overrides via
 > `db/overrides.ts`) — all low-traffic, so the free tier holds. The VM daily run no longer
@@ -567,7 +568,7 @@ avatar URL and calls `saveAvatar(handle, url)` (`pipeline/avatar.ts`), which
 downloads the bytes and writes a committed image file `data/avatars/<h>.<ext>`
 (extension derived from the content-type; source format preserved, no transcode),
 returning the public path `/avatars/<h>.<ext>`. `data/avatars/` is committed as
-build-time source (like `data/prices/`); `scripts/prebuild.ts` copies it to
+build-time source (like `data/prices.db`); `scripts/prebuild.ts` copies it to
 `public/avatars/` (gitignored, served from the CDN, browser/CDN-cacheable).
 `score.ts` records the path in `index.json` + the DB `creators.avatar` column;
 `<img>` consumers (`WorkspaceRail`, `explore.tsx`, `index.tsx`, `t.$symbol.tsx`)
@@ -871,17 +872,17 @@ compute is minimal. Everything in `public/og/` + `public/datasets/` +
 `public/prices/` is generated — gitignored, regenerated each build.
 
 **Datasets + prices are static CDN assets, not bundled** (#2). `prebuild.ts`
-copies each `data/creators/<h>/dataset.json` → `public/datasets/<h>.json` and the
-shared `data/prices/` → `public/prices/`. `fetchDataset()` / `fetchPrices()`
+copies each `data/creators/<h>/dataset.json` → `public/datasets/<h>.json` and
+unpacks `data/prices.db` → `public/prices/<symbol>.json` (one file per symbol
+from the SQLite store). `fetchDataset()` / `fetchPrices()`
 (`src/lib/data.ts`) are plain fns (not server fns) that fetch those assets —
 relative path on the client (browser-cached, gzipped, reused across navigations),
 absolute (`siteUrl`) during SSR. Keeps MBs out of the function. Only `index.json`
 stays bundled (tiny, every page) via `import.meta.glob` in `dataset-source.ts`.
 `data/creators` is gitignored **except** `index.json` + `*/dataset.json`;
-`data/prices` (shared per-ticker OHLC) is committed in full. A one-time
+`data/prices.db` (shared per-ticker OHLC, SQLite) is committed. A one-time
 `scripts/migrate-split-prices.ts` restructured the pre-split datasets (drop
-`tickers`, bake `spark`, emit `data/prices/`); future `score` runs emit the
-slim shape directly.
+`tickers`, bake `spark`); future `score` runs write to the SQLite store directly.
 
 **Dev gotcha — stale `public/datasets/`.** `prebuild.ts` populates `public/` only at
 build, so in dev (`USE_DB=0`) a creator whose `public/datasets/<h>.json` is missing 404s:
