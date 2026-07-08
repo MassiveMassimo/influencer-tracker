@@ -167,7 +167,7 @@ dead-man fires if it still can't acquire it. Run one handle at a time.
    and investigate manually).
 2. **Score** — computes forward-return accuracy (1w/1m/3m/to-date vs SPY) for all
    explicit bullish calls; applies operator overrides (`db/overrides.ts`, fail-open).
-   Rewrites `dataset.json`, `index.json`, and per-symbol files in `data/prices/`.
+   Rewrites `dataset.json`, `index.json`, and `data/prices.db`.
 
 That's it — `resume.ts` no longer touches the DB. **Publishing happens at the `ingest.ts`
 level**: after all handles score, it `git add data/ && commit && pull --rebase && push origin
@@ -191,7 +191,7 @@ to-date/recent-horizon returns mature for all creators without needing a new rev
 ## 4. Clean-baseline-then-regenerate note
 
 Static-serve (`USE_DB=0`): the committed `data/` files **are** the product. `score`
-rewrites `dataset.json`, `index.json`, and `data/prices/*.json`; `ingest.ts` then
+rewrites `dataset.json`, `index.json`, and `data/prices.db`; `ingest.ts` then
 commits + pushes them, and that push is what redeploys Vercel. The pre-run reset is
 **not** a "discard scratch" step — it just resets to a clean remote baseline so `score`
 regenerates the exact diff that gets committed (no stale local churn carried forward).

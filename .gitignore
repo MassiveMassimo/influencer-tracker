@@ -24,7 +24,7 @@ data/creators/*/*
 !data/creators/*/post-dates.json
 !data/creators/*/extract-done.json
 # Yahoo quoteType + name cache (symbol-scope.ts). Regenerable + static per symbol,
-# so a local/VM cache, never committed; survives the VM's data/prices-scoped git clean.
+# so a local/VM cache, never committed.
 data/symbol-meta.json
 data/symbol-types.json
 # Old loose-JSON price store (replaced by data/prices.db SQLite).
