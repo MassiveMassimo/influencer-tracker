@@ -9,11 +9,15 @@ to stderr and omit that code from the output (the caller logs the gap).
 Run with the venv interpreter that has onnx-asr installed (PARAKEET_PYTHON).
 """
 import json
+import os
 import sys
 
 import onnx_asr
 
 MODEL = "nemo-parakeet-tdt-0.6b-v2"
+# Override the model path for environments where the HF cache symlinks break
+# onnxruntime's external-data path validation (macOS). VM is unaffected (no env).
+MODEL_PATH = os.environ.get("PARAKEET_MODEL_PATH")
 
 
 def main() -> int:
@@ -24,7 +28,7 @@ def main() -> int:
     # Force CPU EP. The design is CPU/ONNX (no GPU); on macOS onnxruntime would
     # otherwise auto-select the CoreML EP, which fails to init this model's
     # external-data weights ("model_path must not be empty"). VM is already CPU-only.
-    model = onnx_asr.load_model(MODEL, providers=["CPUExecutionProvider"])
+    model = onnx_asr.load_model(MODEL, MODEL_PATH, providers=["CPUExecutionProvider"])
     out = {}
     for code, path in jobs:
         try:
