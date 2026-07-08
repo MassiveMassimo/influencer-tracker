@@ -29,6 +29,9 @@ data/symbol-meta.json
 data/symbol-types.json
 # Old loose-JSON price store (replaced by data/prices.db SQLite).
 data/prices/
+# SQLite WAL temp files (created at runtime, meaningless outside the process).
+data/prices.db-shm
+data/prices.db-wal
 .chrome-profile
 playwright-report
 test-results
