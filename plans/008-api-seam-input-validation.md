@@ -47,6 +47,7 @@ byte-safe.
 ## Current state
 
 ### 1. `src/lib/chart-fetch.ts`
+
 ```ts
 // lines 44-60: module-level cache, no size cap
 const TTL_MS = 5 * 60 * 1000;
@@ -70,11 +71,13 @@ export const fetchChart = createServerFn({ method: "GET" })
     ...
   });
 ```
+
 `cacheGet` / `cacheSet` are unit-tested in `src/lib/chart-fetch.test.ts` with
 explicit `now` and specific keys (`"AAPL:5m"`, `"X:1d"`, `"MISS:5m"`) — a size
 cap with a high limit will not affect those tests.
 
 ### 2. `src/routes/api/dataset.$handle.ts` (and the parallel `prices.$symbol.ts`)
+
 ```ts
 GET: async ({ params }) => {
   const handle = params.handle;
@@ -82,6 +85,7 @@ GET: async ({ params }) => {
   return staticFallback(`/datasets/${handle}.json`, { onMiss: "error", label: `dataset ${handle}` });
 }
 ```
+
 `prices.$symbol.ts` is structurally identical with `symbol` →
 `staticFallback("/prices/${symbol}.json", { onMiss: "empty", emptyBody: "[]" })`.
 Existing tests in `src/routes/api/routes.test.ts` reach the GET handler
@@ -91,9 +95,11 @@ structurally via `getHandler(Route)({ params: { handle: "kevvonz" } })` and mock
 not reject them.
 
 ### 3. `src/lib/api-serve.ts` — `staticFallback(path, opts)` fetches
+
 `siteUrl(path)`. A good place for a shared param validator helper.
 
 ### 4. `src/routes/api/revalidate.ts`
+
 ```ts
 function safeCompare(a: string, b: string): boolean {
   const len = Math.max(a.length, b.length, 32);
@@ -104,6 +110,7 @@ function safeCompare(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB);
 }
 ```
+
 Tests in `src/routes/api/revalidate.test.ts` use ASCII tokens
 (`"s3cret-token-value"`, `"wrong-token-value"`) and assert 503/401/401/200 — the
 fix must preserve all four outcomes.
@@ -111,7 +118,7 @@ fix must preserve all four outcomes.
 ## Commands you will need
 
 | Purpose   | Command                                      | Expected on success |
-|-----------|----------------------------------------------|---------------------|
+| --------- | -------------------------------------------- | ------------------- |
 | Typecheck | `bunx tsc --noEmit`                          | exit 0              |
 | Unit test | `bun test src/lib/chart-fetch.test.ts`       | all pass            |
 | Unit test | `bun test src/routes/api/routes.test.ts`     | all pass            |
@@ -125,6 +132,7 @@ fix must preserve all four outcomes.
 ## Scope
 
 **In scope**:
+
 - `src/lib/chart-fetch.ts` + `src/lib/chart-fetch.test.ts`
 - `src/lib/api-serve.ts` (add a validator helper)
 - `src/routes/api/dataset.$handle.ts`, `src/routes/api/prices.$symbol.ts`
@@ -132,6 +140,7 @@ fix must preserve all four outcomes.
 - `src/routes/api/routes.test.ts` (add invalid-param cases)
 
 **Out of scope** (do NOT touch):
+
 - `src/lib/chart-window.ts`, `src/lib/db-read.ts`, `db/client.ts`.
 - The `USE_DB` / DB branch logic in the routes — only the static-fallback param
   is validated.
@@ -201,9 +210,13 @@ In `src/routes/api/dataset.$handle.ts`, at the very top of the GET handler
 ```ts
 const handle = params.handle;
 if (!isSafeAssetKey(handle)) {
-  return Response.json({ error: "invalid handle" }, { status: 404, headers: { "Cache-Control": CACHE_CONTROL } });
+  return Response.json(
+    { error: "invalid handle" },
+    { status: 404, headers: { "Cache-Control": CACHE_CONTROL } },
+  );
 }
 ```
+
 (Import `isSafeAssetKey` alongside the existing `CACHE_CONTROL, staticFallback`
 import.)
 
@@ -221,19 +234,24 @@ fetch mock needed — validation returns before any fetch):
 
 ```ts
 test("GET /api/dataset/$handle → 404 on an unsafe handle (no upstream fetch)", async () => {
-  globalThis.fetch = (async () => { throw new Error("must not fetch"); }) as unknown as typeof fetch;
+  globalThis.fetch = (async () => {
+    throw new Error("must not fetch");
+  }) as unknown as typeof fetch;
   const { Route } = await import("./dataset.$handle");
   const res = await getHandler(Route)({ params: { handle: "../secret" } });
   expect(res.status).toBe(404);
 });
 
 test("GET /api/prices/$symbol → 404 on an unsafe symbol (no upstream fetch)", async () => {
-  globalThis.fetch = (async () => { throw new Error("must not fetch"); }) as unknown as typeof fetch;
+  globalThis.fetch = (async () => {
+    throw new Error("must not fetch");
+  }) as unknown as typeof fetch;
   const { Route } = await import("./prices.$symbol");
   const res = await getHandler(Route)({ params: { symbol: "a/b" } });
   expect(res.status).toBe(404);
 });
 ```
+
 (The `afterEach` in that file already restores `globalThis.fetch`.)
 
 **Verify**: `bun test src/routes/api/routes.test.ts` → all pass (old + new).

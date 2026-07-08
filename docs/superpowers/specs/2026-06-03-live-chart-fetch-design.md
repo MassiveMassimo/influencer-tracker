@@ -25,7 +25,7 @@ charts without disturbing scoring.
   candles moved to premium. Yahoo intraday caps (1m ≤ 8d, ≤1h ≤ 730d) cover all
   our windows. Risk: unofficial, can break — mitigated by the baked fallback.
 - **Sub-decision A: drop the zoom/scroll-pan model.** With per-timeframe
-  native-density ranges, each tab *is* the window; there's nothing to pan to.
+  native-density ranges, each tab _is_ the window; there's nothing to pan to.
 - **Sub-decision B: fall back to baked daily OHLC on Yahoo error** — the baked
   series is already in the loader, so this is free resilience.
 
@@ -54,21 +54,21 @@ keeps reading the frozen dataset.
    interval that lands ~40–400 candles in view — dense enough to read, not noise.
    Intraday only for windows that fit Yahoo's sub-daily cap; daily beyond.
 
-   | TF  | interval | range            | ~bars |
-   |-----|----------|------------------|-------|
-   | 1D  | `5m`     | last trading day | ~78   |
-   | 1W  | `30m`    | 7d               | ~65   |
-   | 1M  | `1h`     | 30d              | ~150  |
-   | 3M  | `1d`     | 90d              | ~63   |
-   | 6M  | `1d`     | 180d             | ~126  |
-   | 1Y  | `1d`     | 365d             | ~252  |
+   | TF  | interval                   | range            | ~bars  |
+   | --- | -------------------------- | ---------------- | ------ |
+   | 1D  | `5m`                       | last trading day | ~78    |
+   | 1W  | `30m`                      | 7d               | ~65    |
+   | 1M  | `1h`                       | 30d              | ~150   |
+   | 3M  | `1d`                       | 90d              | ~63    |
+   | 6M  | `1d`                       | 180d             | ~126   |
+   | 1Y  | `1d`                       | 365d             | ~252   |
    | All | `1d` (`1wk` if range > 2y) | since first call | varies |
 
    **Yahoo constraint (critical):** sub-daily intervals are only served for the
    **last ~60 days**. So intraday is restricted to 1D/1W/1M (all ≤ 60d); 3M/6M/1Y
    use `1d`. Using `1h` for 3M+ would return truncated/empty data. This also
    removes the density discontinuity (no window denser than a shorter one) and
-   matches what Robinhood ships. `1D` uses the last *trading* day (not literal
+   matches what Robinhood ships. `1D` uses the last _trading_ day (not literal
    today) so off-hours/weekends still render the last session.
 
 2. **`fetchChart` server fn** — `src/lib/chart.server.ts`.
@@ -106,8 +106,8 @@ keeps reading the frozen dataset.
      `context.queryClient.ensureQueryData(chartQuery(params.symbol, "1Y"))` so the
      default timeframe is SSR-prefetched (no first-load spinner).
    - Component: `timeframe` stays local state; `const { data, isPending, isError } =
-     useQuery(chartQuery(symbol, timeframe))`. Chart OHLC comes from `data ??
-     bakedFallback`. Rebase vs-SPY to the first bar of the **fetched** range.
+useQuery(chartQuery(symbol, timeframe))`. Chart OHLC comes from `data ??
+bakedFallback`. Rebase vs-SPY to the first bar of the **fetched** range.
    - **Remove** `zoomMultiplier`, `trackWidth`, the dual-viewport scroll-sync
      `useLayoutEffect`s, and the `ScrollArea` wrappers around the charts. Charts
      render at a single viewport width again.

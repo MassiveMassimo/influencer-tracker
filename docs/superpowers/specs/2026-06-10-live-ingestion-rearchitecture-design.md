@@ -74,6 +74,7 @@ Stays on the VM because IG scraping needs Playwright headful + persistent browse
 Neon chosen over Turso/SQLite/Blob: serverless + scale-to-zero, Vercel Marketplace integration (env provisioning, unified billing), PITR + branching. At this volume Turso buys nothing (no embedded-replica benefit on ephemeral Vercel functions). Pure Blob-precomputed-JSON would meet "live without redeploy" too — the DB earns its place on the ingest/review/audit side, not serving.
 
 Tables (sketch — finalized in the plan):
+
 - `creators` — handle, name, platform, avatar, per-source cursor + `last_successful_ingest`.
 - `calls` — the `Call` shape; upsert key `shortcode`; indexed for the materialize step.
 - `prices` — frozen daily OHLC, **insert-only** (`REVOKE UPDATE, DELETE` from the ingest role). Scoring fetches only missing dates, never refreshes existing ones.
@@ -95,8 +96,9 @@ Tables (sketch — finalized in the plan):
 ## Frozen scoring — enforced, not hoped
 
 Git previously gave immutability for free. In a mutable DB:
+
 - `prices` is **insert-only** at the DB level.
-- The exact price inputs (or a hash) are **denormalized onto each call** at score time, so drift is *detectable*, not merely forbidden. (Yahoo *adjusted* closes change retroactively on splits/dividends — "same date" ≠ "same number".)
+- The exact price inputs (or a hash) are **denormalized onto each call** at score time, so drift is _detectable_, not merely forbidden. (Yahoo _adjusted_ closes change retroactively on splits/dividends — "same date" ≠ "same number".)
 - **Backup = Neon PITR + periodic dumps** to the VM or Blob (replaces git history as the point-in-time recovery story).
 
 ## Price data source & redistribution
@@ -105,7 +107,7 @@ The site is now **public**, which changes the price-data calculus. Yahoo (via `y
 
 - **Scoring/baked prices:** prefer a source whose terms permit redistribution — **Stooq bulk EOD** is the usual clean choice for daily OHLC. Decide before public launch.
 - **Live charts:** the request-time Yahoo fetch is the grayest area. Either move to a redistribution-permitting source or treat charts as client-fetched (the user's browser hits the source, not our server redistributing). Resolve in the plan.
-- This is a launch blocker for the *public* posture, not the architecture — flagged here so it is decided deliberately, not by default.
+- This is a launch blocker for the _public_ posture, not the architecture — flagged here so it is decided deliberately, not by default.
 
 ## Reliability & observability
 

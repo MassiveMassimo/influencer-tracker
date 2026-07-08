@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the live `USE_DB=1` serve path fast and *consistent across hard-load and client-navigation*, so a DB update is reflected everywhere within a bounded TTL **without a redeploy** — closing the split-brain gap (review H2) that today still ties freshness to deploys.
+**Goal:** Make the live `USE_DB=1` serve path fast and _consistent across hard-load and client-navigation_, so a DB update is reflected everywhere within a bounded TTL **without a redeploy** — closing the split-brain gap (review H2) that today still ties freshness to deploys.
 
-**Architecture:** Replace the client-side static-asset fetches (`/datasets/*.json`, `/prices/*.json`, `/calls-index.json`) with **GET API routes** (`/api/dataset/$handle`, `/api/prices/$symbol`, `/api/calls-index`) that read DB→static-fallback through the existing seam, and cache those routes at Vercel's CDN via Nitro `routeRules` (`swr`, TTL 6h). Page routes also get `swr` route rules so SSR HTML is edge-cached. Both SSR and client navigation now read the *same* DB-backed, CDN-cached source — no more static/DB divergence. Static assets remain as the panic fallback. Invalidation in this plan is the TTL backstop plus a manual purge route; ingest-triggered purge is wired in Plan 3b.
+**Architecture:** Replace the client-side static-asset fetches (`/datasets/*.json`, `/prices/*.json`, `/calls-index.json`) with **GET API routes** (`/api/dataset/$handle`, `/api/prices/$symbol`, `/api/calls-index`) that read DB→static-fallback through the existing seam, and cache those routes at Vercel's CDN via Nitro `routeRules` (`swr`, TTL 6h). Page routes also get `swr` route rules so SSR HTML is edge-cached. Both SSR and client navigation now read the _same_ DB-backed, CDN-cached source — no more static/DB divergence. Static assets remain as the panic fallback. Invalidation in this plan is the TTL backstop plus a manual purge route; ingest-triggered purge is wired in Plan 3b.
 
 **Tech Stack:** TanStack Start server routes (file-based API routes), Nitro `routeRules` (`swr`) → Vercel CDN, `@neondatabase/serverless` neon-http (serve role), `bun test`, `bunx tsc --noEmit`. `#/` → `src/`.
 
-**Scope boundary (YAGNI):** No VM/ingest, no two-tier LLM gate (Plans 3b/4). No KV/Upstash store (CDN route caching only — the approved mechanism). Cache *invalidation on ingest* is Plan 3b; this plan provides the TTL backstop and the purge seam.
+**Scope boundary (YAGNI):** No VM/ingest, no two-tier LLM gate (Plans 3b/4). No KV/Upstash store (CDN route caching only — the approved mechanism). Cache _invalidation on ingest_ is Plan 3b; this plan provides the TTL backstop and the purge seam.
 
 **Carries review findings** from the 2026-06-10 holistic review: H2 (split-brain — this plan's core), M1 (require role URLs), M2 (artifact parity + `db:sync`), the over-broad `serve` default-privilege grant (revert to explicit), and the "data as of" staleness UI. H1 (prices restatement contract) is Task 7. M3 (call-deletion policy) is deferred to Plan 3b with an interim runbook note (Task 0).
 
@@ -19,6 +19,7 @@
 Small, safety-first fixes for the now-live serve path.
 
 **Files:**
+
 - Modify: `db/client.ts`
 - Modify: `scripts/apply-roles.ts`
 - Modify: `CLAUDE.md`
@@ -37,7 +38,9 @@ export function getDb(): Db {
 
 export function getWriteDb(): Db {
   if (!process.env.DATABASE_URL_INGEST) {
-    console.warn("DATABASE_URL_INGEST unset — writer running as owner (prices freeze not role-enforced)");
+    console.warn(
+      "DATABASE_URL_INGEST unset — writer running as owner (prices freeze not role-enforced)",
+    );
   }
   return makeDb(process.env.DATABASE_URL_INGEST ?? process.env.DATABASE_URL!);
 }
@@ -49,7 +52,7 @@ In `scripts/apply-roles.ts`, remove the `ALTER DEFAULT PRIVILEGES … GRANT SELE
 
 - [ ] **Step 3: Document the live operational invariant + the call-deletion runbook (review H2 interim, M3)**
 
-In `CLAUDE.md` "Data source" section add: *"Until Plan 3a ships, client-side navigation reads build-time static assets, so every prod DB change must be accompanied by a redeploy or hard-load and client-nav diverge."* And, for M3: in `scripts/backfill.ts` the count-guard error message, append `" — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy."`
+In `CLAUDE.md` "Data source" section add: _"Until Plan 3a ships, client-side navigation reads build-time static assets, so every prod DB change must be accompanied by a redeploy or hard-load and client-nav diverge."_ And, for M3: in `scripts/backfill.ts` the count-guard error message, append `" — a removed call needs owner-role DELETE on calls (ingest cannot); see Plan 3b deletion policy."`
 
 - [ ] **Step 4: Typecheck + commit**
 
@@ -62,6 +65,7 @@ Run: `bunx tsc --noEmit` → expect 0. Commit: `fix(serve): require role URLs un
 The three fetchers each inline the `import.meta.env.SSR && serverUseDb()` DB branch + static fetch. The API routes (Task 2) need the **DB-or-throw** read without the static fetch. Extract the read decision so both the API route and the existing SSR fetchers share one path.
 
 **Files:**
+
 - Modify: `src/lib/data.ts`
 - Test: `src/lib/data.test.ts` (create — the never-committed test from Plan 1; review LOW)
 
@@ -112,6 +116,7 @@ export async function readFromDbOrNull<T>(read: () => Promise<T>): Promise<T | n
 ### Task 2: GET API routes for dataset / prices / calls-index
 
 **Files:**
+
 - Create: `src/routes/api/dataset.$handle.ts`
 - Create: `src/routes/api/prices.$symbol.ts`
 - Create: `src/routes/api/calls-index.ts`
@@ -129,6 +134,7 @@ Each route: under SSR+USE_DB read DB (via the dynamic `db-read` import, gated by
 ### Task 3: CDN caching via routeRules (the approved mechanism)
 
 **Files:**
+
 - Modify: `vite.config.ts` (`nitro.routeRules`)
 
 - [ ] **Step 1: Add `swr` rules for the API + page routes**
@@ -158,6 +164,7 @@ Run `USE_DB=0 bunx vite build` and confirm `.vercel/output/config.json` contains
 ### Task 4: Client fetchers read the cached API routes (review H2 fix)
 
 **Files:**
+
 - Modify: `src/lib/data.ts`
 
 - [ ] **Step 1:** Change the client/non-SSR branch of `fetchDataset`/`fetchPrices`/`fetchCallsIndex` to fetch `/api/dataset/${handle}` / `/api/prices/${symbol}` / `/api/calls-index` (relative on client, `siteUrl()` on SSR) **instead of** the static `/datasets|prices|calls-index` assets. Keep the static asset read as a final `catch` fallback so a cold/broken API route still serves something.
@@ -170,6 +177,7 @@ Run `USE_DB=0 bunx vite build` and confirm `.vercel/output/config.json` contains
 ### Task 5: "Data as of" staleness UI
 
 **Files:**
+
 - Modify: a shared layout/footer component (e.g. the creator-page header or `WorkspaceRail`); reuse `Dataset.generatedAt` / the artifact `generatedAt`.
 
 - [ ] **Step 1:** Render a subtle "Data as of <relative time>" from `generatedAt` on the creator and explore pages, so a cached-but-stale view is visible (TTL ≤6h means up to 6h stale is expected).
@@ -181,6 +189,7 @@ Run `USE_DB=0 bunx vite build` and confirm `.vercel/output/config.json` contains
 ### Task 6: Parity covers the artifact + `db:sync` chains backfill→materialize (review M2)
 
 **Files:**
+
 - Modify: `scripts/parity-check.ts`
 - Modify: `package.json` (add `db:sync`)
 
@@ -194,6 +203,7 @@ Run `USE_DB=0 bunx vite build` and confirm `.vercel/output/config.json` contains
 ### Task 7: Reconcile the frozen-prices restatement contract (review H1)
 
 **Files:**
+
 - Modify: `src/lib/prices-merge.ts`
 - Modify: `db/backfill.ts` (collision detection)
 - Modify: `CLAUDE.md` (restatement runbook)
@@ -202,11 +212,15 @@ Run `USE_DB=0 bunx vite build` and confirm `.vercel/output/config.json` contains
 
 ```ts
 // existing date keeps its old OHLC; only genuinely-new dates are added
-expect(mergePrices([{date:"2026-01-02",o:1,h:1,l:1,c:1}], [{date:"2026-01-02",o:2,h:2,l:2,c:2}]))
-  .toEqual([{date:"2026-01-02",o:1,h:1,l:1,c:1}]);
+expect(
+  mergePrices(
+    [{ date: "2026-01-02", o: 1, h: 1, l: 1, c: 1 }],
+    [{ date: "2026-01-02", o: 2, h: 2, l: 2, c: 2 }],
+  ),
+).toEqual([{ date: "2026-01-02", o: 1, h: 1, l: 1, c: 1 }]);
 ```
 
-- [ ] **Step 2:** Flip `prices-merge.ts` to existing-wins. In `db/backfill.ts` `backfillPrices`, detect a collision whose values *differ* and `console.warn` it (so an intentional restatement is visible, not silently dropped) instead of bare `onConflictDoNothing`.
+- [ ] **Step 2:** Flip `prices-merge.ts` to existing-wins. In `db/backfill.ts` `backfillPrices`, detect a collision whose values _differ_ and `console.warn` it (so an intentional restatement is visible, not silently dropped) instead of bare `onConflictDoNothing`.
 - [ ] **Step 3:** Add a CLAUDE.md runbook: an intentional split/dividend restatement is an owner-role operation (`UPDATE prices …` as owner) followed by re-running the per-creator `score` and `parity-check`; the ingest/serve roles deliberately cannot do it.
 - [ ] **Step 4: Run tests → PASS. Commit** `fix(prices): insert-only shared-store merge matches frozen DB (review H1)`.
 
@@ -215,6 +229,7 @@ expect(mergePrices([{date:"2026-01-02",o:1,h:1,l:1,c:1}], [{date:"2026-01-02",o:
 ### Task 8: Manual revalidation/purge seam (for Plan 3b)
 
 **Files:**
+
 - Create: `src/routes/api/revalidate.ts` (POST, token-guarded)
 
 - [ ] **Step 1:** A POST route that, given a secret token (`REVALIDATE_TOKEN` env) and a list of paths/tags, calls Vercel's purge for those CDN entries — the hook ingest will call in Plan 3b. In 3a it's operator-callable + tested for auth rejection only (no ingest yet).

@@ -66,6 +66,7 @@ Rettiwt-API is native TypeScript (fits the Bun stack), actively maintained
 ## Extraction: extract-x
 
 For each tweet:
+
 1. If it has images, run the vision model on each (reuse the shared image-read
    helper) to capture on-screen ticker/price hints — this catches calls stated
    only inside a chart screenshot.

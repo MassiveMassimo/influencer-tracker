@@ -2,7 +2,7 @@
 
 Written against commit `69c94f0` (= current `origin/main`, has all of plans 001–008 merged).
 Source: a Fable-5 holistic review of the combined `9af3f0c..HEAD` diff found issues that
-per-branch review structurally could not see (they emerge only from the *combination* + the
+per-branch review structurally could not see (they emerge only from the _combination_ + the
 Linux CI runner). All four ranked findings are confirmed real. Fix all four plus three minors.
 
 **Verification gates:** `bunx tsc --noEmit` (exit 0) and `bun test` (0 fail). The `#/` alias = `src/`.
@@ -65,22 +65,27 @@ while the shared store + DB keep frozen ones, and `backfillPrices` would warn on
 bars are never rewritten. Current loop body (`pipeline/prices.ts` ~lines 31–52):
 
 ```ts
-    const out = join(pricesDir(handle), `${t}.json`);
-    if (existsSync(out)) {
-      try {
-        const cached = JSON.parse(await readFile(out, "utf8"));
-        if (cacheCovers(cached, from)) continue;
-        console.warn(`REFETCH ${t}: cache misses coverage (...)`);
-      } catch {
-        console.warn(`REFETCH ${t}: unreadable cache`);
-      }
-    }
-    try {
-      const ohlc = await fetchOhlc(t, from);
-      if (!ohlc.length) { console.warn(`FLAG ${t}: no price data`); continue; }
-      await writeFile(out, JSON.stringify(ohlc));
-      console.log(`prices ${t}: ${ohlc.length} bars`);
-    } catch (e) { console.warn(`FLAG ${t}: ${(e as Error).message}`); }
+const out = join(pricesDir(handle), `${t}.json`);
+if (existsSync(out)) {
+  try {
+    const cached = JSON.parse(await readFile(out, "utf8"));
+    if (cacheCovers(cached, from)) continue;
+    console.warn(`REFETCH ${t}: cache misses coverage (...)`);
+  } catch {
+    console.warn(`REFETCH ${t}: unreadable cache`);
+  }
+}
+try {
+  const ohlc = await fetchOhlc(t, from);
+  if (!ohlc.length) {
+    console.warn(`FLAG ${t}: no price data`);
+    continue;
+  }
+  await writeFile(out, JSON.stringify(ohlc));
+  console.log(`prices ${t}: ${ohlc.length} bars`);
+} catch (e) {
+  console.warn(`FLAG ${t}: ${(e as Error).message}`);
+}
 ```
 
 Hoist the parsed cache so it's available at write time, and merge:
@@ -94,12 +99,15 @@ Hoist the parsed cache so it's available at write time, and merge:
   `await writeFile(out, JSON.stringify(ohlc));` with:
 
 ```ts
-      const fetched = await fetchOhlc(t, from);
-      if (!fetched.length) { console.warn(`FLAG ${t}: no price data`); continue; }
-      // Existing-wins merge: never rewrite a frozen scored bar; append only new dates.
-      const ohlc = mergePrices(cachedBars, fetched);
-      await writeFile(out, JSON.stringify(ohlc));
-      console.log(`prices ${t}: ${ohlc.length} bars`);
+const fetched = await fetchOhlc(t, from);
+if (!fetched.length) {
+  console.warn(`FLAG ${t}: no price data`);
+  continue;
+}
+// Existing-wins merge: never rewrite a frozen scored bar; append only new dates.
+const ohlc = mergePrices(cachedBars, fetched);
+await writeFile(out, JSON.stringify(ohlc));
+console.log(`prices ${t}: ${ohlc.length} bars`);
 ```
 
 (The empty-result guard now checks `fetched`, not the merged result.)
@@ -118,7 +126,7 @@ mock Yahoo. The `cacheCovers` tests already gate the trigger; the invariant is e
 **Why:** `classify()`'s contract (its own doc comment) is "throws on an unreadable reply so the
 caller's retry loop re-runs the post." The X path honors that (heal loop retries un-done tweets).
 The IG loop (`pipeline/extract.ts` ~lines 38–44) has **no retry** and its blanket `catch` swallows
-*every* throw — an exhausted-backoff 429, a network outage, an unset `GROQ_API_KEY` (thrown lazily
+_every_ throw — an exhausted-backoff 429, a network outage, an unset `GROQ_API_KEY` (thrown lazily
 inside `groq()` at `pipeline/groq.ts`) — logs "skip", and lets the run finish, writing a silently
 incomplete `reel-calls.json`. Before plan 002 those errors crashed loudly.
 
@@ -129,29 +137,29 @@ incomplete `reel-calls.json`. Before plan 002 those errors crashed loudly.
 **Change:** current catch:
 
 ```ts
-    let c;
-    try {
-      c = await classify(text, body);
-    } catch (e) {
-      console.warn(`skip ${code}: classify failed — ${(e as Error).message}`);
-      continue;
-    }
+let c;
+try {
+  c = await classify(text, body);
+} catch (e) {
+  console.warn(`skip ${code}: classify failed — ${(e as Error).message}`);
+  continue;
+}
 ```
 
 becomes:
 
 ```ts
-    let c;
-    try {
-      c = await classify(text, body);
-    } catch (e) {
-      // classify() throws "classify: ..." only on an unparseable reply (skip the post).
-      // Transport/auth failures (429 past backoff, network, missing GROQ_API_KEY) are NOT
-      // per-post and must surface loudly, not silently truncate reel-calls.json.
-      if (!(e as Error).message.startsWith("classify:")) throw e;
-      console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
-      continue;
-    }
+let c;
+try {
+  c = await classify(text, body);
+} catch (e) {
+  // classify() throws "classify: ..." only on an unparseable reply (skip the post).
+  // Transport/auth failures (429 past backoff, network, missing GROQ_API_KEY) are NOT
+  // per-post and must surface loudly, not silently truncate reel-calls.json.
+  if (!(e as Error).message.startsWith("classify:")) throw e;
+  console.warn(`skip ${code}: unparseable classify reply — ${(e as Error).message}`);
+  continue;
+}
 ```
 
 **Also (minor, same file): reorder so the free local check runs before the paid call.**
@@ -160,13 +168,19 @@ runs first, so a reel with no `upload_date` burns a Groq call then gets skipped.
 `postDate` computation + null-skip ABOVE the classify try/catch:
 
 ```ts
-    const postDate = await postDateOf(handle, code);
-    if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); continue; }
-    let c;
-    try { c = await classify(text, body); }
-    catch (e) { /* as above */ }
-    const rc = toReelCall(c, code, postDate);
-    if (rc) out.push(rc);
+const postDate = await postDateOf(handle, code);
+if (postDate == null) {
+  console.warn(`skip ${code}: no upload_date in info.json`);
+  continue;
+}
+let c;
+try {
+  c = await classify(text, body);
+} catch (e) {
+  /* as above */
+}
+const rc = toReelCall(c, code, postDate);
+if (rc) out.push(rc);
 ```
 
 **Test:** add to `pipeline/extract.test.ts` — if the test harness can inject a `classify` that
@@ -193,6 +207,7 @@ length cap** — `"2026-01-01" + 10MB` passes, lands verbatim in the "All" cache
 `SI1!`, `BTC-USD`, and reject `/ ? # \ %` + null bytes). Reuse it.
 
 **Change:**
+
 - Import it: `import { isSafeAssetKey } from "#/lib/api-serve";` (or the matching relative path used
   by other imports in chart-fetch.ts — check the file's existing import style and match it).
 - `symbol: z.string().min(1).max(40).refine(isSafeAssetKey, "unsafe symbol")`
@@ -233,6 +248,7 @@ deliberately skipped in the status; do not implement.
 ---
 
 ## Done criteria (all must hold)
+
 1. `bunx tsc --noEmit` → exit 0.
 2. `bun test` → 0 fail (skips allowed).
 3. The Fix-1 repro `bun test src/lib/data.test.ts src/lib/chart-fetch.test.ts src/lib/chart-query.test.ts`
@@ -240,11 +256,13 @@ deliberately skipped in the status; do not implement.
 4. Every change above present; M3 deliberately absent.
 
 ## Out of scope (do not touch)
+
 - `data/creators/**`, `data/prices/**`, `public/**` — no data regeneration.
 - Re-scoring — that's a separate operator step.
 - Any file not named above.
 
 ## Status
+
 DONE — merged to `main` (commit `6029f1f`, ff from `69c94f0`) and pushed to `origin/main`.
 Executed by a fresh-context Fable executor in an isolated worktree, advisor-reviewed (diff +
 re-run done criteria), then merged. Verification on the merged tree: `bunx tsc --noEmit` exit 0;

@@ -9,7 +9,8 @@
 **Tech Stack:** drizzle-orm + `@neondatabase/serverless` (neon-http), Neon Postgres, zod v4, TanStack Router/Start, `bun test`. `#/` → `src/`. Builds directly on Plan 1 (`db/schema.ts`, `db/client.ts`, `src/lib/db-read.ts`, `src/lib/data.ts`).
 
 **Scope boundary (YAGNI):**
-- **No new chart.** `/t/$symbol` aggregates *who* called a ticker and *how accurate* they were, and links to each creator's existing per-creator chart page (`/c/$handle/ticker/$symbol`). A merged multi-creator price chart is deferred — the cross-creator value is the aggregation, the chart already exists per-creator.
+
+- **No new chart.** `/t/$symbol` aggregates _who_ called a ticker and _how accurate_ they were, and links to each creator's existing per-creator chart page (`/c/$handle/ticker/$symbol`). A merged multi-creator price chart is deferred — the cross-creator value is the aggregation, the chart already exists per-creator.
 - **No leaderboard rewrite.** The home page (`src/routes/index.tsx`) already ranks creators from `index.json`; it is unchanged. "Creator search" is covered by the explorer's creator filter + the existing roster list, not a separate search route.
 - **No ingest wiring.** `db:materialize` is run manually in this plan; Plan 3 wires it into the ingest run. `review_queue` / `reject_audit` / cache invalidation / monitoring stay in Plans 3–4.
 - **No server-side faceted query path.** Filter/sort/search are client-side over the slim index (spec: deferred until the ~50k-row crossover).
@@ -23,6 +24,7 @@
 ### Task 0: Make the client-bundle guard statically eliminable (Plan 1 review finding 2)
 
 **Files:**
+
 - Modify: `src/lib/data.ts`
 
 The Fable review proved (by building + grepping the client output) that neon/drizzle currently ship as lazy client chunks (~225 KB of dead, unreachable weight) because `typeof window === "undefined"` is a runtime check Rollup cannot eliminate. Plan 2's new `fetchCallsIndex` reuses the same `serverUseDb()` guard, so fix it once here — this also makes Task 11's "no neon in client bundle" gate actually pass.
@@ -30,12 +32,14 @@ The Fable review proved (by building + grepping the client output) that neon/dri
 - [ ] **Step 1: Change `serverUseDb` in `src/lib/data.ts`**
 
 Replace the existing `const serverUseDb = () => typeof window === "undefined" && process.env.USE_DB === "1";` with:
+
 ```ts
 // import.meta.env.SSR is statically replaced with `false` in the client build, so Rollup
 // dead-code-eliminates the DB branch and never emits the neon/drizzle chunks at all. The
 // window guard stays as belt-and-braces. (Plan 1 review finding: the runtime-only window
 // check left neon as dead-but-present ~225 KB client chunks.)
-const serverUseDb = () => import.meta.env.SSR && typeof window === "undefined" && process.env.USE_DB === "1";
+const serverUseDb = () =>
+  import.meta.env.SSR && typeof window === "undefined" && process.env.USE_DB === "1";
 ```
 
 - [ ] **Step 2: Typecheck**
@@ -55,6 +59,7 @@ git commit -m "fix(data): statically eliminable DB guard so neon stays out of cl
 ### Task 1: Add the `artifacts` table to the schema
 
 **Files:**
+
 - Modify: `db/schema.ts`
 - Create (generated): `db/migrations/0001_*.sql`
 
@@ -82,7 +87,7 @@ Expected: a new `db/migrations/0001_*.sql` with `CREATE TABLE "artifacts" (...)`
 - [ ] **Step 3: Apply the migration**
 
 Run: `bun run db:migrate`
-Expected: `[✓] migrations applied successfully` (or "No migrations to apply" if already run). Verify: `bun run -e 'import {getDb} from "./db/client"; import {sql} from "drizzle-orm"; const r = await getDb().execute(sql\`select to_regclass(\'public.artifacts\') as t\`); console.log(r.rows ?? r);'` prints a non-null `artifacts`.
+Expected: `[✓] migrations applied successfully` (or "No migrations to apply" if already run). Verify: `bun run -e 'import {getDb} from "./db/client"; import {sql} from "drizzle-orm"; const r = await getDb().execute(sql\`select to_regclass(\'public.artifacts\') as t\`); console.log(r.rows ?? r);'`prints a non-null`artifacts`.
 
 - [ ] **Step 4: Commit**
 
@@ -98,6 +103,7 @@ git commit -m "feat(db): add artifacts table for materialized serve payloads"
 ### Task 2: `buildCallsIndex` — the slim cross-creator projection
 
 **Files:**
+
 - Create: `src/lib/call-index.ts`
 - Test: `src/lib/call-index.test.ts`
 
@@ -112,8 +118,13 @@ import type { Dataset, Call } from "./types";
 
 function call(over: Partial<Call> & { shortcode: string; ticker: string; postDate: string }): Call {
   return {
-    company: "Acme", isFirstCall: true, conviction: 0.5, quote: "buy it",
-    summary: "thesis", onScreenPrice: null, spark: [1, 2, 3],
+    company: "Acme",
+    isFirstCall: true,
+    conviction: 0.5,
+    quote: "buy it",
+    summary: "thesis",
+    onScreenPrice: null,
+    spark: [1, 2, 3],
     returns: {
       "1w": { stock: null, spy: null, excess: null },
       "1m": { stock: null, spy: null, excess: null },
@@ -125,11 +136,20 @@ function call(over: Partial<Call> & { shortcode: string; ticker: string; postDat
 }
 function ds(handle: string, calls: Call[]): Dataset {
   return {
-    creator: { handle, name: handle.toUpperCase() }, generatedAt: "2026-06-01",
-    spyAnchor: "SPY", calls,
-    scorecard: { totalCalls: calls.length, uniqueTickers: 1, hitRate: { "1m": 0, "3m": 0 },
-      hitRateN: { "1m": 0, "3m": 0 }, avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0 },
-      callsPerWeek: 0, best: [], worst: [] },
+    creator: { handle, name: handle.toUpperCase() },
+    generatedAt: "2026-06-01",
+    spyAnchor: "SPY",
+    calls,
+    scorecard: {
+      totalCalls: calls.length,
+      uniqueTickers: 1,
+      hitRate: { "1m": 0, "3m": 0 },
+      hitRateN: { "1m": 0, "3m": 0 },
+      avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0 },
+      callsPerWeek: 0,
+      best: [],
+      worst: [],
+    },
     caveats: [],
   };
 }
@@ -164,7 +184,9 @@ test("orders by postDate desc, then handle, then shortcode (deterministic)", () 
 });
 
 test("output validates against CallIndexSchema", () => {
-  const out = buildCallsIndex([ds("alice", [call({ shortcode: "a1", ticker: "NVDA", postDate: "2026-05-01" })])]);
+  const out = buildCallsIndex([
+    ds("alice", [call({ shortcode: "a1", ticker: "NVDA", postDate: "2026-05-01" })]),
+  ]);
   expect(() => CallIndexSchema.parse(out)).not.toThrow();
 });
 ```
@@ -263,6 +285,7 @@ git commit -m "feat(call-index): slim cross-creator call projection"
 ### Task 3: `readCallsIndex` — read the artifact from the DB
 
 **Files:**
+
 - Modify: `src/lib/db-read.ts`
 - Test: `src/lib/db-read.test.ts:1-50` (extend the existing env-gated golden-master suite)
 
@@ -271,6 +294,7 @@ git commit -m "feat(call-index): slim cross-creator call projection"
 Append a new `test(...)` inside the existing `describe.skipIf(!RUN)("DB read golden master", ...)` block in `src/lib/db-read.test.ts` (after the `readPrices` test, before the closing `});`). Also import the materialize helpers at the top.
 
 Add to the imports at the top of the file:
+
 ```ts
 import { buildCallsIndex } from "./call-index";
 import { artifacts } from "../../db/schema";
@@ -278,17 +302,25 @@ import { readCallsIndex } from "./db-read";
 ```
 
 Add this test inside the `describe` block:
+
 ```ts
-  test("readCallsIndex deep-equals buildCallsIndex over all datasets", async () => {
-    const datasets = await Promise.all(index.map((e: { handle: string }) => readDataset(db, e.handle)));
-    const expected = buildCallsIndex(datasets);
-    await db.insert(artifacts)
-      .values({ key: "calls-index", payload: expected, generatedAt: "2026-06-10" })
-      .onConflictDoUpdate({ target: artifacts.key, set: { payload: expected, generatedAt: "2026-06-10" } });
-    const fromDb = await readCallsIndex(db);
-    expect(fromDb).toEqual(expected);
-  });
+test("readCallsIndex deep-equals buildCallsIndex over all datasets", async () => {
+  const datasets = await Promise.all(
+    index.map((e: { handle: string }) => readDataset(db, e.handle)),
+  );
+  const expected = buildCallsIndex(datasets);
+  await db
+    .insert(artifacts)
+    .values({ key: "calls-index", payload: expected, generatedAt: "2026-06-10" })
+    .onConflictDoUpdate({
+      target: artifacts.key,
+      set: { payload: expected, generatedAt: "2026-06-10" },
+    });
+  const fromDb = await readCallsIndex(db);
+  expect(fromDb).toEqual(expected);
+});
 ```
+
 (The `beforeAll` already backfills `creators`/`calls`; add `artifacts` to its `TRUNCATE` list: change `TRUNCATE creators, calls, prices` to `TRUNCATE creators, calls, prices, artifacts`.)
 
 - [ ] **Step 2: Run it to verify it fails**
@@ -299,13 +331,16 @@ Expected (with a test branch set): FAIL — `readCallsIndex` is not exported. Wi
 - [ ] **Step 3: Implement in `src/lib/db-read.ts`**
 
 Add `artifacts` to the schema import and a new export:
+
 ```ts
 // change the existing import line:
 import { creators, calls, prices, artifacts } from "../../db/schema";
 // add near the other imports:
 import { CallIndexSchema, type CallIndexEntry } from "./call-index";
 ```
+
 Append the function:
+
 ```ts
 export async function readCallsIndex(db: Db): Promise<CallIndexEntry[]> {
   const [row] = await db.select().from(artifacts).where(eq(artifacts.key, "calls-index"));
@@ -331,6 +366,7 @@ git commit -m "feat(db-read): readCallsIndex from the artifacts table"
 ### Task 4: `fetchCallsIndex` — serve with the `USE_DB` + static fallback
 
 **Files:**
+
 - Modify: `src/lib/data.ts`
 
 This mirrors `fetchDataset()` exactly: window-guarded DB read under `USE_DB=1`, dynamic import so neon never enters the client bundle, static asset otherwise, fallback-to-static on any DB error.
@@ -338,10 +374,13 @@ This mirrors `fetchDataset()` exactly: window-guarded DB read under `USE_DB=1`, 
 - [ ] **Step 1: Add to `src/lib/data.ts`**
 
 Add the import near the top (next to the other `./` imports):
+
 ```ts
 import { CallIndexSchema, type CallIndexEntry } from "./call-index";
 ```
+
 Append after `fetchPrices`:
+
 ```ts
 // Slim cross-creator calls index (Plan 2). One cached asset for the /explore and
 // /t/$symbol routes; all filter/sort/search is client-side over it. DB-first under
@@ -381,6 +420,7 @@ git commit -m "feat(data): fetchCallsIndex serve path (DB-first + static fallbac
 ### Task 5: `scripts/materialize.ts` — write the artifact from the DB ledger
 
 **Files:**
+
 - Create: `scripts/materialize.ts`
 - Modify: `package.json` (add `db:materialize` script)
 
@@ -405,7 +445,9 @@ async function main() {
     .insert(artifacts)
     .values({ key: "calls-index", payload: callsIndex, generatedAt })
     .onConflictDoUpdate({ target: artifacts.key, set: { payload: callsIndex, generatedAt } });
-  console.log(`materialized calls-index: ${callsIndex.length} calls across ${index.length} creators`);
+  console.log(
+    `materialized calls-index: ${callsIndex.length} calls across ${index.length} creators`,
+  );
 }
 
 main()
@@ -419,6 +461,7 @@ main()
 - [ ] **Step 2: Add the script to `package.json`**
 
 In the `"scripts"` block, after `"db:roles"`:
+
 ```json
     "db:materialize": "bun run scripts/materialize.ts",
 ```
@@ -440,6 +483,7 @@ git commit -m "feat(db): db:materialize writes the slim calls-index artifact"
 ### Task 6: Static `calls-index.json` in prebuild + end-to-end serve check
 
 **Files:**
+
 - Modify: `scripts/prebuild.ts`
 
 The static asset is the `USE_DB=0` / panic-fallback source, written at build time like `public/datasets/*.json`.
@@ -447,14 +491,18 @@ The static asset is the `USE_DB=0` / panic-fallback source, written at build tim
 - [ ] **Step 1: Add to `scripts/prebuild.ts`**
 
 Add the import at the top (next to the `renderOgPng` import):
+
 ```ts
 import { buildCallsIndex } from "../src/lib/call-index";
 import type { Dataset } from "../src/lib/types";
 ```
+
 In `main()`, the per-creator loop (the one that does `cpSync(... dataset.json ...)`) already reads each `ds`. Collect them: declare `const datasets: Dataset[] = [];` just before that loop, push each `ds` (`datasets.push(ds as Dataset);`) inside it, then after the loop and before the `llms.txt` write add:
+
 ```ts
-  writeFileSync(join(PUB, "calls-index.json"), JSON.stringify(buildCallsIndex(datasets)));
+writeFileSync(join(PUB, "calls-index.json"), JSON.stringify(buildCallsIndex(datasets)));
 ```
+
 Update the final `console.log` to mention it (append `+ calls-index` to the message).
 
 - [ ] **Step 2: Run prebuild and verify the static asset**
@@ -467,9 +515,11 @@ Expected: `893` and a slim entry with `handle`/`ticker`/`ex3m` and NO `quote`/`s
 - [ ] **Step 3: Cross-check DB vs static parity**
 
 Run:
+
 ```bash
 bun run -e 'import {getDb} from "./db/client"; import {readCallsIndex} from "./src/lib/db-read"; const db=await readCallsIndex(getDb()); const stat=await Bun.file("public/calls-index.json").json(); console.log("db",db.length,"static",stat.length,"equal",JSON.stringify(db)===JSON.stringify(stat));'
 ```
+
 Expected: `db 893 static 893 equal true` (both come from `buildCallsIndex` over the same data; if `false`, the DB is stale — re-run `db:materialize`).
 
 - [ ] **Step 4: Commit**
@@ -484,6 +534,7 @@ git commit -m "feat(prebuild): emit static public/calls-index.json fallback asse
 ### Task 7: `call-filter.ts` — explorer filter/sort + ticker summary (pure, tested)
 
 **Files:**
+
 - Create: `src/lib/call-filter.ts`
 - Test: `src/lib/call-filter.test.ts`
 
@@ -501,38 +552,98 @@ import type { CallIndexEntry } from "./call-index";
 const NAMES: Record<string, string> = { alice: "Alice Smith", bob: "Bob Jones" };
 function e(over: Partial<CallIndexEntry> & { shortcode: string }): CallIndexEntry {
   return {
-    handle: "alice", ticker: "NVDA", company: "Nvidia", postDate: "2026-05-01",
-    isFirstCall: true, conviction: 0.5, ex3m: 0.05, exToDate: 0.1, stockToDate: 0.2,
-    summary: "ai chips", ...over,
+    handle: "alice",
+    ticker: "NVDA",
+    company: "Nvidia",
+    postDate: "2026-05-01",
+    isFirstCall: true,
+    conviction: 0.5,
+    ex3m: 0.05,
+    exToDate: 0.1,
+    stockToDate: 0.2,
+    summary: "ai chips",
+    ...over,
   };
 }
 const ROWS: CallIndexEntry[] = [
-  e({ shortcode: "1", handle: "alice", ticker: "NVDA", postDate: "2026-05-03", ex3m: 0.2, exToDate: 0.3 }),
-  e({ shortcode: "2", handle: "bob", ticker: "AMD", company: "AMD", summary: "cpus", postDate: "2026-05-01", ex3m: -0.1, exToDate: -0.05, isFirstCall: false }),
-  e({ shortcode: "3", handle: "alice", ticker: "AMD", company: "AMD", postDate: "2026-05-02", ex3m: 0.0, exToDate: 0.0 }),
+  e({
+    shortcode: "1",
+    handle: "alice",
+    ticker: "NVDA",
+    postDate: "2026-05-03",
+    ex3m: 0.2,
+    exToDate: 0.3,
+  }),
+  e({
+    shortcode: "2",
+    handle: "bob",
+    ticker: "AMD",
+    company: "AMD",
+    summary: "cpus",
+    postDate: "2026-05-01",
+    ex3m: -0.1,
+    exToDate: -0.05,
+    isFirstCall: false,
+  }),
+  e({
+    shortcode: "3",
+    handle: "alice",
+    ticker: "AMD",
+    company: "AMD",
+    postDate: "2026-05-02",
+    ex3m: 0.0,
+    exToDate: 0.0,
+  }),
 ];
-const BASE: CallFilter = { search: "", handles: [], firstOnly: false, beatSpyOnly: false, horizon: "ex3m", sort: { key: "postDate", dir: -1 } };
+const BASE: CallFilter = {
+  search: "",
+  handles: [],
+  firstOnly: false,
+  beatSpyOnly: false,
+  horizon: "ex3m",
+  sort: { key: "postDate", dir: -1 },
+};
 
 test("default: all rows, sorted by postDate desc", () => {
   expect(applyCallFilter(ROWS, BASE, NAMES).map((r) => r.shortcode)).toEqual(["1", "3", "2"]);
 });
 test("creator filter narrows to selected handles", () => {
-  expect(applyCallFilter(ROWS, { ...BASE, handles: ["bob"] }, NAMES).map((r) => r.shortcode)).toEqual(["2"]);
+  expect(
+    applyCallFilter(ROWS, { ...BASE, handles: ["bob"] }, NAMES).map((r) => r.shortcode),
+  ).toEqual(["2"]);
 });
 test("firstOnly drops non-first calls", () => {
-  expect(applyCallFilter(ROWS, { ...BASE, firstOnly: true }, NAMES).map((r) => r.shortcode)).toEqual(["1", "3"]);
+  expect(
+    applyCallFilter(ROWS, { ...BASE, firstOnly: true }, NAMES).map((r) => r.shortcode),
+  ).toEqual(["1", "3"]);
 });
 test("beatSpyOnly keeps rows with positive excess at the chosen horizon", () => {
-  expect(applyCallFilter(ROWS, { ...BASE, beatSpyOnly: true, horizon: "ex3m" }, NAMES).map((r) => r.shortcode)).toEqual(["1"]);
+  expect(
+    applyCallFilter(ROWS, { ...BASE, beatSpyOnly: true, horizon: "ex3m" }, NAMES).map(
+      (r) => r.shortcode,
+    ),
+  ).toEqual(["1"]);
 });
 test("search matches ticker, company, summary, and creator name (case-insensitive)", () => {
-  expect(applyCallFilter(ROWS, { ...BASE, search: "amd" }, NAMES).map((r) => r.shortcode).sort()).toEqual(["2", "3"]);
-  expect(applyCallFilter(ROWS, { ...BASE, search: "bob jones" }, NAMES).map((r) => r.shortcode)).toEqual(["2"]);
-  expect(applyCallFilter(ROWS, { ...BASE, search: "cpus" }, NAMES).map((r) => r.shortcode)).toEqual(["2"]);
+  expect(
+    applyCallFilter(ROWS, { ...BASE, search: "amd" }, NAMES)
+      .map((r) => r.shortcode)
+      .sort(),
+  ).toEqual(["2", "3"]);
+  expect(
+    applyCallFilter(ROWS, { ...BASE, search: "bob jones" }, NAMES).map((r) => r.shortcode),
+  ).toEqual(["2"]);
+  expect(applyCallFilter(ROWS, { ...BASE, search: "cpus" }, NAMES).map((r) => r.shortcode)).toEqual(
+    ["2"],
+  );
 });
 test("sort by ex3m desc puts best first; nulls sort last", () => {
   const rows = [...ROWS, e({ shortcode: "4", ex3m: null })];
-  expect(applyCallFilter(rows, { ...BASE, sort: { key: "ex3m", dir: -1 } }, NAMES).map((r) => r.shortcode)).toEqual(["1", "3", "2", "4"]);
+  expect(
+    applyCallFilter(rows, { ...BASE, sort: { key: "ex3m", dir: -1 } }, NAMES).map(
+      (r) => r.shortcode,
+    ),
+  ).toEqual(["1", "3", "2", "4"]);
 });
 test("summarizeTicker aggregates one ticker across creators", () => {
   const s = summarizeTicker(ROWS, "AMD");
@@ -589,15 +700,18 @@ export function applyCallFilter(
       if (ex == null || ex <= 0) return false;
     }
     if (q) {
-      const hay = `${r.ticker} ${r.company} ${r.summary ?? ""} ${names[r.handle] ?? ""} ${r.handle}`.toLowerCase();
+      const hay =
+        `${r.ticker} ${r.company} ${r.summary ?? ""} ${names[r.handle] ?? ""} ${r.handle}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
   const { key, dir } = f.sort;
   return filtered.sort((a, b) => {
-    if (key === "postDate") return a.postDate.localeCompare(b.postDate) * dir || a.shortcode.localeCompare(b.shortcode);
-    if (key === "conviction") return (a.conviction - b.conviction) * dir || a.shortcode.localeCompare(b.shortcode);
+    if (key === "postDate")
+      return a.postDate.localeCompare(b.postDate) * dir || a.shortcode.localeCompare(b.shortcode);
+    if (key === "conviction")
+      return (a.conviction - b.conviction) * dir || a.shortcode.localeCompare(b.shortcode);
     return cmpNullable(a[key], b[key], dir) || a.shortcode.localeCompare(b.shortcode);
   });
 }
@@ -636,12 +750,17 @@ export function summarizeTicker(rows: CallIndexEntry[], symbol: string): TickerS
     byHandle.set(r.handle, arr);
   }
   const byCreator: TickerCreatorRow[] = [...byHandle.entries()].map(([handle, cs]) => {
-    const first = cs.find((c) => c.isFirstCall) ?? [...cs].sort((a, b) => a.postDate.localeCompare(b.postDate))[0];
+    const first =
+      cs.find((c) => c.isFirstCall) ??
+      [...cs].sort((a, b) => a.postDate.localeCompare(b.postDate))[0];
     return {
       handle,
       callCount: cs.length,
       firstCallDate: first?.postDate ?? null,
-      bestEx3m: cs.reduce<number | null>((m, c) => (c.ex3m != null && (m == null || c.ex3m > m) ? c.ex3m : m), null),
+      bestEx3m: cs.reduce<number | null>(
+        (m, c) => (c.ex3m != null && (m == null || c.ex3m > m) ? c.ex3m : m),
+        null,
+      ),
       ex3m: first?.ex3m ?? null,
       exToDate: first?.exToDate ?? null,
     };
@@ -676,6 +795,7 @@ git commit -m "feat(call-filter): explorer filter/sort + cross-creator ticker su
 ### Task 8: `/explore` — all-calls explorer route
 
 **Files:**
+
 - Create: `src/routes/explore.tsx`
 
 Loads the slim index + roster, filters/sorts/searches entirely client-side. Reuse the formatting helpers' style from `src/routes/index.tsx` (`pct`/`signed`) and the lina `ScrollArea` for the table (per the project scroll-area convention). No DB at request time beyond the one cached `fetchCallsIndex()`.
@@ -697,7 +817,10 @@ export const Route = createFileRoute("/explore")({
   head: () => ({
     meta: [
       { title: "Explore all calls — Signal Tracker" },
-      { name: "description", content: "Filter, sort, and search every scored stock call across all tracked creators." },
+      {
+        name: "description",
+        content: "Filter, sort, and search every scored stock call across all tracked creators.",
+      },
       { property: "og:url", content: siteUrl("/explore") },
       { property: "og:image", content: siteUrl("/og.png") },
     ],
@@ -709,28 +832,51 @@ function signed(x: number | null) {
   return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
 }
 function tone(x: number | null) {
-  return x == null ? "text-muted-foreground" : x > 0 ? "text-emerald-600 dark:text-emerald-400" : x < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground";
+  return x == null
+    ? "text-muted-foreground"
+    : x > 0
+      ? "text-emerald-600 dark:text-emerald-400"
+      : x < 0
+        ? "text-rose-600 dark:text-rose-400"
+        : "text-muted-foreground";
 }
 
 function Explore() {
   const { calls, creators } = Route.useLoaderData();
-  const names = useMemo(() => Object.fromEntries(creators.map((c) => [c.handle, c.name])), [creators]);
+  const names = useMemo(
+    () => Object.fromEntries(creators.map((c) => [c.handle, c.name])),
+    [creators],
+  );
   const [filter, setFilter] = useState<CallFilter>({
-    search: "", handles: [], firstOnly: false, beatSpyOnly: false, horizon: "ex3m", sort: { key: "postDate", dir: -1 },
+    search: "",
+    handles: [],
+    firstOnly: false,
+    beatSpyOnly: false,
+    horizon: "ex3m",
+    sort: { key: "postDate", dir: -1 },
   });
   const rows = useMemo(() => applyCallFilter(calls, filter, names), [calls, filter, names]);
   const onSort = (key: SortKey) =>
-    setFilter((f) => ({ ...f, sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 } }));
+    setFilter((f) => ({
+      ...f,
+      sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 },
+    }));
   const toggleHandle = (h: string) =>
-    setFilter((f) => ({ ...f, handles: f.handles.includes(h) ? f.handles.filter((x) => x !== h) : [...f.handles, h] }));
+    setFilter((f) => ({
+      ...f,
+      handles: f.handles.includes(h) ? f.handles.filter((x) => x !== h) : [...f.handles, h],
+    }));
 
   return (
     <main className="mx-auto max-w-6xl space-y-5 px-4 py-8 md:px-10 md:py-10">
       <header>
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">All calls · vs SPY</div>
+        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          All calls · vs SPY
+        </div>
         <h1 className="mt-1 font-heading text-2xl">Explore calls</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every scored call across all creators. Filter, sort, and search — all client-side over one cached index ({calls.length} calls).
+          Every scored call across all creators. Filter, sort, and search — all client-side over one
+          cached index ({calls.length} calls).
         </p>
       </header>
 
@@ -743,11 +889,19 @@ function Explore() {
           className="h-9 w-full max-w-xs rounded-md border border-border/60 bg-background px-3 text-sm outline-none focus:border-foreground/30 md:w-64"
         />
         <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <input type="checkbox" checked={filter.firstOnly} onChange={(e) => setFilter((f) => ({ ...f, firstOnly: e.target.checked }))} />
+          <input
+            type="checkbox"
+            checked={filter.firstOnly}
+            onChange={(e) => setFilter((f) => ({ ...f, firstOnly: e.target.checked }))}
+          />
           First calls only
         </label>
         <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <input type="checkbox" checked={filter.beatSpyOnly} onChange={(e) => setFilter((f) => ({ ...f, beatSpyOnly: e.target.checked }))} />
+          <input
+            type="checkbox"
+            checked={filter.beatSpyOnly}
+            onChange={(e) => setFilter((f) => ({ ...f, beatSpyOnly: e.target.checked }))}
+          />
           Beat SPY (3m)
         </label>
       </div>
@@ -773,10 +927,34 @@ function Explore() {
       <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
         <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.08em] md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5">
           <span>Call</span>
-          <button type="button" className="hidden text-right hover:text-foreground md:block" onClick={() => onSort("postDate")}>Date</button>
-          <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("conviction")}>Conv</button>
-          <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("ex3m")}>Excess 3m</button>
-          <button type="button" className="hidden text-right hover:text-foreground md:block" onClick={() => onSort("exToDate")}>Excess→now</button>
+          <button
+            type="button"
+            className="hidden text-right hover:text-foreground md:block"
+            onClick={() => onSort("postDate")}
+          >
+            Date
+          </button>
+          <button
+            type="button"
+            className="text-right hover:text-foreground"
+            onClick={() => onSort("conviction")}
+          >
+            Conv
+          </button>
+          <button
+            type="button"
+            className="text-right hover:text-foreground"
+            onClick={() => onSort("ex3m")}
+          >
+            Excess 3m
+          </button>
+          <button
+            type="button"
+            className="hidden text-right hover:text-foreground md:block"
+            onClick={() => onSort("exToDate")}
+          >
+            Excess→now
+          </button>
         </div>
         <ul className="divide-y divide-border/40">
           {rows.length === 0 ? (
@@ -787,15 +965,39 @@ function Explore() {
                 <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-3 md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <Link to="/t/$symbol" params={{ symbol: r.ticker }} className="font-medium text-sm text-foreground no-underline hover:underline">{r.ticker}</Link>
-                      <Link to="/c/$handle" params={{ handle: r.handle }} className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground">@{r.handle}</Link>
+                      <Link
+                        to="/t/$symbol"
+                        params={{ symbol: r.ticker }}
+                        className="font-medium text-sm text-foreground no-underline hover:underline"
+                      >
+                        {r.ticker}
+                      </Link>
+                      <Link
+                        to="/c/$handle"
+                        params={{ handle: r.handle }}
+                        className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground"
+                      >
+                        @{r.handle}
+                      </Link>
                     </div>
-                    {r.summary && <div className="truncate text-xs text-muted-foreground">{r.summary}</div>}
+                    {r.summary && (
+                      <div className="truncate text-xs text-muted-foreground">{r.summary}</div>
+                    )}
                   </div>
-                  <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">{r.postDate.slice(5)}</div>
-                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">{(r.conviction * 100).toFixed(0)}</div>
-                  <div className={`text-right font-mono text-sm tabular-nums ${tone(r.ex3m)}`}>{signed(r.ex3m)}</div>
-                  <div className={`hidden text-right font-mono text-sm tabular-nums md:block ${tone(r.exToDate)}`}>{signed(r.exToDate)}</div>
+                  <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
+                    {r.postDate.slice(5)}
+                  </div>
+                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">
+                    {(r.conviction * 100).toFixed(0)}
+                  </div>
+                  <div className={`text-right font-mono text-sm tabular-nums ${tone(r.ex3m)}`}>
+                    {signed(r.ex3m)}
+                  </div>
+                  <div
+                    className={`hidden text-right font-mono text-sm tabular-nums md:block ${tone(r.exToDate)}`}
+                  >
+                    {signed(r.exToDate)}
+                  </div>
                 </div>
               </li>
             ))
@@ -829,6 +1031,7 @@ git commit -m "feat(explore): all-calls explorer with client filter/sort/search"
 ### Task 9: `/t/$symbol` — cross-creator ticker view
 
 **Files:**
+
 - Create: `src/routes/t.$symbol.tsx`
 
 Aggregates one ticker across every creator who called it, ranked by 3-month excess, each row linking to that creator's existing per-creator chart page.
@@ -853,7 +1056,10 @@ export const Route = createFileRoute("/t/$symbol")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.symbol.toUpperCase()} — who called it · Signal Tracker` },
-      { name: "description", content: `Every tracked creator who called ${params.symbol.toUpperCase()}, ranked by forward return vs SPY.` },
+      {
+        name: "description",
+        content: `Every tracked creator who called ${params.symbol.toUpperCase()}, ranked by forward return vs SPY.`,
+      },
       { property: "og:url", content: siteUrl(`/t/${params.symbol.toUpperCase()}`) },
       { property: "og:image", content: siteUrl("/og.png") },
     ],
@@ -865,7 +1071,13 @@ function signed(x: number | null) {
   return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
 }
 function tone(x: number | null) {
-  return x == null ? "text-muted-foreground" : x > 0 ? "text-emerald-600 dark:text-emerald-400" : x < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground";
+  return x == null
+    ? "text-muted-foreground"
+    : x > 0
+      ? "text-emerald-600 dark:text-emerald-400"
+      : x < 0
+        ? "text-rose-600 dark:text-rose-400"
+        : "text-muted-foreground";
 }
 
 function TickerView() {
@@ -873,14 +1085,24 @@ function TickerView() {
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 md:px-10 md:py-10">
       <header>
-        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Cross-creator · vs SPY</div>
+        <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+          Cross-creator · vs SPY
+        </div>
         <h1 className="mt-1 font-heading text-2xl">{summary.symbol}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{summary.company}</p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label="Creators" value={String(summary.creatorCount)} />
           <Stat label="Calls" value={String(summary.callCount)} />
-          <Stat label="Avg excess 3m" value={signed(summary.avgEx3m)} toneClass={tone(summary.avgEx3m)} />
-          <Stat label="Avg excess→now" value={signed(summary.avgExToDate)} toneClass={tone(summary.avgExToDate)} />
+          <Stat
+            label="Avg excess 3m"
+            value={signed(summary.avgEx3m)}
+            toneClass={tone(summary.avgEx3m)}
+          />
+          <Stat
+            label="Avg excess→now"
+            value={signed(summary.avgExToDate)}
+            toneClass={tone(summary.avgExToDate)}
+          />
         </div>
       </header>
 
@@ -901,18 +1123,34 @@ function TickerView() {
               >
                 <div className="flex min-w-0 items-center gap-3">
                   {avatars[b.handle] ? (
-                    <img src={avatars[b.handle]} alt="" className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/60" />
+                    <img
+                      src={avatars[b.handle]}
+                      alt=""
+                      className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                    />
                   ) : (
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-[10px] uppercase ring-1 ring-border/60">{b.handle.slice(0, 2)}</div>
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-[10px] uppercase ring-1 ring-border/60">
+                      {b.handle.slice(0, 2)}
+                    </div>
                   )}
                   <div className="min-w-0">
-                    <div className="truncate font-medium text-sm text-foreground">{names[b.handle] ?? b.handle}</div>
-                    <div className="truncate font-mono text-xs text-muted-foreground">{b.callCount} call{b.callCount === 1 ? "" : "s"}</div>
+                    <div className="truncate font-medium text-sm text-foreground">
+                      {names[b.handle] ?? b.handle}
+                    </div>
+                    <div className="truncate font-mono text-xs text-muted-foreground">
+                      {b.callCount} call{b.callCount === 1 ? "" : "s"}
+                    </div>
                   </div>
                 </div>
-                <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">{b.firstCallDate?.slice(0, 7) ?? "—"}</div>
-                <div className={`text-right font-mono text-sm tabular-nums ${tone(b.ex3m)}`}>{signed(b.ex3m)}</div>
-                <div className={`text-right font-mono text-sm tabular-nums ${tone(b.exToDate)}`}>{signed(b.exToDate)}</div>
+                <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
+                  {b.firstCallDate?.slice(0, 7) ?? "—"}
+                </div>
+                <div className={`text-right font-mono text-sm tabular-nums ${tone(b.ex3m)}`}>
+                  {signed(b.ex3m)}
+                </div>
+                <div className={`text-right font-mono text-sm tabular-nums ${tone(b.exToDate)}`}>
+                  {signed(b.exToDate)}
+                </div>
               </Link>
             </li>
           ))}
@@ -922,10 +1160,20 @@ function TickerView() {
   );
 }
 
-function Stat({ label, value, toneClass = "text-foreground" }: { label: string; value: string; toneClass?: string }) {
+function Stat({
+  label,
+  value,
+  toneClass = "text-foreground",
+}: {
+  label: string;
+  value: string;
+  toneClass?: string;
+}) {
   return (
     <div className="rounded-xl border border-border/60 bg-foreground/[0.02] px-3 py-2.5">
-      <div className="font-mono text-[9px] text-muted-foreground uppercase tracking-[0.2em]">{label}</div>
+      <div className="font-mono text-[9px] text-muted-foreground uppercase tracking-[0.2em]">
+        {label}
+      </div>
       <div className={`mt-0.5 font-mono text-lg tabular-nums ${toneClass}`}>{value}</div>
     </div>
   );
@@ -949,6 +1197,7 @@ git commit -m "feat(ticker): cross-creator /t/$symbol view"
 ### Task 10: Nav wiring — Explore link in the rail
 
 **Files:**
+
 - Modify: `src/components/WorkspaceRail.tsx`
 
 Add an "Explore" item to the primary nav `<ul>` (the one currently holding only "Home"). `MobileNav` reuses `RailContent`, so it inherits this automatically. Do NOT touch `src/routes/__root.tsx` (it's being edited in parallel on `main` — avoid the conflict).
@@ -956,25 +1205,28 @@ Add an "Explore" item to the primary nav `<ul>` (the one currently holding only 
 - [ ] **Step 1: Add the nav item**
 
 In `src/components/WorkspaceRail.tsx`, change the icon import:
+
 ```ts
 import { CompassIcon, HomeIcon, LineChartIcon, SettingsIcon, UsersIcon } from "lucide-react";
 ```
+
 In the primary nav `<ul className="flex flex-col gap-0.5">` (the one with the Home `<li>`), add a second `<li>` after the Home one:
+
 ```tsx
-          <li>
-            <Link
-              to="/explore"
-              onClick={onNavigate}
-              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
-              activeProps={{
-                className:
-                  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
-              }}
-            >
-              <CompassIcon className="size-4 opacity-70" />
-              Explore calls
-            </Link>
-          </li>
+<li>
+  <Link
+    to="/explore"
+    onClick={onNavigate}
+    className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
+    activeProps={{
+      className:
+        "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
+    }}
+  >
+    <CompassIcon className="size-4 opacity-70" />
+    Explore calls
+  </Link>
+</li>
 ```
 
 - [ ] **Step 2: Typecheck**
@@ -1010,10 +1262,11 @@ Expected: `clean (no neon in client bundle)`.
 - [ ] **Step 3: Manual smoke (static path, USE_DB unset)**
 
 Run: `bun run dev` (or `bun run preview` against the build). Visit:
+
 - `/explore` — table renders, search/filter/sort all respond instantly, creator chips toggle, ticker links go to `/t/<sym>`.
 - `/t/NVDA` (or any real ticker from the data) — stats header + per-creator rows; each row links to `/c/<handle>/ticker/NVDA`.
 - `/t/ZZZZ` (non-existent) — 404, not a crash.
-Stop the dev server when done.
+  Stop the dev server when done.
 
 - [ ] **Step 4: Manual smoke (DB path)**
 

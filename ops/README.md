@@ -249,12 +249,13 @@ the creator stays at last-good data. Re-login the `.chrome-profile` via VNC thro
 proxy, then re-run the handle.
 
 **Operator caveats (load-bearing):**
+
 - **Stop the timer during VNC re-auth.** The unattended run and a VNC Chrome share the
   one `.chrome-profile`; two Chromes on the same profile collide on `SingletonLock` (the
   flock guards only the script, not the profile). Before re-authing:
   `sudo systemctl stop influencer-ingest-ig.timer`, re-login, then `start` it again.
 - **The forward anchor is VM-local.** `knownShortcodes()` reads `transcripts/`, which is
-  gitignored (so `git clean -fd data/` never wipes it — that is *why* the ExecStartPre
+  gitignored (so `git clean -fd data/` never wipes it — that is _why_ the ExecStartPre
   clean is safe). A fresh VM seed with no transcripts → one-time full 12-month backfill.
 - **First run on an unseeded profile blocks ~6 min** waiting for a manual login it can't
   get under xvfb, then throws. Seed the session once via VNC before enabling the timer.

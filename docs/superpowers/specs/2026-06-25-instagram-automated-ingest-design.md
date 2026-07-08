@@ -8,10 +8,10 @@
 The VM's daily ingest is **X-only**. The three Instagram creators
 (`kevvonz`, `roadto100kportfolio`, `johnnylixf`) only refresh when someone runs
 the pipeline by hand, so they drift stale (roadto100k was 7 days behind when this
-was raised). The IG *pipeline* works and has been run manually on the VM (proven
+was raised). The IG _pipeline_ works and has been run manually on the VM (proven
 2026-06-13; a one-shot `/tmp` runner onboarded two creators 2026-06-18), but no
 recurring scheduler exists. `scripts/ingest.ts` and `scripts/resume.ts` hardcode
-`pipeline:x`, and `ingest.ts` actively *skips* IG handles (`looksInstagram`) to
+`pipeline:x`, and `ingest.ts` actively _skips_ IG handles (`looksInstagram`) to
 stop an X-scrape from clobbering IG data.
 
 Goal: IG creators refresh automatically every day, as close to "fresh like X" as
@@ -24,7 +24,7 @@ than pretending otherwise:
 
 - **X** authenticates with an HTTP API key (`RETTIWT_API_KEY`). Headless, daily,
   fails cleanly when the key dies (manual rotate).
-- **IG** requires a *headful, logged-in browser session* (the `imtiddies` burner
+- **IG** requires a _headful, logged-in browser session_ (the `imtiddies` burner
   in a persistent `.chrome-profile`), routed through a **residential SOCKS proxy**
   (`IG_PROXY`, the iProyal relay) because IG locks accounts scraped from datacenter
   IPs. IG periodically expires the session or throws a login checkpoint. Recovery
@@ -51,13 +51,13 @@ browser process that can hang on a dead session into the same run/lock as X.
 
 ### New / changed components
 
-| Unit | What it does | Mirrors |
-|---|---|---|
-| `scripts/ingest-ig.ts` | Daily IG entrypoint: for each IG handle, run the IG pipeline (forward) → resume (guard → prices → score); then one commit+push of `data/`. Symmetric platform guard. | `scripts/ingest.ts` |
-| `pipeline/scrape.ts` (edit) | Add a **forward** mode: stop scrolling once caught up to already-harvested reels, instead of re-walking 12 months daily. | X `scrapeX(…, {forward})` |
-| `pipeline/run.ts` (edit) | Thread a `--forward` flag through to `scrape()`. | `run-x.ts` |
-| `scripts/resume.ts` (edit) | Optional platform arg (default `pipeline:x`); IG passes the IG pipeline. prices+score are already platform-agnostic. | — |
-| `ops/influencer-ingest-ig.service` + `.timer` | Second systemd timer, staggered after the X timer, under `xvfb-run` with `IG_PROXY` set and its own flock. | `influencer-ingest.{service,timer}` |
+| Unit                                          | What it does                                                                                                                                                         | Mirrors                             |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `scripts/ingest-ig.ts`                        | Daily IG entrypoint: for each IG handle, run the IG pipeline (forward) → resume (guard → prices → score); then one commit+push of `data/`. Symmetric platform guard. | `scripts/ingest.ts`                 |
+| `pipeline/scrape.ts` (edit)                   | Add a **forward** mode: stop scrolling once caught up to already-harvested reels, instead of re-walking 12 months daily.                                             | X `scrapeX(…, {forward})`           |
+| `pipeline/run.ts` (edit)                      | Thread a `--forward` flag through to `scrape()`.                                                                                                                     | `run-x.ts`                          |
+| `scripts/resume.ts` (edit)                    | Optional platform arg (default `pipeline:x`); IG passes the IG pipeline. prices+score are already platform-agnostic.                                                 | —                                   |
+| `ops/influencer-ingest-ig.service` + `.timer` | Second systemd timer, staggered after the X timer, under `xvfb-run` with `IG_PROXY` set and its own flock.                                                           | `influencer-ingest.{service,timer}` |
 
 `prices.ts`, `score.ts`, `guard-no-shrink.ts`, `transcribe.ts`, `frames.ts`,
 `extract.ts`, `notify.ts` are reused unchanged.
@@ -90,7 +90,7 @@ slow and a large bot footprint.
 - **Anchor source:** the set of shortcodes that already have a transcript on the VM
   (`transcriptsDir(handle)/*.json`). Transcripts are the durable per-reel artifact;
   they survive the documented `raw/`+`frames/` cleanup (unlike X's anchor, which
-  lives in the purgeable `raw/tweets.json` — IG's anchor is *more* robust).
+  lives in the purgeable `raw/tweets.json` — IG's anchor is _more_ robust).
 - **Stop rule:** reels render newest-first, so after `patience` (=3) consecutive
   scroll rounds that surface no new shortcodes, we have caught up — break. This
   fires whether or not new reels were seen, so a **zero-new-reels day exits
@@ -100,7 +100,7 @@ slow and a large bot footprint.
   cleared because genuinely-new reels sit immediately below the pins in
   chronological order — a new round resets the known-only counter before `patience`
   is reached. `patience:3` gives margin past the pins. The only thing this can miss
-  is an *old* gap reel buried under ≥3 known rounds, which is a backfill concern,
+  is an _old_ gap reel buried under ≥3 known rounds, which is a backfill concern,
   not a freshness one — acceptable. Extract the stop decision into a pure helper so
   it is unit-testable without a browser (mirrors X's forward-anchor helper).
 - **Fallback:** no transcripts present (fresh VM seed) → no anchor → full 12-month

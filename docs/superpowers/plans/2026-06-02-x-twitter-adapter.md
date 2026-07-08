@@ -44,6 +44,7 @@ must still emit the identical `reel-calls.json` for the existing NBIS fixture.
 ## Task 1: Generic retry helper
 
 **Files:**
+
 - Create: `pipeline/retry.ts`
 - Test: `pipeline/retry.test.ts`
 
@@ -57,7 +58,10 @@ import { withRetry } from "./retry";
 describe("withRetry", () => {
   it("returns immediately on success", async () => {
     let calls = 0;
-    const r = await withRetry(async () => { calls++; return 42; });
+    const r = await withRetry(async () => {
+      calls++;
+      return 42;
+    });
     expect(r).toBe(42);
     expect(calls).toBe(1);
   });
@@ -65,7 +69,11 @@ describe("withRetry", () => {
   it("retries retryable errors then succeeds", async () => {
     let calls = 0;
     const r = await withRetry(
-      async () => { calls++; if (calls < 3) throw new Error("rate limit"); return "ok"; },
+      async () => {
+        calls++;
+        if (calls < 3) throw new Error("rate limit");
+        return "ok";
+      },
       { retries: 5, delayMs: () => 0, isRetryable: (e) => String(e).includes("rate") },
     );
     expect(r).toBe("ok");
@@ -74,19 +82,29 @@ describe("withRetry", () => {
 
   it("stops on non-retryable error", async () => {
     let calls = 0;
-    await expect(withRetry(
-      async () => { calls++; throw new Error("fatal"); },
-      { retries: 5, delayMs: () => 0, isRetryable: (e) => String(e).includes("rate") },
-    )).rejects.toThrow("fatal");
+    await expect(
+      withRetry(
+        async () => {
+          calls++;
+          throw new Error("fatal");
+        },
+        { retries: 5, delayMs: () => 0, isRetryable: (e) => String(e).includes("rate") },
+      ),
+    ).rejects.toThrow("fatal");
     expect(calls).toBe(1);
   });
 
   it("gives up after retries exhausted", async () => {
     let calls = 0;
-    await expect(withRetry(
-      async () => { calls++; throw new Error("rate limit"); },
-      { retries: 2, delayMs: () => 0 },
-    )).rejects.toThrow("rate limit");
+    await expect(
+      withRetry(
+        async () => {
+          calls++;
+          throw new Error("rate limit");
+        },
+        { retries: 2, delayMs: () => 0 },
+      ),
+    ).rejects.toThrow("rate limit");
     expect(calls).toBe(3); // initial + 2 retries
   });
 });
@@ -124,7 +142,9 @@ export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOpts = {}): 
     } catch (e) {
       if (attempt >= retries || !isRetryable(e)) throw e;
       const wait = delayMs(attempt);
-      console.warn(`retry ${attempt + 1}/${retries}${label ? ` ${label}` : ""} in ${(wait / 1000).toFixed(1)}s`);
+      console.warn(
+        `retry ${attempt + 1}/${retries}${label ? ` ${label}` : ""} in ${(wait / 1000).toFixed(1)}s`,
+      );
       await sleep(wait);
     }
   }
@@ -148,13 +168,14 @@ git commit -m "feat: generic withRetry backoff helper"
 ## Task 2: Shared vision helper
 
 **Files:**
+
 - Create: `pipeline/vision.ts`
 - Test: `pipeline/vision.test.ts`
 - Modify: `pipeline/frames.ts`
 
 - [ ] **Step 1: Write the failing test** (the pure parse is the testable unit)
 
-```typescript
+````typescript
 // pipeline/vision.test.ts
 import { describe, it, expect } from "vitest";
 import { parseHint } from "./vision";
@@ -164,13 +185,16 @@ describe("parseHint", () => {
     expect(parseHint('{"ticker":"NBIS","price":65.1}')).toEqual({ ticker: "NBIS", price: 65.1 });
   });
   it("strips code fences", () => {
-    expect(parseHint('```json\n{"ticker":"AAPL","price":null}\n```')).toEqual({ ticker: "AAPL", price: null });
+    expect(parseHint('```json\n{"ticker":"AAPL","price":null}\n```')).toEqual({
+      ticker: "AAPL",
+      price: null,
+    });
   });
   it("falls back to nulls on garbage", () => {
     expect(parseHint("not json")).toEqual({ ticker: null, price: null });
   });
 });
-```
+````
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -179,7 +203,7 @@ Expected: FAIL — cannot find module `./vision`.
 
 - [ ] **Step 3: Write minimal implementation**
 
-```typescript
+````typescript
 // pipeline/vision.ts
 import { readFile } from "node:fs/promises";
 import { groq } from "./groq";
@@ -208,18 +232,27 @@ export async function readImage(vision: string, imgPath: string): Promise<FrameH
   const b64 = (await readFile(imgPath)).toString("base64");
   const body = {
     model: vision,
-    messages: [{ role: "user", content: [
-      { type: "text", text: PROMPT },
-      { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } },
-    ] }],
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: PROMPT },
+          { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } },
+        ],
+      },
+    ],
     temperature: 0,
   };
-  const r = await (await groq("/chat/completions", {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-  })).json() as { choices: { message: { content: string } }[] };
+  const r = (await (
+    await groq("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+  ).json()) as { choices: { message: { content: string } }[] };
   return parseHint(r.choices[0].message.content);
 }
-```
+````
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -247,7 +280,7 @@ import { readImage, type FrameHint } from "./vision";
 In the `frames()` body, change the sampling line:
 
 ```typescript
-      if (existsSync(img)) hints.push(await readImage(vision, img));
+if (existsSync(img)) hints.push(await readImage(vision, img));
 ```
 
 (Note: `readFile` import is no longer needed in `frames.ts`; remove it.)
@@ -269,6 +302,7 @@ git commit -m "refactor: lift frame vision into shared pipeline/vision.ts"
 ## Task 3: Shared call classifier
 
 **Files:**
+
 - Create: `pipeline/calls.ts`
 - Test: `pipeline/calls.test.ts`
 - Modify: `pipeline/extract.ts`
@@ -281,17 +315,28 @@ import { describe, it, expect } from "vitest";
 import { toReelCall, buildReview, type Classification } from "./calls";
 
 const base: Classification = {
-  ticker: "nbis", company: "Nebius", direction: "bullish",
-  isExplicitBuy: true, conviction: 0.8, quote: "load up on NBIS", onScreenPrice: 65.1,
+  ticker: "nbis",
+  company: "Nebius",
+  direction: "bullish",
+  isExplicitBuy: true,
+  conviction: 0.8,
+  quote: "load up on NBIS",
+  onScreenPrice: 65.1,
 };
 
 describe("toReelCall", () => {
   it("uppercases ticker and maps fields", () => {
     const rc = toReelCall(base, "tweet123", "2026-01-15");
     expect(rc).toMatchObject({
-      shortcode: "tweet123", postDate: "2026-01-15", ticker: "NBIS",
-      company: "Nebius", direction: "bullish", isExplicitBuy: true,
-      conviction: 0.8, quote: "load up on NBIS", onScreenPrice: 65.1,
+      shortcode: "tweet123",
+      postDate: "2026-01-15",
+      ticker: "NBIS",
+      company: "Nebius",
+      direction: "bullish",
+      isExplicitBuy: true,
+      conviction: 0.8,
+      quote: "load up on NBIS",
+      onScreenPrice: 65.1,
     });
   });
   it("returns null when no ticker", () => {
@@ -299,7 +344,14 @@ describe("toReelCall", () => {
   });
   it("applies defaults for missing optional fields", () => {
     const rc = toReelCall({ ticker: "AAPL" } as Classification, "t", "2026-01-15");
-    expect(rc).toMatchObject({ company: "", direction: "neutral", isExplicitBuy: false, conviction: 0, quote: "", onScreenPrice: null });
+    expect(rc).toMatchObject({
+      company: "",
+      direction: "neutral",
+      isExplicitBuy: false,
+      conviction: 0,
+      quote: "",
+      onScreenPrice: null,
+    });
   });
 });
 
@@ -307,7 +359,11 @@ describe("buildReview", () => {
   it("counts explicit bullish calls and renders rows", () => {
     const md = buildReview([
       toReelCall(base, "t1", "2026-01-15")!,
-      toReelCall({ ...base, ticker: "AAPL", direction: "neutral", isExplicitBuy: false }, "t2", "2026-02-01")!,
+      toReelCall(
+        { ...base, ticker: "AAPL", direction: "neutral", isExplicitBuy: false },
+        "t2",
+        "2026-02-01",
+      )!,
     ]);
     expect(md).toContain("Explicit bullish calls: 1");
     expect(md).toContain("NBIS");
@@ -352,14 +408,21 @@ export interface Classification {
 
 // One LLM classification call. Returns null on malformed JSON (caller skips).
 export async function classify(textModel: string, body: string): Promise<Classification | null> {
-  const r = await (await groq("/chat/completions", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: textModel, temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [{ role: "system", content: CLASSIFY_SYS }, { role: "user", content: body }],
-    }),
-  })).json() as { choices: { message: { content: string } }[] };
+  const r = (await (
+    await groq("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: textModel,
+        temperature: 0,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: CLASSIFY_SYS },
+          { role: "user", content: body },
+        ],
+      }),
+    })
+  ).json()) as { choices: { message: { content: string } }[] };
   try {
     return JSON.parse(r.choices[0].message.content) as Classification;
   } catch {
@@ -368,10 +431,15 @@ export async function classify(textModel: string, body: string): Promise<Classif
 }
 
 // Normalize a classification into a ReelCall. Null if no ticker (not a stock call).
-export function toReelCall(c: Classification, shortcode: string, postDate: string): ReelCall | null {
+export function toReelCall(
+  c: Classification,
+  shortcode: string,
+  postDate: string,
+): ReelCall | null {
   if (!c.ticker) return null;
   return {
-    shortcode, postDate,
+    shortcode,
+    postDate,
     ticker: String(c.ticker).toUpperCase(),
     company: c.company ?? "",
     direction: c.direction ?? "neutral",
@@ -386,11 +454,18 @@ export function toReelCall(c: Classification, shortcode: string, postDate: strin
 export function buildReview(calls: ReelCall[]): string {
   const bullish = calls.filter((c) => c.isExplicitBuy && c.direction === "bullish");
   return [
-    "# Calls review — verify before scoring", "",
-    `Total posts with a ticker: ${calls.length}. Explicit bullish calls: ${bullish.length}.`, "",
-    "| date | ticker | buy? | dir | conv | quote |", "|---|---|---|---|---|---|",
-    ...[...calls].sort((a, b) => a.postDate.localeCompare(b.postDate)).map((c) =>
-      `| ${c.postDate} | ${c.ticker} | ${c.isExplicitBuy ? "✅" : ""} | ${c.direction} | ${c.conviction} | ${c.quote.replace(/\|/g, " ").slice(0, 60)} |`),
+    "# Calls review — verify before scoring",
+    "",
+    `Total posts with a ticker: ${calls.length}. Explicit bullish calls: ${bullish.length}.`,
+    "",
+    "| date | ticker | buy? | dir | conv | quote |",
+    "|---|---|---|---|---|---|",
+    ...[...calls]
+      .sort((a, b) => a.postDate.localeCompare(b.postDate))
+      .map(
+        (c) =>
+          `| ${c.postDate} | ${c.ticker} | ${c.isExplicitBuy ? "✅" : ""} | ${c.direction} | ${c.conviction} | ${c.quote.replace(/\|/g, " ").slice(0, 60)} |`,
+      ),
   ].join("\n");
 }
 
@@ -428,7 +503,8 @@ async function postDateOf(handle: string, code: string): Promise<string> {
   const info = (await readdir(dir)).find((f) => f.endsWith(".info.json"));
   if (info) {
     const j = JSON.parse(await readFile(join(dir, info), "utf8"));
-    if (j.upload_date) return `${j.upload_date.slice(0, 4)}-${j.upload_date.slice(4, 6)}-${j.upload_date.slice(6, 8)}`;
+    if (j.upload_date)
+      return `${j.upload_date.slice(0, 4)}-${j.upload_date.slice(4, 6)}-${j.upload_date.slice(6, 8)}`;
   }
   return new Date().toISOString().slice(0, 10);
 }
@@ -444,7 +520,10 @@ export async function extract(handle: string) {
     const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
     const body = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
     const c = await classify(text, body);
-    if (!c) { console.warn(`skip ${code}: malformed extract response`); continue; }
+    if (!c) {
+      console.warn(`skip ${code}: malformed extract response`);
+      continue;
+    }
     const rc = toReelCall(c, code, await postDateOf(handle, code));
     if (rc) out.push(rc);
   }
@@ -471,6 +550,7 @@ git commit -m "refactor: lift call classification into shared pipeline/calls.ts"
 ## Task 4: Config — Rettiwt key
 
 **Files:**
+
 - Modify: `pipeline/config.ts`
 
 - [ ] **Step 1: Add the lazy key constant**
@@ -500,6 +580,7 @@ git commit -m "feat: add RETTIWT_KEY env constant"
 ## Task 5: Install Rettiwt-API
 
 **Files:**
+
 - Modify: `package.json`, `bun.lock`
 
 - [ ] **Step 1: Install**
@@ -524,6 +605,7 @@ git commit -m "build: add rettiwt-api dependency"
 ## Task 6: X scraper
 
 **Files:**
+
 - Create: `pipeline/x/scrape-x.ts`
 - Test: `pipeline/x/scrape-x.test.ts`
 
@@ -537,7 +619,8 @@ import { toRecord, isRateLimit } from "./scrape-x";
 describe("toRecord", () => {
   it("maps id, text, ISO date, and photo URLs", () => {
     const rec = toRecord({
-      id: 123, fullText: "buy NBIS",
+      id: 123,
+      fullText: "buy NBIS",
       createdAt: "2026-01-15T10:00:00.000Z",
       media: [
         { type: "photo", url: "https://x/a.jpg" },
@@ -545,14 +628,20 @@ describe("toRecord", () => {
       ],
     });
     expect(rec).toEqual({
-      id: "123", text: "buy NBIS",
+      id: "123",
+      text: "buy NBIS",
       createdAt: "2026-01-15T10:00:00.000Z",
       imageUrls: ["https://x/a.jpg"],
     });
   });
   it("handles missing media and text", () => {
     const rec = toRecord({ id: 9, createdAt: "2026-01-15T00:00:00.000Z" });
-    expect(rec).toEqual({ id: "9", text: "", createdAt: "2026-01-15T00:00:00.000Z", imageUrls: [] });
+    expect(rec).toEqual({
+      id: "9",
+      text: "",
+      createdAt: "2026-01-15T00:00:00.000Z",
+      imageUrls: [],
+    });
   });
 });
 
@@ -587,11 +676,15 @@ export interface TweetRecord {
   imageUrls: string[];
 }
 
-const PHOTO = (m: any) => m?.type === "photo" || m?.type === "image" || /\.(jpe?g|png)/i.test(m?.url ?? "");
+const PHOTO = (m: any) =>
+  m?.type === "photo" || m?.type === "image" || /\.(jpe?g|png)/i.test(m?.url ?? "");
 
 // Pure: map a Rettiwt tweet to our record, keeping only image media.
 export function toRecord(t: any): TweetRecord {
-  const imageUrls = (t.media ?? []).filter(PHOTO).map((m: any) => m.url).filter(Boolean);
+  const imageUrls = (t.media ?? [])
+    .filter(PHOTO)
+    .map((m: any) => m.url)
+    .filter(Boolean);
   return {
     id: String(t.id),
     createdAt: new Date(t.createdAt).toISOString(),
@@ -605,7 +698,11 @@ export function isRateLimit(e: unknown): boolean {
 }
 
 async function downloadImage(url: string, dest: string): Promise<void> {
-  const res = await withRetry(() => fetch(url), { label: "img", isRetryable: isRateLimit, delayMs: () => 2000 });
+  const res = await withRetry(() => fetch(url), {
+    label: "img",
+    isRetryable: isRateLimit,
+    delayMs: () => 2000,
+  });
   if (!res.ok) return;
   await mkdir(join(dest, ".."), { recursive: true });
   await writeFile(dest, Buffer.from(await res.arrayBuffer()));
@@ -624,27 +721,42 @@ export async function scrapeX(handle: string, months = 12): Promise<TweetRecord[
   let cursor: string | undefined;
   let truncated = false;
   for (let page = 0; page < 250; page++) {
-    const data: any = await withRetry(
-      () => rettiwt.tweet.search(filter as any, 20, cursor),
-      { label: "x.search", isRetryable: isRateLimit, delayMs: (a) => Math.min(2 ** a, 30) * 1000 },
-    );
+    const data: any = await withRetry(() => rettiwt.tweet.search(filter as any, 20, cursor), {
+      label: "x.search",
+      isRetryable: isRateLimit,
+      delayMs: (a) => Math.min(2 ** a, 30) * 1000,
+    });
     records.push(...(data.list ?? []).map(toRecord));
     if (!data.next || !data.list?.length) break;
     cursor = data.next;
-    if (records.length >= 3200) { truncated = true; break; }
+    if (records.length >= 3200) {
+      truncated = true;
+      break;
+    }
   }
 
   await mkdir(rawDir(handle), { recursive: true });
   for (const r of records) {
     for (let i = 0; i < r.imageUrls.length; i++) {
-      try { await downloadImage(r.imageUrls[i], join(rawDir(handle), r.id, `img_${i}.jpg`)); }
-      catch (e) { console.warn(`img fail ${r.id}: ${(e as Error).message}`); }
+      try {
+        await downloadImage(r.imageUrls[i], join(rawDir(handle), r.id, `img_${i}.jpg`));
+      } catch (e) {
+        console.warn(`img fail ${r.id}: ${(e as Error).message}`);
+      }
     }
   }
   await writeFile(join(rawDir(handle), "tweets.json"), JSON.stringify(records, null, 2));
   // Parity with the IG path: score.ts reads shortcodes.json for the scraped count.
-  await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(records.map((r) => r.id), null, 2));
-  if (truncated) console.warn(`COVERAGE: hit ~3200-tweet ceiling for @${user}; older tweets may be missing`);
+  await writeFile(
+    join(rawDir(handle), "shortcodes.json"),
+    JSON.stringify(
+      records.map((r) => r.id),
+      null,
+      2,
+    ),
+  );
+  if (truncated)
+    console.warn(`COVERAGE: hit ~3200-tweet ceiling for @${user}; older tweets may be missing`);
   console.log(`scraped ${records.length} tweets for @${user}`);
   return records;
 }
@@ -672,6 +784,7 @@ git commit -m "feat: X tweet scraper via Rettiwt-API"
 ## Task 7: X extractor
 
 **Files:**
+
 - Create: `pipeline/x/extract-x.ts`
 - Test: `pipeline/x/extract-x.test.ts`
 
@@ -684,7 +797,8 @@ import { tweetDate, tweetToReelCall, type ExtractDeps } from "./extract-x";
 import type { Classification } from "../calls";
 
 const deps = (c: Classification | null): ExtractDeps => ({
-  text: "text-model", vision: "vision-model",
+  text: "text-model",
+  vision: "vision-model",
   classifyFn: async () => c,
   readImageFn: async () => ({ ticker: null, price: null }),
 });
@@ -700,14 +814,28 @@ describe("tweetToReelCall", () => {
     const rc = await tweetToReelCall(
       { id: "t1", createdAt: "2026-01-15T10:00:00.000Z", text: "buy NBIS", imageUrls: [] },
       "profinv",
-      deps({ ticker: "nbis", company: "Nebius", direction: "bullish", isExplicitBuy: true, conviction: 0.7, quote: "buy NBIS", onScreenPrice: null }),
+      deps({
+        ticker: "nbis",
+        company: "Nebius",
+        direction: "bullish",
+        isExplicitBuy: true,
+        conviction: 0.7,
+        quote: "buy NBIS",
+        onScreenPrice: null,
+      }),
     );
-    expect(rc).toMatchObject({ shortcode: "t1", postDate: "2026-01-15", ticker: "NBIS", isExplicitBuy: true });
+    expect(rc).toMatchObject({
+      shortcode: "t1",
+      postDate: "2026-01-15",
+      ticker: "NBIS",
+      isExplicitBuy: true,
+    });
   });
   it("returns null when classifier finds no call", async () => {
     const rc = await tweetToReelCall(
       { id: "t2", createdAt: "2026-01-15T10:00:00.000Z", text: "gm", imageUrls: [] },
-      "profinv", deps(null),
+      "profinv",
+      deps(null),
     );
     expect(rc).toBeNull();
   });
@@ -745,7 +873,11 @@ export function tweetDate(createdAt: string): string {
   return new Date(createdAt).toISOString().slice(0, 10);
 }
 
-export async function tweetToReelCall(t: TweetRecord, handle: string, deps: ExtractDeps): Promise<ReelCall | null> {
+export async function tweetToReelCall(
+  t: TweetRecord,
+  handle: string,
+  deps: ExtractDeps,
+): Promise<ReelCall | null> {
   const hints: FrameHint[] = [];
   const dir = join(rawDir(handle), t.id);
   if (existsSync(dir)) {
@@ -762,7 +894,9 @@ export async function tweetToReelCall(t: TweetRecord, handle: string, deps: Extr
 export async function extractX(handle: string) {
   const { text, vision } = await discoverModels();
   const deps: ExtractDeps = { text, vision, classifyFn: classify, readImageFn: readImage };
-  const tweets: TweetRecord[] = JSON.parse(await readFile(join(rawDir(handle), "tweets.json"), "utf8"));
+  const tweets: TweetRecord[] = JSON.parse(
+    await readFile(join(rawDir(handle), "tweets.json"), "utf8"),
+  );
   const out: ReelCall[] = [];
   for (const t of tweets) {
     try {
@@ -799,6 +933,7 @@ git commit -m "feat: X extractor — tweet + image hints to ReelCall"
 ## Task 8: X orchestrator + script
 
 **Files:**
+
 - Create: `pipeline/run-x.ts`
 - Modify: `package.json`
 
@@ -813,8 +948,9 @@ import { score } from "./score";
 
 // Usage: bun run pipeline:x --handle TheProfInvestor --name "The Prof Investor" [--from <stage>]
 const args = Object.fromEntries(
-  process.argv.slice(2).flatMap((a, i, arr) =>
-    a.startsWith("--") ? [[a.slice(2), arr[i + 1]]] : []),
+  process.argv
+    .slice(2)
+    .flatMap((a, i, arr) => (a.startsWith("--") ? [[a.slice(2), arr[i + 1]]] : [])),
 );
 const handle = args.handle;
 const name = args.name ?? handle;
@@ -872,4 +1008,7 @@ git commit -m "feat: X pipeline orchestrator (pipeline:x)"
 - [ ] `bunx tsc --noEmit` — exit 0.
 - [ ] The IG pipeline still produces the same `reel-calls.json` shape (Tasks 2–3 are behavior-preserving refactors; the existing NBIS fixture is the witness).
 - [ ] Manual integration (deferred, needs key): with `RETTIWT_API_KEY` set to a throwaway-account key, `bun run pipeline:x --handle TheProfInvestor --name "The Prof Investor"` scrapes → extracts → pauses at `calls.review.md`; after review, `--from prices` finishes and the creator appears in the dashboard sidebar.
+
+```
+
 ```

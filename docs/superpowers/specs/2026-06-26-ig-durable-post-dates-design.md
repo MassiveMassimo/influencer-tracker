@@ -5,7 +5,7 @@
 
 ## Problem
 
-IG `extract` (`pipeline/extract.ts`) resolves each reel's post date *only* from
+IG `extract` (`pipeline/extract.ts`) resolves each reel's post date _only_ from
 `raw/<code>/*.info.json` (yt-dlp metadata): `postDateOf` returns `null` when the
 info.json is absent, and the caller skips that reel (`skip <code>: no upload_date
 in info.json`). But `raw/` is disposable — the documented cleanup purges it to free
@@ -20,7 +20,7 @@ proxy egress OK, burner session alive, forward-scroll caught-up correctly, then
 No data was corrupted — the guard blocked before `score` ran — but the automation
 cannot produce fresh IG data until post dates are durable.
 
-The dates *exist* at scrape time: `scrape.ts` harvests `seen = Map<shortcode,
+The dates _exist_ at scrape time: `scrape.ts` harvests `seen = Map<shortcode,
 taken_at_ms>` from intercepted GraphQL (`scrape.ts:119,126`). They are simply
 thrown away — `scrape.ts:184-186` persists only the bare shortcode list to
 `raw/shortcodes.json` and delegates date storage to the disposable info.json.
@@ -42,13 +42,13 @@ truth** for `extract`.
 
 ### Components
 
-| Unit | What it does |
-|---|---|
-| `pipeline/post-dates.ts` (new) | The store + pure helpers. Path `data/creators/<h>/post-dates.json` = `{ "<shortcode>": "YYYY-MM-DD" }`. Exports `loadPostDates(handle): Promise<Record<string,string>>`, `mergePostDates(existing, incoming): Record<string,string>` (**existing-wins** on key collision), `savePostDates(handle, map): Promise<void>` (atomic temp-then-rename), `formatTakenAt(ms: number): string \| null` (UTC `YYYY-MM-DD`, `null` for falsy/non-positive ms). |
-| `pipeline/scrape.ts` (edit) | After the scroll, build `{code → formatTakenAt(taken_at_ms)}` for every `seen` entry with a positive `taken_at`, `mergePostDates` it onto the loaded store, `savePostDates`. The existing `raw/shortcodes.json` write is left untouched. This is the **primary writer** — it populates the store for every reel the scrape sees, new reels included. |
-| `pipeline/extract.ts` (edit) | `postDateOf` reads the **store first**; only if the shortcode is absent does it fall back to `info.json`. After the worker pool finishes, any date resolved from `info.json` (i.e. not already in the store) is merged back into the store (existing-wins) and saved, so an info.json-sourced anchor is frozen for all future runs. Skip the reel only when both sources miss. |
-| `scripts/backfill-post-dates.ts` (new, one-time) | Seed the store for existing IG creators from their committed `dataset.json` postDates (dedup by shortcode). Idempotent (existing-wins merge). Detects IG creators by **non-numeric shortcodes** (reuse `majorityNumeric` from `scripts/shortcodes.ts`) rather than a hardcoded handle list. |
-| `.gitignore` (edit) | Add `!data/creators/*/post-dates.json` *after* the `data/creators/*/*` ignore line so the store is **committed** and survives the VM's `git checkout -- data/` + `git clean -fd data/` + the `raw/` purge. |
+| Unit                                             | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pipeline/post-dates.ts` (new)                   | The store + pure helpers. Path `data/creators/<h>/post-dates.json` = `{ "<shortcode>": "YYYY-MM-DD" }`. Exports `loadPostDates(handle): Promise<Record<string,string>>`, `mergePostDates(existing, incoming): Record<string,string>` (**existing-wins** on key collision), `savePostDates(handle, map): Promise<void>` (atomic temp-then-rename), `formatTakenAt(ms: number): string \| null` (UTC `YYYY-MM-DD`, `null` for falsy/non-positive ms). |
+| `pipeline/scrape.ts` (edit)                      | After the scroll, build `{code → formatTakenAt(taken_at_ms)}` for every `seen` entry with a positive `taken_at`, `mergePostDates` it onto the loaded store, `savePostDates`. The existing `raw/shortcodes.json` write is left untouched. This is the **primary writer** — it populates the store for every reel the scrape sees, new reels included.                                                                                                |
+| `pipeline/extract.ts` (edit)                     | `postDateOf` reads the **store first**; only if the shortcode is absent does it fall back to `info.json`. After the worker pool finishes, any date resolved from `info.json` (i.e. not already in the store) is merged back into the store (existing-wins) and saved, so an info.json-sourced anchor is frozen for all future runs. Skip the reel only when both sources miss.                                                                      |
+| `scripts/backfill-post-dates.ts` (new, one-time) | Seed the store for existing IG creators from their committed `dataset.json` postDates (dedup by shortcode). Idempotent (existing-wins merge). Detects IG creators by **non-numeric shortcodes** (reuse `majorityNumeric` from `scripts/shortcodes.ts`) rather than a hardcoded handle list.                                                                                                                                                         |
+| `.gitignore` (edit)                              | Add `!data/creators/*/post-dates.json` _after_ the `data/creators/*/*` ignore line so the store is **committed** and survives the VM's `git checkout -- data/` + `git clean -fd data/` + the `raw/` purge.                                                                                                                                                                                                                                          |
 
 `prices.ts`, `score.ts`, `guard-no-shrink.ts`, `calls.ts`, `transcribe.ts`,
 `frames.ts`, `run.ts` are unchanged.
@@ -103,7 +103,7 @@ non-reproducibility the frozen-scoring rule forbids.
 ## Error handling
 
 - **No anchor (both sources miss):** skip the reel (existing behavior). It
-  contributes 0 calls — the guard compares *scored* counts, so a skipped
+  contributes 0 calls — the guard compares _scored_ counts, so a skipped
   unscored reel never trips it.
 - **`taken_at` missing/`0`:** `scrape.ts` stores `(node.taken_at ?? 0) * 1000`;
   `formatTakenAt` returns `null` for non-positive ms, so a 1970 date is never
@@ -131,7 +131,7 @@ calls, so the count is unaffected.
 - `mergePostDates`: existing-wins on collision; adds genuinely-new keys; does not
   mutate inputs.
 - `postDateOf` precedence (the core fix): store hit wins even when an info.json
-  with a *different* date exists; store miss + info.json present → info.json value;
+  with a _different_ date exists; store miss + info.json present → info.json value;
   both miss → `null`. (fs-backed test under a throwaway handle in `DATA`, cleaned
   up — mirrors `scrape-forward.test.ts`.)
 - `backfill-post-dates`: a fixture `dataset.json` with multi-ticker posts (repeated
@@ -147,19 +147,19 @@ calls, so the count is unaffected.
    creators' stores, commit the new `post-dates.json` files.
 3. Re-run the `roadto100kportfolio` canary under the service env — expect it to
    resolve dates from the store, classify, and either publish a refreshed dataset
-   or surface a *legitimate* shrink for operator review (not the 0-call bug).
+   or surface a _legitimate_ shrink for operator review (not the 0-call bug).
 4. Re-enable + start `influencer-ingest-ig.timer`.
 
 ## Risks (flagged, not fixed here)
 
-- **Re-classification drift:** re-extract runs the *current* `CLASSIFY_SYS`. If it
+- **Re-classification drift:** re-extract runs the _current_ `CLASSIFY_SYS`. If it
   differs from when each IG `dataset.json` was built, the recovered scored count
   may legitimately differ from baseline — that is the guard working as intended
   (operator reconciles via the call-deletion runbook), not this fix's concern.
 
 ## Out of scope
 
-- A full re-scrape to obtain a *complete* (all-reels, not just scored) authoritative
+- A full re-scrape to obtain a _complete_ (all-reels, not just scored) authoritative
   date map — unnecessary; unscored reels do not affect the guard, and future scrapes
   fill them in via GraphQL.
 - Any change to the X path (it has no analogous bug).

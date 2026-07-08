@@ -17,9 +17,11 @@
 **File:** Modify `pipeline/config.ts`
 
 - [ ] Add after the existing `DATA` const:
+
 ```ts
 export const AVATARS = join(ROOT, "data", "avatars");
 ```
+
 - [ ] `cd <worktree> && bunx tsc --noEmit` → exit 0.
 - [ ] Commit: `git add pipeline/config.ts && git commit -m "feat(avatar): data/avatars dir constant"`
 
@@ -32,6 +34,7 @@ export const AVATARS = join(ROOT, "data", "avatars");
 Rewrite `saveAvatar` to write raw bytes to `data/avatars/<handle>.<ext>` (ext from content-type) and return the public path `/avatars/<handle>.<ext>` (was: base64 data URI to `data/creators/<h>/avatar.txt`). Keep best-effort/null-on-failure.
 
 - [ ] Replace the file body with:
+
 ```ts
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -51,7 +54,10 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/gif": "gif",
 };
 
-export async function saveAvatar(handle: string, url: string | null | undefined): Promise<string | null> {
+export async function saveAvatar(
+  handle: string,
+  url: string | null | undefined,
+): Promise<string | null> {
   if (!url) return null;
   try {
     const res = await fetch(url);
@@ -62,9 +68,12 @@ export async function saveAvatar(handle: string, url: string | null | undefined)
     await mkdir(AVATARS, { recursive: true });
     await writeFile(join(AVATARS, `${handle}.${ext}`), bytes);
     return `/avatars/${handle}.${ext}`;
-  } catch { return null; /* avatar is optional */ }
+  } catch {
+    return null; /* avatar is optional */
+  }
 }
 ```
+
 - [ ] `bunx tsc --noEmit` → exit 0.
 - [ ] Commit: `git add pipeline/avatar.ts && git commit -m "feat(avatar): saveAvatar writes binary file, returns CDN path"`
 
@@ -78,20 +87,26 @@ Replace the `avatar.txt` read with a lookup of the committed image file in `data
 
 - [ ] Add import at top (with the other config imports): ensure `AVATARS` is imported from `./config` (the file already imports `creatorDir`/`DATA` from `./config` — add `AVATARS`).
 - [ ] Replace:
+
 ```ts
-  let avatar: string | undefined;
-  try { avatar = (await readFile(join(creatorDir(handle), "avatar.txt"), "utf8")).trim(); } catch {}
+let avatar: string | undefined;
+try {
+  avatar = (await readFile(join(creatorDir(handle), "avatar.txt"), "utf8")).trim();
+} catch {}
 ```
+
 with:
+
 ```ts
-  // Avatar is a committed image file data/avatars/<h>.<ext>; store its public path
-  // (not bytes). Find whichever extension saveAvatar wrote.
-  let avatar: string | undefined;
-  try {
-    const file = readdirSync(AVATARS).find((f) => f.startsWith(`${handle}.`));
-    if (file) avatar = `/avatars/${file}`;
-  } catch {}
+// Avatar is a committed image file data/avatars/<h>.<ext>; store its public path
+// (not bytes). Find whichever extension saveAvatar wrote.
+let avatar: string | undefined;
+try {
+  const file = readdirSync(AVATARS).find((f) => f.startsWith(`${handle}.`));
+  if (file) avatar = `/avatars/${file}`;
+} catch {}
 ```
+
 - [ ] Ensure `readdirSync` is imported from `node:fs` at the top of `score.ts` (add to the existing `node:fs` import; if score.ts uses `node:fs/promises` only, add `import { readdirSync } from "node:fs";`). Verify the existing import style first.
 - [ ] `bunx tsc --noEmit` → exit 0.
 - [ ] Commit: `git add pipeline/score.ts && git commit -m "feat(avatar): index.json stores avatar path, not data URI"`
@@ -103,6 +118,7 @@ with:
 **Files:** Create `scripts/migrate-avatars.ts`; it rewrites `data/creators/index.json` and writes `data/avatars/*`.
 
 - [ ] Create `scripts/migrate-avatars.ts`:
+
 ```ts
 // One-time: convert inline base64 data-URI avatars in data/creators/index.json into
 // committed image files data/avatars/<h>.<ext>, and rewrite the index `avatar` field
@@ -113,8 +129,11 @@ import { join } from "node:path";
 import { ROOT } from "../pipeline/config";
 
 const EXT_BY_MIME: Record<string, string> = {
-  "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
-  "image/webp": "webp", "image/gif": "gif",
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
 };
 
 const INDEX = join(ROOT, "data", "creators", "index.json");
@@ -127,7 +146,10 @@ for (const e of idx) {
   const a = e.avatar;
   if (!a || !a.startsWith("data:")) continue; // already a path or absent
   const m = /^data:([^;]+);base64,(.*)$/s.exec(a);
-  if (!m) { console.warn(`skip ${e.handle}: unparseable data URI`); continue; }
+  if (!m) {
+    console.warn(`skip ${e.handle}: unparseable data URI`);
+    continue;
+  }
   const ext = EXT_BY_MIME[m[1].trim()] ?? "jpg";
   writeFileSync(join(AVATARS, `${e.handle}.${ext}`), Buffer.from(m[2], "base64"));
   e.avatar = `/avatars/${e.handle}.${ext}`;
@@ -136,9 +158,11 @@ for (const e of idx) {
 writeFileSync(INDEX, JSON.stringify(idx, null, 2) + "\n");
 console.log(`migrated ${migrated} avatar(s) -> data/avatars/; index.json rewritten`);
 ```
+
 - [ ] RUN it: `cd <worktree> && bun run scripts/migrate-avatars.ts`. Expected: `migrated N avatar(s)`; `data/avatars/<h>.<ext>` files appear; `index.json` `avatar` fields now `/avatars/...`.
 - [ ] Verify shrink: `wc -c data/creators/index.json` should be ~5KB (was ~54KB). `ls -la data/avatars/`.
 - [ ] Commit (include the generated avatars + rewritten index + the script):
+
 ```bash
 git add scripts/migrate-avatars.ts data/avatars data/creators/index.json && git commit -m "chore(avatar): migrate index.json base64 avatars to committed files"
 ```
@@ -150,18 +174,22 @@ git add scripts/migrate-avatars.ts data/avatars data/creators/index.json && git 
 **Files:** Modify `scripts/prebuild.ts`, `.gitignore`
 
 - [ ] In `scripts/prebuild.ts`, add path constants beside `PRICES_SRC`/`PRICES_DST`:
+
 ```ts
 const AVATARS_SRC = join(ROOT, "data", "avatars");
 const AVATARS_DST = join(PUB, "avatars");
 ```
+
 - [ ] Beside the `rmSync(PRICES_DST, …)` line, add: `rmSync(AVATARS_DST, { recursive: true, force: true });`
 - [ ] After the prices-copy `if (existsSync(PRICES_SRC)) { … }` block, add the mirror:
+
 ```ts
-  if (existsSync(AVATARS_SRC)) {
-    mkdirSync(AVATARS_DST, { recursive: true });
-    cpSync(AVATARS_SRC, AVATARS_DST, { recursive: true });
-  }
+if (existsSync(AVATARS_SRC)) {
+  mkdirSync(AVATARS_DST, { recursive: true });
+  cpSync(AVATARS_SRC, AVATARS_DST, { recursive: true });
+}
 ```
+
 - [ ] In `.gitignore`, beside `public/prices/` (line ~37) add: `public/avatars/`
 - [ ] Smoke-run: `cd <worktree> && bun run scripts/prebuild.ts` → completes; `ls public/avatars/` shows the migrated files.
 - [ ] `bunx tsc --noEmit` → exit 0.
@@ -176,6 +204,7 @@ const AVATARS_DST = join(PUB, "avatars");
 `entry.avatar` is now a path (or, pre-prod-DB-migration, still a legacy data URI). satori needs inline bytes, so resolve it before calling `renderOgPng`. Keep the concern inside the OG route.
 
 - [ ] Add a resolver helper inside the route file (module scope, above `Route`):
+
 ```ts
 // satori needs inline image bytes — a /avatars/<h>.<ext> CDN path won't resolve inside
 // the renderer. Resolve to a data URI at request time. Robust to the legacy inline
@@ -191,28 +220,34 @@ async function resolveAvatar(avatar: string | undefined): Promise<string | undef
     const mime = (res.headers.get("content-type") ?? "image/jpeg").split(";")[0].trim();
     const b64 = Buffer.from(await res.arrayBuffer()).toString("base64");
     return `data:${mime};base64,${b64}`;
-  } catch { return undefined; }
+  } catch {
+    return undefined;
+  }
 }
 ```
+
 - [ ] In the handler, where the creator card is built, replace `avatar: entry.avatar,` with a resolved value. Since the render call is currently a ternary expression, compute the avatar first. Change the block to:
+
 ```ts
-        const { renderOgPng } = await import("#/og/render.tsx");
-        const avatar = entry ? await resolveAvatar(entry.avatar) : undefined;
-        const png = await renderOgPng(
-          entry
-            ? {
-                kind: "creator",
-                theme: "dark",
-                name: entry.name,
-                handle,
-                avatar,
-                excess3m: entry.avgExcess3m,
-                totalCalls: entry.totalCalls,
-              }
-            : { kind: "home", theme: "dark" },
-        );
+const { renderOgPng } = await import("#/og/render.tsx");
+const avatar = entry ? await resolveAvatar(entry.avatar) : undefined;
+const png = await renderOgPng(
+  entry
+    ? {
+        kind: "creator",
+        theme: "dark",
+        name: entry.name,
+        handle,
+        avatar,
+        excess3m: entry.avgExcess3m,
+        totalCalls: entry.totalCalls,
+      }
+    : { kind: "home", theme: "dark" },
+);
 ```
+
 (Read the current handler first and adapt precisely; only the avatar resolution changes.)
+
 - [ ] `bunx tsc --noEmit` → exit 0.
 - [ ] Commit: `git add src/routes/api/og/c.\$handle.\$rev.tsx && git commit -m "feat(avatar): OG creator route inlines avatar bytes from path"`
 
@@ -235,6 +270,7 @@ async function resolveAvatar(avatar: string | undefined): Promise<string | undef
 - [ ] `bun run build` → exit 0.
 - [ ] Confirm `wc -c data/creators/index.json` ~5KB; `ls public/avatars/` populated after build.
 - [ ] **Dev smoke** (a non-3000 port; the creator OG route inlines the avatar, and a page renders the `<img>` path):
+
 ```bash
 cd <worktree>
 HANDLE=$(bun -e "console.log(require('./data/creators/index.json')[0].handle)")
@@ -248,13 +284,16 @@ echo "OG MAGIC: $(xxd -l4 -p /tmp/av-og.png)"
 curl -s "http://localhost:4327/c/$HANDLE" | grep -o '/avatars/[^"]*' | head -1
 kill $DEV 2>/dev/null || true
 ```
+
 Expected: OG `200 image/png`, MAGIC `89504e47`; the creator page references `/avatars/<h>.<ext>`.
+
 - [ ] Confirm no new React #418 hydration warning in the dev log (`grep -i "418\|hydrat" /tmp/av-dev.log` → empty). The avatar change adds no locale formatting.
 - [ ] No commit unless fixups were needed.
 
 ---
 
 ## Notes
+
 - **DB**: schema unchanged (`creators.avatar` text holds a path now). Prod `db:sync` is a post-deploy cutover step (Task G) — not run in the worktree (no `.env`/creds here). Pre-migration, DB serves legacy data URIs which still render and pass through the OG resolver.
 - **Consumers** (`WorkspaceRail.tsx`, `explore.tsx`, `index.tsx`, `t.$symbol.tsx`, `db-read.ts`, `call-index.ts`, `dataset-source.ts`) need no logic change — `<img src>` and the `avatar` field accept a path or a data URI identically.
 - **render.tsx** unchanged: `OgCard.avatar` stays "inline bytes/data URI"; the route does the path→bytes resolution.

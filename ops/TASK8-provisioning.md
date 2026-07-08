@@ -1,7 +1,7 @@
 # Task 8 — VM ingest provisioning (one-time, copy-paste)
 
 Stand up the Plan 3b daily X-ingest on the ARM Ubuntu VM (`ssh ubuntu@imos-vm`,
-repo at `~/influencer-tracker`). The *code* is already deployed to prod
+repo at `~/influencer-tracker`). The _code_ is already deployed to prod
 (`USE_DB=1`, Neon-backed serve path live); this stands up the automation that
 keeps it fresh without a redeploy.
 

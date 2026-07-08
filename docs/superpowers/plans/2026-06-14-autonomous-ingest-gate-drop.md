@@ -4,13 +4,14 @@
 
 **Goal:** Make the VM daily ingest run end-to-end with no human pause — scrape → extract → score → backfill → materialize → parity → revalidate — so a published call needs no upfront review. Human attention is reactive only: the correction loop (already merged) handles errors after someone reports them.
 
-**Architecture:** `ingest.ts` already runs stage-1 (scrape+extract, then stops); `resume.ts` is the complete stage-2 (guard→score→backfill→materialize→parity→revalidate). The gate-drop wires `ingest.ts` to invoke `resume.ts` automatically per active handle, replacing the Telegram "review ping" with a published-summary / blocked-alert. The systemd unit already holds `flock /tmp/influencer-ingest.lock` around the whole run, so `resume.ts` invoked from inside needs no own lock. `guard-no-shrink` (truncation/volume safety) + the `parity-check` gate remain as the only *automated* stops — neither checks call *correctness*; that is the accepted tradeoff, with crowdsourced reports + operator overrides as the post-hoc catch.
+**Architecture:** `ingest.ts` already runs stage-1 (scrape+extract, then stops); `resume.ts` is the complete stage-2 (guard→score→backfill→materialize→parity→revalidate). The gate-drop wires `ingest.ts` to invoke `resume.ts` automatically per active handle, replacing the Telegram "review ping" with a published-summary / blocked-alert. The systemd unit already holds `flock /tmp/influencer-ingest.lock` around the whole run, so `resume.ts` invoked from inside needs no own lock. `guard-no-shrink` (truncation/volume safety) + the `parity-check` gate remain as the only _automated_ stops — neither checks call _correctness_; that is the accepted tradeoff, with crowdsourced reports + operator overrides as the post-hoc catch.
 
 **Tech Stack:** Bun, `bun` `$` shell, systemd timer/service, Telegram bot API, Neon Postgres (USE_DB=1).
 
 **Locked decisions (not free choices):**
+
 - **Reuse `resume.ts` as-is, shelled from `ingest.ts`** — DRY. `resume.ts` already encodes the correct stage-2 order (guard BEFORE score overwrites `dataset.json`). Re-implementing it inline in `ingest.ts` would duplicate the sequence and risk drift.
-- **Re-score every active handle daily** (not only handles with new calls) — so an override written for a quiet creator auto-applies on the next run, and to-date/recent return horizons mature for everyone. This is what makes the correction loop actually self-healing for low-traffic creators. *(Cheaper alternative: keep the `fresh > 0` gate — see Task 2's note. If chosen, overrides on quiet creators only apply on a manual re-score, partially defeating the loop. Plan as written assumes always-resume.)*
+- **Re-score every active handle daily** (not only handles with new calls) — so an override written for a quiet creator auto-applies on the next run, and to-date/recent return horizons mature for everyone. This is what makes the correction loop actually self-healing for low-traffic creators. _(Cheaper alternative: keep the `fresh > 0` gate — see Task 2's note. If chosen, overrides on quiet creators only apply on a manual re-score, partially defeating the loop. Plan as written assumes always-resume.)_
 - **Failure never publishes silently.** A `guard-no-shrink` or `parity` failure makes `resume.ts` exit non-zero → `ingest.ts` catches it → Telegram BLOCKED alert with the manual investigation command. The day's bad data for that handle is not advertised as success.
 - **The review ping is removed**, replaced by: a per-run published summary (handles + counts) and per-handle BLOCKED/FAILED alerts. The manual `resume.ts` SSH command survives only in the BLOCKED alert (investigation) and as the post-override re-score path.
 
@@ -19,6 +20,7 @@
 ## Task 1: `notify.ts` — replace review ping with published + blocked messages
 
 **Files:**
+
 - Modify: `scripts/notify.ts`
 - Test: `scripts/notify.test.ts` (new — pure message builders, no network)
 
@@ -66,6 +68,7 @@ export function blockedMessage(handle: string, reason: string): string {
 ## Task 2: `ingest.ts` — auto-resume each active handle
 
 **Files:**
+
 - Modify: `scripts/ingest.ts`
 
 - [ ] **Step 1:** Update the imports: replace `reviewMessage` with `publishedMessage, blockedMessage`.
@@ -80,8 +83,9 @@ import { notify, publishedMessage, blockedMessage } from "./notify";
 for (const h of handles) {
   try {
     const before = await counts(h);
-    const name = JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
-    await $`bun run pipeline:x --handle ${h} --name ${name} --forward`;   // stage-1: scrape(forward)+extract
+    const name =
+      JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
+    await $`bun run pipeline:x --handle ${h} --name ${name} --forward`; // stage-1: scrape(forward)+extract
     const after = await counts(h);
     // Stage-2 (the old manual step), now automatic. resume.ts = guard → score → backfill →
     // materialize → parity → revalidate. guard/parity failure throws → BLOCKED alert, no publish.
@@ -106,6 +110,7 @@ for (const h of handles) {
 ## Task 3: systemd — confirm flock + timeout cover the longer run
 
 **Files:**
+
 - Modify (only if needed): `ops/influencer-ingest.service`
 
 - [ ] **Step 1:** Read `ops/influencer-ingest.service`. Confirm `ExecStart` already wraps the whole run in `flock -w 7200 /tmp/influencer-ingest.lock` (it does) — so the internal `resume.ts` calls share the lock; a manual `resume.ts` (held under the same lock) can't race the timer. No flock change needed.
@@ -116,6 +121,7 @@ for (const h of handles) {
 ## Task 4: Docs — Stage 1+2 are one automated run
 
 **Files:**
+
 - Modify: `ops/README.md`, `CLAUDE.md`
 
 - [ ] **Step 1:** In `CLAUDE.md` "Plan 3b — VM semi-auto ingest" section: update so Stage 1 and Stage 2 are a single **automated** daily run (`ingest.ts` now runs scrape+extract THEN auto-invokes `resume.ts` per handle). The manual `resume.ts` over SSH survives only as (a) the BLOCKED-alert investigation/re-run path and (b) the post-override re-score path. Remove the "pauses and sends a Telegram review ping / Stage 2 (manual, over SSH)" framing; replace with "fully automated; Telegram sends a published summary per handle and a BLOCKED alert on guard/parity failure." Keep the `guard-no-shrink` + parity description (they're the automated gates). State plainly: **no upfront human review of `calls.review.md`; correctness is caught reactively by the report→override correction loop.** Note the always-resume behavior (overrides apply + returns mature for every active handle daily).
@@ -128,6 +134,7 @@ for (const h of handles) {
 ## Self-Review
 
 **Spec coverage:**
+
 - Remove the upfront pause / auto-run stage-2 → Task 2. ✓
 - Keep automated guardrails (guard-no-shrink, parity), fail loudly not silently → Task 2 try/catch + Task 1 blockedMessage. ✓
 - Replace review ping with published/blocked alerts → Tasks 1, 2. ✓
@@ -138,6 +145,7 @@ for (const h of handles) {
 **Type consistency:** `publishedMessage(handle, newCalls, newScored)` / `blockedMessage(handle, reason)` (Task 1) match the call sites in `ingest.ts` (Task 2). `counts()` already returns `{ total, scored }` — unchanged.
 
 **Open items deferred (tracked, not dropped):**
+
 - Materialize-once-after-loop optimization (Task 3 Step 3) — only if N handles makes per-handle global materialize dominate runtime.
 - New-creator onboarding stays manual (out of scope; this plan refreshes existing `INGEST_HANDLES` only).
 - Classifier-quality prevention (DUOL↔AMD, HIMS FN, BTC over-eager) is the separate Workstream A — this plan ships unreviewed calls and relies on the correction loop to fix them post-hoc. The accepted tradeoff: reactive review only catches what gets seen and flagged; silent errors on low-traffic pages persist in the scorecard.

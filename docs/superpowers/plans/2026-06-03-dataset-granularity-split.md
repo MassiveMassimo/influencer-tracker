@@ -13,6 +13,7 @@
 ## File Structure
 
 **New files:**
+
 - `src/lib/spark.ts` — pure `buildSpark(ohlc, fromDate, maxPoints)` → downsampled closes. One responsibility: produce a sparkline series.
 - `src/lib/spark.test.ts` — tests for `buildSpark`.
 - `src/lib/prices-merge.ts` — pure `mergePrices(existing, incoming)` → union-by-date OHLC. One responsibility: dedupe/merge price bars.
@@ -20,6 +21,7 @@
 - `scripts/migrate-split-prices.ts` — one-time migration: restructures the existing committed `dataset.json` files into the new slim shape + shared price store, reusing `buildSpark`/`mergePrices`.
 
 **Modified files:**
+
 - `src/lib/types.ts` — `Dataset` loses `tickers`; `Call` gains `spark?: number[]`.
 - `src/lib/schema.ts` — `DatasetSchema` loses `tickers`; `CallSchema` gains `spark`; export `PriceFileSchema`.
 - `src/lib/schema.test.ts` — fixture updated to the slim shape; add `PriceFileSchema` test.
@@ -37,6 +39,7 @@
 ### Task 1: `buildSpark` helper
 
 **Files:**
+
 - Create: `src/lib/spark.ts`
 - Test: `src/lib/spark.test.ts`
 
@@ -117,6 +120,7 @@ git commit -m "feat(data): add buildSpark — downsampled sparkline series helpe
 ### Task 2: `mergePrices` helper
 
 **Files:**
+
 - Create: `src/lib/prices-merge.ts`
 - Test: `src/lib/prices-merge.test.ts`
 
@@ -133,7 +137,11 @@ const bar = (date: string, c: number): OhlcBar => ({ date, o: c, h: c, l: c, c }
 test("unions by date and sorts ascending", () => {
   const a = [bar("2026-01-03", 3), bar("2026-01-01", 1)];
   const b = [bar("2026-01-02", 2)];
-  expect(mergePrices(a, b)).toEqual([bar("2026-01-01", 1), bar("2026-01-02", 2), bar("2026-01-03", 3)]);
+  expect(mergePrices(a, b)).toEqual([
+    bar("2026-01-01", 1),
+    bar("2026-01-02", 2),
+    bar("2026-01-03", 3),
+  ]);
 });
 
 test("incoming overrides existing for the same date", () => {
@@ -186,6 +194,7 @@ git commit -m "feat(data): add mergePrices — union-by-date OHLC merge"
 ### Task 3: Types + schema — drop `tickers`, add `spark`, add `PriceFileSchema`
 
 **Files:**
+
 - Modify: `src/lib/types.ts:6-44`
 - Modify: `src/lib/schema.ts`
 - Test: `src/lib/schema.test.ts`
@@ -202,19 +211,35 @@ const valid = {
   creator: { handle: "kevvonz", name: "Kevin Hu" },
   generatedAt: "2026-06-02",
   spyAnchor: "SPY",
-  calls: [{
-    shortcode: "DZDmQutB0Ep", postDate: "2026-06-01", ticker: "NBIS",
-    company: "Nebius Group N.V.", isFirstCall: true, conviction: 0.9,
-    quote: "buy right here", onScreenPrice: 273.01, spark: [273.01, 280.5, 291.2],
-    returns: { "1w": { stock: null, spy: null, excess: null },
-               "1m": { stock: null, spy: null, excess: null },
-               "3m": { stock: null, spy: null, excess: null },
-               "toDate": { stock: 0.1, spy: 0.05, excess: 0.05 } },
-  }],
-  scorecard: { totalCalls: 1, uniqueTickers: 1, hitRate: { "1m": 0, "3m": 0 },
+  calls: [
+    {
+      shortcode: "DZDmQutB0Ep",
+      postDate: "2026-06-01",
+      ticker: "NBIS",
+      company: "Nebius Group N.V.",
+      isFirstCall: true,
+      conviction: 0.9,
+      quote: "buy right here",
+      onScreenPrice: 273.01,
+      spark: [273.01, 280.5, 291.2],
+      returns: {
+        "1w": { stock: null, spy: null, excess: null },
+        "1m": { stock: null, spy: null, excess: null },
+        "3m": { stock: null, spy: null, excess: null },
+        toDate: { stock: 0.1, spy: 0.05, excess: 0.05 },
+      },
+    },
+  ],
+  scorecard: {
+    totalCalls: 1,
+    uniqueTickers: 1,
+    hitRate: { "1m": 0, "3m": 0 },
     hitRateN: { "1m": 0, "3m": 0 },
-    avgExcess: { "1w": 0, "1m": 0, "3m": 0, "toDate": 0.05 },
-    callsPerWeek: 0.5, best: [], worst: [] },
+    avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0.05 },
+    callsPerWeek: 0.5,
+    best: [],
+    worst: [],
+  },
   caveats: ["survivorship"],
 };
 
@@ -236,7 +261,9 @@ test("rejects a call missing ticker", () => {
 });
 
 test("PriceFileSchema accepts an OHLC array", () => {
-  expect(() => PriceFileSchema.parse([{ date: "2026-06-01", o: 1, h: 2, l: 1, c: 2 }])).not.toThrow();
+  expect(() =>
+    PriceFileSchema.parse([{ date: "2026-06-01", o: 1, h: 2, l: 1, c: 2 }]),
+  ).not.toThrow();
 });
 ```
 
@@ -259,7 +286,11 @@ const ReturnTriple = z.object({
 });
 
 const OhlcBarSchema = z.object({
-  date: z.string(), o: z.number(), h: z.number(), l: z.number(), c: z.number(),
+  date: z.string(),
+  o: z.number(),
+  h: z.number(),
+  l: z.number(),
+  c: z.number(),
 });
 
 export const PriceFileSchema = z.array(OhlcBarSchema);
@@ -276,7 +307,10 @@ const CallSchema = z.object({
   onScreenPrice: z.number().nullable().optional(),
   spark: z.array(z.number()).optional(),
   returns: z.object({
-    "1w": ReturnTriple, "1m": ReturnTriple, "3m": ReturnTriple, "toDate": ReturnTriple,
+    "1w": ReturnTriple,
+    "1m": ReturnTriple,
+    "3m": ReturnTriple,
+    toDate: ReturnTriple,
   }),
 });
 
@@ -286,11 +320,19 @@ export const DatasetSchema = z.object({
   spyAnchor: z.string(),
   calls: z.array(CallSchema),
   scorecard: z.object({
-    totalCalls: z.number(), uniqueTickers: z.number(),
+    totalCalls: z.number(),
+    uniqueTickers: z.number(),
     hitRate: z.object({ "1m": z.number(), "3m": z.number() }),
     hitRateN: z.object({ "1m": z.number(), "3m": z.number() }),
-    avgExcess: z.object({ "1w": z.number(), "1m": z.number(), "3m": z.number(), "toDate": z.number() }),
-    callsPerWeek: z.number(), best: z.array(CallSchema), worst: z.array(CallSchema),
+    avgExcess: z.object({
+      "1w": z.number(),
+      "1m": z.number(),
+      "3m": z.number(),
+      toDate: z.number(),
+    }),
+    callsPerWeek: z.number(),
+    best: z.array(CallSchema),
+    worst: z.array(CallSchema),
     funnel: z.array(z.object({ label: z.string(), value: z.number() })).optional(),
   }),
   caveats: z.array(z.string()),
@@ -337,6 +379,7 @@ git commit -m "feat(data): slim Dataset schema — drop tickers, add spark + Pri
 ### Task 4: `score.ts` — bake spark, write shared prices, stop emitting tickers
 
 **Files:**
+
 - Modify: `pipeline/score.ts`
 - Test: `pipeline/score.test.ts`
 
@@ -345,13 +388,17 @@ git commit -m "feat(data): slim Dataset schema — drop tickers, add spark + Pri
 Replace the final three assertions block. The test body's assertions become:
 
 ```ts
-  const ds = assembleDataset({ handle: "kevvonz", name: "Kevin Hu" },
-    reelCalls, { NBIS: nbis, SPY: spy }, "2026-06-09");
-  expect(ds.calls[0].isFirstCall).toBe(true);
-  expect(ds.calls[0].returns["1w"].excess).toBeCloseTo(0.10, 6);
-  expect(ds.scorecard.totalCalls).toBe(1);
-  expect(ds.calls[0].spark).toEqual([100, 110]);
-  expect((ds as unknown as { tickers?: unknown }).tickers).toBeUndefined();
+const ds = assembleDataset(
+  { handle: "kevvonz", name: "Kevin Hu" },
+  reelCalls,
+  { NBIS: nbis, SPY: spy },
+  "2026-06-09",
+);
+expect(ds.calls[0].isFirstCall).toBe(true);
+expect(ds.calls[0].returns["1w"].excess).toBeCloseTo(0.1, 6);
+expect(ds.scorecard.totalCalls).toBe(1);
+expect(ds.calls[0].spark).toEqual([100, 110]);
+expect((ds as unknown as { tickers?: unknown }).tickers).toBeUndefined();
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -377,28 +424,40 @@ import { creatorDir, pricesDir, DATA, ROOT } from "./config";
 In `assembleDataset`, bake `spark` into each call by adding the field to the mapped object (extend the existing `calls` map at lines 22-26):
 
 ```ts
-  let calls: Call[] = bullish.map(c => ({
-    shortcode: c.shortcode, postDate: c.postDate, ticker: c.ticker, company: c.company,
-    isFirstCall: false, conviction: c.conviction, quote: c.quote, summary: c.summary, onScreenPrice: c.onScreenPrice,
-    spark: buildSpark(ohlc[c.ticker] ?? [], c.postDate),
-    returns: computeReturns(ohlc[c.ticker] ?? [], spy, c.postDate),
-  }));
+let calls: Call[] = bullish.map((c) => ({
+  shortcode: c.shortcode,
+  postDate: c.postDate,
+  ticker: c.ticker,
+  company: c.company,
+  isFirstCall: false,
+  conviction: c.conviction,
+  quote: c.quote,
+  summary: c.summary,
+  onScreenPrice: c.onScreenPrice,
+  spark: buildSpark(ohlc[c.ticker] ?? [], c.postDate),
+  returns: computeReturns(ohlc[c.ticker] ?? [], spy, c.postDate),
+}));
 ```
 
 Delete the two `tickers` lines (old lines 33-34):
 
 ```ts
-  const tickers: Record<string, { ohlc: OhlcBar[] }> = {};
-  for (const t of [...new Set(calls.map(c => c.ticker)), "SPY"]) tickers[t] = { ohlc: ohlc[t] ?? [] };
+const tickers: Record<string, { ohlc: OhlcBar[] }> = {};
+for (const t of [...new Set(calls.map((c) => c.ticker)), "SPY"])
+  tickers[t] = { ohlc: ohlc[t] ?? [] };
 ```
 
 And remove `tickers` from the returned object so it reads:
 
 ```ts
-  const ds: Dataset = {
-    creator, generatedAt, spyAnchor: "SPY", calls,
-    scorecard: { ...buildScorecard(calls), funnel }, caveats: CAVEATS,
-  };
+const ds: Dataset = {
+  creator,
+  generatedAt,
+  spyAnchor: "SPY",
+  calls,
+  scorecard: { ...buildScorecard(calls), funnel },
+  caveats: CAVEATS,
+};
 ```
 
 - [ ] **Step 4: Write shared price files in `score()`**
@@ -406,18 +465,18 @@ And remove `tickers` from the returned object so it reads:
 In `score()`, after the dataset is written (`await writeFile(... "dataset.json" ...)` on line 53) and before `await updateIndex(...)`, add:
 
 ```ts
-  // Write deduped per-ticker prices to a shared store (one file per symbol across
-  // all creators) for the ticker-page fallback. Merge so a creator with a shorter
-  // history never truncates another's bars.
-  const sharedDir = join(ROOT, "data", "prices");
-  await mkdir(sharedDir, { recursive: true });
-  for (const sym of new Set([...ds.calls.map(c => c.ticker), "SPY"])) {
-    const bars = ohlc[sym] ?? [];
-    if (!bars.length) continue;
-    const f = join(sharedDir, `${sym}.json`);
-    const existing: OhlcBar[] = existsSync(f) ? JSON.parse(await readFile(f, "utf8")) : [];
-    await writeFile(f, JSON.stringify(mergePrices(existing, bars)));
-  }
+// Write deduped per-ticker prices to a shared store (one file per symbol across
+// all creators) for the ticker-page fallback. Merge so a creator with a shorter
+// history never truncates another's bars.
+const sharedDir = join(ROOT, "data", "prices");
+await mkdir(sharedDir, { recursive: true });
+for (const sym of new Set([...ds.calls.map((c) => c.ticker), "SPY"])) {
+  const bars = ohlc[sym] ?? [];
+  if (!bars.length) continue;
+  const f = join(sharedDir, `${sym}.json`);
+  const existing: OhlcBar[] = existsSync(f) ? JSON.parse(await readFile(f, "utf8")) : [];
+  await writeFile(f, JSON.stringify(mergePrices(existing, bars)));
+}
 ```
 
 (`mkdir`, `existsSync`, `readFile`, `writeFile`, `join`, `OhlcBar` are all already imported in this file.)
@@ -439,6 +498,7 @@ git commit -m "feat(pipeline): bake spark per call, write shared deduped price s
 ### Task 5: `fetchPrices` in `data.ts`
 
 **Files:**
+
 - Modify: `src/lib/data.ts`
 
 - [ ] **Step 1: Add the function**
@@ -489,6 +549,7 @@ git commit -m "feat(data): add fetchPrices for the shared per-ticker price store
 ### Task 6: Creator page — sparkline from baked `spark`
 
 **Files:**
+
 - Modify: `src/components/Sparkline.tsx`
 - Modify: `src/routes/c.$handle.index.tsx:25,272-321,395-431`
 
@@ -511,17 +572,28 @@ export function Sparkline({
   height?: number;
 }) {
   if (closes.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
-  const min = Math.min(...closes), max = Math.max(...closes);
+  const min = Math.min(...closes),
+    max = Math.max(...closes);
   const span = max - min || 1;
   const pad = 2;
   const x = (i: number) => pad + (i / (closes.length - 1)) * (width - 2 * pad);
   const y = (v: number) => height - pad - ((v - min) / span) * (height - 2 * pad);
-  const d = closes.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const d = closes
+    .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+    .join(" ");
   const color =
     excess == null ? "var(--muted-foreground)" : excess >= 0 ? "rgb(16 185 129)" : "rgb(244 63 94)";
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
-      <path d={d} fill="none" stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" opacity={0.85} />
+      <path
+        d={d}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={0.85}
+      />
       <circle cx={x(0)} cy={y(closes[0])} r={2} fill={color} />
     </svg>
   );
@@ -541,13 +613,9 @@ import type { Call, Dataset } from "../lib/types";
 In `CallsList` (around lines 298-305), change the `CallRow` render to drop the `bars` prop:
 
 ```tsx
-        {visible.map((c) => (
-          <CallRow
-            key={c.shortcode}
-            handle={handle}
-            call={c}
-          />
-        ))}
+{
+  visible.map((c) => <CallRow key={c.shortcode} handle={handle} call={c} />);
+}
 ```
 
 - [ ] **Step 4: Update the `CallRow` signature and Sparkline usage**
@@ -561,7 +629,7 @@ function CallRow({ handle, call }: { handle: string; call: Call }) {
 And change the Sparkline usage (line 430) to:
 
 ```tsx
-          <Sparkline closes={call.spark ?? []} excess={call.returns.toDate.excess} />
+<Sparkline closes={call.spark ?? []} excess={call.returns.toDate.excess} />
 ```
 
 - [ ] **Step 5: Typecheck**
@@ -581,6 +649,7 @@ git commit -m "feat(ui): creator-page sparklines from baked spark series (no OHL
 ### Task 7: Ticker page — fallback from fetched price files
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.ticker.$symbol.tsx:30,38-65,90-119`
 
 - [ ] **Step 1: Update imports**
@@ -616,9 +685,9 @@ Replace the current `loader` (the `async ({ params, context }) => { … }` block
 In `TickerPage`, replace the `bakedOhlc`/`bakedSpy` blocks (current lines 100-115, which read `ds.tickers[…]`) with reads from the loader data:
 
 ```ts
-  // Baked daily OHLC from the shared price store — used as the fallback when the
-  // live Yahoo fetch errors or returns nothing. (OhlcBar and LiveBar share a shape.)
-  const { bakedOhlc, bakedSpy } = Route.useLoaderData();
+// Baked daily OHLC from the shared price store — used as the fallback when the
+// live Yahoo fetch errors or returns nothing. (OhlcBar and LiveBar share a shape.)
+const { bakedOhlc, bakedSpy } = Route.useLoaderData();
 ```
 
 Note: `ds` is still obtained via `const ds = Route.useLoaderData();` on line 91 — keep that line; it now also carries `bakedOhlc`/`bakedSpy`. Remove the two `const bakedOhlc: LiveBar[] = …` / `const bakedSpy: LiveBar[] = …` mapping blocks entirely. The downstream `usingFallback ? bakedOhlc : …` logic is unchanged because `OhlcBar` (`{date,o,h,l,c}`) is structurally identical to `LiveBar`.
@@ -645,6 +714,7 @@ git commit -m "feat(ui): ticker fallback from shared price store; remove interim
 ### Task 8: `prebuild.ts` — copy shared prices to `public/`
 
 **Files:**
+
 - Modify: `scripts/prebuild.ts:12,55-59,105-107`
 - Modify: `.gitignore`
 
@@ -668,14 +738,14 @@ const PRICES_DST = join(PUB, "prices");
 In `main()`, alongside the existing `rmSync`/`mkdirSync` for `DS_DIR` (lines 56-59), add the prices output reset:
 
 ```ts
-  rmSync(PRICES_DST, { recursive: true, force: true });
-  mkdirSync(PRICES_DST, { recursive: true });
+rmSync(PRICES_DST, { recursive: true, force: true });
+mkdirSync(PRICES_DST, { recursive: true });
 ```
 
 Then after the per-creator dataset-copy loop completes (after the `await pool(...)` on line 103), add:
 
 ```ts
-  if (existsSync(PRICES_SRC)) cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
+if (existsSync(PRICES_SRC)) cpSync(PRICES_SRC, PRICES_DST, { recursive: true });
 ```
 
 - [ ] **Step 3: Ignore generated `public/prices/`**
@@ -710,6 +780,7 @@ git commit -m "build: copy shared price store to public/prices at prebuild"
 ### Task 9: Migrate existing datasets + verify payload
 
 **Files:**
+
 - Create: `scripts/migrate-split-prices.ts`
 
 This restructures the already-committed `dataset.json` files in place (which still contain `tickers`) into the new slim shape + shared price store — without re-running the scoring pipeline, so `generatedAt`, returns, and funnel labels are preserved exactly.
@@ -748,7 +819,9 @@ for (const e of index) {
   }
   delete ds.tickers;
   writeFileSync(p, JSON.stringify(ds, null, 2));
-  console.log(`migrated ${e.handle}: ${ds.calls.length} calls, ${Object.keys(tickers).length} tickers`);
+  console.log(
+    `migrated ${e.handle}: ${ds.calls.length} calls, ${Object.keys(tickers).length} tickers`,
+  );
 }
 ```
 

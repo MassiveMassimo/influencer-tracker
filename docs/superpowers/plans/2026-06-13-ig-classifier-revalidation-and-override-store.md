@@ -21,6 +21,7 @@ exposure → the bake-off does not demonstrably generalize across modality.
 IG ingestion.
 
 **Approach (cheap first).**
+
 1. Build a small labeled IG golden set: ~50–100 reels across ≥2 IG creators, hand-label
    `(ticker, direction, isExplicitBuy)` from transcript+frames. kevvonz's 48 extracted
    calls (now human-reviewed) are a starting seed.
@@ -31,7 +32,7 @@ IG ingestion.
    alternatives on the IG set: a larger Fireworks model, a prompt tweak to `CLASSIFY_SYS`
    for spoken-transcript cues, or a two-model agree/escalate gate (cf. the
    [[extraction-autonomy-findings]] note — but that found T1×2 self-agreement vacuous, so
-   prefer a *diverse* second model, not the same one twice).
+   prefer a _diverse_ second model, not the same one twice).
 4. Decide: keep deepseek-v4-flash, swap, or add an IG-only model override in the provider
    matrix.
 
@@ -49,15 +50,16 @@ evaporates. With a ~7% correction rate this is not sustainable.
 **Goal.** Human corrections persist across re-runs and are auditable.
 
 **Approach (minimal).**
+
 - A per-creator overrides file (committed, NOT gitignored), e.g.
   `data/creators/<h>/overrides.json`: a list of `{ shortcode, ticker?, isExplicitBuy?,
-  direction?, reason }`. `reason` is the audit trail (e.g. the verbatim quote + why).
+direction?, reason }`. `reason` is the audit trail (e.g. the verbatim quote + why).
 - `extract`/`score` applies overrides as a final deterministic pass after classification,
   before the `isExplicitBuy && bullish` filter. Keyed by `(shortcode[, ticker])`.
-- This also covers *removals*: an override `{ shortcode, isExplicitBuy: false, reason }`
+- This also covers _removals_: an override `{ shortcode, isExplicitBuy: false, reason }`
   is the maintainable replacement for today's owner-DELETE (which loses the evidence).
   The DB reconciliation still needs an owner-DELETE when a previously-scored call is
-  overridden off, but the override file records *why*, so re-runs stay consistent.
+  overridden off, but the override file records _why_, so re-runs stay consistent.
 
 **Open questions.** Should overrides live in the DB (a real `call_overrides` table the
 serve role can't see) instead of a static file, given DB-is-source-of-truth? Likely yes
@@ -65,6 +67,7 @@ long-term; a committed JSON is the cheap interim. How do overrides interact with
 parity check (DB vs static must still match after overrides are applied to both)?
 
 ## Out of scope (tracked elsewhere)
+
 - IG `resume.ts` (mechanical post-review sync tail; currently manual — see review notes).
 - `REVALIDATE_TOKEN` on the VM for instant CDN bust (6h TTL is the current floor).
 - Partial-harvest guard at the scrape boundary (`try/finally` + min-count on

@@ -25,10 +25,12 @@
 ### Task 1: Statistical helpers
 
 **Files:**
+
 - Create: `src/lib/traits.ts` (helpers only in this task)
 - Test: `src/lib/traits.test.ts`
 
 **Interfaces:**
+
 - Produces: `mean(xs: number[]): number`, `stdev(xs: number[]): number` (population), `median(xs: number[]): number`, `skewness(xs: number[]): number` (Fisher-Pearson g1, population moments), `pearson(xs: number[], ys: number[]): number` — all exported from `src/lib/traits.ts`, all returning `0` on degenerate input (empty / n too small / zero variance).
 
 - [ ] **Step 1: Write the failing tests**
@@ -161,10 +163,12 @@ git commit -m "feat(traits): statistical helpers for trait predicates"
 ### Task 2: Trait predicates + `traitsFor`
 
 **Files:**
+
 - Modify: `src/lib/traits.ts` (append below the helpers)
 - Test: `src/lib/traits.test.ts` (append)
 
 **Interfaces:**
+
 - Consumes: Task 1 helpers; `Call` from `#/lib/types` (`isFirstCall`, `conviction`, `ticker`, `postDate`, `returns[h] = { stock, spy, excess }`).
 - Produces:
   - `interface Trait { id: string; name: string; blurb: string; hue: "orange" | "red" | "violet" | "amber" | "emerald" | "rose" | "teal" | "fuchsia"; shape: "hexagon" | "triangle-down" | "ticket" | "shield" | "star" | "rosette"; icon: string }`
@@ -209,7 +213,11 @@ function mk(over: {
 }
 
 // n first-calls on distinct tickers, one day apart, ex3 from fn.
-function roster(n: number, ex3: (i: number) => number, opts?: { conviction?: (i: number) => number }): Call[] {
+function roster(
+  n: number,
+  ex3: (i: number) => number,
+  opts?: { conviction?: (i: number) => number },
+): Call[] {
   return Array.from({ length: n }, (_, i) =>
     mk({
       ticker: `T${i}`,
@@ -383,7 +391,10 @@ function calibrationR(first: Call[]): number {
   if (scored.length < CALIBRATION_MIN_N) return 0;
   const conv = scored.map((c) => c.conviction);
   if (stdev(conv) <= CONVICTION_MIN_SD) return 0;
-  return pearson(conv, scored.map((c) => c.returns["3m"].excess as number));
+  return pearson(
+    conv,
+    scored.map((c) => c.returns["3m"].excess as number),
+  );
 }
 
 // hit(SPY-up) - hit(SPY-down) with the down-regime hit rate, or null below guard.
@@ -509,9 +520,7 @@ const TRAITS: TraitDef[] = [
 export function traitsFor(calls: Call[]): Trait[] {
   const byDate = [...calls].sort((a, b) => a.postDate.localeCompare(b.postDate));
   const first = byDate.filter((c) => c.isFirstCall);
-  const ex3 = first
-    .map((c) => c.returns["3m"].excess)
-    .filter((x): x is number => x != null);
+  const ex3 = first.map((c) => c.returns["3m"].excess).filter((x): x is number => x != null);
   const ctx: TraitCtx = { first, ex3, byDate };
   return TRAITS.filter((t) => t.test(ctx)).map(({ test: _test, ...meta }) => meta);
 }
@@ -541,9 +550,11 @@ git commit -m "feat(traits): trait predicates + traitsFor with per-trait N-guard
 ### Task 3: `TraitBadges` component
 
 **Files:**
+
 - Create: `src/components/trait-badges.tsx`
 
 **Interfaces:**
+
 - Consumes: `traitsFor(calls)`, `Trait` from `#/lib/traits`; `PreviewCard`, `PreviewCardTrigger`, `PreviewCardPopup` from `#/components/ui/preview-card.tsx` (same API `GradeDetail` uses — see `src/components/grade-detail.tsx:149-173`).
 - Produces: `TraitBadges({ calls, className }: { calls: Call[]; className?: string })` — renders `null` when no traits earned; otherwise a badge row (max 3 + "+N" overflow chip).
 
@@ -648,9 +659,7 @@ function TraitBlurb({ trait }: { trait: Trait }) {
       <BadgeShape trait={trait} />
       <div className="min-w-0">
         <div className="font-heading text-sm text-foreground">{trait.name}</div>
-        <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
-          {trait.blurb}
-        </p>
+        <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">{trait.blurb}</p>
       </div>
     </div>
   );
@@ -733,9 +742,11 @@ git commit -m "feat(traits): TraitBadges component — per-shape SVG badges + pr
 ### Task 4: Wire into the creator overview
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.index.tsx` (two `GradeDetail` sites, ~lines 293-304 desktop and ~354-363 mobile)
 
 **Interfaces:**
+
 - Consumes: `TraitBadges` from Task 3; existing `grade` memo, `ds`, and `isDesktop` in the route.
 
 - [ ] **Step 1: Add the import**
@@ -774,32 +785,26 @@ Replace with (wrap the medallion in a flex row with the badges before it):
 Find (the mobile cell — the `GradeDetail` is multi-line with `active={!isDesktop}`):
 
 ```tsx
-          {grade && (
-            <div className="grid place-items-center bg-background p-4 md:hidden">
-              <GradeDetail
-                grade={grade}
-                fontSize="0.4rem"
-                letterClassName="text-xl"
-                active={!isDesktop}
-              />
-            </div>
-          )}
+{
+  grade && (
+    <div className="grid place-items-center bg-background p-4 md:hidden">
+      <GradeDetail grade={grade} fontSize="0.4rem" letterClassName="text-xl" active={!isDesktop} />
+    </div>
+  );
+}
 ```
 
 Replace with (add `gap-2` to the cell and `TraitBadges` below the medallion):
 
 ```tsx
-          {grade && (
-            <div className="grid place-items-center gap-2 bg-background p-4 md:hidden">
-              <GradeDetail
-                grade={grade}
-                fontSize="0.4rem"
-                letterClassName="text-xl"
-                active={!isDesktop}
-              />
-              <TraitBadges calls={ds.calls} />
-            </div>
-          )}
+{
+  grade && (
+    <div className="grid place-items-center gap-2 bg-background p-4 md:hidden">
+      <GradeDetail grade={grade} fontSize="0.4rem" letterClassName="text-xl" active={!isDesktop} />
+      <TraitBadges calls={ds.calls} />
+    </div>
+  );
+}
 ```
 
 Badges render only when the medallion renders (both sites gated on `grade`), per spec.
@@ -821,9 +826,11 @@ git commit -m "feat(traits): render trait badges beside grade medallion on creat
 ### Task 5: Roster distribution check (threshold sanity)
 
 **Files:**
+
 - Create: `scripts/print-traits.ts`
 
 **Interfaces:**
+
 - Consumes: `traitsFor` from `#/lib/traits` (script imports via relative path); committed `data/creators/*/dataset.json`.
 
 - [ ] **Step 1: Write the script**

@@ -46,7 +46,7 @@ export function dedupeFirstCall(calls: Call[]): Call[] {
     const prev = earliest.get(c.ticker);
     if (!prev || c.postDate < prev) earliest.set(c.ticker, c.postDate);
   }
-  return calls.map(c => ({ ...c, isFirstCall: earliest.get(c.ticker) === c.postDate }));
+  return calls.map((c) => ({ ...c, isFirstCall: earliest.get(c.ticker) === c.postDate }));
 }
 ```
 
@@ -62,7 +62,7 @@ matches.
   calls mapped from `reelCalls`, which preserve file order).
 - **Source order is the right tiebreaker.** The input `calls` array is in source
   order; the DB layer preserves it via an `ord` column. Within the same ticker
-  and same earliest date, the *first occurrence in the array* should win.
+  and same earliest date, the _first occurrence in the array_ should win.
 
 ### Existing tests (`src/lib/scorecard.test.ts`) — must still pass
 
@@ -73,11 +73,14 @@ test("dedupeFirstCall flags earliest postDate per ticker", () => {
     call({ ticker: "AAA", postDate: "2026-01-01" }),
     call({ ticker: "BBB", postDate: "2026-02-01" }),
   ];
-  const first = dedupeFirstCall(calls).filter(c => c.isFirstCall);
-  expect(first.map(c => `${c.ticker}:${c.postDate}`).sort())
-    .toEqual(["AAA:2026-01-01", "BBB:2026-02-01"]);
+  const first = dedupeFirstCall(calls).filter((c) => c.isFirstCall);
+  expect(first.map((c) => `${c.ticker}:${c.postDate}`).sort()).toEqual([
+    "AAA:2026-01-01",
+    "BBB:2026-02-01",
+  ]);
 });
 ```
+
 This uses distinct dates → still passes with the fix (AAA's earliest is the
 06-01... here 01-01 — one winner). `buildScorecard` tests use distinct dates too.
 The `call()` factory (lines 5-12) defaults `shortcode: "x"` for every call, so
@@ -86,7 +89,7 @@ The `call()` factory (lines 5-12) defaults `shortcode: "x"` for every call, so
 ## Commands you will need
 
 | Purpose   | Command                              | Expected on success |
-|-----------|--------------------------------------|---------------------|
+| --------- | ------------------------------------ | ------------------- |
 | Typecheck | `bunx tsc --noEmit`                  | exit 0              |
 | Unit test | `bun test src/lib/scorecard.test.ts` | all pass            |
 | Full      | `bun test`                           | all pass            |
@@ -94,10 +97,12 @@ The `call()` factory (lines 5-12) defaults `shortcode: "x"` for every call, so
 ## Scope
 
 **In scope**:
+
 - `src/lib/scorecard.ts` (only `dedupeFirstCall`)
 - `src/lib/scorecard.test.ts`
 
 **Out of scope** (do NOT touch):
+
 - `buildScorecard`, `buildFunnel`, `minDate`/`maxDate` — unchanged.
 - `pipeline/score.ts` — the caller is fine.
 - Committed datasets — do not regenerate (see Maintenance notes).
@@ -113,7 +118,7 @@ The `call()` factory (lines 5-12) defaults `shortcode: "x"` for every call, so
 
 ### Step 1: Rewrite `dedupeFirstCall` to pick one winner index per ticker
 
-Track the *winning array index* per ticker (earliest date; on a tie, the lower
+Track the _winning array index_ per ticker (earliest date; on a tie, the lower
 index wins because we only replace on a strictly-earlier date). Then set
 `isFirstCall` by index identity, not date equality:
 
@@ -148,7 +153,7 @@ test("dedupeFirstCall picks exactly one first-call when two share the earliest d
     call({ ticker: "AAA", postDate: "2026-01-01", shortcode: "second" }),
     call({ ticker: "AAA", postDate: "2026-02-01", shortcode: "later" }),
   ];
-  const flagged = dedupeFirstCall(calls).filter(c => c.isFirstCall);
+  const flagged = dedupeFirstCall(calls).filter((c) => c.isFirstCall);
   expect(flagged.length).toBe(1);
   expect(flagged[0]!.shortcode).toBe("first"); // earliest day, first in source order
 });

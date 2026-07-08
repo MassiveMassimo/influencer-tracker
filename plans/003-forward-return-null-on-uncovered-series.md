@@ -25,7 +25,7 @@
 
 `forwardReturn` resolves both the start and end prices with `closeOnOrAfter`,
 which returns the **first bar at or after** a target date. When a ticker's price
-series begins *after* `postDate + horizon` (a recently-listed ticker, a
+series begins _after_ `postDate + horizon` (a recently-listed ticker, a
 ticker-symbol change, or a too-short cached series — see Plan 006), both the
 start and end resolve to the **same first bar**, so the function returns exactly
 `0` (a "no change") instead of `null` ("no data for this horizon"). A fabricated
@@ -37,9 +37,9 @@ that should have been excluded.
 bar well after `postDate`, measuring the return from the wrong date rather than
 returning `null`.
 
-The fix: a return is only valid if the resolved start bar is actually *near* the
+The fix: a return is only valid if the resolved start bar is actually _near_ the
 intended `fromDate` (i.e. the series covers the window), and the resolved end bar
-is actually *at or after the horizon target* and *distinct from / later than* the
+is actually _at or after the horizon target_ and _distinct from / later than_ the
 start. When the series doesn't cover the window, return `null` so the call is
 correctly excluded.
 
@@ -59,7 +59,11 @@ function pctReturn(from: number, to: number): number {
   return to / from - 1;
 }
 
-export function forwardReturn(ohlc: OhlcBar[], fromDate: string, calendarDays: number): number | null {
+export function forwardReturn(
+  ohlc: OhlcBar[],
+  fromDate: string,
+  calendarDays: number,
+): number | null {
   const start = closeOnOrAfter(ohlc, fromDate);
   if (start == null) return null;
   const end = closeOnOrAfter(ohlc, addDays(fromDate, calendarDays));
@@ -76,7 +80,7 @@ function toDateReturn(ohlc: OhlcBar[], fromDate: string): number | null {
 ```
 
 - `closeOnOrAfter` returns a **close price** (`number`), not the bar — so today
-  the caller can't see *which date* it resolved to. The fix needs the resolved
+  the caller can't see _which date_ it resolved to. The fix needs the resolved
   bar's date. Bars are sorted ascending by `date` (ISO `YYYY-MM-DD` strings; the
   scoring store is daily Yahoo OHLC).
 - `OhlcBar` (`src/lib/types.ts:4`): `{ date: string; o,h,l,c: number }`.
@@ -84,7 +88,7 @@ function toDateReturn(ohlc: OhlcBar[], fromDate: string): number | null {
   `YYYY-MM-DD` string.
 - `closeOnOrAfter` is **also exported and unit-tested independently** — keep its
   signature and behavior unchanged (tests at `returns.test.ts:14-22` assert it
-  returns a number/null). Add a *new* internal helper for the bar instead.
+  returns a number/null). Add a _new_ internal helper for the bar instead.
 
 ### Existing tests (`src/lib/returns.test.ts`) — must still pass
 
@@ -107,19 +111,21 @@ this case.
 
 ## Commands you will need
 
-| Purpose   | Command                          | Expected on success |
-|-----------|----------------------------------|---------------------|
-| Typecheck | `bunx tsc --noEmit`              | exit 0              |
-| Unit test | `bun test src/lib/returns.test.ts` | all pass          |
-| Full      | `bun test`                       | all pass            |
+| Purpose   | Command                            | Expected on success |
+| --------- | ---------------------------------- | ------------------- |
+| Typecheck | `bunx tsc --noEmit`                | exit 0              |
+| Unit test | `bun test src/lib/returns.test.ts` | all pass            |
+| Full      | `bun test`                         | all pass            |
 
 ## Scope
 
 **In scope**:
+
 - `src/lib/returns.ts`
 - `src/lib/returns.test.ts`
 
 **Out of scope** (do NOT touch):
+
 - `src/lib/scorecard.ts`, `pipeline/score.ts` — they consume `computeReturns`
   output and already handle `null` correctly (they filter `excess != null`).
 - `src/lib/spark.ts` — unrelated.
@@ -156,12 +162,16 @@ function barOnOrAfter(ohlc: OhlcBar[], target: string): OhlcBar | null {
 ### Step 2: Rewrite `forwardReturn` with a coverage guard
 
 The window `[fromDate, fromDate+calendarDays]` is only measurable if a bar exists
-*at or after the horizon end target*. If the first bar at/after `fromDate` is
+_at or after the horizon end target_. If the first bar at/after `fromDate` is
 itself already past the horizon-end target, the series starts too late and there
 is no real "before" price for this call → return `null`.
 
 ```ts
-export function forwardReturn(ohlc: OhlcBar[], fromDate: string, calendarDays: number): number | null {
+export function forwardReturn(
+  ohlc: OhlcBar[],
+  fromDate: string,
+  calendarDays: number,
+): number | null {
   const startBar = barOnOrAfter(ohlc, fromDate);
   if (startBar == null) return null;
   const endTarget = addDays(fromDate, calendarDays);
@@ -230,6 +240,7 @@ test("toDateReturn is null when the series starts long after the call date", () 
 
 Note: `toDateReturn` is not exported today (it's only used via `computeReturns`).
 Either (a) export it for the test, or (b) assert through `computeReturns`:
+
 ```ts
 test("computeReturns yields null toDate when series starts after the call", () => {
   const r = computeReturns(lateBars, lateBars, "2026-06-01");
@@ -237,6 +248,7 @@ test("computeReturns yields null toDate when series starts after the call", () =
   expect(r["1w"].stock).toBeNull();
 });
 ```
+
 Prefer (b) — it tests the public surface and needs no export change. Use (b)
 unless you have a reason to export `toDateReturn`.
 
@@ -273,7 +285,7 @@ Stop and report back if:
 
 ## Maintenance notes
 
-- **Re-scoring is a separate operator step.** This changes how *future* scoring
+- **Re-scoring is a separate operator step.** This changes how _future_ scoring
   treats uncovered horizons; committed datasets are not regenerated here. After
   this lands, re-running `score` for affected creators (then
   `bun run scripts/parity-check.ts` → `PARITY OK`) will drop the previously

@@ -6,7 +6,7 @@
 
 ## Problem
 
-The app's purpose is to find *which finfluencers are most accurate at stock calls*.
+The app's purpose is to find _which finfluencers are most accurate at stock calls_.
 Today it can't: there is no cross-creator ranking, the per-creator accuracy numbers are
 presented without sample size (and three different "beats SPY" figures contradict each
 other on one page), and the charts have UX gaps — a single fixed time window, and call
@@ -35,14 +35,14 @@ per-row sparklines).
 
 ## Decisions (resolved with user)
 
-| Decision | Choice |
-|---|---|
+| Decision                  | Choice                                                                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Canonical accuracy metric | **3m hit rate on first calls** = % of first-call-per-ticker beating SPY at 3m, shown with its `n`. Sign-based, least gameable by high-beta picks. |
-| Small samples | **Show + flag + sort last**: `n < 10` rendered "low confidence", ranked below proven creators regardless of %. |
-| Change scope | **Presentation + add sample-count fields**; no methodology change. |
-| Timeframe tabs | **Ticker price charts only** (1M / 3M / 6M / 1Y / All), animated. |
-| Sparkline | **Stock path + call marker**, native SVG, colored by to-date excess. |
-| Call markers | **Vendor bklit `ChartMarkers`** (proper annotations + tooltip), no stopgap. |
+| Small samples             | **Show + flag + sort last**: `n < 10` rendered "low confidence", ranked below proven creators regardless of %.                                    |
+| Change scope              | **Presentation + add sample-count fields**; no methodology change.                                                                                |
+| Timeframe tabs            | **Ticker price charts only** (1M / 3M / 6M / 1Y / All), animated.                                                                                 |
+| Sparkline                 | **Stock path + call marker**, native SVG, colored by to-date excess.                                                                              |
+| Call markers              | **Vendor bklit `ChartMarkers`** (proper annotations + tooltip), no stopgap.                                                                       |
 
 `LOW_CONFIDENCE_N = 10` (single shared constant).
 
@@ -53,6 +53,7 @@ per-row sparklines).
 ### A. Data layer — expose sample sizes (no methodology change)
 
 **`src/lib/types.ts`** — extend `Scorecard`:
+
 ```ts
 hitRateN: { "1m": number; "3m": number };  // denominators behind hitRate
 ```
@@ -62,6 +63,7 @@ horizon; capture their `.length` into `hitRateN`. No change to how `hitRate`/`av
 are computed.
 
 **`pipeline/score.ts`** — `updateIndex` entry gains the fields the leaderboard needs:
+
 ```ts
 { handle, name, avatar?,
   totalCalls, firstCalls,            // firstCalls = scorecard.uniqueTickers
@@ -97,6 +99,7 @@ Replace the unsorted list with a sortable table.
 ### C. Creator-page trust fixes
 
 **`c.$handle.index.tsx` + `AnalyticsCharts.tsx` + `Scorecard.tsx`:**
+
 - Hit-rate gauge and the hit-rate tile show `n` and the fraction ("4 of 7 first calls ·
   3m"); a "low confidence" note appears when `n < LOW_CONFIDENCE_N`. Kills the bare "57%".
 - **Funnel → 5 honest stages** (`pipeline/score.ts`), each a true subset of the one above,
@@ -113,6 +116,7 @@ Replace the unsorted list with a sortable table.
 Source: `https://github.com/bklit/bklit-ui`. Vendor the marker components that are absent
 from the local subset, matching the existing copy-in style under
 `src/components/charts/`:
+
 - `ChartMarkers` (props: `items`, `size`, `showLines`, `animate`)
 - `MarkerTooltipContent`, `useActiveMarkers`
 - their `ChartMarker` type
@@ -129,7 +133,7 @@ date, description = truncated quote + to-date excess, optional icon). Render
 marker via `useActiveMarkers`/`MarkerTooltipContent`. Use on **both** the candlestick and
 the stock-vs-SPY line chart (candlestick uses the same composition per bklit docs).
 
-*Risk / fallback:* if a vendored component pulls in deps that don't fit the local shell,
+_Risk / fallback:_ if a vendored component pulls in deps that don't fit the local shell,
 fall back to a thin local `CallMarkers` overlay that consumes `xScale` from chart context
 and renders a tick + tooltip per call date. Decide while vendoring, not assumed.
 
@@ -137,6 +141,7 @@ and renders a tick + tooltip per call date. Decide while vendoring, not assumed.
 
 **New `src/components/TimeframeTabs.tsx`** — the Transitions.dev sliding-pill tab control
 the user supplied, adapted:
+
 - Structure/motion preserved: `role="tablist"`, pill driven by the active tab's
   `offsetLeft`/`offsetWidth`, snaps without transition on first paint + resize (suspend
   transition → force reflow → restore), honors `prefers-reduced-motion`.
@@ -148,6 +153,7 @@ the user supplied, adapted:
 - Tabs: **1M · 3M · 6M · 1Y · All**.
 
 **`c.$handle.ticker.$symbol.tsx`:**
+
 - `useState` `timeframe` (default "All" or "1Y" — pick "1Y" so the default view is focused).
 - Extract a pure `windowSeries(ohlc, timeframe, asOf)` helper (own file + unit test): keeps
   bars with `date >= asOf − window`; "All" returns all. `asOf` = last bar date.
@@ -159,6 +165,7 @@ the user supplied, adapted:
 ### F. Per-call sparklines — overview calls table
 
 **New `src/components/Sparkline.tsx`** — native SVG, no bklit dep (cheap for many rows):
+
 - Input: `ohlc` bars from the call's `postDate` forward, plus the call's to-date excess
   sign for color.
 - Render: polyline of closes, a dot at the first point (call date). Stroke + dot colored

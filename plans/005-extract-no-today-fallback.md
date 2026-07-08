@@ -44,9 +44,10 @@ async function postDateOf(handle: string, code: string): Promise<string> {
   const info = (await readdir(dir)).find((f) => f.endsWith(".info.json"));
   if (info) {
     const j = JSON.parse(await readFile(join(dir, info), "utf8"));
-    if (j.upload_date) return `${j.upload_date.slice(0, 4)}-${j.upload_date.slice(4, 6)}-${j.upload_date.slice(6, 8)}`;
+    if (j.upload_date)
+      return `${j.upload_date.slice(0, 4)}-${j.upload_date.slice(4, 6)}-${j.upload_date.slice(6, 8)}`;
   }
-  return new Date().toISOString().slice(0, 10);   // <-- fabricated date
+  return new Date().toISOString().slice(0, 10); // <-- fabricated date
 }
 
 export async function extract(handle: string) {
@@ -60,7 +61,10 @@ export async function extract(handle: string) {
     const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
     const body = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
     const c = await classify(text, body);
-    if (!c) { console.warn(`skip ${code}: malformed extract response`); continue; }
+    if (!c) {
+      console.warn(`skip ${code}: malformed extract response`);
+      continue;
+    }
     const rc = toReelCall(c, code, await postDateOf(handle, code));
     if (rc) out.push(rc);
   }
@@ -83,20 +87,22 @@ export async function extract(handle: string) {
 
 ## Commands you will need
 
-| Purpose   | Command                          | Expected on success |
-|-----------|----------------------------------|---------------------|
-| Typecheck | `bunx tsc --noEmit`              | exit 0              |
-| Full      | `bun test`                       | all pass            |
+| Purpose   | Command             | Expected on success |
+| --------- | ------------------- | ------------------- |
+| Typecheck | `bunx tsc --noEmit` | exit 0              |
+| Full      | `bun test`          | all pass            |
 
 (There is no `extract.test.ts` today; see Test plan.)
 
 ## Scope
 
 **In scope**:
+
 - `pipeline/extract.ts`
 - `pipeline/extract.test.ts` (create — see Test plan)
 
 **Out of scope** (do NOT touch):
+
 - `pipeline/x/extract-x.ts` — X has a real date always.
 - `pipeline/calls.ts` — `toReelCall` is fine.
 - Committed datasets — do not regenerate.
@@ -121,7 +127,8 @@ async function postDateOf(handle: string, code: string): Promise<string | null> 
   const info = (await readdir(dir)).find((f) => f.endsWith(".info.json"));
   if (info) {
     const j = JSON.parse(await readFile(join(dir, info), "utf8"));
-    if (j.upload_date) return `${j.upload_date.slice(0, 4)}-${j.upload_date.slice(4, 6)}-${j.upload_date.slice(6, 8)}`;
+    if (j.upload_date)
+      return `${j.upload_date.slice(0, 4)}-${j.upload_date.slice(4, 6)}-${j.upload_date.slice(6, 8)}`;
   }
   return null;
 }
@@ -135,7 +142,10 @@ In the loop, resolve the date before building the call and skip loudly if null:
 
 ```ts
 const postDate = await postDateOf(handle, code);
-if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); continue; }
+if (postDate == null) {
+  console.warn(`skip ${code}: no upload_date in info.json`);
+  continue;
+}
 const rc = toReelCall(c, code, postDate);
 if (rc) out.push(rc);
 ```
@@ -159,6 +169,7 @@ export function formatUploadDate(uploadDate: unknown): string | null {
 ```
 
 Then `postDateOf` uses it:
+
 ```ts
 if (info) {
   const j = JSON.parse(await readFile(join(dir, info), "utf8"));
@@ -218,7 +229,7 @@ Stop and report back if:
 ## Maintenance notes
 
 - **Re-scoring is a separate operator step.** Skipping a reel removes it from
-  *future* runs; committed datasets are unchanged until re-scored
+  _future_ runs; committed datasets are unchanged until re-scored
   (`score` → `parity-check` → `PARITY OK`).
 - A skipped reel is now visibly logged; an operator reviewing pipeline output can
   spot a creator with many `no upload_date` skips (a sign of a flaky scrape worth

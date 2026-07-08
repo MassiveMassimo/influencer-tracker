@@ -45,10 +45,12 @@
 ## Task 1: Pure halal helpers + types
 
 **Files:**
+
 - Create: `src/lib/halal/types.ts`
 - Test: `src/lib/halal/types.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces:
   - `type HalalStatus = "halal" | "doubtful" | "not_halal" | "unknown"`
@@ -229,10 +231,12 @@ git commit -m "feat(halal): pure status/key/url helpers + types"
 ## Task 2: Musaffa Typesense fetch
 
 **Files:**
+
 - Create: `src/lib/halal/musaffa.ts`
 - Test: `src/lib/halal/musaffa.test.ts`
 
 **Interfaces:**
+
 - Consumes: `HalalInfo`, `parseRating`, `musaffaUrl` (Task 1).
 - Produces:
   - `class MusaffaOutage extends Error`
@@ -370,7 +374,10 @@ async function searchBatch(keys: string[], apiKey: string): Promise<Record<strin
 
 // Returns a map keyed by uppercased Musaffa `id`. Throws MusaffaOutage on 5xx so
 // the caller (halal-fetch) can fail open. Missing keys simply aren't in the map.
-export async function fetchMusaffa(keys: string[], apiKey: string): Promise<Record<string, HalalInfo>> {
+export async function fetchMusaffa(
+  keys: string[],
+  apiKey: string,
+): Promise<Record<string, HalalInfo>> {
   if (keys.length === 0) return {};
   const merged: Record<string, HalalInfo> = {};
   for (let i = 0; i < keys.length; i += MAX_PER_PAGE) {
@@ -398,10 +405,12 @@ git commit -m "feat(halal): Musaffa Typesense fetch (port of musaffa_client.py)"
 ## Task 3: `fetchHalal` server fn + cache + assemble
 
 **Files:**
+
 - Create: `src/lib/halal-fetch.ts`
 - Test: `src/lib/halal-fetch.test.ts`
 
 **Interfaces:**
+
 - Consumes: `HalalInfo`, `UNKNOWN_INFO`, `musaffaKey` (Task 1); `fetchMusaffa`, `MusaffaOutage` (Task 2); `isSafeAssetKey` (`src/lib/api-serve.ts`).
 - Produces:
   - `assembleHalal(symbols: string[], byKey: Record<string, HalalInfo>): Record<string, HalalInfo>` — maps each symbol via `musaffaKey` to a record, unmatched → `UNKNOWN_INFO`.
@@ -567,10 +576,12 @@ Expected typecheck: no new errors in `halal-fetch.ts` (pre-existing route-typege
 ## Task 4: `halalQuery` + `useHalalStatus`
 
 **Files:**
+
 - Create: `src/lib/halal-query.ts`
 - Test: extend `src/lib/halal-fetch.test.ts` (queryKey shape only — the hook needs React context and is covered by visual verification).
 
 **Interfaces:**
+
 - Consumes: `fetchHalal` (Task 3); `HalalInfo` (Task 1); `usePreferences` (`src/lib/preferences.tsx`, after Task 5 adds `showHalalStatus`).
 - Produces:
   - `halalQuery(symbols: string[])` → `queryOptions`.
@@ -650,11 +661,13 @@ git commit -m "feat(halal): halalQuery + useHalalStatus hook"
 ## Task 5: Preference toggle `showHalalStatus`
 
 **Files:**
+
 - Modify: `src/lib/preferences.tsx`
 - Modify: `src/lib/preferences.test.ts`
 - Modify: `src/components/Preferences.tsx`
 
 **Interfaces:**
+
 - Produces: `Preferences.showHalalStatus: boolean` (default `false`); `setShowHalalStatus(v: boolean)` on the context.
 
 - [ ] **Step 1: Write the failing test**
@@ -689,34 +702,45 @@ Expected: FAIL — `readStoredPrefs()` result is missing `showHalalStatus`.
 - [ ] **Step 3: Implement in `src/lib/preferences.tsx`**
 
 Add to the `Preferences` interface (after `reduceHaptics`):
+
 ```ts
-  showHalalStatus: boolean;
+showHalalStatus: boolean;
 ```
+
 Add to `DEFAULTS`:
+
 ```ts
   showHalalStatus: false,
 ```
+
 Add to the `readStoredPrefs` return object:
+
 ```ts
     showHalalStatus: window.localStorage.getItem("show-halal") === "true",
 ```
+
 Add to `PreferencesContextValue`:
+
 ```ts
   setShowHalalStatus: (v: boolean) => void;
 ```
+
 Add the setter (after `setReduceHaptics`):
+
 ```ts
-  const setShowHalalStatus = React.useCallback((showHalalStatus: boolean) => {
-    setPrefs((p) => ({ ...p, showHalalStatus }));
-    window.localStorage.setItem("show-halal", String(showHalalStatus));
-  }, []);
+const setShowHalalStatus = React.useCallback((showHalalStatus: boolean) => {
+  setPrefs((p) => ({ ...p, showHalalStatus }));
+  window.localStorage.setItem("show-halal", String(showHalalStatus));
+}, []);
 ```
+
 Add it to the `useMemo` value object and its dependency array:
+
 ```ts
-  const value = React.useMemo<PreferencesContextValue>(
-    () => ({ ...prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus }),
-    [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus]
-  );
+const value = React.useMemo<PreferencesContextValue>(
+  () => ({ ...prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus }),
+  [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus],
+);
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -727,24 +751,27 @@ Expected: PASS.
 - [ ] **Step 5: Add the toggle row in `src/components/Preferences.tsx`**
 
 In `Body()`, destructure the new pieces:
+
 ```ts
-  const {
-    reduceMotion,
-    reduceHaptics,
-    showHalalStatus,
-    setReduceMotion,
-    setReduceHaptics,
-    setShowHalalStatus,
-  } = usePreferences();
+const {
+  reduceMotion,
+  reduceHaptics,
+  showHalalStatus,
+  setReduceMotion,
+  setReduceHaptics,
+  setShowHalalStatus,
+} = usePreferences();
 ```
+
 Add a third `SwitchRow` after the "Reduce haptics" row, inside the same `space-y-4` div:
+
 ```tsx
-        <SwitchRow
-          label="Show halal status"
-          description="Badge stocks with their Musaffa Shariah-compliance rating."
-          checked={showHalalStatus}
-          onChange={setShowHalalStatus}
-        />
+<SwitchRow
+  label="Show halal status"
+  description="Badge stocks with their Musaffa Shariah-compliance rating."
+  checked={showHalalStatus}
+  onChange={setShowHalalStatus}
+/>
 ```
 
 - [ ] **Step 6: Typecheck + commit**
@@ -760,11 +787,13 @@ git commit -m "feat(halal): showHalalStatus preference + toggle"
 ## Task 6: Badge + preview-card components
 
 **Files:**
+
 - Create: `src/components/ui/preview-card.tsx` (via shadcn add)
 - Create: `src/components/halal/halal-card-content.tsx`
 - Create: `src/components/halal/halal-badge.tsx`
 
 **Interfaces:**
+
 - Consumes: `HalalInfo`, `badgeKindFor`, `purityFraction` (Task 1); `Gauge` (`src/components/charts/gauge.tsx`); `ChartBoundary` (`src/components/ChartBoundary`); the generated `preview-card`.
 - Produces:
   - `HalalCardContent({ info }: { info: HalalInfo })` — presentational body.
@@ -915,12 +944,14 @@ git commit -m "feat(halal): badge, preview card, and Musaffa gauge content"
 ## Task 7: Wire badges into the surfaces
 
 **Files:**
+
 - Modify: `src/routes/t.$symbol.tsx`
 - Modify: `src/routes/explore.tsx`
 - Modify: `src/routes/c.$handle.index.tsx`
 - Modify: `src/routes/c.$handle.ticker.$symbol.tsx`
 
 **Interfaces:**
+
 - Consumes: `useHalalStatus` (Task 4), `HalalIndicator`, `HalalCardContent` (Task 6), `UNKNOWN_INFO` (Task 1).
 
 Pattern for every route: collect the displayed symbols, call `useHalalStatus(symbols)` once at the top of the component, then render `<HalalIndicator info={getInfo(sym) ?? UNKNOWN_INFO} />` next to each symbol. `HalalIndicator` returns `null` for unknown, so off-toggle and unlisted symbols render nothing.
@@ -928,45 +959,58 @@ Pattern for every route: collect the displayed symbols, call `useHalalStatus(sym
 - [ ] **Step 1: `t.$symbol.tsx` — header badge + inline card**
 
 In `TickerView`, after the `summary` is read from `Route.useLoaderData()`, add:
+
 ```tsx
-  const getHalal = useHalalStatus([summary.symbol]);
-  const halal = getHalal(summary.symbol) ?? UNKNOWN_INFO;
+const getHalal = useHalalStatus([summary.symbol]);
+const halal = getHalal(summary.symbol) ?? UNKNOWN_INFO;
 ```
+
 Imports at top:
+
 ```tsx
 import { useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { HalalCardContent } from "#/components/halal/halal-card-content.tsx";
 import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 ```
+
 Change the `<h1>` to include the badge:
+
 ```tsx
-          <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
-            {summary.symbol}
-            <HalalIndicator info={halal} />
-          </h1>
+<h1 className="mt-1 flex items-center gap-2 font-heading text-2xl">
+  {summary.symbol}
+  <HalalIndicator info={halal} />
+</h1>
 ```
+
 Add the inline card as a new section after the `<header>` (gated: only when not unknown):
+
 ```tsx
-        {halal.status !== "unknown" ? (
-          <section className="rounded-2xl border border-border/60 bg-background p-4">
-            <HalalCardContent info={halal} />
-          </section>
-        ) : null}
+{
+  halal.status !== "unknown" ? (
+    <section className="rounded-2xl border border-border/60 bg-background p-4">
+      <HalalCardContent info={halal} />
+    </section>
+  ) : null;
+}
 ```
 
 - [ ] **Step 2: `c.$handle.ticker.$symbol.tsx` — header badge**
 
 Find the symbol header (the `<h1>`/title rendering `params.symbol`). Add at the top of the component body:
+
 ```tsx
-  const getHalal = useHalalStatus([params.symbol]);
+const getHalal = useHalalStatus([params.symbol]);
 ```
+
 Imports:
+
 ```tsx
 import { useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { UNKNOWN_INFO } from "#/lib/halal/types.ts";
 ```
+
 Render `<HalalIndicator info={getHalal(params.symbol) ?? UNKNOWN_INFO} />` adjacent to the symbol in the header (match the existing flex/gap layout).
 
 - [ ] **Step 3: `explore.tsx` — row badges**
@@ -975,15 +1019,24 @@ The component maps `rows.slice(0, 500).map((r) => ...)`; the symbol is `r.ticker
 rendered as a `<Link to="/t/$symbol" params={{ symbol: r.ticker }}>{r.ticker}</Link>`
 (~line 117). Imports as in Step 2 (`useHalalStatus`, `HalalIndicator`, `UNKNOWN_INFO`).
 At the top of the component body add:
+
 ```tsx
-  const getHalal = useHalalStatus(rows.map((r) => r.ticker));
+const getHalal = useHalalStatus(rows.map((r) => r.ticker));
 ```
+
 Wrap the ticker `Link` so the badge sits next to it:
+
 ```tsx
-                    <span className="inline-flex items-center gap-1.5">
-                      <Link to="/t/$symbol" params={{ symbol: r.ticker }} className="font-medium text-sm text-foreground no-underline hover:underline">{r.ticker}</Link>
-                      <HalalIndicator info={getHalal(r.ticker) ?? UNKNOWN_INFO} />
-                    </span>
+<span className="inline-flex items-center gap-1.5">
+  <Link
+    to="/t/$symbol"
+    params={{ symbol: r.ticker }}
+    className="font-medium text-sm text-foreground no-underline hover:underline"
+  >
+    {r.ticker}
+  </Link>
+  <HalalIndicator info={getHalal(r.ticker) ?? UNKNOWN_INFO} />
+</span>
 ```
 
 - [ ] **Step 4: `c.$handle.index.tsx` — call-list row badges**
@@ -991,16 +1044,20 @@ Wrap the ticker `Link` so the badge sits next to it:
 The badge belongs in the call rows. In `CallsList` (it receives `calls: Call[]` and
 maps `visible.map((c) => <CallRow ... />)`), compute the lookup once and pass the
 per-row info into `CallRow`:
+
 ```tsx
-  const getHalal = useHalalStatus(calls.map((c) => c.ticker));
+const getHalal = useHalalStatus(calls.map((c) => c.ticker));
 ```
+
 Add an `info` prop to `CallRow` (`info: HalalInfo`) and pass `info={getHalal(call.ticker) ?? UNKNOWN_INFO}` from the `visible.map` callback. In `CallRow`, beside the ticker label (`<span ...>{call.ticker}</span>`, ~line 437) render:
+
 ```tsx
-            <span className="inline-flex items-center gap-1.5">
-              <span className="shrink-0 font-mono text-sm text-foreground">{call.ticker}</span>
-              <HalalIndicator info={info} />
-            </span>
+<span className="inline-flex items-center gap-1.5">
+  <span className="shrink-0 font-mono text-sm text-foreground">{call.ticker}</span>
+  <HalalIndicator info={info} />
+</span>
 ```
+
 Imports for this file: `useHalalStatus`, `HalalIndicator`, and `HalalInfo` + `UNKNOWN_INFO` from `#/lib/halal/types.ts`.
 
 - [ ] **Step 5: Typecheck + build**
@@ -1020,6 +1077,7 @@ git commit -m "feat(halal): wire badge + inline card into ticker, explore, creat
 ## Task 8: Local key, env example, and docs
 
 **Files:**
+
 - Modify: `.env.example`
 - Modify: `CLAUDE.md`
 - Local only (not committed): `.env`
@@ -1029,15 +1087,18 @@ git commit -m "feat(halal): wire badge + inline card into ticker, explore, creat
 - [ ] **Step 1: Provision the key locally (operator step)**
 
 Fetch the value from the VM and append to the worktree's gitignored `.env`:
+
 ```bash
 KEY=$(ssh ubuntu@imos-vm 'grep -E "^MUSAFFA_API_KEY=" ~/stock-pipeline-v2/.env | cut -d= -f2-')
 printf '\nMUSAFFA_API_KEY=%s\n' "$KEY" >> .env
 ```
+
 Verify: `grep -c MUSAFFA_API_KEY .env` → `1`. (`.env` is gitignored — never commit it.)
 
 - [ ] **Step 2: Document the key in `.env.example`**
 
 Append:
+
 ```
 # Musaffa Shariah-compliance (halal badge). Typesense search-only key (read-only),
 # from stock-pipeline-v2/.env. Server-side only. Unset => badges show nothing (fail-open).
@@ -1047,6 +1108,7 @@ MUSAFFA_API_KEY=
 - [ ] **Step 3: Add a CLAUDE.md section**
 
 Add after the "Profile pics" section (before "Component provenance"):
+
 ```markdown
 ## Halal compliance badge
 

@@ -20,6 +20,7 @@ Base UI; no more reimplementing-on-radix).
 ## Phase 0 — radix → Base UI migration (do first)
 
 Convert the radix-based primitives. Decisions:
+
 - **Keep vaul** (`drawer.tsx`, `MobileNav`, proof-viewer mobile, root wrapper) —
   not radix, no Base UI equivalent, keeps drag-to-dismiss + background scale.
 - **Port the lina scroll-area** to Base UI `ScrollArea` and re-implement the
@@ -29,12 +30,12 @@ Convert the radix-based primitives. Decisions:
 
 Migration targets:
 
-| File | radix today | → Base UI |
-|---|---|---|
-| `proof-viewer.tsx` | `Dialog`, `VisuallyHidden` | Base UI `Dialog` parts |
-| `ui/badge.tsx` | `Slot` (`asChild`) | Base UI `render` prop (no Slot) |
-| `ui/accordion.tsx` | `Accordion` | Base UI `Accordion` |
-| `ui/separator.tsx` | `Separator` | Base UI `Separator` |
+| File                 | radix today                   | → Base UI                             |
+| -------------------- | ----------------------------- | ------------------------------------- |
+| `proof-viewer.tsx`   | `Dialog`, `VisuallyHidden`    | Base UI `Dialog` parts                |
+| `ui/badge.tsx`       | `Slot` (`asChild`)            | Base UI `render` prop (no Slot)       |
+| `ui/accordion.tsx`   | `Accordion`                   | Base UI `Accordion`                   |
+| `ui/separator.tsx`   | `Separator`                   | Base UI `Separator`                   |
 | `ui/scroll-area.tsx` | `@radix-ui/react-scroll-area` | Base UI `ScrollArea` + re-ported mask |
 
 Remove `radix-ui` + `@radix-ui/react-scroll-area` from `package.json` once no
@@ -83,7 +84,7 @@ One vanilla `WebHaptics` instance app-wide (iOS switch hack injects DOM once),
 created in an effect. `useHaptics()` returns gated semantic helpers — each a
 no-op when `!WebHaptics.isSupported || preferences.reduceHaptics`:
 
-- `tick()`   → ~10ms light tap — chart data-point crossing while scrubbing
+- `tick()` → ~10ms light tap — chart data-point crossing while scrubbing
 - `select()` → `"nudge"` preset — selection start, call-row tap
 - `impact()` → short tap — timeframe tab switch, proof drawer open
 
@@ -103,7 +104,7 @@ theme picker.
 
 `ToggleGroup` (single, value = `theme`) of three cards: Light / Dark / System.
 Each card renders a small **hardcoded-palette** dashboard mock (faux sidebar +
-chart line) so the preview always shows *that* theme regardless of the active
+chart line) so the preview always shows _that_ theme regardless of the active
 one — Apple/modern theme-switcher style. System card = diagonal light/dark split.
 Selected card → ring + check badge. Label under each. Selecting calls
 `usePreferences().setTheme` and `impact()`.

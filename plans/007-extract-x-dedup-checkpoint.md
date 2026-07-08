@@ -29,7 +29,7 @@
 `writeCalls(handle, out)` (the results) then `writeFile(donePath, ...)` (the
 progress set). If the process crashes **between** them, the results file has the
 new calls but the progress file does not. On the next run, `out` is reloaded
-*with* those calls, but `done` is reloaded *without* their ids — so those tweets
+_with_ those calls, but `done` is reloaded _without_ their ids — so those tweets
 are re-extracted and their calls are **appended again**, duplicating rows. The
 downstream DB backfill (`scripts/backfill.ts`) asserts a row-count match and
 **throws** on the duplicate (the PK `(handle, shortcode)` merges it), forcing a
@@ -84,19 +84,21 @@ const worker = async () => {
 
 ## Commands you will need
 
-| Purpose   | Command                                   | Expected on success |
-|-----------|-------------------------------------------|---------------------|
-| Typecheck | `bunx tsc --noEmit`                       | exit 0              |
-| Unit test | `bun test pipeline/x/extract-x.test.ts`   | all pass            |
-| Full      | `bun test`                                | all pass            |
+| Purpose   | Command                                 | Expected on success |
+| --------- | --------------------------------------- | ------------------- |
+| Typecheck | `bunx tsc --noEmit`                     | exit 0              |
+| Unit test | `bun test pipeline/x/extract-x.test.ts` | all pass            |
+| Full      | `bun test`                              | all pass            |
 
 ## Scope
 
 **In scope**:
+
 - `pipeline/x/extract-x.ts`
 - `pipeline/x/extract-x.test.ts`
 
 **Out of scope** (do NOT touch):
+
 - `pipeline/calls.ts` (`writeCalls`), `scripts/backfill.ts`, `db/backfill.ts`.
 - The worker/heal-loop control flow — only the load and push are changed.
 - Committed `reel-calls.json` / datasets — do not regenerate.
@@ -175,8 +177,16 @@ import { dedupeByShortcode } from "./extract-x";
 describe("dedupeByShortcode", () => {
   it("keeps the first occurrence and drops later duplicates by shortcode", () => {
     const mk = (shortcode: string, ticker: string): ReelCall => ({
-      shortcode, postDate: "2026-01-01", ticker, company: "", direction: "bullish",
-      isExplicitBuy: true, conviction: 0.5, quote: "", onScreenPrice: null, summary: "",
+      shortcode,
+      postDate: "2026-01-01",
+      ticker,
+      company: "",
+      direction: "bullish",
+      isExplicitBuy: true,
+      conviction: 0.5,
+      quote: "",
+      onScreenPrice: null,
+      summary: "",
     });
     const out = dedupeByShortcode([mk("t1", "AAA"), mk("t1", "BBB"), mk("t2", "CCC")]);
     expect(out.map((c) => c.shortcode)).toEqual(["t1", "t2"]);
@@ -211,7 +221,7 @@ Stop and report back if:
 
 ## Maintenance notes
 
-- This makes the checkpoint *idempotent* rather than *atomic* — simpler and
+- This makes the checkpoint _idempotent_ rather than _atomic_ — simpler and
   sufficient. If a future change needs strict atomicity (e.g. a single combined
   checkpoint file), the dedup guard is still a correct safety net.
 - A reviewer should confirm `seenCalls` is seeded from the deduped `out` (not the

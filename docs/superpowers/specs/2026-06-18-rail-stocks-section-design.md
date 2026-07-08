@@ -61,7 +61,7 @@ Two `Sparkline.tsx` tweaks. The component is **also** used in the creator call t
 1. **Gradient area fill** under the line, fading to transparent at the bottom
    (standard watchlist look): an SVG `<linearGradient>` (vertical, stop-0 = line color
    at ~0.25 opacity → stop-1 transparent) + a filled `<path>` that closes the line down
-   to the baseline, drawn *under* the stroke path. The gradient id must be unique per
+   to the baseline, drawn _under_ the stroke path. The gradient id must be unique per
    instance (multiple sparklines per page) — derive from `useId()`.
 2. **Smoothed joints** — the line currently draws straight `L` segments between points
    (`strokeLinejoin="round"` only softens the stroke corner). Replace the polyline with

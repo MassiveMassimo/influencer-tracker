@@ -29,11 +29,13 @@
 Create the durable store and its pure helpers, and make the file committable. Deliverable: `post-dates.json` round-trips through load/save, the helpers behave per spec, and `git check-ignore` confirms the file is no longer ignored.
 
 **Files:**
+
 - Create: `pipeline/post-dates.ts`
 - Create: `pipeline/post-dates.test.ts`
 - Modify: `.gitignore` (add the allow-list negation)
 
 **Interfaces:**
+
 - Consumes: `creatorDir` from `pipeline/config.ts`.
 - Produces:
   - `formatTakenAt(ms: number): string | null` — UTC `YYYY-MM-DD`; `null` for non-finite/≤0.
@@ -192,10 +194,12 @@ git commit -m "feat(ig): durable post-date store module + gitignore allow-list"
 Make the durable store the source of truth in `postDateOf` (store-first, `info.json` fallback), and merge any info.json-sourced date back into the store so it is frozen for future runs.
 
 **Files:**
+
 - Modify: `pipeline/extract.ts` (`postDateOf` at lines ~15-26; `extract` worker at ~53-66; module top)
 - Test: `pipeline/extract.test.ts` (new file, or append if one exists)
 
 **Interfaces:**
+
 - Consumes: `loadPostDates`, `savePostDates`, `mergePostDates` from `./post-dates`; existing `formatUploadDate` (unchanged).
 - Produces: `postDateOf(store: Record<string,string>, handle: string, code: string): Promise<string | null>` — store-first, then `info.json`; `null` when both miss.
 
@@ -290,33 +294,41 @@ export async function postDateOf(
 In `extract(handle)`, after `const files = (await readdir(...))...` and before the worker pool, add:
 
 ```ts
-  // Durable post-date store is the source of truth for anchors (see post-dates.ts). Load once;
-  // collect any date a worker resolves from info.json (i.e. not already in the store) so it is
-  // frozen here and used directly on every future run, independent of raw/.
-  const store = await loadPostDates(handle);
-  const discovered: Record<string, string> = {};
+// Durable post-date store is the source of truth for anchors (see post-dates.ts). Load once;
+// collect any date a worker resolves from info.json (i.e. not already in the store) so it is
+// frozen here and used directly on every future run, independent of raw/.
+const store = await loadPostDates(handle);
+const discovered: Record<string, string> = {};
 ```
 
 Replace the worker's date resolution:
 
 ```ts
-      const postDate = await postDateOf(handle, code);
-      if (postDate == null) { console.warn(`skip ${code}: no upload_date in info.json`); results[i] = []; continue; }
+const postDate = await postDateOf(handle, code);
+if (postDate == null) {
+  console.warn(`skip ${code}: no upload_date in info.json`);
+  results[i] = [];
+  continue;
+}
 ```
 
 with:
 
 ```ts
-      const postDate = await postDateOf(store, handle, code);
-      if (postDate == null) { console.warn(`skip ${code}: no post date (store or info.json)`); results[i] = []; continue; }
-      // Resolved from info.json (absent in the store) -> freeze it.
-      if (!(code in store)) discovered[code] = postDate;
+const postDate = await postDateOf(store, handle, code);
+if (postDate == null) {
+  console.warn(`skip ${code}: no post date (store or info.json)`);
+  results[i] = [];
+  continue;
+}
+// Resolved from info.json (absent in the store) -> freeze it.
+if (!(code in store)) discovered[code] = postDate;
 ```
 
 Then after `await Promise.all(...)` and before `const out: ReelCall[] = results.flat();`, add:
 
 ```ts
-  if (Object.keys(discovered).length) await savePostDates(handle, mergePostDates(store, discovered));
+if (Object.keys(discovered).length) await savePostDates(handle, mergePostDates(store, discovered));
 ```
 
 - [ ] **Step 6: Run the test + typecheck**
@@ -338,9 +350,11 @@ git commit -m "feat(ig): extract reads durable post-date store first, freezes in
 Make `scrape()` the primary store writer: after the scroll, persist every `seen` reel's GraphQL `taken_at` to the store (merged, existing-wins). Browser-driven — no unit test; verified by the VM canary in Task 6.
 
 **Files:**
+
 - Modify: `pipeline/scrape.ts` (imports at top; insert after the `shortcodes.json` write at line ~186)
 
 **Interfaces:**
+
 - Consumes: `loadPostDates`, `savePostDates`, `mergePostDates`, `formatTakenAt` from `./post-dates`; the existing `seen: Map<string, number>` (shortcode → taken_at ms).
 
 - [ ] **Step 1: Add the import to `pipeline/scrape.ts`**
@@ -356,24 +370,24 @@ import { loadPostDates, savePostDates, mergePostDates, formatTakenAt } from "./p
 The current tail of `scrape()` is:
 
 ```ts
-  const recent = [...seen.entries()].filter(([, t]) => !t || t >= cutoff).map(([code]) => code);
-  await mkdir(rawDir(handle), { recursive: true });
-  await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(recent, null, 2));
-  return recent;
+const recent = [...seen.entries()].filter(([, t]) => !t || t >= cutoff).map(([code]) => code);
+await mkdir(rawDir(handle), { recursive: true });
+await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(recent, null, 2));
+return recent;
 ```
 
 Insert between the `shortcodes.json` write and `return recent;`:
 
 ```ts
-  // Persist harvested GraphQL dates to the durable store (the source of truth for extract's
-  // anchor). Every seen reel with a positive taken_at; existing-wins so an already-committed
-  // date is frozen. This is the primary writer — info.json is only a fallback in extract.
-  const harvested: Record<string, string> = {};
-  for (const [code, ms] of seen.entries()) {
-    const d = formatTakenAt(ms);
-    if (d) harvested[code] = d;
-  }
-  await savePostDates(handle, mergePostDates(await loadPostDates(handle), harvested));
+// Persist harvested GraphQL dates to the durable store (the source of truth for extract's
+// anchor). Every seen reel with a positive taken_at; existing-wins so an already-committed
+// date is frozen. This is the primary writer — info.json is only a fallback in extract.
+const harvested: Record<string, string> = {};
+for (const [code, ms] of seen.entries()) {
+  const d = formatTakenAt(ms);
+  if (d) harvested[code] = d;
+}
+await savePostDates(handle, mergePostDates(await loadPostDates(handle), harvested));
 ```
 
 - [ ] **Step 3: Typecheck**
@@ -395,10 +409,12 @@ git commit -m "feat(ig): scrape persists harvested GraphQL dates to the durable 
 Seed the store for existing IG creators from their committed `dataset.json` postDates, so the first post-fix re-extract recovers every previously-scored reel's anchor. Detect IG creators by non-numeric shortcodes; idempotent.
 
 **Files:**
+
 - Create: `scripts/backfill-post-dates.ts`
 - Test: `scripts/backfill-post-dates.test.ts`
 
 **Interfaces:**
+
 - Consumes: `majorityNumeric` from `./shortcodes`; `loadPostDates`, `savePostDates`, `mergePostDates` from `../pipeline/post-dates`.
 - Produces: `postDatesFromDataset(calls: { shortcode?: unknown; postDate?: unknown }[]): Record<string,string>` — `{shortcode: postDate}`, deduped by shortcode (first non-empty wins), dropping entries missing either field.
 
@@ -414,8 +430,8 @@ test("postDatesFromDataset: dedup by shortcode, drop incomplete", () => {
     { shortcode: "ABC", ticker: "NVDA", postDate: "2026-03-11" },
     { shortcode: "ABC", ticker: "AMD", postDate: "2026-03-11" }, // same reel, multi-ticker
     { shortcode: "DEF", ticker: "TSLA", postDate: "2026-04-01" },
-    { shortcode: "GHI", ticker: "X", postDate: "" },             // no date -> dropped
-    { ticker: "Y", postDate: "2026-05-05" },                     // no shortcode -> dropped
+    { shortcode: "GHI", ticker: "X", postDate: "" }, // no date -> dropped
+    { ticker: "Y", postDate: "2026-05-05" }, // no shortcode -> dropped
   ] as any;
   expect(postDatesFromDataset(calls)).toEqual({ ABC: "2026-03-11", DEF: "2026-04-01" });
 });
@@ -465,11 +481,16 @@ async function main() {
       continue;
     }
     const codes = calls.map((c) => String(c.shortcode ?? "")).filter(Boolean);
-    if (majorityNumeric(codes)) { console.log(`skip ${handle}: X creator (numeric shortcodes)`); continue; }
+    if (majorityNumeric(codes)) {
+      console.log(`skip ${handle}: X creator (numeric shortcodes)`);
+      continue;
+    }
     const seeded = postDatesFromDataset(calls);
     const merged = mergePostDates(await loadPostDates(handle), seeded);
     await savePostDates(handle, merged);
-    console.log(`seeded ${handle}: ${Object.keys(seeded).length} dates -> store has ${Object.keys(merged).length}`);
+    console.log(
+      `seeded ${handle}: ${Object.keys(seeded).length} dates -> store has ${Object.keys(merged).length}`,
+    );
   }
 }
 
@@ -541,7 +562,7 @@ Expected: backfill logs a seeded-count per IG creator (and skips X creators); th
 ssh ubuntu@imos-vm 'cd ~/influencer-tracker && flock -w 60 /tmp/influencer-ingest.lock bash -c "export PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin; INGEST_HANDLES_IG=roadto100kportfolio xvfb-run -a bun run scripts/ingest-ig.ts"; echo "INNER_EXIT=$?"'
 ```
 
-Expected: scrape logs egress IP + "caught up to known reels"; `extract` resolves dates from the store (NO `skip … no post date` flood); resume runs guard + score; either a published summary (count at/near 244) or a *legitimate* guard block for operator review — but NOT the 0-call bug. `INNER_EXIT=0` on a clean publish.
+Expected: scrape logs egress IP + "caught up to known reels"; `extract` resolves dates from the store (NO `skip … no post date` flood); resume runs guard + score; either a published summary (count at/near 244) or a _legitimate_ guard block for operator review — but NOT the 0-call bug. `INNER_EXIT=0` on a clean publish.
 
 - [ ] **Step 4: Confirm freshness**
 
@@ -567,13 +588,14 @@ git worktree remove ../influencer-tracker-ig-ingest
 git branch -D ig-ingest   # branch's commits are on origin/main via the ff pushes
 ```
 
-(Only after Step 3 confirms the fix and Step 5 re-enables the timer. If the canary surfaces a *legitimate* shrink needing operator reconciliation, leave the worktree until that's resolved.)
+(Only after Step 3 confirms the fix and Step 5 re-enables the timer. If the canary surfaces a _legitimate_ shrink needing operator reconciliation, leave the worktree until that's resolved.)
 
 ---
 
 ## Self-Review
 
 **Spec coverage:**
+
 - `pipeline/post-dates.ts` store + 4 helpers, UTC format, existing-wins, atomic write → Task 1. ✓
 - `.gitignore` allow-list so the store is committed/durable → Task 1 (Steps 7-8). ✓
 - `extract` store-first precedence + freeze info.json dates → Task 2. ✓

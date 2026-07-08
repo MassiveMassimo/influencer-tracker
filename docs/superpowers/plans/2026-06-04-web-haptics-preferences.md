@@ -15,6 +15,7 @@
 ## File Map
 
 **Phase 0 — migration (modify):**
+
 - `src/components/ui/separator.tsx` — radix Separator → Base UI Separator
 - `src/components/ui/badge.tsx` — drop radix `Slot`/`asChild`
 - `src/components/ui/accordion.tsx` — radix Accordion → Base UI Accordion
@@ -24,6 +25,7 @@
 - `CLAUDE.md` — invert "Component provenance" note (primitives are now Base UI)
 
 **Phase 1 — feature (create unless noted):**
+
 - `src/lib/preferences.tsx` — `PreferencesProvider` + `usePreferences()`
 - `src/lib/preferences.test.ts` — persistence/apply tests
 - `src/styles.css` (modify) — broad `[data-reduce-motion]` override
@@ -75,10 +77,10 @@ Base UI `Separator` has `orientation` + `render` (no `decorative`), and emits `d
 - [ ] **Step 1: Replace the file**
 
 ```tsx
-import * as React from "react"
-import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
+import * as React from "react";
+import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
 
-import { cn } from "#/lib/utils.ts"
+import { cn } from "#/lib/utils.ts";
 
 function Separator({
   className,
@@ -91,14 +93,14 @@ function Separator({
       orientation={orientation}
       className={cn(
         "shrink-0 bg-border data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-px data-[orientation=vertical]:self-stretch",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Separator }
+export { Separator };
 ```
 
 - [ ] **Step 2: Find call sites still passing `decorative`**
@@ -128,6 +130,7 @@ git commit -m "refactor(ui): migrate separator to Base UI"
 
 Run: `grep -rn "Badge" src/ | grep -i "asChild"`
 Expected output determines the path:
+
 - **No results** → remove the `asChild` prop entirely (YAGNI). Use Step 2a.
 - **Has results** → preserve composition via Base UI `useRender`. Use Step 2b.
 
@@ -148,14 +151,14 @@ function Badge({
       className={cn(badgeVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }
 ```
 
 - [ ] **Step 2b: (asChild used) Replace Slot with `useRender`**
 
 ```tsx
-import { useRender } from "@base-ui/react/use-render"
+import { useRender } from "@base-ui/react/use-render";
 // ...delete: import { Slot } from "radix-ui"
 
 function Badge({
@@ -173,10 +176,11 @@ function Badge({
       className: cn(badgeVariants({ variant }), className),
       ...props,
     },
-  })
-  return element
+  });
+  return element;
 }
 ```
+
 Then update each call site that used `asChild` to use `render={<a .../>}` (Base UI pattern) instead.
 
 - [ ] **Step 3: Typecheck**
@@ -202,16 +206,14 @@ Base UI parts: `Accordion.Root/Item/Header/Trigger/Panel`. Trigger open-state at
 - [ ] **Step 1: Replace the file**
 
 ```tsx
-import * as React from "react"
-import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
-import { ChevronDownIcon } from "lucide-react"
+import * as React from "react";
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
+import { ChevronDownIcon } from "lucide-react";
 
-import { cn } from "#/lib/utils.ts"
+import { cn } from "#/lib/utils.ts";
 
-function Accordion({
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Root>) {
-  return <AccordionPrimitive.Root data-slot="accordion" {...props} />
+function Accordion({ ...props }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
+  return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
 }
 
 function AccordionItem({
@@ -224,7 +226,7 @@ function AccordionItem({
       className={cn("border-b border-border/60 last:border-b-0", className)}
       {...props}
     />
-  )
+  );
 }
 
 function AccordionTrigger({
@@ -238,7 +240,7 @@ function AccordionTrigger({
         data-slot="accordion-trigger"
         className={cn(
           "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left font-medium text-sm outline-none transition-all hover:underline focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-panel-open]>svg]:rotate-180",
-          className
+          className,
         )}
         {...props}
       >
@@ -246,7 +248,7 @@ function AccordionTrigger({
         <ChevronDownIcon className="pointer-events-none size-4 shrink-0 translate-y-0.5 text-muted-foreground transition-transform duration-200" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
-  )
+  );
 }
 
 function AccordionContent({
@@ -262,10 +264,10 @@ function AccordionContent({
     >
       <div className={cn("pt-0 pb-4 text-muted-foreground", className)}>{children}</div>
     </AccordionPrimitive.Panel>
-  )
+  );
 }
 
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };
 ```
 
 - [ ] **Step 2: Check the Root usage on the landing Q&A**
@@ -301,33 +303,36 @@ Only the **non-touch branch** uses the radix primitive; the touch branch + `Scro
 - [ ] **Step 1: Swap the import**
 
 Replace line 5:
+
 ```tsx
-import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
+import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
 ```
 
 - [ ] **Step 2: Update the non-touch branch JSX** (the `else` block, ~lines 109-131)
 
 ```tsx
-        <ScrollAreaPrimitive.Root
-          ref={ref}
-          data-slot="scroll-area"
-          className={cn("relative overflow-hidden", className)}
-          style={{ ["--scroll-mask-color" as string]: maskColor, ...style }}
-          {...props}
-        >
-          <ScrollAreaPrimitive.Viewport
-            ref={viewportRef}
-            data-slot="scroll-area-viewport"
-            className={cn("size-full rounded-[inherit]", viewportClassName)}
-          >
-            {children}
-          </ScrollAreaPrimitive.Viewport>
+<ScrollAreaPrimitive.Root
+  ref={ref}
+  data-slot="scroll-area"
+  className={cn("relative overflow-hidden", className)}
+  style={{ ["--scroll-mask-color" as string]: maskColor, ...style }}
+  {...props}
+>
+  <ScrollAreaPrimitive.Viewport
+    ref={viewportRef}
+    data-slot="scroll-area-viewport"
+    className={cn("size-full rounded-[inherit]", viewportClassName)}
+  >
+    {children}
+  </ScrollAreaPrimitive.Viewport>
 
-          {maskHeight > 0 && <ScrollMask showMask={showMask} className={maskClassName} maskHeight={maskHeight} />}
-          <ScrollBar />
-          <ScrollBar orientation="horizontal" />
-          <ScrollAreaPrimitive.Corner />
-        </ScrollAreaPrimitive.Root>
+  {maskHeight > 0 && (
+    <ScrollMask showMask={showMask} className={maskClassName} maskHeight={maskHeight} />
+  )}
+  <ScrollBar />
+  <ScrollBar orientation="horizontal" />
+  <ScrollAreaPrimitive.Corner />
+</ScrollAreaPrimitive.Root>
 ```
 
 - [ ] **Step 3: Update `ScrollBar` to Base UI parts**
@@ -348,7 +353,7 @@ const ScrollBar = React.forwardRef<
         "flex touch-none p-px transition-colors duration-150 select-none hover:bg-muted dark:hover:bg-muted/50",
         orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent",
         orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent px-1 pr-1.25",
-        className
+        className,
       )}
       {...props}
     >
@@ -357,7 +362,7 @@ const ScrollBar = React.forwardRef<
         className={cn(
           "bg-border relative flex-1 origin-center rounded-full transition-[scale]",
           orientation === "vertical" && "my-1 active:scale-y-95",
-          orientation === "horizontal" && "active:scale-x-98"
+          orientation === "horizontal" && "active:scale-x-98",
         )}
       />
     </ScrollAreaPrimitive.Scrollbar>
@@ -366,6 +371,7 @@ const ScrollBar = React.forwardRef<
 
 ScrollBar.displayName = "ScrollBar";
 ```
+
 Also update the `ScrollArea.displayName = ...` line (line 136) to `ScrollArea.displayName = "ScrollArea"` (Base UI parts have no `.displayName`).
 
 - [ ] **Step 4: Update the forwardRef generic type** (lines 19-21)
@@ -384,10 +390,11 @@ Expected: no errors in scroll-area or its consumers.
 - [ ] **Step 6: Manual verify all 3 wired surfaces**
 
 Run `bun dev`. Check, on a desktop (non-touch) viewport:
+
 1. Ticker calls table scrolls horizontally; edge fade appears only when overflowing, blends into the surface (no wrong-color edge).
 2. Proof drawer body (mobile width) scrolls; top/bottom fade correct.
 3. `WorkspaceRail` nav scrolls when creators overflow; fade correct.
-Then a touch viewport (DevTools device mode): native scrolling + fade still work.
+   Then a touch viewport (DevTools device mode): native scrolling + fade still work.
 
 - [ ] **Step 7: Commit**
 
@@ -414,46 +421,48 @@ import { Dialog } from "@base-ui/react/dialog";
 - [ ] **Step 2: Replace the desktop branch** (lines 94-126)
 
 ```tsx
-  if (isDesktop) {
-    return (
-      <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
-        <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-          <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
-            {call && (
-              <>
-                <div className="mb-4 flex items-baseline justify-between gap-3">
-                  <Dialog.Title render={<h2 className="flex items-baseline" />}>
-                    <Heading call={call} />
-                  </Dialog.Title>
-                  <Dialog.Close
-                    aria-label="Close"
-                    className="-mr-1 -mt-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
-                  >
-                    <X className="size-4" />
-                  </Dialog.Close>
-                </div>
-                <Dialog.Description className="sr-only">
-                  Proof media and context for the {call.ticker} call.
-                </Dialog.Description>
-                <ProofContent call={call} />
-              </>
-            )}
-          </Dialog.Popup>
-        </Dialog.Portal>
-      </Dialog.Root>
-    );
-  }
+if (isDesktop) {
+  return (
+    <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+        <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+          {call && (
+            <>
+              <div className="mb-4 flex items-baseline justify-between gap-3">
+                <Dialog.Title render={<h2 className="flex items-baseline" />}>
+                  <Heading call={call} />
+                </Dialog.Title>
+                <Dialog.Close
+                  aria-label="Close"
+                  className="-mr-1 -mt-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+                >
+                  <X className="size-4" />
+                </Dialog.Close>
+              </div>
+              <Dialog.Description className="sr-only">
+                Proof media and context for the {call.ticker} call.
+              </Dialog.Description>
+              <ProofContent call={call} />
+            </>
+          )}
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
 ```
 
 - [ ] **Step 3: Fix the mobile (vaul) branch's `VisuallyHidden`** (lines 140-144)
 
 vaul drawer stays. Replace the `VisuallyHidden.Root` wrapper around `DrawerDescription` with `sr-only`:
+
 ```tsx
-              <DrawerDescription className="sr-only">
-                Proof media and context for the {call.ticker} call.
-              </DrawerDescription>
+<DrawerDescription className="sr-only">
+  Proof media and context for the {call.ticker} call.
+</DrawerDescription>
 ```
+
 (`DrawerTitle asChild` stays — that's vaul, not radix.)
 
 - [ ] **Step 4: Typecheck**
@@ -516,6 +525,7 @@ Single owner of `theme` (lifted verbatim from `ThemeToggle`'s logic) + `reduceMo
 - [ ] **Step 1: Write the failing test**
 
 `src/lib/preferences.test.ts`:
+
 ```ts
 import { describe, expect, it, beforeEach } from "bun:test";
 import { applyTheme, readStoredPrefs, type Preferences } from "./preferences.tsx";
@@ -621,15 +631,9 @@ interface PreferencesContextValue extends Preferences {
   setReduceHaptics: (v: boolean) => void;
 }
 
-const PreferencesContext = React.createContext<PreferencesContextValue | null>(
-  null
-);
+const PreferencesContext = React.createContext<PreferencesContextValue | null>(null);
 
-export function PreferencesProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PreferencesProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = React.useState<Preferences>(DEFAULTS);
 
   // Hydrate + apply on mount (SSR-safe: no window access during render).
@@ -668,14 +672,10 @@ export function PreferencesProvider({
 
   const value = React.useMemo<PreferencesContextValue>(
     () => ({ ...prefs, setTheme, setReduceMotion, setReduceHaptics }),
-    [prefs, setTheme, setReduceMotion, setReduceHaptics]
+    [prefs, setTheme, setReduceMotion, setReduceHaptics],
   );
 
-  return (
-    <PreferencesContext.Provider value={value}>
-      {children}
-    </PreferencesContext.Provider>
-  );
+  return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
 
 export function usePreferences(): PreferencesContextValue {
@@ -693,6 +693,7 @@ Expected: PASS (4 tests). If `document`/`localStorage` are undefined under `bun 
 - [ ] **Step 5: Add the reduce-motion override to `src/styles.css`**
 
 Append near the existing `@media (prefers-reduced-motion)` rules:
+
 ```css
 html[data-reduce-motion="true"] *,
 html[data-reduce-motion="true"] *::before,
@@ -726,6 +727,7 @@ Run: `bun add web-haptics`
 - [ ] **Step 2: Write the failing test (gating logic is pure, extracted)**
 
 `src/lib/haptics.test.ts`:
+
 ```ts
 import { describe, expect, it } from "bun:test";
 import { shouldFire } from "./haptics.tsx";
@@ -798,9 +800,7 @@ export function HapticsProvider({ children }: { children: React.ReactNode }) {
     };
   }, [reduceHaptics]);
 
-  return (
-    <HapticsContext.Provider value={value}>{children}</HapticsContext.Provider>
-  );
+  return <HapticsContext.Provider value={value}>{children}</HapticsContext.Provider>;
 }
 
 // Safe no-op default if used outside the provider (e.g. isolated tests).
@@ -839,10 +839,8 @@ import { PreferencesProvider } from "#/lib/preferences.tsx";
 import { HapticsProvider } from "#/lib/haptics.tsx";
 // ...
 <PreferencesProvider>
-  <HapticsProvider>
-    {/* existing shell: rail + <Outlet/> etc. */}
-  </HapticsProvider>
-</PreferencesProvider>
+  <HapticsProvider>{/* existing shell: rail + <Outlet/> etc. */}</HapticsProvider>
+</PreferencesProvider>;
 ```
 
 - [ ] **Step 2: Typecheck**
@@ -875,10 +873,7 @@ import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 
 import { cn } from "#/lib/utils.ts";
 
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
+function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -888,7 +883,7 @@ function Switch({
         "[--thumb-size:--spacing(5)] sm:[--thumb-size:--spacing(4)]",
         "bg-input data-[checked]:bg-primary",
         "focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
-        className
+        className,
       )}
       {...props}
     >
@@ -896,7 +891,7 @@ function Switch({
         data-slot="switch-thumb"
         className={cn(
           "pointer-events-none block size-[var(--thumb-size)] rounded-full bg-background shadow-sm ring-0 transition-transform",
-          "data-[unchecked]:translate-x-0 data-[checked]:translate-x-[calc(var(--thumb-size))]"
+          "data-[unchecked]:translate-x-0 data-[checked]:translate-x-[calc(var(--thumb-size))]",
         )}
       />
     </SwitchPrimitive.Root>
@@ -937,10 +932,7 @@ import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
 
 import { cn } from "#/lib/utils.ts";
 
-function ToggleGroup({
-  className,
-  ...props
-}: React.ComponentProps<typeof ToggleGroupPrimitive>) {
+function ToggleGroup({ className, ...props }: React.ComponentProps<typeof ToggleGroupPrimitive>) {
   return (
     <ToggleGroupPrimitive
       data-slot="toggle-group"
@@ -950,16 +942,13 @@ function ToggleGroup({
   );
 }
 
-function ToggleGroupItem({
-  className,
-  ...props
-}: React.ComponentProps<typeof TogglePrimitive>) {
+function ToggleGroupItem({ className, ...props }: React.ComponentProps<typeof TogglePrimitive>) {
   return (
     <TogglePrimitive
       data-slot="toggle-group-item"
       className={cn(
         "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
-        className
+        className,
       )}
       {...props}
     />
@@ -1035,7 +1024,10 @@ const OPTIONS: { value: ThemeMode; label: string; node: React.ReactNode }[] = [
         <div className="absolute inset-0" style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}>
           <MiniDashboard p={LIGHT} />
         </div>
-        <div className="absolute inset-0" style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}>
+        <div
+          className="absolute inset-0"
+          style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+        >
           <MiniDashboard p={DARK} />
         </div>
       </div>
@@ -1066,7 +1058,7 @@ export function ThemePicker() {
           aria-label={o.label}
           className={cn(
             "group relative flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-2 transition-all",
-            "hover:border-border data-[pressed]:border-primary data-[pressed]:ring-2 data-[pressed]:ring-primary/30"
+            "hover:border-border data-[pressed]:border-primary data-[pressed]:ring-2 data-[pressed]:ring-primary/30",
           )}
         >
           <div className="aspect-[4/3] w-full overflow-hidden rounded-md ring-1 ring-border/40">
@@ -1108,12 +1100,7 @@ Mirrors proof-viewer: Base UI Dialog (desktop) / vaul Drawer (mobile) via `useMe
 ```tsx
 import { X } from "lucide-react";
 import { Dialog } from "@base-ui/react/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerTitle,
-} from "#/components/ui/drawer.tsx";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "#/components/ui/drawer.tsx";
 import { Switch } from "#/components/ui/switch.tsx";
 import { Separator } from "#/components/ui/separator.tsx";
 import { ThemePicker } from "./ThemePicker";
@@ -1144,8 +1131,7 @@ function SwitchRow({
 }
 
 function Body() {
-  const { reduceMotion, reduceHaptics, setReduceMotion, setReduceHaptics } =
-    usePreferences();
+  const { reduceMotion, reduceHaptics, setReduceMotion, setReduceHaptics } = usePreferences();
   const { impact } = useHaptics();
   return (
     <div className="space-y-5">
@@ -1251,17 +1237,22 @@ git commit -m "feat: add Preferences modal"
 - [ ] **Step 1: Edit `WorkspaceRail.tsx`**
 
 Replace the import:
+
 ```tsx
 // delete: import ThemeToggle from "./ThemeToggle";
 import { useState } from "react";
 import { SettingsIcon } from "lucide-react";
 import { Preferences } from "./Preferences";
 ```
+
 In `RailContent`, add state at the top of the component body:
+
 ```tsx
-  const [prefsOpen, setPrefsOpen] = useState(false);
+const [prefsOpen, setPrefsOpen] = useState(false);
 ```
+
 Replace `<ThemeToggle />` (footer, ~line 118) with:
+
 ```tsx
           <button
             type="button"
@@ -1303,43 +1294,50 @@ Fire `tick()` when the resolved data-point index changes during a scrub; `select
 - [ ] **Step 1: Add haptics + last-index ref**
 
 After the imports, add:
+
 ```tsx
 import { useHaptics } from "#/lib/haptics.tsx";
 ```
+
 Inside the hook body, near the other refs (after line 72):
+
 ```tsx
-  const { tick, select } = useHaptics();
-  const lastIndexRef = useRef<number>(-1);
+const { tick, select } = useHaptics();
+const lastIndexRef = useRef<number>(-1);
 ```
 
 - [ ] **Step 2: Tick on index change in `handleMouseMove` (non-drag path)**
 
 In `handleMouseMove`, replace the `const tooltip = resolveTooltipFromX(chartX); if (tooltip) { scheduleTooltip(tooltip); }` tail with:
+
 ```tsx
-      const tooltip = resolveTooltipFromX(chartX);
-      if (tooltip) {
-        if (tooltip.index !== lastIndexRef.current) {
-          lastIndexRef.current = tooltip.index;
-          tick();
-        }
-        scheduleTooltip(tooltip);
-      }
+const tooltip = resolveTooltipFromX(chartX);
+if (tooltip) {
+  if (tooltip.index !== lastIndexRef.current) {
+    lastIndexRef.current = tooltip.index;
+    tick();
+  }
+  scheduleTooltip(tooltip);
+}
 ```
+
 Add `tick` to that callback's dep array.
 
 - [ ] **Step 3: Same tick logic in `handleTouchMove` (single-touch path)**
 
 In the `event.touches.length === 1` branch of `handleTouchMove`, wrap the tooltip the same way:
+
 ```tsx
-        const tooltip = resolveTooltipFromX(chartX, );
-        if (tooltip) {
-          if (tooltip.index !== lastIndexRef.current) {
-            lastIndexRef.current = tooltip.index;
-            tick();
-          }
-          scheduleTooltip(tooltip);
-        }
+const tooltip = resolveTooltipFromX(chartX);
+if (tooltip) {
+  if (tooltip.index !== lastIndexRef.current) {
+    lastIndexRef.current = tooltip.index;
+    tick();
+  }
+  scheduleTooltip(tooltip);
+}
 ```
+
 Add `tick` to the dep array.
 
 - [ ] **Step 4: `select()` + reset on starts/ends**

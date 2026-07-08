@@ -4,13 +4,14 @@
 
 **Goal:** Let the site ship possibly-incorrect calls but be architecturally self-correcting — anyone can flag a call as wrong from the proof drawer, those reports accumulate into an operator review queue, the operator records a durable override, and a re-score recomputes and propagates the fix to the live site without it ever being clobbered by the next ingest.
 
-**Architecture:** Two layers of one loop. (1) **Override store** — a `call_overrides` DB table read by `score()` as a deterministic final pass *after* extraction and *before* the scoring filter, so corrections are baked identically into `dataset.json` AND the DB (`calls`), survive re-extract (applied after it), survive backfill (the override is the *source*, not the clobbered `calls` row), and survive the VM's `git checkout -- data/` (it lives in the DB, not a static file). (2) **Report pipeline** — a public `call_reports` table written through a new INSERT-only `report` DB role via a token-free, rate-limited POST endpoint, surfaced to the operator by a review script. Propagation rides the existing Nitro→Vercel prerender bypass (`REVALIDATE_TOKEN`, wired here).
+**Architecture:** Two layers of one loop. (1) **Override store** — a `call_overrides` DB table read by `score()` as a deterministic final pass _after_ extraction and _before_ the scoring filter, so corrections are baked identically into `dataset.json` AND the DB (`calls`), survive re-extract (applied after it), survive backfill (the override is the _source_, not the clobbered `calls` row), and survive the VM's `git checkout -- data/` (it lives in the DB, not a static file). (2) **Report pipeline** — a public `call_reports` table written through a new INSERT-only `report` DB role via a token-free, rate-limited POST endpoint, surfaced to the operator by a review script. Propagation rides the existing Nitro→Vercel prerender bypass (`REVALIDATE_TOKEN`, wired here).
 
 **Tech Stack:** Drizzle + `@neondatabase/serverless` (neon-http), TanStack Start server routes, Bun + `bun:test`, React + Base UI dialog / vaul drawer, PostgreSQL least-privilege roles.
 
 **Why these decisions are locked (not free choices):**
+
 - **Overrides in the DB, not a committed JSON.** A correction triggered on the VM must survive `git checkout -- data/` (the ephemeral-scratch policy). A static file cannot; a DB row can. This is forced by the requirement, not a preference.
-- **Overrides applied at score-time, not as a post-DB patch.** Patching the DB `calls` row directly is clobbered by the next `backfillCalls` (`onConflictDoUpdate` on every column, `db/backfill.ts:44`). Applying at score-time means the correction is the *input* to both `dataset.json` and the DB, so parity holds and re-runs stay consistent.
+- **Overrides applied at score-time, not as a post-DB patch.** Patching the DB `calls` row directly is clobbered by the next `backfillCalls` (`onConflictDoUpdate` on every column, `db/backfill.ts:44`). Applying at score-time means the correction is the _input_ to both `dataset.json` and the DB, so parity holds and re-runs stay consistent.
 - **Public reports never auto-change data.** They only queue for operator review. The serve role is SELECT-only by design; the report write path is a separate INSERT-only role so a compromised endpoint can neither read nor mutate the ledger.
 - **Report reasons are an enum, never free text (v1).** Avoids PII, stored XSS, and a moderation burden. Reasons are never displayed publicly (operator-only), so the queue can't become a public defamation billboard.
 
@@ -34,6 +35,7 @@ Phase 1 is independently shippable: it makes corrections durable and propagating
 ### Task 1: `call_overrides` schema + migration
 
 **Files:**
+
 - Modify: `db/schema.ts` (append the table)
 - Generate: a new migration under `drizzle/`
 
@@ -46,17 +48,23 @@ Phase 1 is independently shippable: it makes corrections durable and propagating
 // non-null field overrides it. This is the durable, auditable replacement for
 // hand-editing reel-calls.json (lost on re-extract) and for the owner-DELETE (which
 // loses the evidence). Serve role must NOT see this table (see scripts/apply-roles.ts).
-export const callOverrides = pgTable("call_overrides", {
-  handle: text("handle").notNull().references(() => creators.handle, { onDelete: "cascade" }),
-  shortcode: text("shortcode").notNull(),
-  ticker: text("ticker"),                         // null = keep classified ticker
-  isExplicitBuy: boolean("is_explicit_buy"),      // null = keep classified flag
-  direction: text("direction"),                   // null = keep; else "bullish"|"bearish"|"neutral"
-  reason: text("reason").notNull(),               // required audit trail (verbatim quote + why)
-  createdAt: text("created_at").notNull(),
-}, (t) => [
-  primaryKey({ columns: [t.handle, t.shortcode] }), // one (latest-wins) override per call
-]);
+export const callOverrides = pgTable(
+  "call_overrides",
+  {
+    handle: text("handle")
+      .notNull()
+      .references(() => creators.handle, { onDelete: "cascade" }),
+    shortcode: text("shortcode").notNull(),
+    ticker: text("ticker"), // null = keep classified ticker
+    isExplicitBuy: boolean("is_explicit_buy"), // null = keep classified flag
+    direction: text("direction"), // null = keep; else "bullish"|"bearish"|"neutral"
+    reason: text("reason").notNull(), // required audit trail (verbatim quote + why)
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.handle, t.shortcode] }), // one (latest-wins) override per call
+  ],
+);
 ```
 
 - [ ] **Step 2: Generate the migration.** Run: `bun run db:generate`. Expected: a new `drizzle/NNNN_*.sql` adding `call_overrides`. Inspect it — it must `CREATE TABLE "call_overrides"` with the FK to `creators` and the composite PK.
@@ -65,6 +73,7 @@ export const callOverrides = pgTable("call_overrides", {
 ### Task 2: Pure `applyOverrides` transform
 
 **Files:**
+
 - Create: `pipeline/overrides.ts`
 - Test: `pipeline/overrides.test.ts`
 
@@ -76,31 +85,74 @@ import { applyOverrides, type Override } from "./overrides";
 import type { ReelCall } from "../src/lib/types";
 
 const base: ReelCall = {
-  shortcode: "AAA", postDate: "2026-06-01", ticker: "DUOL", company: "Duolingo",
-  direction: "bullish", isExplicitBuy: true, conviction: 0.9, quote: "q",
-  onScreenPrice: null, summary: "s",
+  shortcode: "AAA",
+  postDate: "2026-06-01",
+  ticker: "DUOL",
+  company: "Duolingo",
+  direction: "bullish",
+  isExplicitBuy: true,
+  conviction: 0.9,
+  quote: "q",
+  onScreenPrice: null,
+  summary: "s",
 };
 
 test("a non-null override field replaces the classified value; null fields are left alone", () => {
-  const ov: Override[] = [{ handle: "h", shortcode: "AAA", ticker: "AMD", isExplicitBuy: null, direction: null, reason: "wrong ticker" }];
+  const ov: Override[] = [
+    {
+      handle: "h",
+      shortcode: "AAA",
+      ticker: "AMD",
+      isExplicitBuy: null,
+      direction: null,
+      reason: "wrong ticker",
+    },
+  ];
   const [c] = applyOverrides([base], ov);
-  expect(c.ticker).toBe("AMD");        // overridden
-  expect(c.isExplicitBuy).toBe(true);  // untouched (null in override)
+  expect(c.ticker).toBe("AMD"); // overridden
+  expect(c.isExplicitBuy).toBe(true); // untouched (null in override)
   expect(c.direction).toBe("bullish"); // untouched
 });
 
 test("override can flip isExplicitBuy off (the maintainable replacement for owner-DELETE)", () => {
-  const ov: Override[] = [{ handle: "h", shortcode: "AAA", ticker: null, isExplicitBuy: false, direction: null, reason: "not a buy" }];
+  const ov: Override[] = [
+    {
+      handle: "h",
+      shortcode: "AAA",
+      ticker: null,
+      isExplicitBuy: false,
+      direction: null,
+      reason: "not a buy",
+    },
+  ];
   expect(applyOverrides([base], ov)[0].isExplicitBuy).toBe(false);
 });
 
 test("calls with no override are returned unchanged; matching is by shortcode", () => {
-  const ov: Override[] = [{ handle: "h", shortcode: "ZZZ", ticker: "X", isExplicitBuy: null, direction: null, reason: "r" }];
+  const ov: Override[] = [
+    {
+      handle: "h",
+      shortcode: "ZZZ",
+      ticker: "X",
+      isExplicitBuy: null,
+      direction: null,
+      reason: "r",
+    },
+  ];
   expect(applyOverrides([base], ov)[0]).toEqual(base);
 });
 
 test("ticker is uppercased; an empty-string ticker override is ignored (treated as no-op)", () => {
-  const ov: Override[] = [{ handle: "h", shortcode: "AAA", ticker: "amd", isExplicitBuy: null, direction: null, reason: "r" }];
+  const ov: Override[] = [
+    {
+      handle: "h",
+      shortcode: "AAA",
+      ticker: "amd",
+      isExplicitBuy: null,
+      direction: null,
+      reason: "r",
+    },
+  ];
   expect(applyOverrides([base], ov)[0].ticker).toBe("AMD");
 });
 ```
@@ -135,7 +187,10 @@ export function applyOverrides(calls: ReelCall[], overrides: Override[]): ReelCa
     if (!o) return c;
     const ticker = o.ticker && o.ticker.trim() ? o.ticker.trim().toUpperCase() : c.ticker;
     const isExplicitBuy = o.isExplicitBuy ?? c.isExplicitBuy;
-    const direction = o.direction && DIRECTIONS.has(o.direction as Direction) ? (o.direction as Direction) : c.direction;
+    const direction =
+      o.direction && DIRECTIONS.has(o.direction as Direction)
+        ? (o.direction as Direction)
+        : c.direction;
     return { ...c, ticker, isExplicitBuy, direction };
   });
 }
@@ -147,6 +202,7 @@ export function applyOverrides(calls: ReelCall[], overrides: Override[]): ReelCa
 ### Task 3: Load overrides from the DB (isolated, fail-open)
 
 **Files:**
+
 - Create: `db/overrides.ts`
 - Test: `db/overrides.test.ts` (env-gated, like the other `db/*.test.ts`)
 
@@ -164,12 +220,42 @@ const t = url ? test : test.skip; // skips when no test DB (keeps `bun test` gre
 t("loadOverrides returns the rows for a handle, mapped to the Override shape", async () => {
   const db = makeDb(url!);
   await db.delete(callOverrides);
-  await db.insert(creators).values({ handle: "h", name: "n", avatar: null, ord: 0,
-    generatedAt: "2026-06-01", spyAnchor: "SPY", scorecard: {}, caveats: [], indexStats: {} }).onConflictDoNothing();
-  await db.insert(callOverrides).values({ handle: "h", shortcode: "AAA", ticker: "AMD",
-    isExplicitBuy: null, direction: null, reason: "wrong ticker", createdAt: "2026-06-13" });
+  await db
+    .insert(creators)
+    .values({
+      handle: "h",
+      name: "n",
+      avatar: null,
+      ord: 0,
+      generatedAt: "2026-06-01",
+      spyAnchor: "SPY",
+      scorecard: {},
+      caveats: [],
+      indexStats: {},
+    })
+    .onConflictDoNothing();
+  await db
+    .insert(callOverrides)
+    .values({
+      handle: "h",
+      shortcode: "AAA",
+      ticker: "AMD",
+      isExplicitBuy: null,
+      direction: null,
+      reason: "wrong ticker",
+      createdAt: "2026-06-13",
+    });
   const got = await loadOverrides(db, "h");
-  expect(got).toEqual([{ handle: "h", shortcode: "AAA", ticker: "AMD", isExplicitBuy: null, direction: null, reason: "wrong ticker" }]);
+  expect(got).toEqual([
+    {
+      handle: "h",
+      shortcode: "AAA",
+      ticker: "AMD",
+      isExplicitBuy: null,
+      direction: null,
+      reason: "wrong ticker",
+    },
+  ]);
 });
 ```
 
@@ -188,8 +274,12 @@ import type { Override } from "../pipeline/overrides";
 export async function loadOverrides(db: Db, handle: string): Promise<Override[]> {
   const rows = await db.select().from(callOverrides).where(eq(callOverrides.handle, handle));
   return rows.map((r) => ({
-    handle: r.handle, shortcode: r.shortcode, ticker: r.ticker,
-    isExplicitBuy: r.isExplicitBuy, direction: r.direction, reason: r.reason,
+    handle: r.handle,
+    shortcode: r.shortcode,
+    ticker: r.ticker,
+    isExplicitBuy: r.isExplicitBuy,
+    direction: r.direction,
+    reason: r.reason,
   }));
 }
 ```
@@ -200,10 +290,11 @@ export async function loadOverrides(db: Db, handle: string): Promise<Override[]>
 ### Task 4: Wire overrides into `score()`
 
 **Files:**
+
 - Modify: `pipeline/score.ts` (the `score()` function only — `assembleDataset` stays pure)
 - Test: `pipeline/score.test.ts` (add one test passing overrides through a seam)
 
-The clean seam: `score()` loads overrides (fail-open) and applies them to `reelCalls` *before* it builds the scope set and calls `assembleDataset`. Because `assembleDataset` already takes the calls array, the override transform slots in with no signature change to it.
+The clean seam: `score()` loads overrides (fail-open) and applies them to `reelCalls` _before_ it builds the scope set and calls `assembleDataset`. Because `assembleDataset` already takes the calls array, the override transform slots in with no signature change to it.
 
 - [ ] **Step 1: Add the imports to `pipeline/score.ts`** (top, with the other pipeline imports):
 
@@ -216,31 +307,42 @@ import { applyOverrides } from "./overrides";
 - [ ] **Step 2: Apply overrides at the start of `score()`,** right after `reelCalls` is read:
 
 ```ts
-  const reelCalls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
-  // Deterministic correction pass. Reads operator overrides from the DB (ingest role)
-  // and patches the classified calls before scoring, so the fix is baked identically
-  // into dataset.json AND (via backfill) the DB calls row. Fail-open: if the DB is
-  // unreachable, score still runs on the raw classification — corrections lag, scoring
-  // never breaks. Skipped entirely when no DB is configured (local/static runs).
-  let corrected = reelCalls;
-  if (process.env.DATABASE_URL_INGEST || process.env.DATABASE_URL) {
-    try {
-      const overrides = await loadOverrides(getWriteDb(), handle);
-      if (overrides.length) {
-        corrected = applyOverrides(reelCalls, overrides);
-        console.log(`applied ${overrides.length} override(s) for ${handle}`);
-      }
-    } catch (e) {
-      console.warn(`override load failed for ${handle} (scoring raw classification): ${(e as Error).message}`);
+const reelCalls: ReelCall[] = JSON.parse(
+  await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"),
+);
+// Deterministic correction pass. Reads operator overrides from the DB (ingest role)
+// and patches the classified calls before scoring, so the fix is baked identically
+// into dataset.json AND (via backfill) the DB calls row. Fail-open: if the DB is
+// unreachable, score still runs on the raw classification — corrections lag, scoring
+// never breaks. Skipped entirely when no DB is configured (local/static runs).
+let corrected = reelCalls;
+if (process.env.DATABASE_URL_INGEST || process.env.DATABASE_URL) {
+  try {
+    const overrides = await loadOverrides(getWriteDb(), handle);
+    if (overrides.length) {
+      corrected = applyOverrides(reelCalls, overrides);
+      console.log(`applied ${overrides.length} override(s) for ${handle}`);
     }
+  } catch (e) {
+    console.warn(
+      `override load failed for ${handle} (scoring raw classification): ${(e as Error).message}`,
+    );
   }
+}
 ```
 
 - [ ] **Step 3:** Replace the two later uses of `reelCalls` in `score()` with `corrected`: the `reelsWithTicker: reelCalls.length` count and the `assembleDataset(..., corrected, ...)` argument. (Leave the `reelsScraped` shortcodes read untouched.) Concretely the assembleDataset call becomes:
 
 ```ts
-  const ds = assembleDataset({ handle, name }, corrected, ohlc, today,
-    { reelsScraped, reelsWithTicker: corrected.length }, postNoun, sym => !outOfScope.has(sym));
+const ds = assembleDataset(
+  { handle, name },
+  corrected,
+  ohlc,
+  today,
+  { reelsScraped, reelsWithTicker: corrected.length },
+  postNoun,
+  (sym) => !outOfScope.has(sym),
+);
 ```
 
 - [ ] **Step 4: Add a wiring test to `pipeline/score.test.ts`** proving the transform is the same one score uses (the DB read is covered in Task 3; here we assert the pure composition):
@@ -249,13 +351,34 @@ import { applyOverrides } from "./overrides";
 import { applyOverrides } from "./overrides";
 
 test("applyOverrides feeds assembleDataset: an override flips a call out of scoring", () => {
-  const reelCalls: ReelCall[] = [{ shortcode: "a", postDate: "2026-06-01", ticker: "AAPL",
-    company: "Apple", direction: "bullish", isExplicitBuy: true, conviction: 1, quote: "q",
-    onScreenPrice: null, summary: "s" }];
+  const reelCalls: ReelCall[] = [
+    {
+      shortcode: "a",
+      postDate: "2026-06-01",
+      ticker: "AAPL",
+      company: "Apple",
+      direction: "bullish",
+      isExplicitBuy: true,
+      conviction: 1,
+      quote: "q",
+      onScreenPrice: null,
+      summary: "s",
+    },
+  ];
   const ohlc = { AAPL: [bar("2026-06-01", 100), bar("2026-06-08", 110)], SPY: spyBars };
-  const corrected = applyOverrides(reelCalls, [{ handle: "h", shortcode: "a", ticker: null,
-    isExplicitBuy: false, direction: null, reason: "not a buy" }]);
-  expect(assembleDataset({ handle: "h", name: "n" }, corrected, ohlc, "2026-06-09").calls).toHaveLength(0);
+  const corrected = applyOverrides(reelCalls, [
+    {
+      handle: "h",
+      shortcode: "a",
+      ticker: null,
+      isExplicitBuy: false,
+      direction: null,
+      reason: "not a buy",
+    },
+  ]);
+  expect(
+    assembleDataset({ handle: "h", name: "n" }, corrected, ohlc, "2026-06-09").calls,
+  ).toHaveLength(0);
 });
 ```
 
@@ -265,20 +388,21 @@ test("applyOverrides feeds assembleDataset: an override flips a call out of scor
 ### Task 5: DB roles — ingest writes overrides, serve must not see them
 
 **Files:**
+
 - Modify: `scripts/apply-roles.ts`
 - Test: extend the existing `serve-readonly`-style role test (find it: `db/serve-readonly.test.ts` or similar) with a `call_overrides` case.
 
 - [ ] **Step 1: In `scripts/apply-roles.ts`,** after the `GRANT INSERT, UPDATE, SELECT ON artifacts TO ingest` line, add:
 
 ```ts
-  // Override store: ingest reads (score) + writes (apply-override.ts) it.
-  await sql`GRANT INSERT, UPDATE, SELECT ON call_overrides TO ingest`;
+// Override store: ingest reads (score) + writes (apply-override.ts) it.
+await sql`GRANT INSERT, UPDATE, SELECT ON call_overrides TO ingest`;
 ```
 
 - [ ] **Step 2:** In the serve block, the serve role must NOT be granted `call_overrides`. The existing `ALTER DEFAULT PRIVILEGES ... REVOKE SELECT ... FROM serve` plus the explicit `GRANT SELECT ON creators, calls, prices, artifacts TO serve` (which deliberately omits `call_overrides`) already enforces this. Add an explicit defensive revoke to be unambiguous:
 
 ```ts
-  await sql`REVOKE ALL ON call_overrides FROM serve`;
+await sql`REVOKE ALL ON call_overrides FROM serve`;
 ```
 
 - [ ] **Step 3:** Run migrations + roles against the test DB and assert serve cannot read overrides. Add to the role test:
@@ -295,6 +419,7 @@ t("serve role cannot read call_overrides", async () => {
 ### Task 6: `scripts/apply-override.ts` operator CLI
 
 **Files:**
+
 - Create: `scripts/apply-override.ts`
 - Modify: `package.json` (add `"override": "bun run scripts/apply-override.ts"` if a script alias is wanted; optional)
 
@@ -320,7 +445,9 @@ function arg(name: string): string | undefined {
 const [handle, shortcode] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const reason = arg("reason");
 if (!handle || !shortcode || !reason) {
-  console.error('usage: apply-override.ts <handle> <shortcode> --reason "<why>" [--ticker X] [--buy true|false] [--direction bullish|bearish|neutral]');
+  console.error(
+    'usage: apply-override.ts <handle> <shortcode> --reason "<why>" [--ticker X] [--buy true|false] [--direction bullish|bearish|neutral]',
+  );
   process.exit(1);
 }
 const buyArg = arg("buy");
@@ -328,13 +455,27 @@ const isExplicitBuy = buyArg === undefined ? null : buyArg === "true";
 const today = new Date().toISOString().slice(0, 10);
 
 const db = getWriteDb();
-await db.insert(callOverrides).values({
-  handle, shortcode, ticker: arg("ticker") ?? null, isExplicitBuy,
-  direction: arg("direction") ?? null, reason, createdAt: today,
-}).onConflictDoUpdate({
-  target: [callOverrides.handle, callOverrides.shortcode],
-  set: { ticker: arg("ticker") ?? null, isExplicitBuy, direction: arg("direction") ?? null, reason, createdAt: today },
-});
+await db
+  .insert(callOverrides)
+  .values({
+    handle,
+    shortcode,
+    ticker: arg("ticker") ?? null,
+    isExplicitBuy,
+    direction: arg("direction") ?? null,
+    reason,
+    createdAt: today,
+  })
+  .onConflictDoUpdate({
+    target: [callOverrides.handle, callOverrides.shortcode],
+    set: {
+      ticker: arg("ticker") ?? null,
+      isExplicitBuy,
+      direction: arg("direction") ?? null,
+      reason,
+      createdAt: today,
+    },
+  });
 console.log(`override recorded for ${handle}/${shortcode}. Re-score to apply:`);
 console.log(`  flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${handle}`);
 ```
@@ -345,21 +486,23 @@ console.log(`  flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${han
 ### Task 7: Parity — confirm overrides keep DB == static
 
 **Files:**
+
 - Modify: `scripts/parity-check.ts` only if it enumerates tables (it should NOT include `call_overrides`/`call_reports` — they are inputs/operational, not scored output). Verify, don't add.
 
-- [ ] **Step 1:** Read `scripts/parity-check.ts`. Confirm it compares index, datasets, price symbols, and the calls-index artifact — and does NOT assert anything about `call_overrides`. The override's *effect* is already in `calls`/`dataset.json` (both written from the same `corrected` array), so parity holds automatically. No code change expected.
+- [ ] **Step 1:** Read `scripts/parity-check.ts`. Confirm it compares index, datasets, price symbols, and the calls-index artifact — and does NOT assert anything about `call_overrides`. The override's _effect_ is already in `calls`/`dataset.json` (both written from the same `corrected` array), so parity holds automatically. No code change expected.
 - [ ] **Step 2:** Integration check: with an override present, run `score → backfill → materialize → parity-check` for that creator. Expected: `PARITY OK` (the corrected call matches in both static `dataset.json` and the DB reassembly).
-- [ ] **Step 3:** If parity *fails*, the cause is a code path writing one side without the override — fix that path, do not special-case parity. Commit any doc note: `git commit -am "docs: note overrides are parity-neutral (effect lives in calls)"` (only if a comment was added).
+- [ ] **Step 3:** If parity _fails_, the cause is a code path writing one side without the override — fix that path, do not special-case parity. Commit any doc note: `git commit -am "docs: note overrides are parity-neutral (effect lives in calls)"` (only if a comment was added).
 
 ### Task 8: Wire `REVALIDATE_TOKEN` for minutes-not-6h propagation
 
 **Files:**
+
 - Modify: `ops/README.md` (mark the token as required, not optional), `.env.example`
 - No app code change — `scripts/revalidate-creator.ts` and the Nitro bypass are already wired; this is config + verification.
 
 - [ ] **Step 1:** Generate a token: `openssl rand -base64 32 | tr -d '/+=' | head -c 40`.
 - [ ] **Step 2:** Set `REVALIDATE_TOKEN` to that value in **Vercel production env** (so the build bakes it into each ISR route's `.prerender-config.json`) and trigger one redeploy.
-- [ ] **Step 3:** Set the *identical* value in the VM `.env`.
+- [ ] **Step 3:** Set the _identical_ value in the VM `.env`.
 - [ ] **Step 4:** Verify: after a `resume.ts <handle>` run, confirm `revalidate-creator.ts` logs the GETs firing (not the "REVALIDATE_TOKEN unset — skipping" branch) and the creator page reflects a change within ~1 min instead of 6h.
 - [ ] **Step 5:** Update `ops/README.md` to move `REVALIDATE_TOKEN` from "optional" to "required for instant propagation", and `.env.example`. Commit: `git add ops/README.md .env.example && git commit -m "docs(ops): require REVALIDATE_TOKEN for on-demand revalidation"`
 
@@ -367,11 +510,12 @@ console.log(`  flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${han
 
 ## Phase 2 — Public report pipeline (signal layer)
 
-Phase 2 feeds Phase 1: it tells the operator *which* calls to look at. Independently testable (the endpoint + queue work regardless of whether any override is ever written).
+Phase 2 feeds Phase 1: it tells the operator _which_ calls to look at. Independently testable (the endpoint + queue work regardless of whether any override is ever written).
 
 ### Task 9: `call_reports` schema + migration
 
 **Files:**
+
 - Modify: `db/schema.ts`
 - Generate: migration
 
@@ -385,18 +529,25 @@ Phase 2 feeds Phase 1: it tells the operator *which* calls to look at. Independe
 // non-reversible hash of the client IP (see src/routes/api/report.ts) — operational
 // dedupe only, never displayed. reason is a closed enum (validated at the endpoint).
 // Serve role must NOT see this table.
-export const callReports = pgTable("call_reports", {
-  id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
-  handle: text("handle").notNull(),
-  shortcode: text("shortcode").notNull(),
-  reason: text("reason").notNull(),               // enum: wrong-ticker|not-a-buy|wrong-direction|not-a-call|other
-  reporterHash: text("reporter_hash").notNull(),
-  createdAt: text("created_at").notNull(),
-}, (t) => [
-  foreignKey({ columns: [t.handle, t.shortcode], foreignColumns: [calls.handle, calls.shortcode] }).onDelete("cascade"),
-  uniqueIndex("call_reports_dedupe_idx").on(t.handle, t.shortcode, t.reporterHash),
-  index("call_reports_call_idx").on(t.handle, t.shortcode),
-]);
+export const callReports = pgTable(
+  "call_reports",
+  {
+    id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
+    handle: text("handle").notNull(),
+    shortcode: text("shortcode").notNull(),
+    reason: text("reason").notNull(), // enum: wrong-ticker|not-a-buy|wrong-direction|not-a-call|other
+    reporterHash: text("reporter_hash").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.handle, t.shortcode],
+      foreignColumns: [calls.handle, calls.shortcode],
+    }).onDelete("cascade"),
+    uniqueIndex("call_reports_dedupe_idx").on(t.handle, t.shortcode, t.reporterHash),
+    index("call_reports_call_idx").on(t.handle, t.shortcode),
+  ],
+);
 ```
 
 Add `foreignKey, uniqueIndex` to the existing `drizzle-orm/pg-core` import line at the top of `db/schema.ts`.
@@ -407,30 +558,31 @@ Add `foreignKey, uniqueIndex` to the existing `drizzle-orm/pg-core` import line 
 ### Task 10: `report` DB role (INSERT-only) + serve denial
 
 **Files:**
+
 - Modify: `scripts/apply-roles.ts`, `.env.example`, `ops/README.md`
 - Test: extend the role test.
 
 - [ ] **Step 1: In `scripts/apply-roles.ts`,** add a third role after the serve block:
 
 ```ts
-  const reportPw = process.env.REPORT_ROLE_PASSWORD!;
-  if (!SAFE_PW.test(reportPw)) {
-    throw new Error("REPORT_ROLE_PASSWORD must be >=16 chars of [A-Za-z0-9_-]");
-  }
-  await sql`DO $$ BEGIN
+const reportPw = process.env.REPORT_ROLE_PASSWORD!;
+if (!SAFE_PW.test(reportPw)) {
+  throw new Error("REPORT_ROLE_PASSWORD must be >=16 chars of [A-Za-z0-9_-]");
+}
+await sql`DO $$ BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'report') THEN
       CREATE ROLE report LOGIN;
     END IF;
   END $$`;
-  await sql.query(`ALTER ROLE report PASSWORD '${reportPw.replaceAll("'", "''")}'`);
-  // INSERT-only on call_reports, nothing else. A compromised public endpoint can neither
-  // read the ledger nor the reports (no SELECT) nor write any other table.
-  await sql`GRANT INSERT ON call_reports TO report`;
-  await sql`REVOKE SELECT, UPDATE, DELETE ON call_reports FROM report`;
-  // ingest reads the queue (review-reports.ts); serve sees nothing.
-  await sql`GRANT SELECT ON call_reports TO ingest`;
-  await sql`REVOKE ALL ON call_reports FROM serve`;
-  console.log("report role configured: INSERT-only on call_reports.");
+await sql.query(`ALTER ROLE report PASSWORD '${reportPw.replaceAll("'", "''")}'`);
+// INSERT-only on call_reports, nothing else. A compromised public endpoint can neither
+// read the ledger nor the reports (no SELECT) nor write any other table.
+await sql`GRANT INSERT ON call_reports TO report`;
+await sql`REVOKE SELECT, UPDATE, DELETE ON call_reports FROM report`;
+// ingest reads the queue (review-reports.ts); serve sees nothing.
+await sql`GRANT SELECT ON call_reports TO ingest`;
+await sql`REVOKE ALL ON call_reports FROM serve`;
+console.log("report role configured: INSERT-only on call_reports.");
 ```
 
 Note: `GRANT INSERT` on a table with an identity PK also needs `USAGE` on the implicit sequence; Postgres identity columns handle this via the table grant on modern PG, but if inserts fail with a sequence permission error, add `GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO report`.
@@ -454,6 +606,7 @@ t("serve role cannot read call_reports", async () => {
 ### Task 11: `db/reports.ts` — insert + queue read
 
 **Files:**
+
 - Create: `db/reports.ts`
 - Test: `db/reports.test.ts` (env-gated)
 
@@ -471,14 +624,59 @@ const t = url ? test : test.skip;
 t("insertReport dedupes by (handle, shortcode, reporterHash); queue counts compound", async () => {
   const db = makeDb(url!);
   await db.delete(callReports);
-  await db.insert(creators).values({ handle: "h", name: "n", avatar: null, ord: 0, generatedAt: "x",
-    spyAnchor: "SPY", scorecard: {}, caveats: [], indexStats: {} }).onConflictDoNothing();
-  await db.insert(calls).values({ handle: "h", shortcode: "AAA", ord: 0, postDate: "2026-06-01",
-    ticker: "DUOL", company: "Duolingo", isFirstCall: true, conviction: 1, quote: "q", summary: "s",
-    onScreenPrice: null, spark: null, returns: {} }).onConflictDoNothing();
-  await insertReport(db, { handle: "h", shortcode: "AAA", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" });
-  await insertReport(db, { handle: "h", shortcode: "AAA", reason: "wrong-ticker", reporterHash: "r1", createdAt: "2026-06-13" }); // dup → ignored
-  await insertReport(db, { handle: "h", shortcode: "AAA", reason: "not-a-buy", reporterHash: "r2", createdAt: "2026-06-13" });
+  await db
+    .insert(creators)
+    .values({
+      handle: "h",
+      name: "n",
+      avatar: null,
+      ord: 0,
+      generatedAt: "x",
+      spyAnchor: "SPY",
+      scorecard: {},
+      caveats: [],
+      indexStats: {},
+    })
+    .onConflictDoNothing();
+  await db
+    .insert(calls)
+    .values({
+      handle: "h",
+      shortcode: "AAA",
+      ord: 0,
+      postDate: "2026-06-01",
+      ticker: "DUOL",
+      company: "Duolingo",
+      isFirstCall: true,
+      conviction: 1,
+      quote: "q",
+      summary: "s",
+      onScreenPrice: null,
+      spark: null,
+      returns: {},
+    })
+    .onConflictDoNothing();
+  await insertReport(db, {
+    handle: "h",
+    shortcode: "AAA",
+    reason: "wrong-ticker",
+    reporterHash: "r1",
+    createdAt: "2026-06-13",
+  });
+  await insertReport(db, {
+    handle: "h",
+    shortcode: "AAA",
+    reason: "wrong-ticker",
+    reporterHash: "r1",
+    createdAt: "2026-06-13",
+  }); // dup → ignored
+  await insertReport(db, {
+    handle: "h",
+    shortcode: "AAA",
+    reason: "not-a-buy",
+    reporterHash: "r2",
+    createdAt: "2026-06-13",
+  });
   const q = await reportQueue(db);
   expect(q[0]).toMatchObject({ handle: "h", shortcode: "AAA", count: 2 });
 });
@@ -495,11 +693,21 @@ import { sql, eq } from "drizzle-orm";
 import type { Db } from "./client";
 import { callReports } from "./schema";
 
-export const REPORT_REASONS = ["wrong-ticker", "not-a-buy", "wrong-direction", "not-a-call", "other"] as const;
+export const REPORT_REASONS = [
+  "wrong-ticker",
+  "not-a-buy",
+  "wrong-direction",
+  "not-a-call",
+  "other",
+] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
 
 export interface ReportRow {
-  handle: string; shortcode: string; reason: string; reporterHash: string; createdAt: string;
+  handle: string;
+  shortcode: string;
+  reason: string;
+  reporterHash: string;
+  createdAt: string;
 }
 
 // Insert one report; the unique (handle, shortcode, reporterHash) index makes a repeat
@@ -510,7 +718,9 @@ export async function insertReport(db: Db, r: ReportRow): Promise<void> {
 
 // Operator review queue: one row per reported call, ranked by distinct-reporter count,
 // with the reasons seen. Read through ingest (has SELECT). Plain SQL aggregate.
-export async function reportQueue(db: Db): Promise<{ handle: string; shortcode: string; count: number; reasons: string[] }[]> {
+export async function reportQueue(
+  db: Db,
+): Promise<{ handle: string; shortcode: string; count: number; reasons: string[] }[]> {
   const rows = await db
     .select({
       handle: callReports.handle,
@@ -530,6 +740,7 @@ export async function reportQueue(db: Db): Promise<{ handle: string; shortcode: 
 ### Task 12: Public `/api/report` POST endpoint
 
 **Files:**
+
 - Create: `src/routes/api/report.ts`
 - Test: `src/routes/api/report.test.ts`
 - Verify: `vite.config.ts` `routeRules` — a POST is not ISR-cached, but confirm `/api/report` is not forced static.
@@ -543,11 +754,17 @@ import { validateReportBody, reporterHashOf } from "./report";
 test("rejects unknown reason and missing fields", () => {
   expect(validateReportBody({ handle: "h", shortcode: "a", reason: "spam" })).toBeNull();
   expect(validateReportBody({ handle: "h", reason: "other" })).toBeNull();
-  expect(validateReportBody({ handle: "h", shortcode: "a", reason: "other" })).toEqual({ handle: "h", shortcode: "a", reason: "other" });
+  expect(validateReportBody({ handle: "h", shortcode: "a", reason: "other" })).toEqual({
+    handle: "h",
+    shortcode: "a",
+    reason: "other",
+  });
 });
 
 test("over-long handle/shortcode rejected (bound the write)", () => {
-  expect(validateReportBody({ handle: "x".repeat(200), shortcode: "a", reason: "other" })).toBeNull();
+  expect(
+    validateReportBody({ handle: "x".repeat(200), shortcode: "a", reason: "other" }),
+  ).toBeNull();
 });
 
 test("reporterHash is stable for same ip+salt, differs across salts, and leaks no raw ip", () => {
@@ -566,7 +783,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { makeDb } from "../../../db/client";
 import { insertReport, REPORT_REASONS } from "../../../db/reports";
 
-export interface ReportInput { handle: string; shortcode: string; reason: string }
+export interface ReportInput {
+  handle: string;
+  shortcode: string;
+  reason: string;
+}
 
 // Validate the public body: closed reason enum, present + length-bounded ids. Returns the
 // clean input or null (→ 400). No free text, so no PII / stored-XSS surface.
@@ -576,7 +797,8 @@ export function validateReportBody(body: unknown): ReportInput | null {
   const { handle, shortcode, reason } = b;
   if (typeof handle !== "string" || handle.length < 1 || handle.length > 64) return null;
   if (typeof shortcode !== "string" || shortcode.length < 1 || shortcode.length > 64) return null;
-  if (typeof reason !== "string" || !(REPORT_REASONS as readonly string[]).includes(reason)) return null;
+  if (typeof reason !== "string" || !(REPORT_REASONS as readonly string[]).includes(reason))
+    return null;
   return { handle, shortcode, reason };
 }
 
@@ -597,9 +819,14 @@ export const Route = createFileRoute("/api/report")({
       POST: async ({ request }: { request: Request }) => {
         const url = process.env.DATABASE_URL_REPORT;
         const salt = process.env.REPORT_SALT;
-        if (!url || !salt) return Response.json({ error: "reporting not configured" }, { status: 503 });
+        if (!url || !salt)
+          return Response.json({ error: "reporting not configured" }, { status: 503 });
         let body: unknown;
-        try { body = await request.json(); } catch { return Response.json({ error: "bad body" }, { status: 400 }); }
+        try {
+          body = await request.json();
+        } catch {
+          return Response.json({ error: "bad body" }, { status: 400 });
+        }
         const input = validateReportBody(body);
         if (!input) return Response.json({ error: "invalid report" }, { status: 400 });
         try {
@@ -611,7 +838,8 @@ export const Route = createFileRoute("/api/report")({
         } catch (e) {
           // FK violation = report for a non-existent call → 404; anything else → 500.
           const msg = (e as Error).message;
-          if (/foreign key/i.test(msg)) return Response.json({ error: "unknown call" }, { status: 404 });
+          if (/foreign key/i.test(msg))
+            return Response.json({ error: "unknown call" }, { status: 404 });
           console.error("[report] insert failed:", msg);
           return Response.json({ error: "could not record report" }, { status: 500 });
         }
@@ -629,6 +857,7 @@ export const Route = createFileRoute("/api/report")({
 ### Task 13: `scripts/review-reports.ts` operator queue
 
 **Files:**
+
 - Create: `scripts/review-reports.ts`
 
 - [ ] **Step 1: Implement:**
@@ -644,12 +873,21 @@ import { and, eq } from "drizzle-orm";
 
 const db = getWriteDb();
 const q = await reportQueue(db);
-if (!q.length) { console.log("no reports."); process.exit(0); }
+if (!q.length) {
+  console.log("no reports.");
+  process.exit(0);
+}
 for (const r of q) {
-  const [call] = await db.select().from(calls).where(and(eq(calls.handle, r.handle), eq(calls.shortcode, r.shortcode)));
+  const [call] = await db
+    .select()
+    .from(calls)
+    .where(and(eq(calls.handle, r.handle), eq(calls.shortcode, r.shortcode)));
   console.log(`\n[${r.count}] ${r.handle}/${r.shortcode}  reasons: ${r.reasons.join(", ")}`);
-  if (call) console.log(`    current: ${call.ticker} buy=${call.isFirstCall} "${call.quote.slice(0, 80)}"`);
-  console.log(`    fix: bun run scripts/apply-override.ts ${r.handle} ${r.shortcode} --reason "..." [--ticker X] [--buy false]`);
+  if (call)
+    console.log(`    current: ${call.ticker} buy=${call.isFirstCall} "${call.quote.slice(0, 80)}"`);
+  console.log(
+    `    fix: bun run scripts/apply-override.ts ${r.handle} ${r.shortcode} --reason "..." [--ticker X] [--buy false]`,
+  );
 }
 ```
 
@@ -658,6 +896,7 @@ for (const r of q) {
 ### Task 14: "Report incorrect" control in the proof drawer
 
 **Files:**
+
 - Modify: `src/components/proof-viewer.tsx` (add the control to `ProofContent`; thread `handle`)
 - Modify: the two `ProofViewer` call sites to pass `handle` (creator route param on `/c/$handle`; per-call `handle` on the ticker page's calls-index entries)
 - Create: `src/components/report-button.tsx`
@@ -672,8 +911,11 @@ import { useState } from "react";
 import { REPORT_REASONS } from "#/../db/reports.ts"; // type-only enum reuse; adjust path to alias
 
 const LABELS: Record<string, string> = {
-  "wrong-ticker": "Wrong ticker", "not-a-buy": "Not a buy call",
-  "wrong-direction": "Wrong direction", "not-a-call": "Not a stock call", "other": "Something else",
+  "wrong-ticker": "Wrong ticker",
+  "not-a-buy": "Not a buy call",
+  "wrong-direction": "Wrong direction",
+  "not-a-call": "Not a stock call",
+  other: "Something else",
 };
 
 export function ReportButton({ handle, shortcode }: { handle: string; shortcode: string }) {
@@ -683,26 +925,42 @@ export function ReportButton({ handle, shortcode }: { handle: string; shortcode:
 
   async function send(reason: string) {
     setState("sent");
-    try { localStorage.setItem(key, "1"); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(key, "1");
+    } catch {
+      /* ignore */
+    }
     try {
       await fetch("/api/report", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ handle, shortcode, reason }),
       });
-    } catch { /* best-effort; UI already thanked the user */ }
+    } catch {
+      /* best-effort; UI already thanked the user */
+    }
   }
 
-  if (state === "sent") return <p className="text-[11px] text-muted-foreground">Thanks — flagged for review.</p>;
-  if (state === "idle") return (
-    <button onClick={() => setState("open")} className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground">
-      Report incorrect
-    </button>
-  );
+  if (state === "sent")
+    return <p className="text-[11px] text-muted-foreground">Thanks — flagged for review.</p>;
+  if (state === "idle")
+    return (
+      <button
+        onClick={() => setState("open")}
+        className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+      >
+        Report incorrect
+      </button>
+    );
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-[11px] text-muted-foreground">Why?</span>
       {REPORT_REASONS.map((r) => (
-        <button key={r} onClick={() => send(r)} className="rounded-md border border-border/60 px-2 py-1 text-[11px] hover:bg-muted">
+        <button
+          key={r}
+          onClick={() => send(r)}
+          className="rounded-md border border-border/60 px-2 py-1 text-[11px] hover:bg-muted"
+        >
           {LABELS[r] ?? r}
         </button>
       ))}
@@ -724,6 +982,7 @@ Note: import the enum without pulling server code into the client bundle — if 
 ### Task 15: Document the loop in CLAUDE.md
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 
 - [ ] **Step 1:** Add a "Correction loop" subsection near the scoring/Plan-1 docs covering: the report → review → override → re-score → revalidate flow; the three-way role split (serve SELECT-only and blind to `call_overrides`/`call_reports`; ingest reads/writes overrides + reads reports; report INSERT-only on reports); that overrides apply at score-time so they are parity-neutral (effect lives in `calls`); the enum-only, never-displayed report reasons; and that `REVALIDATE_TOKEN` must be set for instant propagation.
@@ -735,6 +994,7 @@ Note: import the enum without pulling server code into the client bundle — if 
 ## Self-Review
 
 **Spec coverage:**
+
 - Public report from the drawer → Tasks 9–14. ✓
 - Reports compound (accumulate, ranked) → `reportQueue` (Task 11), review script (Task 13). ✓
 - Durable override surviving re-extract/backfill/git-checkout → DB table + score-time apply (Tasks 1–4). ✓
@@ -745,6 +1005,7 @@ Note: import the enum without pulling server code into the client bundle — if 
 **Type consistency:** `Override` defined in `pipeline/overrides.ts` (Task 2), consumed by `loadOverrides` (Task 3) and `applyOverrides` in `score()` (Task 4). `REPORT_REASONS` defined once in `src/lib/report-reasons.ts` (Task 14 Step 2a), consumed by `db/reports.ts` and the endpoint and the UI. `ReportRow` (Task 11) matches the `insertReport` call in the endpoint (Task 12). `validateReportBody`/`reporterHashOf` defined in `report.ts` (Task 12), reused by the UI contract test (Task 14).
 
 **Open items deferred (tracked, not silently dropped):**
+
 - Cross-IP rate limiting beyond per-reporter dedupe (Vercel KV is retired; revisit with Upstash or a DB counter if spam appears). The unique-index dedupe is the v1 control.
 - A web review UI (vs the `review-reports.ts` script) — the queue read (`reportQueue`) is reusable when that's built.
-- Classifier-quality residual (DUOL↔AMD, HIMS FN) remains the separate Workstream A; this loop *corrects* such errors but does not *prevent* them.
+- Classifier-quality residual (DUOL↔AMD, HIMS FN) remains the separate Workstream A; this loop _corrects_ such errors but does not _prevent_ them.

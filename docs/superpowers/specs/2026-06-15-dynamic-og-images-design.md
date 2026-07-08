@@ -22,8 +22,8 @@ findings:
 
 - Crawlers fetch the `og:image` **once**, cache the bytes by URL, and on
   X/LinkedIn **freeze the card to the post permanently**. Slack/Discord/etc. cache
-  minutes-to-weeks. Per-request rendering only "wins" on the *first share of a URL
-  after data changed* — a window the platforms otherwise discard.
+  minutes-to-weeks. Per-request rendering only "wins" on the _first share of a URL
+  after data changed_ — a window the platforms otherwise discard.
 - The reliable lever is **versioning the `og:image` URL** (path-based, not `?v=`
   — some crawlers normalize query strings). A new URL on data-change → new shares
   get fresh bytes.
@@ -64,7 +64,7 @@ TanStack Start server routes (`createFileRoute` + `server.handlers.GET`), return
   path (same as pages), so OG always matches page data.
 - satori/resvg are **dynamic-imported inside the handler** so they stay off every
   other code path. Native resvg → Node runtime.
-- `rev` is **only a cache key** — the route renders *current* DB stats. Page
+- `rev` is **only a cache key** — the route renders _current_ DB stats. Page
   `head()` and the route read the same DB within the same ISR window, so a fresh
   share gets matching rev + content.
 - `.png` suffix is carried on the `$rev` segment (param value is `<rev>.png`; strip

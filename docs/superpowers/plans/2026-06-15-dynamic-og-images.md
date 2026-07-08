@@ -17,6 +17,7 @@
 ### Task 1: `ogRev` content-hash helper
 
 **Files:**
+
 - Create: `src/og/og-rev.ts`
 - Test: `src/og/og-rev.test.ts`
 
@@ -81,6 +82,7 @@ git commit -m "feat(og): ogRev content-hash helper for cache-busting OG urls"
 ### Task 2: `buildLineChartBackgroundSvg` (ticker line-graph background)
 
 **Files:**
+
 - Modify: `src/og/card-bg.ts` (append a new exported function)
 - Test: `src/og/card-bg.test.ts`
 
@@ -148,8 +150,9 @@ export function buildLineChartBackgroundSvg({
   const MAX = 64;
   let pts = closes;
   if (closes.length > MAX) {
-    pts = Array.from({ length: MAX }, (_, i) =>
-      closes[Math.round((i * (closes.length - 1)) / (MAX - 1))],
+    pts = Array.from(
+      { length: MAX },
+      (_, i) => closes[Math.round((i * (closes.length - 1)) / (MAX - 1))],
     );
   }
 
@@ -209,6 +212,7 @@ git commit -m "feat(og): line-graph card background for ticker OG cards"
 ### Task 3: Wire `closes` into `OgCard.ticker` and `renderOgPng`
 
 **Files:**
+
 - Modify: `src/og/render.tsx` (OgCard type, extract `svgToUri`, pick bg by card kind)
 - Test: `src/og/render.test.ts`
 
@@ -292,18 +296,18 @@ function svgToUri(svg: string): string {
 (d) In `renderOgPng` replace the `const bg = cardBgUri(seed, up, card.theme, pal);` line with a card-kind-aware background:
 
 ```ts
-  const bgSvg =
-    card.kind === "ticker" && card.closes && card.closes.length > 0
-      ? buildLineChartBackgroundSvg({
-          closes: card.closes,
-          up,
-          theme: card.theme,
-          palette: pal,
-          width: W,
-          height: H,
-        })
-      : buildCardBackgroundSvg({ seed, up, theme: card.theme, palette: pal, width: W, height: H });
-  const bg = svgToUri(bgSvg);
+const bgSvg =
+  card.kind === "ticker" && card.closes && card.closes.length > 0
+    ? buildLineChartBackgroundSvg({
+        closes: card.closes,
+        up,
+        theme: card.theme,
+        palette: pal,
+        width: W,
+        height: H,
+      })
+    : buildCardBackgroundSvg({ seed, up, theme: card.theme, palette: pal, width: W, height: H });
+const bg = svgToUri(bgSvg);
 ```
 
 (`seed`, `up`, and `pal` are already computed just above that line — leave them as-is; `seed` is still used for the non-ticker/no-closes branch.)
@@ -330,6 +334,7 @@ git commit -m "feat(og): ticker cards use price line-graph background"
 ### Task 4: Dynamic creator OG route
 
 **Files:**
+
 - Create: `src/routes/api/og/c.$handle.$rev.tsx`
 
 Reads the DB index (DB-fresh under `USE_DB=1`, falls back to the bundled static index) for the creator's avatar + stats, renders the creator card, and returns `image/png`. The `$rev` param is a cache-buster and is intentionally unused by the handler.
@@ -409,6 +414,7 @@ git commit -m "feat(og): dynamic creator OG image route"
 ### Task 5: Dynamic ticker OG route
 
 **Files:**
+
 - Create: `src/routes/api/og/t.$handle.$symbol.$rev.tsx`
 
 Reads the creator dataset + the symbol's baked prices (both DB-first with static fallback via `fetchDataset`/`fetchPrices`), renders the ticker card with the price line-graph background, returns `image/png`. Any failure → minimal ticker card, never 500.
@@ -484,6 +490,7 @@ git commit -m "feat(og): dynamic ticker OG image route with price line-graph"
 ### Task 6: ISR cache rule for the OG routes
 
 **Files:**
+
 - Modify: `vite.config.ts` (the `nitro.routeRules` block)
 
 - [ ] **Step 1: Add the route rule**
@@ -511,6 +518,7 @@ git commit -m "feat(og): ISR-cache the dynamic OG routes (6h)"
 ### Task 7: Point page `head()` at the dynamic, rev-versioned OG URLs
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.index.tsx` (creator page `head()`)
 - Modify: `src/routes/c.$handle.ticker.$symbol.tsx` (ticker page `head()`)
 
@@ -525,17 +533,17 @@ import { ogRev } from "#/og/og-rev.ts";
 Replace the `head()` body's image line. Current:
 
 ```ts
-    const name = loaderData?.creator.name ?? params.handle;
-    const img = siteUrl(`/og/${params.handle}.png`);
+const name = loaderData?.creator.name ?? params.handle;
+const img = siteUrl(`/og/${params.handle}.png`);
 ```
 
 New:
 
 ```ts
-    const name = loaderData?.creator.name ?? params.handle;
-    const sc = loaderData?.scorecard;
-    const rev = ogRev([sc?.avgExcess["3m"], sc?.totalCalls]);
-    const img = siteUrl(`/api/og/c/${params.handle}/${rev}.png`);
+const name = loaderData?.creator.name ?? params.handle;
+const sc = loaderData?.scorecard;
+const rev = ogRev([sc?.avgExcess["3m"], sc?.totalCalls]);
+const img = siteUrl(`/api/og/c/${params.handle}/${rev}.png`);
 ```
 
 - [ ] **Step 2: Ticker page — import `ogRev` and version the URL**
@@ -549,20 +557,20 @@ import { ogRev } from "#/og/og-rev.ts";
 Replace the `head()` body's image line. Current:
 
 ```ts
-    const name = loaderData?.creator.name ?? params.handle;
-    const img = siteUrl(`/og/${params.handle}/${params.symbol}.png`);
+const name = loaderData?.creator.name ?? params.handle;
+const img = siteUrl(`/og/${params.handle}/${params.symbol}.png`);
 ```
 
 New (rev from the symbol's first-call 3m excess + the baked OHLC fingerprint, all already on `loaderData`):
 
 ```ts
-    const name = loaderData?.creator.name ?? params.handle;
-    const symCalls = loaderData?.calls.filter((c) => c.ticker === params.symbol) ?? [];
-    const excess3m = symCalls[0]?.returns?.["3m"]?.excess ?? null;
-    const ohlc = loaderData?.bakedOhlc ?? [];
-    const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : 0;
-    const rev = ogRev([excess3m, ohlc.length, Math.round(lastClose)]);
-    const img = siteUrl(`/api/og/t/${params.handle}/${params.symbol}/${rev}.png`);
+const name = loaderData?.creator.name ?? params.handle;
+const symCalls = loaderData?.calls.filter((c) => c.ticker === params.symbol) ?? [];
+const excess3m = symCalls[0]?.returns?.["3m"]?.excess ?? null;
+const ohlc = loaderData?.bakedOhlc ?? [];
+const lastClose = ohlc.length ? ohlc[ohlc.length - 1].c : 0;
+const rev = ogRev([excess3m, ohlc.length, Math.round(lastClose)]);
+const img = siteUrl(`/api/og/t/${params.handle}/${params.symbol}/${rev}.png`);
 ```
 
 - [ ] **Step 3: Typecheck**
@@ -582,6 +590,7 @@ git commit -m "feat(og): point creator+ticker og:image at rev-versioned dynamic 
 ### Task 8: Stop pre-rendering creator + ticker PNGs at build
 
 **Files:**
+
 - Modify: `scripts/prebuild.ts` (the OG-emission section; keep home card, dataset copy, prices copy)
 
 The current section emits the home card, loops creators to emit creator PNGs, then loops creators to (a) collect `datasets`, (b) copy each `dataset.json` to `public/datasets/`, and (c) push per-ticker render jobs run via `pool(...)`. Keep (a) and (b) and the home card; drop the creator-emit loop and all per-ticker rendering.
@@ -591,19 +600,19 @@ The current section emits the home card, loops creators to emit creator PNGs, th
 Find the block that starts with `// Home + one card per creator.` and ends just before the `if (existsSync(PRICES_SRC)) {` price-copy block (it includes the creator `for` loop, the `const datasets`/`tickerJobs` declarations, the second `for` loop, and the `pool(tickerJobs, 8, …)` call). Replace that entire block with:
 
 ```ts
-  // Home card only — creator + ticker cards are now rendered on demand by the
-  // /api/og/{c,t}/* routes (dynamic, DB-fresh). See
-  // docs/superpowers/specs/2026-06-15-dynamic-og-images-design.md.
-  await emit({ kind: "home", theme: THEME }, join(OG_DIR, "..", "og.png"));
+// Home card only — creator + ticker cards are now rendered on demand by the
+// /api/og/{c,t}/* routes (dynamic, DB-fresh). See
+// docs/superpowers/specs/2026-06-15-dynamic-og-images-design.md.
+await emit({ kind: "home", theme: THEME }, join(OG_DIR, "..", "og.png"));
 
-  // Per-creator: copy the dataset as a static CDN asset (panic fallback for the API
-  // read routes) and collect datasets for the calls-index / llms.txt below.
-  const datasets: Dataset[] = [];
-  for (const e of index) {
-    const ds = readJson(join(DATA, e.handle, "dataset.json"));
-    datasets.push(ds as Dataset);
-    cpSync(join(DATA, e.handle, "dataset.json"), join(DS_DIR, `${e.handle}.json`));
-  }
+// Per-creator: copy the dataset as a static CDN asset (panic fallback for the API
+// read routes) and collect datasets for the calls-index / llms.txt below.
+const datasets: Dataset[] = [];
+for (const e of index) {
+  const ds = readJson(join(DATA, e.handle, "dataset.json"));
+  datasets.push(ds as Dataset);
+  cpSync(join(DATA, e.handle, "dataset.json"), join(DS_DIR, `${e.handle}.json`));
+}
 ```
 
 - [ ] **Step 2: Remove now-unused symbols**

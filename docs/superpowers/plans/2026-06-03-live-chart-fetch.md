@@ -16,25 +16,26 @@
 
 ## File Structure
 
-| File | Responsibility | Action |
-|------|----------------|--------|
-| `src/lib/chart-window.ts` | Pure: `Timeframe` → Yahoo `{ interval, period1 }` | Create |
-| `src/lib/chart-window.test.ts` | Tests for the mapping | Create |
-| `src/lib/chart-fetch.ts` | `fetchChart` server fn, `LiveBar` type, `toLiveBars`, TTL cache helpers | Create |
-| `src/lib/chart-fetch.test.ts` | Tests for `toLiveBars` + cache helpers (no network) | Create |
-| `src/lib/chart-query.ts` | `chartQuery` queryOptions factory | Create |
-| `src/lib/chart-query.test.ts` | Tests for queryKey/staleTime shape | Create |
-| `src/router.tsx` | Add `QueryClient` + `setupRouterSsrQueryIntegration` | Modify |
-| `src/routes/__root.tsx` | `createRootRoute` → `createRootRouteWithContext<{ queryClient }>` | Modify |
-| `src/routes/c.$handle.ticker.$symbol.tsx` | Consume `useQuery`; drop zoom/scroll; skeleton + baked fallback | Modify |
-| `influencer-tracker/CLAUDE.md` | Document live-fetch path | Modify |
-| `package.json` | Add `@tanstack/react-query` direct dep | Modify (via `bun add`) |
+| File                                      | Responsibility                                                          | Action                 |
+| ----------------------------------------- | ----------------------------------------------------------------------- | ---------------------- |
+| `src/lib/chart-window.ts`                 | Pure: `Timeframe` → Yahoo `{ interval, period1 }`                       | Create                 |
+| `src/lib/chart-window.test.ts`            | Tests for the mapping                                                   | Create                 |
+| `src/lib/chart-fetch.ts`                  | `fetchChart` server fn, `LiveBar` type, `toLiveBars`, TTL cache helpers | Create                 |
+| `src/lib/chart-fetch.test.ts`             | Tests for `toLiveBars` + cache helpers (no network)                     | Create                 |
+| `src/lib/chart-query.ts`                  | `chartQuery` queryOptions factory                                       | Create                 |
+| `src/lib/chart-query.test.ts`             | Tests for queryKey/staleTime shape                                      | Create                 |
+| `src/router.tsx`                          | Add `QueryClient` + `setupRouterSsrQueryIntegration`                    | Modify                 |
+| `src/routes/__root.tsx`                   | `createRootRoute` → `createRootRouteWithContext<{ queryClient }>`       | Modify                 |
+| `src/routes/c.$handle.ticker.$symbol.tsx` | Consume `useQuery`; drop zoom/scroll; skeleton + baked fallback         | Modify                 |
+| `influencer-tracker/CLAUDE.md`            | Document live-fetch path                                                | Modify                 |
+| `package.json`                            | Add `@tanstack/react-query` direct dep                                  | Modify (via `bun add`) |
 
 ---
 
 ## Task 1: Add TanStack Query dependency and wire QueryClient into the router
 
 **Files:**
+
 - Modify: `package.json` (via `bun add`)
 - Modify: `src/router.tsx`
 - Modify: `src/routes/__root.tsx`
@@ -42,9 +43,11 @@
 - [ ] **Step 1: Add the direct dependency**
 
 Run:
+
 ```bash
 bun add @tanstack/react-query
 ```
+
 Expected: `package.json` gains `"@tanstack/react-query"` under dependencies (it is already pinned transitively at 5.100.14 in `bun.lock`).
 
 - [ ] **Step 2: Wire QueryClient into the router**
@@ -52,34 +55,34 @@ Expected: `package.json` gains `"@tanstack/react-query"` under dependencies (it 
 Replace the entire contents of `src/router.tsx` with:
 
 ```tsx
-import { QueryClient } from '@tanstack/react-query'
-import { createRouter as createTanStackRouter } from '@tanstack/react-router'
-import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
-import { routeTree } from './routeTree.gen'
+import { QueryClient } from "@tanstack/react-query";
+import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import { routeTree } from "./routeTree.gen";
 
 export function getRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { staleTime: 5 * 60 * 1000 },
     },
-  })
+  });
 
   const router = createTanStackRouter({
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
-    defaultPreload: 'intent',
+    defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
-  })
+  });
 
-  setupRouterSsrQueryIntegration({ router, queryClient })
+  setupRouterSsrQueryIntegration({ router, queryClient });
 
-  return router
+  return router;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
-    router: ReturnType<typeof getRouter>
+    router: ReturnType<typeof getRouter>;
   }
 }
 ```
@@ -89,24 +92,14 @@ declare module '@tanstack/react-router' {
 In `src/routes/__root.tsx`, change the import on line 1-6 from `createRootRoute` to `createRootRouteWithContext`, and add a `QueryClient` type import. Replace:
 
 ```tsx
-import {
-  HeadContent,
-  Outlet,
-  Scripts,
-  createRootRoute,
-} from '@tanstack/react-router'
+import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 ```
 
 with:
 
 ```tsx
-import {
-  HeadContent,
-  Outlet,
-  Scripts,
-  createRootRouteWithContext,
-} from '@tanstack/react-router'
-import type { QueryClient } from '@tanstack/react-query'
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
 ```
 
 Then change line 18 from:
@@ -126,17 +119,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 - [ ] **Step 4: Typecheck**
 
 Run:
+
 ```bash
 bunx tsc --noEmit
 ```
+
 Expected: PASS (no errors). If `routeTree.gen.ts` complains about context, run `bun run dev` once to regenerate it, then re-run tsc.
 
 - [ ] **Step 5: Smoke-test the boot**
 
 Run:
+
 ```bash
 bun run dev
 ```
+
 Expected: server starts on :3000 with no console errors. Open `http://localhost:3000`, confirm the home page renders. Stop the server (Ctrl-C).
 
 - [ ] **Step 6: Commit**
@@ -151,6 +148,7 @@ git commit -m "feat(charts): wire TanStack Query QueryClient into the router"
 ## Task 2: `chartWindow` — timeframe → Yahoo interval/range mapping
 
 **Files:**
+
 - Create: `src/lib/chart-window.ts`
 - Test: `src/lib/chart-window.test.ts`
 
@@ -221,9 +219,11 @@ describe("chartWindow", () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run:
+
 ```bash
 bun test src/lib/chart-window.test.ts
 ```
+
 Expected: FAIL — `Cannot find module './chart-window.ts'`.
 
 - [ ] **Step 3: Implement `chartWindow`**
@@ -259,10 +259,7 @@ function daysAgo(now: Date, days: number): Date {
 // Maps a timeframe to a Yahoo interval + start date. Intraday intervals are
 // restricted to windows within Yahoo's ~60-day sub-daily cap (1D/1W/1M); 3M+
 // use daily, matching the retail-app standard (Robinhood/Google Finance).
-export function chartWindow(
-  tf: Timeframe,
-  opts: { now: Date; firstDate: Date },
-): ChartWindow {
+export function chartWindow(tf: Timeframe, opts: { now: Date; firstDate: Date }): ChartWindow {
   const { now, firstDate } = opts;
   switch (tf) {
     case "1D":
@@ -288,9 +285,11 @@ export function chartWindow(
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 bun test src/lib/chart-window.test.ts
 ```
+
 Expected: PASS (all 7 tests).
 
 - [ ] **Step 5: Commit**
@@ -305,6 +304,7 @@ git commit -m "feat(charts): chartWindow maps timeframe to Yahoo interval/range"
 ## Task 3: `fetchChart` server function with `LiveBar`, mapping, and TTL cache
 
 **Files:**
+
 - Create: `src/lib/chart-fetch.ts`
 - Test: `src/lib/chart-fetch.test.ts`
 
@@ -346,9 +346,11 @@ describe("cache", () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run:
+
 ```bash
 bun test src/lib/chart-fetch.test.ts
 ```
+
 Expected: FAIL — `Cannot find module './chart-fetch.ts'`.
 
 - [ ] **Step 3: Implement `chart-fetch.ts`**
@@ -365,7 +367,13 @@ import type { Timeframe } from "./window-series.ts";
 // A live OHLC bar. Unlike the dataset's date-only OhlcBar, `date` is a full ISO
 // datetime so intraday bars are distinct. Kept separate so DatasetSchema is
 // untouched.
-export interface LiveBar { date: string; o: number; h: number; l: number; c: number }
+export interface LiveBar {
+  date: string;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+}
 
 export interface ChartData {
   ohlc: LiveBar[];
@@ -416,7 +424,11 @@ export function cacheSet(key: string, bars: LiveBar[], now: number): void {
 // --- Yahoo fetch ------------------------------------------------------------
 const yahoo = new YahooFinance();
 
-async function fetchSymbol(symbol: string, interval: ReturnType<typeof chartWindow>["interval"], period1: Date): Promise<LiveBar[]> {
+async function fetchSymbol(
+  symbol: string,
+  interval: ReturnType<typeof chartWindow>["interval"],
+  period1: Date,
+): Promise<LiveBar[]> {
   const key = `${symbol}:${interval}`;
   const cached = cacheGet(key, Date.now());
   if (cached) return cached;
@@ -451,17 +463,21 @@ export const fetchChart = createServerFn({ method: "GET" })
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run:
+
 ```bash
 bun test src/lib/chart-fetch.test.ts
 ```
+
 Expected: PASS (2 describes, 2 tests).
 
 - [ ] **Step 5: Typecheck**
 
 Run:
+
 ```bash
 bunx tsc --noEmit
 ```
+
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
@@ -476,6 +492,7 @@ git commit -m "feat(charts): fetchChart server fn with TTL cache and live-bar ma
 ## Task 4: `chartQuery` queryOptions factory
 
 **Files:**
+
 - Create: `src/lib/chart-query.ts`
 - Test: `src/lib/chart-query.test.ts`
 
@@ -500,9 +517,11 @@ describe("chartQuery", () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run:
+
 ```bash
 bun test src/lib/chart-query.test.ts
 ```
+
 Expected: FAIL — `Cannot find module './chart-query.ts'`.
 
 - [ ] **Step 3: Implement `chart-query.ts`**
@@ -528,9 +547,11 @@ export function chartQuery(symbol: string, timeframe: Timeframe, firstDate: stri
 - [ ] **Step 4: Run test to verify it passes**
 
 Run:
+
 ```bash
 bun test src/lib/chart-query.test.ts
 ```
+
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -545,6 +566,7 @@ git commit -m "feat(charts): chartQuery queryOptions factory"
 ## Task 5: Wire the ticker route to live data; drop zoom/scroll; add skeleton + baked fallback
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.ticker.$symbol.tsx`
 
 This replaces the loaderData-driven OHLC + the zoom/scroll model with `useQuery`. The calls table, markers, ProofViewer, and SEO head are unchanged.
@@ -566,10 +588,7 @@ import { LineChart, Line } from "#/components/charts/line-chart.tsx";
 import { Grid } from "#/components/charts/grid.tsx";
 import { XAxis } from "#/components/charts/x-axis.tsx";
 import { ChartTooltip } from "#/components/charts/tooltip/chart-tooltip.tsx";
-import {
-  ChartMarkers,
-  type ChartMarker,
-} from "#/components/charts/markers/index.ts";
+import { ChartMarkers, type ChartMarker } from "#/components/charts/markers/index.ts";
 import {
   Table,
   TableBody,
@@ -596,9 +615,7 @@ export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
     const ds = await getDataset({ data: params.handle });
     const firstDate = firstDateOf(ds.calls);
     // Prefetch the default timeframe so the first paint is SSR'd, no spinner.
-    await context.queryClient.ensureQueryData(
-      chartQuery(params.symbol, "1Y", firstDate),
-    );
+    await context.queryClient.ensureQueryData(chartQuery(params.symbol, "1Y", firstDate));
     return ds;
   },
   head: ({ params, loaderData }) => {
@@ -638,9 +655,7 @@ function toneClass(x: number | null) {
 }
 
 function ChartSkeleton() {
-  return (
-    <div className="h-[320px] w-full animate-pulse rounded-xl bg-muted/40" />
-  );
+  return <div className="h-[320px] w-full animate-pulse rounded-xl bg-muted/40" />;
 }
 
 function TickerPage() {
@@ -784,16 +799,24 @@ function TickerPage() {
                   {c.postDate}
                   {c.isFirstCall ? " ★" : ""}
                 </TableCell>
-                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["1w"].excess)}`}>
+                <TableCell
+                  className={`text-right tabular-nums ${toneClass(c.returns["1w"].excess)}`}
+                >
                   {pct(c.returns["1w"].excess)}
                 </TableCell>
-                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["1m"].excess)}`}>
+                <TableCell
+                  className={`text-right tabular-nums ${toneClass(c.returns["1m"].excess)}`}
+                >
                   {pct(c.returns["1m"].excess)}
                 </TableCell>
-                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["3m"].excess)}`}>
+                <TableCell
+                  className={`text-right tabular-nums ${toneClass(c.returns["3m"].excess)}`}
+                >
                   {pct(c.returns["3m"].excess)}
                 </TableCell>
-                <TableCell className={`text-right tabular-nums ${toneClass(c.returns["toDate"].excess)}`}>
+                <TableCell
+                  className={`text-right tabular-nums ${toneClass(c.returns["toDate"].excess)}`}
+                >
                   {pct(c.returns["toDate"].excess)}
                 </TableCell>
                 <TableCell className="max-w-xs truncate text-muted-foreground">{c.quote}</TableCell>
@@ -814,18 +837,23 @@ Note what was removed vs the old file: the `useLayoutEffect`/`useRef`/`zoomMulti
 - [ ] **Step 2: Typecheck**
 
 Run:
+
 ```bash
 bunx tsc --noEmit
 ```
+
 Expected: PASS. (If a leftover import of `ScrollArea`, `useRef`, or `zoomMultiplier` is flagged as unused under `noUnusedLocals`, remove it — the replacement above already excludes them.)
 
 - [ ] **Step 3: Manual smoke-test the live fetch**
 
 Run:
+
 ```bash
 bun run dev
 ```
+
 Then in the browser:
+
 1. Open a ticker page: `http://localhost:3000/c/<handle>/ticker/<SYMBOL>` (pick a creator from the home page and a ticker from their list).
 2. Confirm the price chart renders on load (SSR, no spinner) at 1Y daily.
 3. Click **1D** — confirm the candlesticks become dense (intraday 5-min bars), not 1–2 candles. Confirm the vs-SPY chart updates too.
@@ -846,6 +874,7 @@ git commit -m "feat(charts): live per-timeframe OHLC via useQuery, drop zoom/scr
 ## Task 6: Update CLAUDE.md with the live-fetch architecture
 
 **Files:**
+
 - Modify: `influencer-tracker/CLAUDE.md`
 
 - [ ] **Step 1: Add a section documenting the split**
@@ -891,17 +920,21 @@ git commit -m "docs: document baked-for-scoring / live-for-charts price split"
 - [ ] **Step 1: Full test suite**
 
 Run:
+
 ```bash
 bun test
 ```
+
 Expected: PASS, including the new `chart-window`, `chart-fetch`, `chart-query` suites and the existing `window-series`/`schema`/`scorecard`/`returns` suites.
 
 - [ ] **Step 2: Typecheck**
 
 Run:
+
 ```bash
 bunx tsc --noEmit
 ```
+
 Expected: PASS, no errors.
 
 - [ ] **Step 3: Confirm the spec is satisfied**

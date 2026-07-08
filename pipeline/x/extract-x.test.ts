@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { tweetDate, tweetToReelCalls, dedupeCalls, type ExtractDeps } from "./extract-x";
+import { tweetDate, tweetToReelCalls, type ExtractDeps } from "./extract-x";
+import { dedupeCalls } from "../extract-core";
 import type { Classification } from "../calls";
 import type { ReelCall } from "../../src/lib/types";
 

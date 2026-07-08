@@ -26,16 +26,18 @@
 The IG scrape scrolls the `/reels/` page back 12 months every run. For a daily incremental run we stop once we have caught up to reels we already harvested. Both functions are pure/fs-only and live in their own module (no Playwright import) so the test is fast and offline.
 
 **Files:**
+
 - Create: `pipeline/scrape-forward.ts`
 - Test: `pipeline/scrape-forward.test.ts`
 
 **Interfaces:**
+
 - Consumes: `transcriptsDir` from `pipeline/config.ts`.
 - Produces:
   - `knownShortcodes(handle: string): Set<string>` — shortcodes that already have a transcript on disk (the forward anchor).
   - `forwardCaughtUp(args: { knownOnlyRounds: number; patience: number }): boolean` — true when the forward scroll has gone `patience` consecutive rounds finding no new reels (caught up, OR nothing new today).
 
-**Design note (why no `sawAnyNew` gate):** an earlier draft required "saw ≥1 new reel first" to guard against pinned reels. That broke the common case — on a zero-new-reels day `sawAnyNew` never becomes true, so the run would never conclude "caught up" and would scroll toward the 12-month cutoff (the exact slow/high-footprint behavior this feature prevents, every quiet day). Instead: stop after `patience` consecutive known-only rounds regardless. Pinned reels (≤3 on IG, all in scroll round 1) are cleared because genuinely-new reels sit immediately below the pins in chronological order, so a *new* round resets the counter before `patience` is reached; `patience:3` gives comfortable margin past the pins. The only thing this can "miss" is an *old* gap reel buried below ≥3 known rounds — acceptable for a daily forward run (old reels are a backfill concern, not a freshness one).
+**Design note (why no `sawAnyNew` gate):** an earlier draft required "saw ≥1 new reel first" to guard against pinned reels. That broke the common case — on a zero-new-reels day `sawAnyNew` never becomes true, so the run would never conclude "caught up" and would scroll toward the 12-month cutoff (the exact slow/high-footprint behavior this feature prevents, every quiet day). Instead: stop after `patience` consecutive known-only rounds regardless. Pinned reels (≤3 on IG, all in scroll round 1) are cleared because genuinely-new reels sit immediately below the pins in chronological order, so a _new_ round resets the counter before `patience` is reached; `patience:3` gives comfortable margin past the pins. The only thing this can "miss" is an _old_ gap reel buried below ≥3 known rounds — acceptable for a daily forward run (old reels are a backfill concern, not a freshness one).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -75,7 +77,9 @@ export function knownShortcodes(handle: string): Set<string> {
   const dir = transcriptsDir(handle);
   if (!existsSync(dir)) return new Set();
   return new Set(
-    readdirSync(dir).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -".json".length)),
+    readdirSync(dir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => f.slice(0, -".json".length)),
   );
 }
 
@@ -143,10 +147,12 @@ git commit -m "feat(scrape): forward-incremental stop helper + transcript anchor
 Add an opts-based `forward` flag to the IG scraper and have it stop early via the Task 1 helper; thread `--forward` from `run.ts`. The only caller of `scrape()` is `run.ts:27` (verified), so the signature change is safe. No unit test (browser-driven); verified on the VM in Task 7.
 
 **Files:**
+
 - Modify: `pipeline/scrape.ts` (signature at `:92`; scroll loop at `:150-159`)
 - Modify: `pipeline/run.ts:27`
 
 **Interfaces:**
+
 - Consumes: `knownShortcodes`, `forwardCaughtUp` from Task 1.
 - Produces: `scrape(handle: string, months?: number, opts?: { forward?: boolean }): Promise<string[]>` (was `scrape(handle, months?, userDataDir?)`).
 
@@ -180,44 +186,49 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
 Replace:
 
 ```ts
-  // Human-like scroll until we pass the cutoff date or stop finding new reels.
-  let stagnant = 0;
-  while (stagnant < 4) {
-    const before = seen.size;
-    await page.mouse.wheel(0, 1200 + jitter(0, 800));
-    await sleep(jitter(1500, 3500));
-    const oldest = Math.min(...[...seen.values()].filter(Boolean), Date.now());
-    if (oldest < cutoff) break;
-    stagnant = seen.size === before ? stagnant + 1 : 0;
-  }
+// Human-like scroll until we pass the cutoff date or stop finding new reels.
+let stagnant = 0;
+while (stagnant < 4) {
+  const before = seen.size;
+  await page.mouse.wheel(0, 1200 + jitter(0, 800));
+  await sleep(jitter(1500, 3500));
+  const oldest = Math.min(...[...seen.values()].filter(Boolean), Date.now());
+  if (oldest < cutoff) break;
+  stagnant = seen.size === before ? stagnant + 1 : 0;
+}
 ```
 
 with:
 
 ```ts
-  // Human-like scroll until we pass the cutoff, stop finding new reels, or (forward mode)
-  // catch up to already-harvested reels. Forward mode keeps the daily scroll footprint
-  // small — both a speed win and a lower bot signature at daily cadence.
-  const known = opts.forward ? knownShortcodes(handle) : new Set<string>();
-  const countNew = () => { let n = 0; for (const c of seen.keys()) if (!known.has(c)) n++; return n; };
-  let stagnant = 0, knownOnlyRounds = 0;
-  while (stagnant < 4) {
-    const before = seen.size;
-    const newBefore = opts.forward ? countNew() : 0;
-    await page.mouse.wheel(0, 1200 + jitter(0, 800));
-    await sleep(jitter(1500, 3500));
-    if (opts.forward) {
-      // A round that surfaced ≥1 not-yet-known reel resets the counter; otherwise it climbs.
-      knownOnlyRounds = countNew() > newBefore ? 0 : knownOnlyRounds + 1;
-      if (forwardCaughtUp({ knownOnlyRounds, patience: 3 })) {
-        console.log(`>>> forward scrape: caught up to known reels`);
-        break;
-      }
+// Human-like scroll until we pass the cutoff, stop finding new reels, or (forward mode)
+// catch up to already-harvested reels. Forward mode keeps the daily scroll footprint
+// small — both a speed win and a lower bot signature at daily cadence.
+const known = opts.forward ? knownShortcodes(handle) : new Set<string>();
+const countNew = () => {
+  let n = 0;
+  for (const c of seen.keys()) if (!known.has(c)) n++;
+  return n;
+};
+let stagnant = 0,
+  knownOnlyRounds = 0;
+while (stagnant < 4) {
+  const before = seen.size;
+  const newBefore = opts.forward ? countNew() : 0;
+  await page.mouse.wheel(0, 1200 + jitter(0, 800));
+  await sleep(jitter(1500, 3500));
+  if (opts.forward) {
+    // A round that surfaced ≥1 not-yet-known reel resets the counter; otherwise it climbs.
+    knownOnlyRounds = countNew() > newBefore ? 0 : knownOnlyRounds + 1;
+    if (forwardCaughtUp({ knownOnlyRounds, patience: 3 })) {
+      console.log(`>>> forward scrape: caught up to known reels`);
+      break;
     }
-    const oldest = Math.min(...[...seen.values()].filter(Boolean), Date.now());
-    if (oldest < cutoff) break;
-    stagnant = seen.size === before ? stagnant + 1 : 0;
   }
+  const oldest = Math.min(...[...seen.values()].filter(Boolean), Date.now());
+  if (oldest < cutoff) break;
+  stagnant = seen.size === before ? stagnant + 1 : 0;
+}
 ```
 
 - [ ] **Step 4: Thread `--forward` through `run.ts` (replace line 27)**
@@ -225,13 +236,13 @@ with:
 Replace `pipeline/run.ts:27`:
 
 ```ts
-    const codes = await scrape(handle);
+const codes = await scrape(handle);
 ```
 
 with:
 
 ```ts
-    const codes = await scrape(handle, 12, { forward: "forward" in args });
+const codes = await scrape(handle, 12, { forward: "forward" in args });
 ```
 
 - [ ] **Step 5: Typecheck**
@@ -253,10 +264,12 @@ git commit -m "feat(scrape): --forward incremental mode for the IG pipeline"
 `ingest-ig.ts` must skip any handle wrongly listed that is actually an X creator (numeric tweet-id shortcodes) — the inverse of `ingest.ts`'s `looksInstagram`. The pure predicate lives in its own module so both the guard and its test stay simple. `ingest.ts` (the X path) is intentionally NOT modified.
 
 **Files:**
+
 - Create: `scripts/shortcodes.ts`
 - Test: `scripts/shortcodes.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `majorityNumeric(codes: string[]): boolean` — true when the majority of shortcodes are all-digits (an X creator).
   - `loadShortcodes(handle: string): Promise<string[]>` — shortcodes from a creator's committed `reel-calls.json` (empty on any read/parse error).
@@ -336,11 +349,13 @@ git commit -m "feat(ingest): IG platform guard predicate (majorityNumeric)"
 `resume.ts` runs guard → prices+score. prices/score are platform-agnostic; only the pipeline npm script differs (`pipeline:x` vs `pipeline`). Add an optional 2nd CLI arg selecting the platform, defaulting to X so the existing X behavior is byte-identical. The selection is a pure helper so it is unit-tested.
 
 **Files:**
+
 - Create: `scripts/pipeline-for.ts`
 - Test: `scripts/pipeline-for.test.ts`
 - Modify: `scripts/resume.ts`
 
 **Interfaces:**
+
 - Produces: `pipelineFor(platform?: string): "pipeline" | "pipeline:x"` — `"ig"` → `"pipeline"`, anything else (incl. undefined) → `"pipeline:x"`.
 
 - [ ] **Step 1: Write the failing test**
@@ -390,7 +405,10 @@ import { $ } from "bun";
 import { pipelineFor } from "./pipeline-for";
 const handle = process.argv[2];
 const platform = process.argv[3]; // "ig" | "x" | undefined (default x)
-if (!handle) { console.error("usage: resume <handle> [ig|x]"); process.exit(1); }
+if (!handle) {
+  console.error("usage: resume <handle> [ig|x]");
+  process.exit(1);
+}
 // Invoke nested stages through THIS bun's absolute path (process.execPath), not a bare
 // `bun` that depends on PATH. The systemd unit sets PATH, but a manual run over a
 // non-login SSH shell has no ~/.bun/bin on PATH, so a bare nested `bun` would fail.
@@ -401,7 +419,9 @@ await $`${bun} run scripts/guard-no-shrink.ts ${handle}`;
 // 2. Score (reads name from the committed dataset so updateIndex doesn't rename the creator).
 //    score applies operator overrides (db/overrides.ts, fail-open) before writing dataset.json.
 //    prices+score are platform-agnostic; the IG and X orchestrators expose the same --from prices.
-const name = JSON.parse(await readFile(`data/creators/${handle}/dataset.json`, "utf8")).creator?.name ?? handle;
+const name =
+  JSON.parse(await readFile(`data/creators/${handle}/dataset.json`, "utf8")).creator?.name ??
+  handle;
 await $`${bun} run ${pipeline} --handle ${handle} --name ${name} --from prices`;
 // Static-serve: ingest commits + pushes data/ once after all handles (redeploys Vercel).
 ```
@@ -425,9 +445,11 @@ git commit -m "feat(resume): optional platform arg, default unchanged (X)"
 Mirror `scripts/ingest.ts`, but for IG: read `INGEST_HANDLES_IG`, skip X-looking handles via the Task 3 guard, run the IG pipeline forward, auto-resume (guard → prices+score), then one commit+push. Reuses `notify.ts` verbatim. No unit test for the composed script (it shells out to the full pipeline); verified on the VM in Task 7.
 
 **Files:**
+
 - Create: `scripts/ingest-ig.ts`
 
 **Interfaces:**
+
 - Consumes: `majorityNumeric`, `loadShortcodes` (Task 3); `notify`, `notifyConfigured`, `publishedMessage`, `blockedMessage` from `scripts/notify.ts`; the `pipeline` npm script (IG `run.ts`); `scripts/resume.ts <handle> ig` (Task 4).
 - Produces (via the notify edit below): `blockedMessage(handle, reason, recovery?)` — optional 3rd arg overriding the recovery line; default unchanged (X resume command), so `ingest.ts` is unaffected.
 
@@ -450,7 +472,9 @@ with:
 
 ```ts
 export function blockedMessage(handle: string, reason: string, recovery?: string): string {
-  const fix = recovery ?? `ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${handle}"`;
+  const fix =
+    recovery ??
+    `ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bun run scripts/resume.ts ${handle}"`;
   return [`🚫 ${handle}: ingest BLOCKED — ${reason}`, `Investigate, then: ${fix}`].join("\n");
 }
 ```
@@ -484,8 +508,14 @@ import { majorityNumeric, loadShortcodes } from "./shortcodes";
 // Daily IG ingest. Separate from the X ingest (scripts/ingest.ts) on purpose: the headful
 // browser path can hang on a dead IG session, so it must never share a process/lock with the
 // reliable X run. Runs under xvfb with IG_PROXY set (see ops/influencer-ingest-ig.service).
-const handles = (process.env.INGEST_HANDLES_IG ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-if (!handles.length) { console.error("INGEST_HANDLES_IG unset"); process.exit(1); }
+const handles = (process.env.INGEST_HANDLES_IG ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+if (!handles.length) {
+  console.error("INGEST_HANDLES_IG unset");
+  process.exit(1);
+}
 
 // Shell out through THIS bun's absolute path, never a bare PATH-dependent `bun`.
 const bun = process.execPath;
@@ -498,15 +528,22 @@ const igRecovery = (h: string) =>
   `ssh ubuntu@imos-vm "cd ~/influencer-tracker && flock /tmp/influencer-ingest.lock bash -c 'INGEST_HANDLES_IG=${h} xvfb-run -a bun run scripts/ingest-ig.ts'"`;
 
 if (!notifyConfigured()) {
-  console.error("No notify path configured (set HERMES_BIN or TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) — refusing to run blind");
+  console.error(
+    "No notify path configured (set HERMES_BIN or TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID) — refusing to run blind",
+  );
   process.exit(1);
 }
 
 async function counts(h: string) {
   try {
     const rc = JSON.parse(await readFile(`data/creators/${h}/reel-calls.json`, "utf8"));
-    return { total: rc.length, scored: rc.filter((x: any) => x.isExplicitBuy && x.direction === "bullish").length };
-  } catch { return { total: 0, scored: 0 }; }
+    return {
+      total: rc.length,
+      scored: rc.filter((x: any) => x.isExplicitBuy && x.direction === "bullish").length,
+    };
+  } catch {
+    return { total: 0, scored: 0 };
+  }
 }
 
 // Tracks any handle BLOCK / failed publish so the process exits non-zero for the systemd
@@ -518,11 +555,18 @@ for (const h of handles) {
     // Inverse of ingest.ts's looksInstagram: skip an X creator wrongly listed here. Scraping IG
     // for a numeric-shortcode (X) handle would hit instagram.com/<h> and clobber real X data.
     if (majorityNumeric(await loadShortcodes(h))) {
-      await notify(blockedMessage(h, "looks like an X creator (numeric shortcodes) — skipped IG ingest. Remove it from INGEST_HANDLES_IG.", "Edit INGEST_HANDLES_IG in the VM .env to drop this handle."));
+      await notify(
+        blockedMessage(
+          h,
+          "looks like an X creator (numeric shortcodes) — skipped IG ingest. Remove it from INGEST_HANDLES_IG.",
+          "Edit INGEST_HANDLES_IG in the VM .env to drop this handle.",
+        ),
+      );
       continue;
     }
     const before = await counts(h);
-    const name = JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
+    const name =
+      JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
     // Stage-1: scrape(forward) + transcribe + frames + extract (idempotent stages skip done work).
     // run.ts pauses after extract; we resume explicitly below (no human review — ship-then-correct).
     await $`${bun} run pipeline --handle ${h} --name ${name} --forward`;
@@ -551,12 +595,22 @@ if (dirty) {
   if (rebased.exitCode !== 0) {
     await $`git rebase --abort`.nothrow();
     failed = true;
-    await notify(blockedMessage("ingest-ig", `rebase onto origin/main conflicted (aborted); data committed but NOT pushed:\n${rebased.stderr.toString().slice(0, 400)}`));
+    await notify(
+      blockedMessage(
+        "ingest-ig",
+        `rebase onto origin/main conflicted (aborted); data committed but NOT pushed:\n${rebased.stderr.toString().slice(0, 400)}`,
+      ),
+    );
   } else {
     const pushed = await $`git push origin main`.nothrow();
     if (pushed.exitCode !== 0) {
       failed = true;
-      await notify(blockedMessage("ingest-ig", `data committed but push failed:\n${pushed.stderr.toString().slice(0, 400)}`));
+      await notify(
+        blockedMessage(
+          "ingest-ig",
+          `data committed but push failed:\n${pushed.stderr.toString().slice(0, 400)}`,
+        ),
+      );
     }
   }
 } else {
@@ -595,6 +649,7 @@ git commit -m "feat(ingest): scripts/ingest-ig.ts daily Instagram entrypoint + I
 A second timer, staggered to 14:00 UTC, runs `ingest-ig.ts` under `xvfb-run` (the VM is headless; `scrape()` launches `headless:false`) with its own flock. Committed to the repo like the X units; installed on the VM in Task 7.
 
 **Files:**
+
 - Create: `ops/influencer-ingest-ig.service`
 - Create: `ops/influencer-ingest-ig.timer`
 - Modify: `ops/README.md` (document the IG timer + `INGEST_HANDLES_IG`)
@@ -665,12 +720,13 @@ the creator stays at last-good data. Re-login the `.chrome-profile` via VNC thro
 proxy, then re-run the handle.
 
 **Operator caveats (load-bearing):**
+
 - **Stop the timer during VNC re-auth.** The unattended run and a VNC Chrome share the
   one `.chrome-profile`; two Chromes on the same profile collide on `SingletonLock` (the
   flock guards only the script, not the profile). Before re-authing:
   `sudo systemctl stop influencer-ingest-ig.timer`, re-login, then `start` it again.
 - **The forward anchor is VM-local.** `knownShortcodes()` reads `transcripts/`, which is
-  gitignored (so `git clean -fd data/` never wipes it — that is *why* the ExecStartPre
+  gitignored (so `git clean -fd data/` never wipes it — that is _why_ the ExecStartPre
   clean is safe). A fresh VM seed with no transcripts → one-time full 12-month backfill.
 - **First run on an unseeded profile blocks ~6 min** waiting for a manual login it can't
   get under xvfb, then throws. Seed the session once via VNC before enabling the timer.
@@ -763,6 +819,7 @@ git branch -d ig-ingest   # only after the merge is on origin/main
 ## Self-Review
 
 **Spec coverage:**
+
 - Separate IG path + timer (approach A) → Tasks 5, 6. ✓
 - Forward-scroll bound w/ transcript anchor + pinned-reel guard + fallback → Tasks 1, 2. ✓
 - Auto-resume past PAUSE (ship-then-correct) → Task 5 (resume call, no review). ✓

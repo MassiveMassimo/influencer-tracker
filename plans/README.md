@@ -11,17 +11,17 @@ are set). The `#/` import alias maps to `src/`.
 
 ## Execution order & status
 
-| Plan | Title | Priority | Effort | Depends on | Status |
-|------|-------|----------|--------|------------|--------|
-| 001  | CI runs `bun test` + `tsc` on every PR | P1 | S | — | DONE — merged to local `main` |
-| 002  | Validate LLM classification; stop silent X drops | P1 | M | 001 | DONE — merged to local `main` |
-| 003  | `forwardReturn` → null (not fake 0%) on uncovered series | P1 | S | 001 | DONE — merged to local `main` |
-| 004  | One first-call per ticker on same-day ties | P2 | S | 001 | DONE — merged to local `main` |
-| 005  | Skip reels with no `upload_date` (no fabricated "today") | P2 | S | 001, 002 | DONE — merged to local `main` |
-| 006  | `prices.ts`: filter null OHLC + refetch under-covered cache | P2 | S | 001 | DONE — merged to local `main` |
-| 007  | Crash-safe X extract checkpoint (no duplicate calls) | P2 | S | 001, 002 | DONE — merged to local `main` |
-| 008  | Validate serve-seam input (params, `firstDate`, cache cap, token) | P3 | S | 001 | DONE — merged to local `main` |
-| 009  | Post-merge holistic-review fixes (CI mock leak, prices restatement, extract catch, chart-fetch validation) | P1 | M | 001–008 | DONE — merged + pushed to `origin/main` (`6029f1f`) |
+| Plan | Title                                                                                                      | Priority | Effort | Depends on | Status                                              |
+| ---- | ---------------------------------------------------------------------------------------------------------- | -------- | ------ | ---------- | --------------------------------------------------- |
+| 001  | CI runs `bun test` + `tsc` on every PR                                                                     | P1       | S      | —          | DONE — merged to local `main`                       |
+| 002  | Validate LLM classification; stop silent X drops                                                           | P1       | M      | 001        | DONE — merged to local `main`                       |
+| 003  | `forwardReturn` → null (not fake 0%) on uncovered series                                                   | P1       | S      | 001        | DONE — merged to local `main`                       |
+| 004  | One first-call per ticker on same-day ties                                                                 | P2       | S      | 001        | DONE — merged to local `main`                       |
+| 005  | Skip reels with no `upload_date` (no fabricated "today")                                                   | P2       | S      | 001, 002   | DONE — merged to local `main`                       |
+| 006  | `prices.ts`: filter null OHLC + refetch under-covered cache                                                | P2       | S      | 001        | DONE — merged to local `main`                       |
+| 007  | Crash-safe X extract checkpoint (no duplicate calls)                                                       | P2       | S      | 001, 002   | DONE — merged to local `main`                       |
+| 008  | Validate serve-seam input (params, `firstDate`, cache cap, token)                                          | P3       | S      | 001        | DONE — merged to local `main`                       |
+| 009  | Post-merge holistic-review fixes (CI mock leak, prices restatement, extract catch, chart-fetch validation) | P1       | M      | 001–008    | DONE — merged + pushed to `origin/main` (`6029f1f`) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (one-line reason) | REJECTED (one-line rationale)
 
@@ -35,7 +35,8 @@ Agent worktrees and `advisor/*` branches removed. **Local `main` is ahead of
 explicit confirmation).
 
 Two follow-ups that are NOT plan TODOs (outside the executor/advisor scope):
-- **Re-score** affected creators (002/003/004/005/006 change *future* scored output;
+
+- **Re-score** affected creators (002/003/004/005/006 change _future_ scored output;
   the committed frozen datasets are unchanged). Operator step: re-run `pipeline`/
   `pipeline:x` → `score` for each creator, then `bun run scripts/parity-check.ts`
   (must print `PARITY OK`). Needs API keys + network — cannot run in CI/advisor.
@@ -49,9 +50,9 @@ Two follow-ups that are NOT plan TODOs (outside the executor/advisor scope):
    data or refactors are trusted.
 2. **Scoring-correctness cluster (002, 003, 004, 006)** — independent of each
    other; can be done in any order or in parallel worktrees. All four change
-   *future* scored output, so each carries the same maintenance note: a re-score
-   + `bun run scripts/parity-check.ts` (must print `PARITY OK`) is a separate
-   **operator** step, not part of the plan. None regenerate committed data.
+   _future_ scored output, so each carries the same maintenance note: a re-score
+   - `bun run scripts/parity-check.ts` (must print `PARITY OK`) is a separate
+     **operator** step, not part of the plan. None regenerate committed data.
 3. **005 after 002**, and **007 after 002** — both edit files that 002 also
    touches (`pipeline/extract.ts` and `pipeline/x/extract-x.ts` respectively).
    Sequencing avoids a merge conflict; each notes the expected post-002 shape.

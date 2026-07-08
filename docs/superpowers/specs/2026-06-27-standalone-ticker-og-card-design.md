@@ -81,10 +81,14 @@ is unchanged. Add the `all`-view fallback: when there is no single `creatorHandl
 set
 
 ```ts
-og.img = siteUrl(`/api/og/t/${symbol}/${ogRev([
-  summary.creatorCount, summary.callCount, summary.avgEx3m,
-  Math.round(bakedOhlc.at(-1)?.c ?? 0),
-])}`)
+og.img = siteUrl(
+  `/api/og/t/${symbol}/${ogRev([
+    summary.creatorCount,
+    summary.callCount,
+    summary.avgEx3m,
+    Math.round(bakedOhlc.at(-1)?.c ?? 0),
+  ])}`,
+);
 ```
 
 so `head` (line ~169) emits this URL instead of `/og.png`. `og.title` for the

@@ -17,6 +17,7 @@
 ## File Structure
 
 **Created:**
+
 - `src/lib/window-series.ts` — pure calendar-window filter for OHLC arrays (+ `Timeframe` type)
 - `src/lib/window-series.test.ts`
 - `src/components/TimeframeTabs.tsx` — sliding-pill tab control
@@ -26,6 +27,7 @@
 - `src/components/charts/markers/index.ts` — vendored from bklit
 
 **Modified:**
+
 - `src/lib/types.ts` — add `hitRateN` to `Scorecard`
 - `src/lib/schema.ts` — add `hitRateN` to the Zod scorecard object
 - `src/lib/scorecard.ts` — compute `hitRateN`; extract `buildFunnel`; export `LOW_CONFIDENCE_N`
@@ -45,6 +47,7 @@
 ### Task 1: Add `hitRateN` to the scorecard
 
 **Files:**
+
 - Modify: `src/lib/types.ts:22-31`
 - Modify: `src/lib/scorecard.ts:18-44`
 - Modify: `src/lib/schema.ts:34-40`
@@ -64,11 +67,18 @@ function ret(excess: number | null): ReturnTriple {
 }
 function call(ticker: string, postDate: string, ex: Partial<Record<Horizon, number | null>>): Call {
   return {
-    shortcode: ticker + postDate, postDate, ticker, company: ticker, isFirstCall: false,
-    conviction: 0.5, quote: "q",
+    shortcode: ticker + postDate,
+    postDate,
+    ticker,
+    company: ticker,
+    isFirstCall: false,
+    conviction: 0.5,
+    quote: "q",
     returns: {
-      "1w": ret(ex["1w"] ?? null), "1m": ret(ex["1m"] ?? null),
-      "3m": ret(ex["3m"] ?? null), "toDate": ret(ex["toDate"] ?? null),
+      "1w": ret(ex["1w"] ?? null),
+      "1m": ret(ex["1m"] ?? null),
+      "3m": ret(ex["3m"] ?? null),
+      toDate: ret(ex["toDate"] ?? null),
     },
   };
 }
@@ -113,8 +123,8 @@ In `src/lib/types.ts`, inside `interface Scorecard` (after the `hitRate` line):
 In `src/lib/scorecard.ts`, just after the `hit` function (around line 27), add a count helper and include it in the return object:
 
 ```ts
-  const hitN = (h: "1m" | "3m") =>
-    first.map(c => c.returns[h].excess).filter((x): x is number => x != null).length;
+const hitN = (h: "1m" | "3m") =>
+  first.map((c) => c.returns[h].excess).filter((x): x is number => x != null).length;
 ```
 
 In the returned object, add after `hitRate`:
@@ -150,6 +160,7 @@ git commit -m "feat(scorecard): expose hitRateN sample sizes"
 ### Task 2: Honest 5-stage funnel
 
 **Files:**
+
 - Modify: `src/lib/scorecard.ts` (add `buildFunnel` + `LOW_CONFIDENCE_N`)
 - Modify: `pipeline/score.ts:28-34`
 - Test: `src/lib/scorecard.test.ts`
@@ -163,10 +174,13 @@ import { buildFunnel, LOW_CONFIDENCE_N } from "./scorecard";
 
 test("buildFunnel produces 5 monotonically-narrowing stages", () => {
   const f = buildFunnel({ reelsScraped: 157, reelsWithTicker: 27 }, 13, 10, 4);
-  expect(f.map(s => s.value)).toEqual([157, 27, 13, 10, 4]);
-  expect(f.map(s => s.label)).toEqual([
-    "Reels (12mo)", "Named a stock", "Bullish buy call",
-    "First call (unique ticker)", "Beat SPY (to date)",
+  expect(f.map((s) => s.value)).toEqual([157, 27, 13, 10, 4]);
+  expect(f.map((s) => s.label)).toEqual([
+    "Reels (12mo)",
+    "Named a stock",
+    "Bullish buy call",
+    "First call (unique ticker)",
+    "Beat SPY (to date)",
   ]);
 });
 
@@ -210,9 +224,7 @@ export function buildFunnel(
 In `pipeline/score.ts`, import `buildFunnel` from `../src/lib/scorecard` (extend the existing import on line 6), then replace the inline `funnel` array (lines 29-34) with:
 
 ```ts
-  const funnel = counts
-    ? buildFunnel(counts, calls.length, firstCalls.length, beatSpy)
-    : undefined;
+const funnel = counts ? buildFunnel(counts, calls.length, firstCalls.length, beatSpy) : undefined;
 ```
 
 (`firstCalls`, `beatSpy`, `calls`, `counts` are already in scope at that point — see lines 26-28.)
@@ -234,6 +246,7 @@ git commit -m "feat(funnel): honest 5-stage funnel with consistent denominators"
 ### Task 3: Widen `index.json` entry + `listCreators` type
 
 **Files:**
+
 - Modify: `pipeline/score.ts:60-72` (`updateIndex`)
 - Modify: `src/lib/data.ts:9-26`
 
@@ -242,16 +255,17 @@ git commit -m "feat(funnel): honest 5-stage funnel with consistent denominators"
 In `pipeline/score.ts`, replace the `entry` object (lines 65-67) with:
 
 ```ts
-  const entry = {
-    handle, name,
-    totalCalls: ds.scorecard.totalCalls,
-    firstCalls: ds.scorecard.uniqueTickers,
-    hitRate3m: ds.scorecard.hitRate["3m"],
-    hitRate3mN: ds.scorecard.hitRateN["3m"],
-    avgExcess3m: ds.scorecard.avgExcess["3m"],
-    generatedAt: ds.generatedAt,
-    ...(avatar ? { avatar } : {}),
-  };
+const entry = {
+  handle,
+  name,
+  totalCalls: ds.scorecard.totalCalls,
+  firstCalls: ds.scorecard.uniqueTickers,
+  hitRate3m: ds.scorecard.hitRate["3m"],
+  hitRate3mN: ds.scorecard.hitRateN["3m"],
+  avgExcess3m: ds.scorecard.avgExcess["3m"],
+  generatedAt: ds.generatedAt,
+  ...(avatar ? { avatar } : {}),
+};
 ```
 
 - [ ] **Step 2: Widen the `listCreators` return type**
@@ -298,10 +312,12 @@ Expected: prints `=== score ===`, no schema error (proves `hitRateN` is in both 
 - [ ] **Step 2: Verify the new fields landed**
 
 Run:
+
 ```bash
 cat data/creators/index.json | grep -E "hitRate3m|firstCalls"
 cat data/creators/kevvonz/dataset.json | python3 -c "import json,sys; d=json.load(sys.stdin); print('hitRateN', d['scorecard']['hitRateN']); print('funnel', [s['value'] for s in d['scorecard']['funnel']])"
 ```
+
 Expected: `index.json` contains `hitRate3m`, `hitRate3mN`, `firstCalls`; `hitRateN` shows `{"1m": 7, "3m": 7}`; funnel shows `[157, 27, 13, 10, 4]`.
 
 - [ ] **Step 3: Commit**
@@ -318,6 +334,7 @@ git commit -m "chore(data): regenerate kevvonz with sample sizes + 5-stage funne
 ### Task 5: Vendor the bklit marker components
 
 **Files:**
+
 - Create: `src/components/charts/markers/chart-markers.tsx`
 - Create: `src/components/charts/markers/marker-group.tsx`
 - Create: `src/components/charts/markers/index.ts`
@@ -332,6 +349,7 @@ for f in chart-markers.tsx marker-group.tsx index.ts; do
 done
 wc -l src/components/charts/markers/*
 ```
+
 Expected: three non-empty files.
 
 - [ ] **Step 2: Adapt imports to the local conventions**
@@ -341,7 +359,9 @@ The only divergence from the local vendored set is the utils alias. In `src/comp
 ```ts
 import { cn } from "@/lib/utils";
 ```
+
 with:
+
 ```ts
 import { cn } from "#/lib/utils.ts";
 ```
@@ -365,6 +385,7 @@ git commit -m "chore(charts): vendor bklit ChartMarkers/MarkerGroup"
 ### Task 6: Replace the transparent-marker hack with real call markers
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.ticker.$symbol.tsx`
 
 Context: today the page maps a `call` field into `norm` and renders `<Line dataKey="call" showMarkers stroke="transparent" />` (lines 102, 64) — markers paint transparent (invisible, confirmed in-app). Remove that and use `ChartMarkers`.
@@ -374,11 +395,18 @@ Context: today the page maps a `call` field into `norm` and renders `<Line dataK
 In `src/routes/c.$handle.ticker.$symbol.tsx`:
 
 Add imports:
+
 ```ts
-import { ChartMarkers, MarkerTooltipContent, useActiveMarkers, type ChartMarker } from "#/components/charts/markers/index.ts";
+import {
+  ChartMarkers,
+  MarkerTooltipContent,
+  useActiveMarkers,
+  type ChartMarker,
+} from "#/components/charts/markers/index.ts";
 ```
 
 Add a `signed` helper near `pct` (if not already present):
+
 ```ts
 function signed(x: number | null) {
   return x == null ? "—" : `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
@@ -386,6 +414,7 @@ function signed(x: number | null) {
 ```
 
 Build the marker list (after `calls` is defined, ~line 45):
+
 ```ts
 const callMarkers: ChartMarker[] = calls.map((c) => ({
   date: new Date(c.postDate),
@@ -395,14 +424,17 @@ const callMarkers: ChartMarker[] = calls.map((c) => ({
 ```
 
 Remove the now-dead `call` property from the `norm` mapping (line 64) — delete the line:
+
 ```ts
     call: callDates.has(b.date) ? (b.c / base) * 100 : null,
 ```
+
 (`callDates` may become unused — remove its declaration on line 46 if so.)
 
 - [ ] **Step 2: Render markers on both charts**
 
 Add a small local tooltip-content component inside the file (above `TickerPage` or as a nested function):
+
 ```tsx
 function CallMarkerContent({ markers }: { markers: ChartMarker[] }) {
   const active = useActiveMarkers(markers);
@@ -412,6 +444,7 @@ function CallMarkerContent({ markers }: { markers: ChartMarker[] }) {
 ```
 
 In the **candlestick** chart, add `<ChartMarkers items={callMarkers} />` as a child before `<ChartTooltip />`, and give the tooltip the marker content:
+
 ```tsx
 <CandlestickChart data={candles} style={{ height: 320 }}>
   <Grid horizontal />
@@ -425,6 +458,7 @@ In the **candlestick** chart, add `<ChartMarkers items={callMarkers} />` as a ch
 ```
 
 In the **line** chart, replace the `<Line dataKey="call" .../>` line with `<ChartMarkers items={callMarkers} />` and add the content to its tooltip:
+
 ```tsx
 <LineChart data={norm}>
   <Grid horizontal highlightRowValues={[100]} />
@@ -464,6 +498,7 @@ git commit -m "fix(ticker): visible call markers with hover tooltips (replace tr
 ### Task 7: Sortable cross-creator leaderboard
 
 **Files:**
+
 - Modify: `src/routes/index.tsx`
 
 - [ ] **Step 1: Rewrite `Landing` as a sortable table**
@@ -485,9 +520,15 @@ export const Route = createFileRoute("/")({
 type Creator = Awaited<ReturnType<typeof listCreators>>[number];
 type SortKey = "hitRate3m" | "avgExcess3m" | "totalCalls";
 
-function pct(x: number) { return `${(x * 100).toFixed(0)}%`; }
-function signed(x: number) { return `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`; }
-function lowConf(c: Creator) { return c.hitRate3mN < LOW_CONFIDENCE_N; }
+function pct(x: number) {
+  return `${(x * 100).toFixed(0)}%`;
+}
+function signed(x: number) {
+  return `${x > 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
+}
+function lowConf(c: Creator) {
+  return c.hitRate3mN < LOW_CONFIDENCE_N;
+}
 
 function relativeDate(iso: string): string {
   const days = Math.round((Date.now() - new Date(iso + "T00:00:00Z").getTime()) / 86400000);
@@ -500,7 +541,8 @@ function relativeDate(iso: string): string {
 // Proven creators first; within each group sort by key desc. Low-confidence always last.
 function sortCreators(creators: Creator[], key: SortKey, dir: 1 | -1): Creator[] {
   return [...creators].sort((a, b) => {
-    const la = lowConf(a) ? 1 : 0, lb = lowConf(b) ? 1 : 0;
+    const la = lowConf(a) ? 1 : 0,
+      lb = lowConf(b) ? 1 : 0;
     if (la !== lb) return la - lb;
     return (a[key] - b[key]) * dir;
   });
@@ -522,7 +564,8 @@ function Landing() {
         </div>
         <h1 className="mt-1 font-heading text-2xl">Influencer accuracy</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ranked by 3-month hit rate — share of first calls per ticker that beat SPY. Sample size shown; thin samples are flagged and ranked last.
+          Ranked by 3-month hit rate — share of first calls per ticker that beat SPY. Sample size
+          shown; thin samples are flagged and ranked last.
         </p>
       </header>
 
@@ -533,9 +576,27 @@ function Landing() {
           <div className="grid grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] items-center gap-3 border-border/40 border-b px-5 py-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             <span>#</span>
             <span>Creator</span>
-            <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("hitRate3m")}>Hit 3m</button>
-            <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("avgExcess3m")}>Excess 3m</button>
-            <button type="button" className="text-right hover:text-foreground" onClick={() => onSort("totalCalls")}>Calls</button>
+            <button
+              type="button"
+              className="text-right hover:text-foreground"
+              onClick={() => onSort("hitRate3m")}
+            >
+              Hit 3m
+            </button>
+            <button
+              type="button"
+              className="text-right hover:text-foreground"
+              onClick={() => onSort("avgExcess3m")}
+            >
+              Excess 3m
+            </button>
+            <button
+              type="button"
+              className="text-right hover:text-foreground"
+              onClick={() => onSort("totalCalls")}
+            >
+              Calls
+            </button>
             <span className="text-right">Updated</span>
           </div>
           <ul className="divide-border/40 divide-y">
@@ -546,10 +607,16 @@ function Landing() {
                   params={{ handle: c.handle }}
                   className="grid grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] items-center gap-3 px-5 py-4 no-underline transition-colors hover:bg-foreground/[0.03]"
                 >
-                  <span className="font-mono text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                  <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                    {i + 1}
+                  </span>
                   <div className="flex min-w-0 items-center gap-3">
                     {c.avatar ? (
-                      <img src={c.avatar} alt="" className="size-9 shrink-0 rounded-full object-cover ring-1 ring-border/60" />
+                      <img
+                        src={c.avatar}
+                        alt=""
+                        className="size-9 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                      />
                     ) : (
                       <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-xs uppercase text-foreground ring-1 ring-border/60">
                         {c.handle.slice(0, 2)}
@@ -562,16 +629,30 @@ function Landing() {
                   </div>
                   <div className="text-right font-mono text-sm tabular-nums">
                     <div className="text-foreground">{pct(c.hitRate3m)}</div>
-                    <div className={`text-[10px] ${lowConf(c) ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}>
-                      {lowConf(c) ? `low · ${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}` : `${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`}
+                    <div
+                      className={`text-[10px] ${lowConf(c) ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
+                    >
+                      {lowConf(c)
+                        ? `low · ${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`
+                        : `${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`}
                     </div>
                   </div>
-                  <div className={`flex items-center justify-end gap-1 font-mono text-sm tabular-nums ${c.avgExcess3m > 0 ? "text-emerald-600 dark:text-emerald-400" : c.avgExcess3m < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"}`}>
-                    {c.avgExcess3m > 0 ? <ArrowUpRightIcon className="size-3.5" /> : c.avgExcess3m < 0 ? <ArrowDownRightIcon className="size-3.5" /> : null}
+                  <div
+                    className={`flex items-center justify-end gap-1 font-mono text-sm tabular-nums ${c.avgExcess3m > 0 ? "text-emerald-600 dark:text-emerald-400" : c.avgExcess3m < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"}`}
+                  >
+                    {c.avgExcess3m > 0 ? (
+                      <ArrowUpRightIcon className="size-3.5" />
+                    ) : c.avgExcess3m < 0 ? (
+                      <ArrowDownRightIcon className="size-3.5" />
+                    ) : null}
                     {signed(c.avgExcess3m)}
                   </div>
-                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">{c.totalCalls}</div>
-                  <div className="text-right font-mono text-[10px] text-muted-foreground tabular-nums">{relativeDate(c.generatedAt)}</div>
+                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">
+                    {c.totalCalls}
+                  </div>
+                  <div className="text-right font-mono text-[10px] text-muted-foreground tabular-nums">
+                    {relativeDate(c.generatedAt)}
+                  </div>
                 </Link>
               </li>
             ))}
@@ -608,6 +689,7 @@ git commit -m "feat(leaderboard): sortable creator ranking with sample sizes + l
 ### Task 8: Show `n` on the hit-rate gauge + tile
 
 **Files:**
+
 - Modify: `src/components/AnalyticsCharts.tsx:23-34` (`HitRateGauge`)
 - Modify: `src/routes/c.$handle.index.tsx:40-46` (tiles) + `:70-80` (gauge pane)
 
@@ -620,6 +702,7 @@ import { LOW_CONFIDENCE_N } from "#/lib/scorecard.ts";
 ```
 
 Change `HitRateGauge` to render the caption under the gauge:
+
 ```tsx
 export function HitRateGauge({ ds }: { ds: Dataset }) {
   const sc = ds.scorecard;
@@ -648,6 +731,7 @@ export function HitRateGauge({ ds }: { ds: Dataset }) {
 - [ ] **Step 2: Add `n` to the hit-rate tile**
 
 In `src/routes/c.$handle.index.tsx`, change the "Hit rate 3m" tile (line 44) to append the fraction:
+
 ```ts
     { label: "Hit rate 3m", value: `${pct(sc.hitRate["3m"])} · ${Math.round(sc.hitRate["3m"] * sc.hitRateN["3m"])}/${sc.hitRateN["3m"]}`, tone: sc.hitRate["3m"] - 0.5 },
 ```
@@ -669,22 +753,28 @@ git commit -m "feat(scorecard-ui): show sample size + low-confidence on hit rate
 ### Task 9: Staleness banner, risk caption, first-badge tooltip
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.index.tsx`
 
 - [ ] **Step 1: Staleness next to the "as of" date**
 
 In `src/routes/c.$handle.index.tsx`, add a helper near the top:
+
 ```ts
 function ageDays(iso: string) {
   return Math.round((Date.now() - new Date(iso + "T00:00:00Z").getTime()) / 86400000);
 }
 ```
+
 In the header (the `as of {ds.generatedAt}` div, lines 59-61), append a staleness note:
+
 ```tsx
 <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
   as of {ds.generatedAt}
   {ageDays(ds.generatedAt) > 30 && (
-    <span className="ml-2 text-amber-600 dark:text-amber-400">· data {ageDays(ds.generatedAt)}d old</span>
+    <span className="ml-2 text-amber-600 dark:text-amber-400">
+      · data {ageDays(ds.generatedAt)}d old
+    </span>
   )}
 </div>
 ```
@@ -692,6 +782,7 @@ In the header (the `as of {ds.generatedAt}` div, lines 59-61), append a stalenes
 - [ ] **Step 2: "not risk-adjusted" caption on the horizon-bars pane**
 
 In the "Avg excess vs SPY · by horizon" pane header (line 97-99), append:
+
 ```tsx
 <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
   Avg excess vs SPY · by horizon
@@ -702,6 +793,7 @@ In the "Avg excess vs SPY · by horizon" pane header (line 97-99), append:
 - [ ] **Step 3: Tooltip on the `first` badge**
 
 In `CallRow` (line 187-191), add a `title` to the badge span explaining the dedup:
+
 ```tsx
 <span
   title="Only the earliest call per ticker is scored; later calls on the same ticker are not counted."
@@ -730,12 +822,14 @@ git commit -m "feat(creator): staleness note, risk-adjustment caption, first-bad
 ### Task 10: `TimeframeTabs` component + themed styles
 
 **Files:**
+
 - Create: `src/components/TimeframeTabs.tsx`
 - Modify: `src/styles.css`
 
 - [ ] **Step 1: Add the sliding-pill CSS (themed to design tokens)**
 
 Append to `src/styles.css`:
+
 ```css
 .t-tabs {
   position: relative;
@@ -761,7 +855,9 @@ Append to `src/styles.css`:
   transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .t-tab:not([aria-selected="true"]):hover,
-.t-tab[aria-selected="true"] { color: var(--foreground); }
+.t-tab[aria-selected="true"] {
+  color: var(--foreground);
+}
 .t-tabs-pill {
   position: absolute;
   top: 3px;
@@ -779,13 +875,17 @@ Append to `src/styles.css`:
   pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .t-tabs-pill, .t-tab { transition: none !important; }
+  .t-tabs-pill,
+  .t-tab {
+    transition: none !important;
+  }
 }
 ```
 
 - [ ] **Step 2: Build the component**
 
 Create `src/components/TimeframeTabs.tsx`:
+
 ```tsx
 import { useLayoutEffect, useRef } from "react";
 import type { Timeframe } from "#/lib/window-series.ts";
@@ -804,7 +904,8 @@ export function TimeframeTabs({
 
   // Position the pill under the active tab. On mount/resize, snap without transition.
   const positionPill = (animate: boolean) => {
-    const list = listRef.current, pill = pillRef.current;
+    const list = listRef.current,
+      pill = pillRef.current;
     if (!list || !pill) return;
     const active = list.querySelector<HTMLButtonElement>('[aria-selected="true"]');
     if (!active) return;
@@ -870,12 +971,14 @@ git commit -m "feat(tabs): sliding-pill timeframe tab control"
 ### Task 11: `windowSeries` pure helper (TDD)
 
 **Files:**
+
 - Create: `src/lib/window-series.ts`
 - Test: `src/lib/window-series.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
 Create `src/lib/window-series.test.ts`:
+
 ```ts
 import { test, expect } from "bun:test";
 import { windowSeries } from "./window-series";
@@ -915,11 +1018,15 @@ Expected: FAIL — module not found.
 - [ ] **Step 3: Implement**
 
 Create `src/lib/window-series.ts`:
+
 ```ts
 export type Timeframe = "1M" | "3M" | "6M" | "1Y" | "All";
 
 const TF_DAYS: Record<Exclude<Timeframe, "All">, number> = {
-  "1M": 30, "3M": 90, "6M": 180, "1Y": 365,
+  "1M": 30,
+  "3M": 90,
+  "6M": 180,
+  "1Y": 365,
 };
 
 // Keep bars within `tf` calendar days of the LAST bar's date. "All" returns input.
@@ -950,6 +1057,7 @@ git commit -m "feat(charts): windowSeries timeframe filter"
 ### Task 12: Wire timeframe into the ticker page
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.ticker.$symbol.tsx`
 
 - [ ] **Step 1: Window + rebase on selected timeframe**
@@ -957,22 +1065,28 @@ git commit -m "feat(charts): windowSeries timeframe filter"
 In `src/routes/c.$handle.ticker.$symbol.tsx`:
 
 Add imports:
+
 ```ts
 import { TimeframeTabs } from "#/components/TimeframeTabs.tsx";
 import { windowSeries, type Timeframe } from "#/lib/window-series.ts";
 ```
 
 Inside `TickerPage`, add state and window the RAW ohlc arrays before mapping (replace the `candles`/`base`/`norm` derivations, lines 49-65):
+
 ```ts
 const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
 const ohlcW = windowSeries(ohlc, timeframe);
 const spyW = windowSeries(spy, timeframe);
 
 const candles = ohlcW.map((b) => ({
-  date: new Date(b.date), open: b.o, high: b.h, low: b.l, close: b.c,
+  date: new Date(b.date),
+  open: b.o,
+  high: b.h,
+  low: b.l,
+  close: b.c,
 }));
 
-const base = ohlcW[0]?.c ?? 1;          // rebase to first IN-WINDOW bar
+const base = ohlcW[0]?.c ?? 1; // rebase to first IN-WINDOW bar
 const spyBase = spyW[0]?.c ?? 1;
 const spyByDate = new Map(spyW.map((b) => [b.date, b.c]));
 const norm = ohlcW.map((b) => ({
@@ -987,12 +1101,16 @@ const norm = ohlcW.map((b) => ({
 - [ ] **Step 2: Render the tabs + animate on change**
 
 Add the tabs control to the Price section header (line 80-82), and pass `revealSignature={timeframe}` to both charts so the clip-reveal replays on switch:
+
 ```tsx
 <div className="mb-4 flex items-center justify-between">
-  <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Price</div>
+  <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.3em]">
+    Price
+  </div>
   <TimeframeTabs value={timeframe} onChange={setTimeframe} />
 </div>
 ```
+
 On `<CandlestickChart ...>` add `revealSignature={timeframe}`.
 On `<LineChart data={norm}>` add `revealSignature={timeframe}`.
 
@@ -1015,11 +1133,13 @@ git commit -m "feat(ticker): animated timeframe tabs (1M/3M/6M/1Y/All)"
 ### Task 13: `Sparkline` component
 
 **Files:**
+
 - Create: `src/components/Sparkline.tsx`
 
 - [ ] **Step 1: Build the native-SVG sparkline**
 
 Create `src/components/Sparkline.tsx`:
+
 ```tsx
 import type { OhlcBar } from "#/lib/types.ts";
 
@@ -1038,17 +1158,28 @@ export function Sparkline({
 }) {
   if (bars.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
   const closes = bars.map((b) => b.c);
-  const min = Math.min(...closes), max = Math.max(...closes);
+  const min = Math.min(...closes),
+    max = Math.max(...closes);
   const span = max - min || 1;
   const pad = 2;
   const x = (i: number) => pad + (i / (closes.length - 1)) * (width - 2 * pad);
   const y = (v: number) => height - pad - ((v - min) / span) * (height - 2 * pad);
-  const d = closes.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const d = closes
+    .map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+    .join(" ");
   const color =
     excess == null ? "var(--muted-foreground)" : excess >= 0 ? "rgb(16 185 129)" : "rgb(244 63 94)";
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
-      <path d={d} fill="none" stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" opacity={0.85} />
+      <path
+        d={d}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={0.85}
+      />
       <circle cx={x(0)} cy={y(closes[0])} r={2} fill={color} />
     </svg>
   );
@@ -1072,6 +1203,7 @@ git commit -m "feat(charts): per-call Sparkline component"
 ### Task 14: Sparkline column in the overview calls list
 
 **Files:**
+
 - Modify: `src/routes/c.$handle.index.tsx` (`CallsList` + `CallRow`)
 
 - [ ] **Step 1: Pass ticker OHLC into each row and render the sparkline**
@@ -1079,27 +1211,34 @@ git commit -m "feat(charts): per-call Sparkline component"
 In `src/routes/c.$handle.index.tsx`:
 
 Add import:
+
 ```ts
 import { Sparkline } from "#/components/Sparkline.tsx";
 ```
 
 `CallsList` already receives `ds`. Pass the windowed bars into `CallRow`. Change the `CallRow` render in `CallsList` (line 154-155) to pass bars from the call's post date forward:
+
 ```tsx
-{calls.map((c) => (
-  <CallRow
-    key={c.shortcode}
-    handle={handle}
-    call={c}
-    bars={(ds.tickers[c.ticker]?.ohlc ?? []).filter((b) => b.date >= c.postDate)}
-  />
-))}
+{
+  calls.map((c) => (
+    <CallRow
+      key={c.shortcode}
+      handle={handle}
+      call={c}
+      bars={(ds.tickers[c.ticker]?.ohlc ?? []).filter((b) => b.date >= c.postDate)}
+    />
+  ));
+}
 ```
 
 Update `CallRow`'s signature and add a sparkline cell before the excess figure (between the company block and the date, line ~194):
+
 ```tsx
 function CallRow({ handle, call, bars }: { handle: string; call: Call; bars: import("#/lib/types.ts").OhlcBar[] }) {
 ```
+
 Insert before the `postDate` div (line 195):
+
 ```tsx
 <div className="hidden shrink-0 sm:block">
   <Sparkline bars={bars} excess={call.returns.toDate.excess} />

@@ -45,15 +45,23 @@
 ## Task 1: `topStocksByLastCall` helper
 
 **Files:**
+
 - Create: `src/lib/rail-stocks.ts`
 - Test: `src/lib/rail-stocks.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
-  export interface RailStock { symbol: string; company: string; lastCall: string }
+  export interface RailStock {
+    symbol: string;
+    company: string;
+    lastCall: string;
+  }
   export function topStocksByLastCall(index: CallIndexEntry[], max?: number): RailStock[];
   ```
+
   Aggregates `index` per ticker (uppercased), `lastCall` = max `postDate`, `company` from the most-recent entry; sorts by `lastCall` desc then symbol asc; caps at `max` (default 20). Consumed by Task 7.
 
 - [ ] **Step 1: Write the failing test**
@@ -67,8 +75,16 @@ import type { CallIndexEntry } from "./call-index";
 
 function e(over: Partial<CallIndexEntry> & { shortcode: string }): CallIndexEntry {
   return {
-    handle: "alice", ticker: "NVDA", company: "Nvidia", postDate: "2026-05-01",
-    isFirstCall: true, conviction: 0.5, ex3m: 0, exToDate: 0, stockToDate: 0, ...over,
+    handle: "alice",
+    ticker: "NVDA",
+    company: "Nvidia",
+    postDate: "2026-05-01",
+    isFirstCall: true,
+    conviction: 0.5,
+    ex3m: 0,
+    exToDate: 0,
+    stockToDate: 0,
+    ...over,
   };
 }
 
@@ -148,16 +164,23 @@ git commit -m "feat(rail): topStocksByLastCall helper"
 ## Task 2: `parseSparkResponse` parser + `sampleCloses`
 
 **Files:**
+
 - Create: `src/lib/spark-parse.ts`
 - Test: `src/lib/spark-parse.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
-  export interface Spark1D { changePct: number | null; closes: number[] }
+  export interface Spark1D {
+    changePct: number | null;
+    closes: number[];
+  }
   export function sampleCloses(closes: number[], max?: number): number[]; // ≤max, keeps first+last
   export function parseSparkResponse(json: unknown, maxPoints?: number): Record<string, Spark1D>;
   ```
+
   Defensive parse of Yahoo's v7 `/finance/spark` JSON. Per symbol: `closes` = non-null `indicators.quote[0].close`, downsampled to `maxPoints` (default 24); `changePct` = `(last − prevClose) / prevClose` using `meta.chartPreviousClose ?? meta.previousClose`, falling back to first close. Symbols with <2 valid closes are omitted. Consumed by Task 5.
 
 - [ ] **Step 1: Write the failing test**
@@ -178,11 +201,19 @@ test("sampleCloses keeps first+last and caps length", () => {
 
 test("parseSparkResponse: good symbol uses prevClose for changePct", () => {
   const json = {
-    spark: { result: [
-      { symbol: "AAPL", response: [
-        { meta: { chartPreviousClose: 100 }, indicators: { quote: [{ close: [101, 102, null, 110] }] } },
-      ]},
-    ]},
+    spark: {
+      result: [
+        {
+          symbol: "AAPL",
+          response: [
+            {
+              meta: { chartPreviousClose: 100 },
+              indicators: { quote: [{ close: [101, 102, null, 110] }] },
+            },
+          ],
+        },
+      ],
+    },
   };
   const out = parseSparkResponse(json);
   expect(out.AAPL.closes).toEqual([101, 102, 110]); // null dropped
@@ -191,9 +222,11 @@ test("parseSparkResponse: good symbol uses prevClose for changePct", () => {
 
 test("parseSparkResponse: symbol with <2 valid closes is omitted", () => {
   const json = {
-    spark: { result: [
-      { symbol: "THIN", response: [{ meta: {}, indicators: { quote: [{ close: [null, 5] }] } }] },
-    ]},
+    spark: {
+      result: [
+        { symbol: "THIN", response: [{ meta: {}, indicators: { quote: [{ close: [null, 5] }] } }] },
+      ],
+    },
   };
   expect(parseSparkResponse(json).THIN).toBeUndefined();
 });
@@ -238,7 +271,9 @@ export function parseSparkResponse(json: unknown, maxPoints = 24): Record<string
     const resp = r?.response?.[0];
     const raw = resp?.indicators?.quote?.[0]?.close;
     if (!symbol || !Array.isArray(raw)) continue;
-    const closes = raw.filter((v: unknown): v is number => typeof v === "number" && Number.isFinite(v));
+    const closes = raw.filter(
+      (v: unknown): v is number => typeof v === "number" && Number.isFinite(v),
+    );
     if (closes.length < 2) continue;
     const prev = resp?.meta?.chartPreviousClose ?? resp?.meta?.previousClose ?? closes[0];
     const last = closes[closes.length - 1];
@@ -266,15 +301,22 @@ git commit -m "feat(rail): parseSparkResponse + sampleCloses for 1D sparks"
 ## Task 3: `smoothPath` SVG helper
 
 **Files:**
+
 - Create: `src/lib/svg-smooth.ts`
 - Test: `src/lib/svg-smooth.test.ts`
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
-  export interface Pt { x: number; y: number }
+  export interface Pt {
+    x: number;
+    y: number;
+  }
   export function smoothPath(points: Pt[]): string; // "" for <2 pts; "M..L.." for 2; Catmull-Rom cubic for ≥3
   ```
+
   Consumed by Task 4.
 
 - [ ] **Step 1: Write the failing test**
@@ -291,11 +333,20 @@ test("empty for fewer than 2 points", () => {
 });
 
 test("two points draw a straight line", () => {
-  expect(smoothPath([{ x: 0, y: 0 }, { x: 10, y: 5 }])).toBe("M0,0 L10,5");
+  expect(
+    smoothPath([
+      { x: 0, y: 0 },
+      { x: 10, y: 5 },
+    ]),
+  ).toBe("M0,0 L10,5");
 });
 
 test("three+ points produce cubic segments starting at first point", () => {
-  const d = smoothPath([{ x: 0, y: 0 }, { x: 5, y: 10 }, { x: 10, y: 0 }]);
+  const d = smoothPath([
+    { x: 0, y: 0 },
+    { x: 5, y: 10 },
+    { x: 10, y: 0 },
+  ]);
   expect(d.startsWith("M0,0")).toBe(true);
   expect(d.includes("C")).toBe(true);
 });
@@ -311,7 +362,10 @@ Expected: FAIL — module not found.
 Create `src/lib/svg-smooth.ts`:
 
 ```ts
-export interface Pt { x: number; y: number }
+export interface Pt {
+  x: number;
+  y: number;
+}
 
 const n = (v: number) => Number(v.toFixed(2));
 
@@ -356,9 +410,11 @@ git commit -m "feat(sparkline): smoothPath Catmull-Rom helper"
 ## Task 4: Upgrade `Sparkline` — gradient fill + smoothed joints
 
 **Files:**
+
 - Modify: `src/components/Sparkline.tsx` (full replace)
 
 **Interfaces:**
+
 - Consumes: `smoothPath`, `Pt` (Task 3); `useId` from React.
 - Produces: same `Sparkline` props as today (`closes`, `excess`, `width?`, `height?`) — drop-in; now renders a smoothed line + gradient area fill. Also used by `RailStocks` (Task 6) and the call table (unchanged call site).
 
@@ -389,7 +445,8 @@ export function Sparkline({
   const gid = useId().replace(/:/g, ""); // strip colons — invalid in some SVG url(#…) contexts
   if (closes.length < 2) return <svg width={width} height={height} aria-hidden="true" />;
 
-  const min = Math.min(...closes), max = Math.max(...closes);
+  const min = Math.min(...closes),
+    max = Math.max(...closes);
   const span = max - min || 1;
   const pad = 2;
   const x = (i: number) => pad + (i / (closes.length - 1)) * (width - 2 * pad);
@@ -412,7 +469,15 @@ export function Sparkline({
         </linearGradient>
       </defs>
       <path d={area} fill={`url(#${gid})`} stroke="none" />
-      <path d={line} fill="none" stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" opacity={0.9} />
+      <path
+        d={line}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={0.9}
+      />
       <circle cx={x(0)} cy={y(closes[0])} r={2} fill={color} />
     </svg>
   );
@@ -436,14 +501,18 @@ git commit -m "feat(sparkline): gradient area fill + smoothed joints"
 ## Task 5: `fetch1DSparks` server fn + `sparks1dQuery`
 
 **Files:**
+
 - Create: `src/lib/spark-fetch.ts`
 - Create: `src/lib/spark-query.ts`
 
 **Interfaces:**
+
 - Consumes: `parseSparkResponse`, `Spark1D` (Task 2); `isSafeAssetKey` (`./api-serve.ts`).
 - Produces:
   ```ts
-  export const fetch1DSparks: (opts: { data: { symbols: string[] } }) => Promise<Record<string, Spark1D>>;
+  export const fetch1DSparks: (opts: {
+    data: { symbols: string[] };
+  }) => Promise<Record<string, Spark1D>>;
   export function sparks1dQuery(symbols: string[]): UseQueryOptions<Record<string, Spark1D>>;
   ```
   Consumed by Task 6.
@@ -501,7 +570,7 @@ export const fetch1DSparks = createServerFn({ method: "GET" })
 - [ ] **Step 1b: Verify the real Yahoo spark JSON shape before trusting the parser**
 
 The parser in Task 2 assumes a JSON shape that is **not** verified against the live
-endpoint — a wrong shape fails *silently open* (no sparklines ever, no error). Capture
+endpoint — a wrong shape fails _silently open_ (no sparklines ever, no error). Capture
 one real response and confirm `parseSparkResponse` extracts closes from it:
 
 Run: `curl -s 'https://query1.finance.yahoo.com/v7/finance/spark?symbols=AAPL,MSFT&range=1d&interval=5m&indicators=close' -H 'User-Agent: Mozilla/5.0' | head -c 1500`
@@ -547,13 +616,18 @@ git commit -m "feat(rail): batched fetch1DSparks server fn + query"
 ## Task 6: `RailStocks` component
 
 **Files:**
+
 - Create: `src/components/RailStocks.tsx`
 
 **Interfaces:**
+
 - Consumes: `RailStock` (Task 1); `sparks1dQuery` (Task 5); `Sparkline` (Task 4); `ScrollArea` (`./ui/scroll-area`); `Link`, `useQuery`.
 - Produces:
   ```ts
-  export function RailStocks(props: { stocks: RailStock[]; onNavigate?: () => void }): React.ReactElement;
+  export function RailStocks(props: {
+    stocks: RailStock[];
+    onNavigate?: () => void;
+  }): React.ReactElement;
   ```
   Consumed by Task 7. The lazy 1D query lives here (mounts with the rail).
 
@@ -572,11 +646,14 @@ import { sparks1dQuery } from "#/lib/spark-query.ts";
 import type { RailStock } from "#/lib/rail-stocks.ts";
 
 function pctChip(changePct: number | null) {
-  if (changePct == null) return <span className="font-mono text-[10px] text-muted-foreground tabular-nums">—</span>;
-  const cls = changePct >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
+  if (changePct == null)
+    return <span className="font-mono text-[10px] text-muted-foreground tabular-nums">—</span>;
+  const cls =
+    changePct >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
   return (
     <span className={`font-mono text-[10px] tabular-nums ${cls}`}>
-      {changePct >= 0 ? "+" : ""}{(changePct * 100).toFixed(1)}%
+      {changePct >= 0 ? "+" : ""}
+      {(changePct * 100).toFixed(1)}%
     </span>
   );
 }
@@ -584,7 +661,13 @@ function pctChip(changePct: number | null) {
 // Rail Stocks list: static rows from the loader; 1D sparklines lazy-fetched in one
 // batched query (does not block SSR). Own lina ScrollArea so it scrolls
 // independently of the Creators list.
-export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavigate?: () => void }) {
+export function RailStocks({
+  stocks,
+  onNavigate,
+}: {
+  stocks: RailStock[];
+  onNavigate?: () => void;
+}) {
   const symbols = stocks.map((s) => s.symbol);
   const { data } = useQuery(sparks1dQuery(symbols));
 
@@ -604,14 +687,22 @@ export function RailStocks({ stocks, onNavigate }: { stocks: RailStock[]; onNavi
                 params={{ symbol: s.symbol, creator: "all" }}
                 onClick={onNavigate}
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 no-underline transition-colors hover:bg-foreground/[0.03]"
-                activeProps={{ className: "flex w-full items-center gap-2 rounded-md px-2 py-1.5 bg-foreground/[0.06] no-underline" }}
+                activeProps={{
+                  className:
+                    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 bg-foreground/[0.06] no-underline",
+                }}
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium text-sm text-foreground">{s.symbol}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{s.company}</div>
                 </div>
                 {spark ? (
-                  <Sparkline closes={spark.closes} excess={spark.changePct} width={48} height={18} />
+                  <Sparkline
+                    closes={spark.closes}
+                    excess={spark.changePct}
+                    width={48}
+                    height={18}
+                  />
                 ) : (
                   <span className="block h-[18px] w-12 animate-pulse rounded bg-foreground/[0.06]" />
                 )}
@@ -643,11 +734,13 @@ git commit -m "feat(rail): RailStocks section with lazy 1D sparklines"
 ## Task 7: Wire into the rail + root loader
 
 **Files:**
+
 - Modify: `src/routes/__root.tsx` (loader + render)
 - Modify: `src/components/WorkspaceRail.tsx` (`WorkspaceRail` + `RailContent`)
 - Modify: `src/components/MobileNav.tsx` (forward `stocks`)
 
 **Interfaces:**
+
 - Consumes: `topStocksByLastCall` (Task 1), `RailStocks` (Task 6), `RailStock` (Task 1), `fetchCallsIndex` (`../lib/data`).
 
 - [ ] **Step 1: Root loader returns creators + stocks**
@@ -657,8 +750,8 @@ In `src/routes/__root.tsx`:
 Add imports near the existing data import:
 
 ```tsx
-import { listCreators, fetchCallsIndex } from '../lib/data'
-import { topStocksByLastCall } from '../lib/rail-stocks'
+import { listCreators, fetchCallsIndex } from "../lib/data";
+import { topStocksByLastCall } from "../lib/rail-stocks";
 ```
 
 Replace the loader (line ~24):
@@ -673,16 +766,17 @@ Replace the loader (line ~24):
 Update the loader-data destructure (line ~62) from `const creators = Route.useLoaderData()` to:
 
 ```tsx
-  const { creators, stocks } = Route.useLoaderData()
+const { creators, stocks } = Route.useLoaderData();
 ```
 
 Update the two render sites (lines ~89, ~92):
 
 ```tsx
-            <WorkspaceRail creators={creators} stocks={stocks} />
+<WorkspaceRail creators={creators} stocks={stocks} />
 ```
+
 ```tsx
-            <MobileNav creators={creators} stocks={stocks} />
+<MobileNav creators={creators} stocks={stocks} />
 ```
 
 - [ ] **Step 2: Thread `stocks` through `WorkspaceRail` + render the section**
@@ -699,7 +793,13 @@ import type { RailStock } from "#/lib/rail-stocks.ts";
 Change `WorkspaceRail` to accept + forward `stocks`:
 
 ```tsx
-export function WorkspaceRail({ creators, stocks }: { creators: CreatorRef[]; stocks: RailStock[] }) {
+export function WorkspaceRail({
+  creators,
+  stocks,
+}: {
+  creators: CreatorRef[];
+  stocks: RailStock[];
+}) {
   return (
     <aside className="h-svh border-r border-border/60">
       <RailContent creators={creators} stocks={stocks} />
@@ -752,11 +852,13 @@ Update the import to also pull `RailStock`, and the signature + `RailContent` ca
 ```tsx
 import { type CreatorRef, type RailStock, RailContent } from "./WorkspaceRail";
 ```
+
 ```tsx
 export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks: RailStock[] }) {
 ```
+
 ```tsx
-          <RailContent creators={creators} stocks={stocks} onNavigate={() => setOpen(false)} />
+<RailContent creators={creators} stocks={stocks} onNavigate={() => setOpen(false)} />
 ```
 
 Also re-export `RailStock` from `WorkspaceRail.tsx` so the `MobileNav` import resolves — add to `WorkspaceRail.tsx`:

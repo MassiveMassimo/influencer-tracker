@@ -42,23 +42,24 @@ Two concrete failures result:
    throws — failing the **entire** dataset assembly with no pointer to the
    offending call.
 
-The fix: validate the LLM reply with a Zod schema, and make a *parse/validation
-failure* a thrown error (so the X heal-loop's existing retry catches it) while a
-*genuine no-ticker classification* stays a clean `null` that marks the tweet
+The fix: validate the LLM reply with a Zod schema, and make a _parse/validation
+failure_ a thrown error (so the X heal-loop's existing retry catches it) while a
+_genuine no-ticker classification_ stays a clean `null` that marks the tweet
 done. This separates "we failed to read the model" from "the model said no
 stock call."
 
 ## Current state
 
 - `pipeline/calls.ts` — the classifier. Key excerpts:
+
   ```ts
   // lines 17-26: the target shape
   export interface Classification {
     ticker: string | null;
     company: string | null;
-    direction: Direction;            // "bullish" | "bearish" | "neutral"
+    direction: Direction; // "bullish" | "bearish" | "neutral"
     isExplicitBuy: boolean;
-    conviction: number;              // 0..1
+    conviction: number; // 0..1
     quote: string;
     onScreenPrice: number | null;
     summary: string;
@@ -70,14 +71,21 @@ stock call."
     body: string,
     client: ChatClient = groq,
   ): Promise<Classification | null> {
-    const r = await (await client("/chat/completions", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: textModel, temperature: 0,
-        response_format: { type: "json_object" },
-        messages: [{ role: "system", content: CLASSIFY_SYS }, { role: "user", content: body }],
-      }),
-    })).json() as { choices: { message: { content: string } }[] };
+    const r = (await (
+      await client("/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: textModel,
+          temperature: 0,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: CLASSIFY_SYS },
+            { role: "user", content: body },
+          ],
+        }),
+      })
+    ).json()) as { choices: { message: { content: string } }[] };
     try {
       return JSON.parse(r.choices[0].message.content) as Classification;
     } catch {
@@ -89,16 +97,21 @@ stock call."
   - `toReelCall(c, shortcode, postDate)` (lines 54-67) returns `null` only when
     `!c.ticker`. It already coerces fields defensively (`Number(c.conviction ?? 0)`,
     `c.direction ?? "neutral"`, etc.).
+
 - `pipeline/extract.ts` (IG path) — single-threaded loop. The call site (lines 30-33):
   ```ts
   const c = await classify(text, body);
-  if (!c) { console.warn(`skip ${code}: malformed extract response`); continue; }
+  if (!c) {
+    console.warn(`skip ${code}: malformed extract response`);
+    continue;
+  }
   const rc = toReelCall(c, code, await postDateOf(handle, code));
   if (rc) out.push(rc);
   ```
   There is **no** try/catch around this loop body; a thrown error would abort the
   whole `extract()` run.
 - `pipeline/x/extract-x.ts` (X path) — the relevant pieces:
+
   ```ts
   // lines 23-34: tweetToReelCall
   export async function tweetToReelCall(t: TweetRecord, handle: string, deps: ExtractDeps): Promise<ReelCall | null> {
@@ -123,8 +136,10 @@ stock call."
     }
   };
   ```
+
   The heal-loop (lines 78-108) re-runs any tweet **not** in `done`. So: throw ⇒
   retried; return-null ⇒ marked done. This is the lever the fix uses.
+
 - `ExtractDeps.classifyFn` type (`pipeline/x/extract-x.ts:15`):
   `(textModel: string, body: string) => Promise<Classification | null>`.
 - `zod` v4 is already a dependency (`package.json`). Existing Zod usage:
@@ -138,12 +153,12 @@ stock call."
 
 ## Commands you will need
 
-| Purpose   | Command                                   | Expected on success |
-|-----------|-------------------------------------------|---------------------|
-| Typecheck | `bunx tsc --noEmit`                       | exit 0              |
-| Unit test | `bun test pipeline/calls.test.ts`         | all pass            |
-| Unit test | `bun test pipeline/x/extract-x.test.ts`   | all pass            |
-| Full      | `bun test`                                | all pass            |
+| Purpose   | Command                                 | Expected on success |
+| --------- | --------------------------------------- | ------------------- |
+| Typecheck | `bunx tsc --noEmit`                     | exit 0              |
+| Unit test | `bun test pipeline/calls.test.ts`       | all pass            |
+| Unit test | `bun test pipeline/x/extract-x.test.ts` | all pass            |
+| Full      | `bun test`                              | all pass            |
 
 ## Suggested executor toolkit
 
@@ -152,6 +167,7 @@ stock call."
 ## Scope
 
 **In scope** (the only files you should modify):
+
 - `pipeline/calls.ts`
 - `pipeline/extract.ts`
 - `pipeline/x/extract-x.ts`
@@ -159,6 +175,7 @@ stock call."
 - `pipeline/x/extract-x.test.ts`
 
 **Out of scope** (do NOT touch):
+
 - `src/lib/schema.ts` / `DatasetSchema` — the dataset schema is correct; the bug
   is upstream. Do not loosen `conviction`'s `min(0).max(1)`.
 - `pipeline/groq.ts`, `pipeline/fireworks.ts` — the HTTP clients are fine.
@@ -204,7 +221,8 @@ const ClassificationSchema = z.object({
 ```
 
 Notes:
-- `.catch(...)` makes a *malformed individual field* fall back to a safe default
+
+- `.catch(...)` makes a _malformed individual field_ fall back to a safe default
   instead of failing — this is what prevents the `conviction: 2` →
   whole-dataset-crash failure mode (it clamps to a valid value). `conviction`
   above `1` fails `min/max` and falls to `0` via `.catch`. (If you prefer
@@ -231,14 +249,21 @@ export async function classify(
   body: string,
   client: ChatClient = groq,
 ): Promise<Classification> {
-  const r = await (await client("/chat/completions", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: textModel, temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [{ role: "system", content: CLASSIFY_SYS }, { role: "user", content: body }],
-    }),
-  })).json() as { choices?: { message?: { content?: string } }[] };
+  const r = (await (
+    await client("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: textModel,
+        temperature: 0,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: CLASSIFY_SYS },
+          { role: "user", content: body },
+        ],
+      }),
+    })
+  ).json()) as { choices?: { message?: { content?: string } }[] };
   const content = r.choices?.[0]?.message?.content;
   if (typeof content !== "string") {
     throw new Error("classify: missing choices/content in LLM reply");
@@ -290,6 +315,7 @@ longer returns null).
 ### Step 4: Update the X path contract and its test
 
 In `pipeline/x/extract-x.ts`:
+
 - Change `ExtractDeps.classifyFn` type (line 15) to
   `(textModel: string, body: string) => Promise<Classification>` (drop `| null`).
 - In `tweetToReelCall` (lines 23-34), remove the `const c = ...; if (!c) return null;`
@@ -304,26 +330,37 @@ In `pipeline/x/extract-x.ts`:
   once `classify` throws on failure.
 
 In `pipeline/x/extract-x.test.ts`:
+
 - The `deps` helper (lines 5-9) types `c: Classification | null`. Change it to
   accept a `Classification` (and, for the throw case, a thrown error). Update the
   two tests:
   - `"maps a classified tweet to a ReelCall..."` — unchanged in intent; pass a
     valid `Classification`.
   - `"returns null when classifier finds no call"` — change so the classifier
-    returns a `Classification` with `ticker: null` (the *real* not-a-call
+    returns a `Classification` with `ticker: null` (the _real_ not-a-call
     signal), and expect `null`:
     ```ts
     it("returns null when the model finds no ticker", async () => {
       const rc = await tweetToReelCall(
         { id: "t2", createdAt: "2026-01-15T10:00:00.000Z", text: "gm", imageUrls: [] },
         "profinv",
-        deps({ ticker: null, company: null, direction: "neutral", isExplicitBuy: false, conviction: 0, quote: "", onScreenPrice: null, summary: "" }),
+        deps({
+          ticker: null,
+          company: null,
+          direction: "neutral",
+          isExplicitBuy: false,
+          conviction: 0,
+          quote: "",
+          onScreenPrice: null,
+          summary: "",
+        }),
       );
       expect(rc).toBeNull();
     });
     ```
 
 **Verify**:
+
 - `bunx tsc --noEmit` → exit 0 (all call sites now match).
 - `bun test pipeline/x/extract-x.test.ts` → all pass.
 
@@ -333,6 +370,7 @@ In `pipeline/x/extract-x.test.ts`:
 — inject a fake to test without the network. Add a `describe("classify", ...)`
 block (model it after the existing `describe` blocks; `import { classify } from "./calls"`).
 Cover:
+
 - **valid reply** → returns the parsed `Classification` (e.g. content
   `'{"ticker":"NBIS",...all fields...}'`) → `ticker === "NBIS"`.
 - **out-of-range conviction** (`conviction: 2`) → does not throw; result
@@ -342,10 +380,13 @@ Cover:
 - **non-JSON content** (content is `"not json"`) → throws.
 
 Fake client shape:
+
 ```ts
 const fakeClient = (bodyJson: unknown) =>
-  (async () => new Response(JSON.stringify(bodyJson), { status: 200 })) as unknown as
-    (path: string, init?: RequestInit) => Promise<Response>;
+  (async () => new Response(JSON.stringify(bodyJson), { status: 200 })) as unknown as (
+    path: string,
+    init?: RequestInit,
+  ) => Promise<Response>;
 // valid: fakeClient({ choices: [{ message: { content: JSON.stringify({...}) } }] })
 // missing choices: fakeClient({})
 ```
@@ -388,7 +429,7 @@ Stop and report back (do not improvise) if:
 ## Maintenance notes
 
 - **Re-scoring is a separate operator step, not part of this plan.** These
-  changes affect *future* extraction runs. The committed datasets were produced
+  changes affect _future_ extraction runs. The committed datasets were produced
   by the old path; they are not regenerated here. After this lands, an operator
   re-running `pipeline:x` / `pipeline` for a creator and then `score` will get
   the corrected behavior; that run must be followed by `bun run scripts/parity-check.ts`

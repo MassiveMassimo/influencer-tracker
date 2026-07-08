@@ -7,7 +7,7 @@ Branch: `ticker-primary`
 
 The ticker page is modelled as a child of a creator (`/c/$handle/ticker/$symbol`):
 the stock is something a creator called. We want to invert the mental model — the
-**stock ticker is top-level**, and a creator is a *selection* within it (default:
+**stock ticker is top-level**, and a creator is a _selection_ within it (default:
 all creators who called the stock). A viewer lands on a stock, sees its price and
 the whole roster who called it, and can filter to one creator.
 
@@ -18,7 +18,7 @@ the whole roster who called it, and can filter to one creator.
 > caches `/t/**` for 6h, query strings stripped from the cache key → all `?creator=`
 > variants collide on one entry) and with OG scrapers (Slack/Twitter/Discord strip
 > query strings → a shared creator link renders the All card). A **path param** fixes
-> both *and* still keeps the component mounted across switches (same route id, only a
+> both _and_ still keeps the component mounted across switches (same route id, only a
 > param changes) — so the charts never replay their entrance (verified: they key
 > entrance/crossfade/stagger on `timeframe` only, `ticker-charts.tsx:21-50,80-112`).
 
@@ -64,12 +64,12 @@ One **ticker-primary route** with the selected creator as a **path param**:
     The live chart data (`chartQuery` via TanStack Query) is therefore **not refetched**,
     and because the chart components key their entrance/crossfade on `timeframe` only,
     the **charts do not re-animate** on a creator switch. (Caveat, per the opus plan
-    review: a `loaderDeps`-triggered re-run *does* re-call the static `fetchCallsIndex`
+    review: a `loaderDeps`-triggered re-run _does_ re-call the static `fetchCallsIndex`
     /`fetchPrices` — those are served from the browser/CDN cache, cheap, and only change
     array identity, which the view-gating absorbs without a crossfade. The accurate claim
     is "chart query not refetched + no re-animation", not "zero refetch".) This is a
     deliberate behavior change from today's `/c` loader, which used the creator's earliest
-    call across *all* symbols; the cross-creator window is correct for a ticker-primary page.
+    call across _all_ symbols; the cross-creator window is correct for a ticker-primary page.
   - **Compute OG fields in the loader and return them** (`{ ogImg, ogTitle, rev }`):
     `head()` does **not** receive `search`/derived state, only `loaderData` (verified:
     every route reads OG inputs from `params`/`loaderData`; none read `search` in
@@ -78,7 +78,7 @@ One **ticker-primary route** with the selected creator as a **path param**:
   `fetchDataset(creator)` for that creator's detailed calls (1w/1m/3m/toDate + quote +
   shortcode), used by the detail table + that creator's chart markers, and for the
   `rev` cache-buster (same inputs as today's `/c` head: `[excess3m, ohlc.length,
-  lastClose]`). A `creator` that isn't a caller (or a failed `fetchDataset`) **falls
+lastClose]`). A `creator` that isn't a caller (or a failed `fetchDataset`) **falls
   back to All** (log, drop the detail table + creator markers) — never crashes the route.
 
 `loaderDeps: ({ params }) => ({ creator: params.creator })` — a creator switch re-runs
@@ -111,8 +111,8 @@ refetched and the chart stays mounted without re-animating.
    creator-agnostic (symbol-keyed). **Markers**:
    - All mode → every creator's call dates for the symbol (from the index hits).
    - Creator selected → that creator's calls only (from the fetched dataset).
-   Reuses `PriceCandles` / `StockVsSpyLine` / `buildChartView` / `chartQuery`
-   unchanged; only the marker source switches.
+     Reuses `PriceCandles` / `StockVsSpyLine` / `buildChartView` / `chartQuery`
+     unchanged; only the marker source switches.
 
 3. **"Who called it & when"** (always shown, both modes):
    - **Table** — the existing `/t` byCreator list: avatar · name · first-call date ·
@@ -132,11 +132,12 @@ refetched and the chart stays mounted without re-animating.
 A tab strip, right-aligned (`items-end`), no name text on triggers.
 
 Tabs, left→right:
+
 - **`All`** — default/active when `params.creator === "all"`. Label: short text "All"
   or a stacked-avatars glyph (pick "All" text for clarity; YAGNI on the glyph).
   Selecting → navigate `to="/t/$symbol/$creator" params={{ symbol, creator: "all" }}`.
 - **Up to 3 avatar tabs** — order: **selected creator first** (when one is selected
-  and it is a caller), then the most-recent *other* callers by `lastCallDate`, capped
+  and it is a caller), then the most-recent _other_ callers by `lastCallDate`, capped
   at 3 total avatars. Each trigger = avatar only; **cossui `Tooltip`** shows the name
   on hover/focus. Selecting → navigate
   `to="/t/$symbol/$creator" params={{ symbol, creator: handle }}`.
@@ -161,7 +162,7 @@ Data prop: `creators: { handle, name, avatar, lastCallDate, callCount }[]` +
 ### TickerCallTimeline (`src/components/ticker/call-timeline.tsx`)
 
 Simple custom SVG swimlane — **no new dependency**, no bklit chart shell (bklit ships
-no timeline primitive). Reuses the crosshair/tooltip *styling* from
+no timeline primitive). Reuses the crosshair/tooltip _styling_ from
 `charts/tooltip/`.
 
 - **Axis:** shared horizontal date range = [earliest call across all shown creators,
@@ -194,7 +195,7 @@ no timeline primitive). Reuses the crosshair/tooltip *styling* from
   who-called table + timeline + conditional detail table). Uppercase `params.symbol`.
 - **`/t/$symbol`** (existing `t.$symbol.tsx`): replace its component/loader with a
   redirect → `/t/$symbol/all` (`beforeLoad: ({ params }) => { throw redirect({ to:
-  "/t/$symbol/$creator", params: { symbol: params.symbol.toUpperCase(), creator: "all" }, replace: true }) }`).
+"/t/$symbol/$creator", params: { symbol: params.symbol.toUpperCase(), creator: "all" }, replace: true }) }`).
   (If optional path segments are available, fold All into `/t/$symbol/{-$creator}`
   instead and drop this redirect.)
 - **`/c/$handle/ticker/$symbol`** (existing): replace component/loader with
@@ -211,7 +212,7 @@ no timeline primitive). Reuses the crosshair/tooltip *styling* from
   (log + drop the detail table + creator markers), never crash the route.
 - **`creator` that isn't a caller of this symbol** (valid handle, no hits, or a typo'd
   path) → treat as All: render the cross-creator view, switcher highlights All, no
-  detail table. Do not 404 (the *symbol* still has callers).
+  detail table. Do not 404 (the _symbol_ still has callers).
 - Creator who called but has no priced calls (all returns null) → detail table renders
   "—" cells; markers still place at `postDate` (no divide-by-zero).
 - Halal fail-open (existing).

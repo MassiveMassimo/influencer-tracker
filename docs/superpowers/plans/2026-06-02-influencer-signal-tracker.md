@@ -19,31 +19,37 @@
 ### Task 0.1: Move the Python pipeline into `stock-pipeline-v2/`
 
 **Files:**
+
 - Create: `stock-pipeline-v2/` (all existing Python top-level entries move here)
 - Keep at root: `.git`, `.gitignore`, `docs/superpowers/`
 
 - [ ] **Step 1: Record the baseline test result (before move)**
 
 Run:
+
 ```bash
 uv sync --extra dev && uv run pytest -m "not slow" -q | tail -5
 ```
+
 Expected: a pass/fail summary line (e.g. `N passed`). Note the number — it must match after the move.
 
 - [ ] **Step 2: Create the subfolder and move Python entries**
 
 Run:
+
 ```bash
 mkdir -p stock-pipeline-v2
 for e in AGENTS.md backtest change-requests CLAUDE.md code-skeletons config implementation-plan.md migration ops prompts pyproject.toml README.md schema spec src systemd tests tools uv.lock; do
   git mv "$e" "stock-pipeline-v2/$e"
 done
 ```
+
 Expected: no errors. (`.gitignore` stays at root; `docs/` handled next.)
 
 - [ ] **Step 3: Move Python docs but keep `docs/superpowers/` at root**
 
 Run:
+
 ```bash
 mkdir -p stock-pipeline-v2/docs
 for f in docs/*; do
@@ -51,14 +57,17 @@ for f in docs/*; do
 done
 ls docs        # should show only: superpowers
 ```
+
 Expected: `docs/` now contains only `superpowers`.
 
 - [ ] **Step 4: Verify tests still pass from the new location**
 
 Run:
+
 ```bash
 cd stock-pipeline-v2 && uv sync --extra dev && uv run pytest -m "not slow" -q | tail -5
 ```
+
 Expected: same pass count as Step 1.
 
 - [ ] **Step 5: Commit**
@@ -71,6 +80,7 @@ git commit -m "refactor: move python pipeline into stock-pipeline-v2/ for monore
 ### Task 0.2: Add the monorepo root CLAUDE.md
 
 **Files:**
+
 - Create: `CLAUDE.md` (root)
 
 - [ ] **Step 1: Write the root monorepo guide**
@@ -103,23 +113,28 @@ git commit -m "docs: add monorepo root CLAUDE.md"
 ### Task 1.1: Create the TanStack Start project
 
 **Files:**
+
 - Create: `influencer-tracker/` (scaffolded)
 
 - [ ] **Step 1: Scaffold with the TanStack CLI (Bun + shadcn add-on)**
 
 Run from repo root:
+
 ```bash
 bunx @tanstack/cli create influencer-tracker --package-manager bun --add-ons shadcn --no-git -y
 ```
+
 Expected: `influencer-tracker/` created with `package.json`, `vite.config.ts`, `src/routes/`, Tailwind v4 wired, shadcn initialized (`components.json` present).
 
 - [ ] **Step 2: Verify dev server boots**
 
 Run:
+
 ```bash
 cd influencer-tracker && bun install && bun run dev &
 sleep 5 && curl -s localhost:3000 | head -c 200 ; kill %1
 ```
+
 Expected: HTML output (not a connection error). Then stop the server.
 
 > NOTE: `curl` may be blocked by the sandbox hook. If so, verify by checking the
@@ -135,44 +150,55 @@ git commit -m "feat: scaffold influencer-tracker TanStack Start app"
 ### Task 1.2: Add dependencies and bklit charts
 
 **Files:**
+
 - Modify: `influencer-tracker/package.json`
 - Modify: `influencer-tracker/components.json` (register bklit registry)
 
 - [ ] **Step 1: Add runtime/dev deps**
 
 Run from `influencer-tracker/`:
+
 ```bash
 bun add yahoo-finance2 zod
 bun add -d playwright playwright-extra puppeteer-extra-plugin-stealth @types/bun
 bunx playwright install chromium
 ```
+
 Expected: deps land in `package.json`; Chromium downloads.
 
 - [ ] **Step 2: Register the bklit registry and add charts**
 
 Add to `components.json` under a `registries` key:
+
 ```json
 "registries": { "@bklit": "https://ui.bklit.com/r/{name}.json" }
 ```
+
 Then run (all seven charts that map to real data — choropleth/sankey intentionally omitted):
+
 ```bash
 bunx shadcn@latest add @bklit/candlestick-chart @bklit/composed-chart @bklit/line-chart \
   @bklit/scatter-chart @bklit/bar-chart @bklit/gauge-chart @bklit/funnel-chart
 bunx shadcn@latest add card table badge separator
 ```
+
 Expected: chart components and shadcn primitives created under `src/components/`.
 
 - [ ] **Step 3: Verify chart import resolves**
 
 Create `influencer-tracker/src/_smoke.tsx`:
+
 ```tsx
 import { LineChart, Line, Grid, XAxis, ChartTooltip } from "@bklitui/ui/charts";
 export const _ = { LineChart, Line, Grid, XAxis, ChartTooltip };
 ```
+
 Run:
+
 ```bash
 bunx tsc --noEmit
 ```
+
 Expected: no errors. Then `rm src/_smoke.tsx`.
 
 - [ ] **Step 4: Commit**
@@ -185,6 +211,7 @@ git commit -m "feat: add deps and bklit charts to influencer-tracker"
 ### Task 1.3: Define the shared data contract (types + zod schema)
 
 **Files:**
+
 - Create: `influencer-tracker/src/lib/types.ts`
 - Create: `influencer-tracker/src/lib/schema.ts`
 - Test: `influencer-tracker/src/lib/schema.test.ts`
@@ -199,19 +226,34 @@ const valid = {
   creator: { handle: "kevvonz", name: "Kevin Hu" },
   generatedAt: "2026-06-02",
   spyAnchor: "SPY",
-  calls: [{
-    shortcode: "DZDmQutB0Ep", postDate: "2026-06-01", ticker: "NBIS",
-    company: "Nebius Group N.V.", isFirstCall: true, conviction: 0.9,
-    quote: "buy right here", onScreenPrice: 273.01,
-    returns: { "1w": { stock: null, spy: null, excess: null },
-               "1m": { stock: null, spy: null, excess: null },
-               "3m": { stock: null, spy: null, excess: null },
-               "toDate": { stock: 0.1, spy: 0.05, excess: 0.05 } },
-  }],
+  calls: [
+    {
+      shortcode: "DZDmQutB0Ep",
+      postDate: "2026-06-01",
+      ticker: "NBIS",
+      company: "Nebius Group N.V.",
+      isFirstCall: true,
+      conviction: 0.9,
+      quote: "buy right here",
+      onScreenPrice: 273.01,
+      returns: {
+        "1w": { stock: null, spy: null, excess: null },
+        "1m": { stock: null, spy: null, excess: null },
+        "3m": { stock: null, spy: null, excess: null },
+        toDate: { stock: 0.1, spy: 0.05, excess: 0.05 },
+      },
+    },
+  ],
   tickers: { NBIS: { ohlc: [{ date: "2026-06-01", o: 1, h: 2, l: 1, c: 2 }] } },
-  scorecard: { totalCalls: 1, uniqueTickers: 1, hitRate: { "1m": 0, "3m": 0 },
-    avgExcess: { "1w": 0, "1m": 0, "3m": 0, "toDate": 0.05 },
-    callsPerWeek: 0.5, best: [], worst: [] },
+  scorecard: {
+    totalCalls: 1,
+    uniqueTickers: 1,
+    hitRate: { "1m": 0, "3m": 0 },
+    avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0.05 },
+    callsPerWeek: 0.5,
+    best: [],
+    worst: [],
+  },
   caveats: ["survivorship"],
 };
 
@@ -238,16 +280,26 @@ Expected: FAIL — `DatasetSchema` does not exist.
 export type Horizon = "1w" | "1m" | "3m" | "toDate";
 export type Direction = "bullish" | "bearish" | "neutral";
 
-export interface OhlcBar { date: string; o: number; h: number; l: number; c: number }
-export interface ReturnTriple { stock: number | null; spy: number | null; excess: number | null }
+export interface OhlcBar {
+  date: string;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+}
+export interface ReturnTriple {
+  stock: number | null;
+  spy: number | null;
+  excess: number | null;
+}
 
 export interface Call {
   shortcode: string;
-  postDate: string;            // ISO date, the signal date
+  postDate: string; // ISO date, the signal date
   ticker: string;
   company: string;
   isFirstCall: boolean;
-  conviction: number;          // 0..1
+  conviction: number; // 0..1
   quote: string;
   onScreenPrice?: number | null;
   returns: Record<Horizon, ReturnTriple>;
@@ -308,7 +360,10 @@ const CallSchema = z.object({
   quote: z.string(),
   onScreenPrice: z.number().nullable().optional(),
   returns: z.object({
-    "1w": ReturnTriple, "1m": ReturnTriple, "3m": ReturnTriple, "toDate": ReturnTriple,
+    "1w": ReturnTriple,
+    "1m": ReturnTriple,
+    "3m": ReturnTriple,
+    toDate: ReturnTriple,
   }),
 });
 
@@ -317,16 +372,33 @@ export const DatasetSchema = z.object({
   generatedAt: z.string(),
   spyAnchor: z.string(),
   calls: z.array(CallSchema),
-  tickers: z.record(z.string(), z.object({
-    ohlc: z.array(z.object({
-      date: z.string(), o: z.number(), h: z.number(), l: z.number(), c: z.number(),
-    })),
-  })),
+  tickers: z.record(
+    z.string(),
+    z.object({
+      ohlc: z.array(
+        z.object({
+          date: z.string(),
+          o: z.number(),
+          h: z.number(),
+          l: z.number(),
+          c: z.number(),
+        }),
+      ),
+    }),
+  ),
   scorecard: z.object({
-    totalCalls: z.number(), uniqueTickers: z.number(),
+    totalCalls: z.number(),
+    uniqueTickers: z.number(),
     hitRate: z.object({ "1m": z.number(), "3m": z.number() }),
-    avgExcess: z.object({ "1w": z.number(), "1m": z.number(), "3m": z.number(), "toDate": z.number() }),
-    callsPerWeek: z.number(), best: z.array(CallSchema), worst: z.array(CallSchema),
+    avgExcess: z.object({
+      "1w": z.number(),
+      "1m": z.number(),
+      "3m": z.number(),
+      toDate: z.number(),
+    }),
+    callsPerWeek: z.number(),
+    best: z.array(CallSchema),
+    worst: z.array(CallSchema),
   }),
   caveats: z.array(z.string()),
 });
@@ -351,6 +423,7 @@ git commit -m "feat: shared dataset types and zod schema"
 ### Task 2.1: Forward-return math
 
 **Files:**
+
 - Create: `influencer-tracker/src/lib/returns.ts`
 - Test: `influencer-tracker/src/lib/returns.test.ts`
 
@@ -385,7 +458,7 @@ test("closeOnOrAfter returns null past the last bar", () => {
 
 test("forwardReturn computes pct change over a calendar horizon", () => {
   // from 06-01 (100), +7 calendar days = 06-08 (110) -> 0.10
-  expect(forwardReturn(bars, "2026-06-01", 7)).toBeCloseTo(0.10, 6);
+  expect(forwardReturn(bars, "2026-06-01", 7)).toBeCloseTo(0.1, 6);
 });
 
 test("forwardReturn is null when the horizon has not elapsed", () => {
@@ -393,12 +466,12 @@ test("forwardReturn is null when the horizon has not elapsed", () => {
 });
 
 test("computeReturns produces excess = stock - spy per horizon", () => {
-  const spy: OhlcBar[] = bars.map(b => ({ ...b, c: 100 })); // flat SPY -> 0%
+  const spy: OhlcBar[] = bars.map((b) => ({ ...b, c: 100 })); // flat SPY -> 0%
   const r = computeReturns(bars, spy, "2026-06-01");
-  expect(r["1w"].stock).toBeCloseTo(0.10, 6);
+  expect(r["1w"].stock).toBeCloseTo(0.1, 6);
   expect(r["1w"].spy).toBeCloseTo(0, 6);
-  expect(r["1w"].excess).toBeCloseTo(0.10, 6);
-  expect(r["toDate"].stock).toBeCloseTo(0.10, 6); // last bar 110 vs 100
+  expect(r["1w"].excess).toBeCloseTo(0.1, 6);
+  expect(r["toDate"].stock).toBeCloseTo(0.1, 6); // last bar 110 vs 100
 });
 ```
 
@@ -413,7 +486,9 @@ Expected: FAIL — module not found.
 import type { OhlcBar, Horizon, ReturnTriple } from "./types";
 
 const HORIZON_DAYS: Record<Exclude<Horizon, "toDate">, number> = {
-  "1w": 7, "1m": 30, "3m": 90,
+  "1w": 7,
+  "1m": 30,
+  "3m": 90,
 };
 
 function addDays(iso: string, days: number): string {
@@ -435,7 +510,11 @@ function pctReturn(from: number, to: number): number {
 }
 
 /** Pct return from `fromDate` close to (fromDate + calendarDays) close; null if not elapsed. */
-export function forwardReturn(ohlc: OhlcBar[], fromDate: string, calendarDays: number): number | null {
+export function forwardReturn(
+  ohlc: OhlcBar[],
+  fromDate: string,
+  calendarDays: number,
+): number | null {
   const start = closeOnOrAfter(ohlc, fromDate);
   if (start == null) return null;
   const end = closeOnOrAfter(ohlc, addDays(fromDate, calendarDays));
@@ -451,16 +530,29 @@ function toDateReturn(ohlc: OhlcBar[], fromDate: string): number | null {
 }
 
 export function computeReturns(
-  stock: OhlcBar[], spy: OhlcBar[], postDate: string,
+  stock: OhlcBar[],
+  spy: OhlcBar[],
+  postDate: string,
 ): Record<Horizon, ReturnTriple> {
   const mk = (s: number | null, p: number | null): ReturnTriple => ({
-    stock: s, spy: p, excess: s != null && p != null ? s - p : null,
+    stock: s,
+    spy: p,
+    excess: s != null && p != null ? s - p : null,
   });
   return {
-    "1w": mk(forwardReturn(stock, postDate, HORIZON_DAYS["1w"]), forwardReturn(spy, postDate, HORIZON_DAYS["1w"])),
-    "1m": mk(forwardReturn(stock, postDate, HORIZON_DAYS["1m"]), forwardReturn(spy, postDate, HORIZON_DAYS["1m"])),
-    "3m": mk(forwardReturn(stock, postDate, HORIZON_DAYS["3m"]), forwardReturn(spy, postDate, HORIZON_DAYS["3m"])),
-    "toDate": mk(toDateReturn(stock, postDate), toDateReturn(spy, postDate)),
+    "1w": mk(
+      forwardReturn(stock, postDate, HORIZON_DAYS["1w"]),
+      forwardReturn(spy, postDate, HORIZON_DAYS["1w"]),
+    ),
+    "1m": mk(
+      forwardReturn(stock, postDate, HORIZON_DAYS["1m"]),
+      forwardReturn(spy, postDate, HORIZON_DAYS["1m"]),
+    ),
+    "3m": mk(
+      forwardReturn(stock, postDate, HORIZON_DAYS["3m"]),
+      forwardReturn(spy, postDate, HORIZON_DAYS["3m"]),
+    ),
+    toDate: mk(toDateReturn(stock, postDate), toDateReturn(spy, postDate)),
   };
 }
 ```
@@ -480,6 +572,7 @@ git commit -m "feat: forward-return and excess-vs-spy math"
 ### Task 2.2: Dedupe + scorecard aggregation
 
 **Files:**
+
 - Create: `influencer-tracker/src/lib/scorecard.ts`
 - Test: `influencer-tracker/src/lib/scorecard.test.ts`
 
@@ -492,11 +585,19 @@ import type { Call } from "./types";
 
 function call(over: Partial<Call>): Call {
   return {
-    shortcode: "x", postDate: "2026-01-01", ticker: "AAA", company: "A",
-    isFirstCall: false, conviction: 0.8, quote: "buy",
-    returns: { "1w": n(), "1m": n(), "3m": n(), "toDate": n() }, ...over,
+    shortcode: "x",
+    postDate: "2026-01-01",
+    ticker: "AAA",
+    company: "A",
+    isFirstCall: false,
+    conviction: 0.8,
+    quote: "buy",
+    returns: { "1w": n(), "1m": n(), "3m": n(), toDate: n() },
+    ...over,
   };
-  function n() { return { stock: null, spy: null, excess: null }; }
+  function n() {
+    return { stock: null, spy: null, excess: null };
+  }
 }
 
 test("dedupeFirstCall flags earliest postDate per ticker", () => {
@@ -505,27 +606,37 @@ test("dedupeFirstCall flags earliest postDate per ticker", () => {
     call({ ticker: "AAA", postDate: "2026-01-01" }),
     call({ ticker: "BBB", postDate: "2026-02-01" }),
   ];
-  const first = dedupeFirstCall(calls).filter(c => c.isFirstCall);
-  expect(first.map(c => `${c.ticker}:${c.postDate}`).sort())
-    .toEqual(["AAA:2026-01-01", "BBB:2026-02-01"]);
+  const first = dedupeFirstCall(calls).filter((c) => c.isFirstCall);
+  expect(first.map((c) => `${c.ticker}:${c.postDate}`).sort()).toEqual([
+    "AAA:2026-01-01",
+    "BBB:2026-02-01",
+  ]);
 });
 
 test("buildScorecard averages excess over elapsed horizons only", () => {
   const calls = [
-    call({ ticker: "AAA", postDate: "2026-01-01",
-      returns: { "1w": e(0.1), "1m": e(0.2), "3m": e(0.3), "toDate": e(0.3) } }),
-    call({ ticker: "BBB", postDate: "2026-01-08",
-      returns: { "1w": e(-0.1), "1m": e(null), "3m": e(null), "toDate": e(-0.1) } }),
+    call({
+      ticker: "AAA",
+      postDate: "2026-01-01",
+      returns: { "1w": e(0.1), "1m": e(0.2), "3m": e(0.3), toDate: e(0.3) },
+    }),
+    call({
+      ticker: "BBB",
+      postDate: "2026-01-08",
+      returns: { "1w": e(-0.1), "1m": e(null), "3m": e(null), toDate: e(-0.1) },
+    }),
   ];
   const sc = buildScorecard(dedupeFirstCall(calls));
   expect(sc.totalCalls).toBe(2);
   expect(sc.uniqueTickers).toBe(2);
-  expect(sc.avgExcess["1w"]).toBeCloseTo(0.0, 6);   // (0.1 + -0.1)/2
-  expect(sc.avgExcess["1m"]).toBeCloseTo(0.2, 6);   // only AAA elapsed
-  expect(sc.hitRate["1m"]).toBeCloseTo(1.0, 6);     // 1 of 1 elapsed > 0
+  expect(sc.avgExcess["1w"]).toBeCloseTo(0.0, 6); // (0.1 + -0.1)/2
+  expect(sc.avgExcess["1m"]).toBeCloseTo(0.2, 6); // only AAA elapsed
+  expect(sc.hitRate["1m"]).toBeCloseTo(1.0, 6); // 1 of 1 elapsed > 0
   expect(sc.best[0].ticker).toBe("AAA");
   expect(sc.worst[0].ticker).toBe("BBB");
-  function e(x: number | null) { return { stock: x, spy: 0, excess: x }; }
+  function e(x: number | null) {
+    return { stock: x, spy: 0, excess: x };
+  }
 });
 ```
 
@@ -548,7 +659,7 @@ export function dedupeFirstCall(calls: Call[]): Call[] {
     const prev = earliest.get(c.ticker);
     if (!prev || c.postDate < prev) earliest.set(c.ticker, c.postDate);
   }
-  return calls.map(c => ({ ...c, isFirstCall: earliest.get(c.ticker) === c.postDate }));
+  return calls.map((c) => ({ ...c, isFirstCall: earliest.get(c.ticker) === c.postDate }));
 }
 
 function mean(xs: number[]): number {
@@ -556,25 +667,27 @@ function mean(xs: number[]): number {
 }
 
 export function buildScorecard(calls: Call[]): Scorecard {
-  const first = calls.filter(c => c.isFirstCall);
+  const first = calls.filter((c) => c.isFirstCall);
   const avgExcess = {} as Record<Horizon, number>;
   for (const h of HORIZONS) {
-    avgExcess[h] = mean(first.map(c => c.returns[h].excess).filter((x): x is number => x != null));
+    avgExcess[h] = mean(
+      first.map((c) => c.returns[h].excess).filter((x): x is number => x != null),
+    );
   }
   const hit = (h: "1m" | "3m") => {
-    const elapsed = first.map(c => c.returns[h].excess).filter((x): x is number => x != null);
-    return elapsed.length ? elapsed.filter(x => x > 0).length / elapsed.length : 0;
+    const elapsed = first.map((c) => c.returns[h].excess).filter((x): x is number => x != null);
+    return elapsed.length ? elapsed.filter((x) => x > 0).length / elapsed.length : 0;
   };
   const ranked = [...first]
-    .filter(c => c.returns.toDate.excess != null)
-    .sort((a, b) => (b.returns.toDate.excess! - a.returns.toDate.excess!));
+    .filter((c) => c.returns.toDate.excess != null)
+    .sort((a, b) => b.returns.toDate.excess! - a.returns.toDate.excess!);
   const spanDays = first.length
     ? (new Date(maxDate(first)).getTime() - new Date(minDate(first)).getTime()) / 86400000
     : 0;
   const weeks = Math.max(spanDays / 7, 1);
   return {
     totalCalls: calls.length,
-    uniqueTickers: new Set(calls.map(c => c.ticker)).size,
+    uniqueTickers: new Set(calls.map((c) => c.ticker)).size,
     hitRate: { "1m": hit("1m"), "3m": hit("3m") },
     avgExcess,
     callsPerWeek: first.length / weeks,
@@ -583,8 +696,12 @@ export function buildScorecard(calls: Call[]): Scorecard {
   };
 }
 
-function minDate(cs: Call[]): string { return cs.reduce((m, c) => c.postDate < m ? c.postDate : m, cs[0].postDate); }
-function maxDate(cs: Call[]): string { return cs.reduce((m, c) => c.postDate > m ? c.postDate : m, cs[0].postDate); }
+function minDate(cs: Call[]): string {
+  return cs.reduce((m, c) => (c.postDate < m ? c.postDate : m), cs[0].postDate);
+}
+function maxDate(cs: Call[]): string {
+  return cs.reduce((m, c) => (c.postDate > m ? c.postDate : m), cs[0].postDate);
+}
 ```
 
 - [ ] **Step 4: Run to verify it passes**
@@ -611,6 +728,7 @@ git commit -m "feat: dedupe-first-call and scorecard aggregation"
 ### Task 3.0: Config + Groq model discovery + paths
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/config.ts`
 - Create: `influencer-tracker/pipeline/groq.ts`
 - Create: `influencer-tracker/.env.example`
@@ -629,11 +747,21 @@ import { join } from "node:path";
 export const ROOT = join(import.meta.dir, "..");
 export const DATA = join(ROOT, "data", "creators");
 
-export function creatorDir(handle: string) { return join(DATA, handle); }
-export function rawDir(handle: string) { return join(creatorDir(handle), "raw"); }
-export function transcriptsDir(handle: string) { return join(creatorDir(handle), "transcripts"); }
-export function framesDir(handle: string) { return join(creatorDir(handle), "frames"); }
-export function pricesDir(handle: string) { return join(creatorDir(handle), "prices"); }
+export function creatorDir(handle: string) {
+  return join(DATA, handle);
+}
+export function rawDir(handle: string) {
+  return join(creatorDir(handle), "raw");
+}
+export function transcriptsDir(handle: string) {
+  return join(creatorDir(handle), "transcripts");
+}
+export function framesDir(handle: string) {
+  return join(creatorDir(handle), "frames");
+}
+export function pricesDir(handle: string) {
+  return join(creatorDir(handle), "prices");
+}
 
 export const GROQ_KEY = process.env.GROQ_API_KEY ?? "";
 if (!GROQ_KEY) throw new Error("GROQ_API_KEY not set (see .env.example)");
@@ -657,10 +785,10 @@ async function groq(path: string, init: RequestInit = {}) {
 
 /** Pick the current STT, vision, and text model ids from /models (avoids stale hardcoding). */
 export async function discoverModels() {
-  const { data } = await (await groq("/models")).json() as { data: { id: string }[] };
-  const ids = data.map(m => m.id);
-  const pick = (subs: string[]) => ids.find(id => subs.every(s => id.includes(s)));
-  const stt = ids.find(id => id.includes("whisper")) ?? "whisper-large-v3";
+  const { data } = (await (await groq("/models")).json()) as { data: { id: string }[] };
+  const ids = data.map((m) => m.id);
+  const pick = (subs: string[]) => ids.find((id) => subs.every((s) => id.includes(s)));
+  const stt = ids.find((id) => id.includes("whisper")) ?? "whisper-large-v3";
   const vision = pick(["llama", "vision"]) ?? pick(["scout"]) ?? pick(["maverick"]) ?? "";
   const text = pick(["llama", "70b"]) ?? pick(["llama-3.3"]) ?? pick(["versatile"]) ?? "";
   if (!vision || !text) throw new Error(`Could not resolve Groq models from: ${ids.join(", ")}`);
@@ -673,9 +801,11 @@ export { groq };
 - [ ] **Step 4: Verify model discovery against the live API**
 
 Run from `influencer-tracker/` (with `GROQ_API_KEY` exported):
+
 ```bash
 bun -e 'import("./pipeline/groq").then(m=>m.discoverModels()).then(console.log)'
 ```
+
 Expected: an object like `{ stt: "whisper-large-v3", vision: "...", text: "..." }` with non-empty values. Record them.
 
 - [ ] **Step 5: Commit**
@@ -688,6 +818,7 @@ git commit -m "feat: pipeline config and groq model discovery"
 ### Task 3.1: Scrape stage (Playwright + stealth)
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/scrape.ts`
 
 - [ ] **Step 1: Implement scrape.ts**
@@ -704,7 +835,7 @@ import { rawDir } from "./config";
 
 chromium.use(stealth());
 
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const jitter = (min: number, max: number) => min + Math.random() * (max - min);
 
 export async function scrape(handle: string, months = 12, userDataDir = ".chrome-profile") {
@@ -721,7 +852,9 @@ export async function scrape(handle: string, months = 12, userDataDir = ".chrome
       for (const node of findReels(json)) {
         if (node.code) seen.set(node.code, (node.taken_at ?? 0) * 1000);
       }
-    } catch { /* non-JSON response */ }
+    } catch {
+      /* non-JSON response */
+    }
   });
 
   await page.goto(`https://www.instagram.com/${handle}/reels/`, { waitUntil: "domcontentloaded" });
@@ -759,11 +892,11 @@ import { spawnSync } from "node:child_process";
 export function downloadReel(handle: string, shortcode: string): boolean {
   const out = join(rawDir(handle), shortcode);
   const url = `https://www.instagram.com/reel/${shortcode}/`;
-  const r = spawnSync("yt-dlp", [
-    "--cookies-from-browser", "chrome",
-    "-o", join(out, "reel.%(ext)s"),
-    "--write-info-json", url,
-  ], { stdio: "inherit" });
+  const r = spawnSync(
+    "yt-dlp",
+    ["--cookies-from-browser", "chrome", "-o", join(out, "reel.%(ext)s"), "--write-info-json", url],
+    { stdio: "inherit" },
+  );
   return r.status === 0;
 }
 ```
@@ -771,9 +904,11 @@ export function downloadReel(handle: string, shortcode: string): boolean {
 - [ ] **Step 3: Smoke-verify against @kevvonz (manual, headful)**
 
 Run from `influencer-tracker/`:
+
 ```bash
 bun -e 'import("./pipeline/scrape").then(async m=>{const c=await m.scrape("kevvonz",1);console.log("found",c.length);})'
 ```
+
 Expected: a non-empty `data/creators/kevvonz/raw/shortcodes.json`. (Requires you to be logged into Instagram in the launched Chromium profile; log in once when the window opens.)
 
 > NOTE: Instagram's response shape drifts. If `found 0`, open the saved HAR/console
@@ -790,6 +925,7 @@ git commit -m "feat: playwright stealth scrape + yt-dlp reel downloader"
 ### Task 3.2: Transcribe stage
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/transcribe.ts`
 
 - [ ] **Step 1: Implement transcribe.ts**
@@ -804,7 +940,9 @@ import { groq, discoverModels } from "./groq";
 
 async function transcribeOne(stt: string, videoPath: string): Promise<any> {
   const mp3 = videoPath.replace(/\.[^.]+$/, ".mp3");
-  spawnSync("ffmpeg", ["-y", "-i", videoPath, "-vn", "-acodec", "libmp3lame", "-q:a", "4", mp3], { stdio: "ignore" });
+  spawnSync("ffmpeg", ["-y", "-i", videoPath, "-vn", "-acodec", "libmp3lame", "-q:a", "4", mp3], {
+    stdio: "ignore",
+  });
   const fd = new FormData();
   fd.append("file", new Blob([await readFile(mp3)]), "audio.mp3");
   fd.append("model", stt);
@@ -823,10 +961,16 @@ export async function transcribe(handle: string) {
     if (existsSync(outPath)) continue; // idempotent
     const dir = join(rawDir(handle), code);
     const files = await readdir(dir);
-    const video = files.find(f => /\.(mp4|webm|mkv)$/.test(f));
-    if (!video) { console.warn(`skip ${code}: no video`); continue; }
+    const video = files.find((f) => /\.(mp4|webm|mkv)$/.test(f));
+    if (!video) {
+      console.warn(`skip ${code}: no video`);
+      continue;
+    }
     const t = await transcribeOne(stt, join(dir, video));
-    await writeFile(outPath, JSON.stringify({ shortcode: code, text: t.text, segments: t.segments }, null, 2));
+    await writeFile(
+      outPath,
+      JSON.stringify({ shortcode: code, text: t.text, segments: t.segments }, null, 2),
+    );
     console.log(`transcribed ${code}`);
   }
 }
@@ -835,11 +979,13 @@ export async function transcribe(handle: string) {
 - [ ] **Step 2: Smoke-verify with the known fixture**
 
 Run from `influencer-tracker/`:
+
 ```bash
 mkdir -p data/creators/kevvonz/raw/DZDmQutB0Ep && cp /tmp/reel/reel.mp4 data/creators/kevvonz/raw/DZDmQutB0Ep/
 bun -e 'import("./pipeline/transcribe").then(m=>m.transcribe("kevvonz"))'
 cat data/creators/kevvonz/transcripts/DZDmQutB0Ep.json | head -c 200
 ```
+
 Expected: transcript JSON containing the word "Nebius" / "nebious".
 
 - [ ] **Step 3: Commit**
@@ -852,11 +998,12 @@ git commit -m "feat: groq whisper transcription stage"
 ### Task 3.3: Frames (vision) stage
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/frames.ts`
 
 - [ ] **Step 1: Implement frames.ts**
 
-```ts
+````ts
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile, readdir } from "node:fs/promises";
@@ -873,17 +1020,29 @@ async function readFrame(vision: string, imgPath: string) {
   const b64 = (await readFile(imgPath)).toString("base64");
   const body = {
     model: vision,
-    messages: [{ role: "user", content: [
-      { type: "text", text: PROMPT },
-      { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } },
-    ] }],
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: PROMPT },
+          { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } },
+        ],
+      },
+    ],
     temperature: 0,
   };
-  const r = await (await groq("/chat/completions", {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-  })).json();
-  try { return JSON.parse(r.choices[0].message.content.replace(/```json|```/g, "")); }
-  catch { return { ticker: null, price: null }; }
+  const r = await (
+    await groq("/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+  ).json();
+  try {
+    return JSON.parse(r.choices[0].message.content.replace(/```json|```/g, ""));
+  } catch {
+    return { ticker: null, price: null };
+  }
 }
 
 export async function frames(handle: string) {
@@ -895,28 +1054,34 @@ export async function frames(handle: string) {
     const out = join(framesDir(handle), `${code}.json`);
     if (existsSync(out)) continue;
     const dir = join(rawDir(handle), code);
-    const video = (await readdir(dir)).find(f => /\.(mp4|webm|mkv)$/.test(f));
+    const video = (await readdir(dir)).find((f) => /\.(mp4|webm|mkv)$/.test(f));
     if (!video) continue;
     // sample 3 frames at 25%, 50%, 75% of duration
     const hints: any[] = [];
     for (const pct of [0.25, 0.5, 0.75]) {
       const img = join(dir, `f_${pct}.jpg`);
-      spawnSync("ffmpeg", ["-y", "-ss", String(pct * 60), "-i", join(dir, video), "-frames:v", "1", img], { stdio: "ignore" });
+      spawnSync(
+        "ffmpeg",
+        ["-y", "-ss", String(pct * 60), "-i", join(dir, video), "-frames:v", "1", img],
+        { stdio: "ignore" },
+      );
       if (existsSync(img)) hints.push(await readFrame(vision, img));
     }
     await writeFile(out, JSON.stringify({ shortcode: code, hints }, null, 2));
     console.log(`frames ${code}:`, hints);
   }
 }
-```
+````
 
 - [ ] **Step 2: Smoke-verify with the fixture**
 
 Run from `influencer-tracker/`:
+
 ```bash
 bun -e 'import("./pipeline/frames").then(m=>m.frames("kevvonz"))'
 cat data/creators/kevvonz/frames/DZDmQutB0Ep.json
 ```
+
 Expected: at least one hint with `"ticker": "NBIS"`.
 
 - [ ] **Step 3: Commit**
@@ -929,6 +1094,7 @@ git commit -m "feat: groq vision on-screen ticker/price extraction"
 ### Task 3.4: Extract stage (LLM → bullish calls)
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/extract.ts`
 
 - [ ] **Step 1: Implement extract.ts**
@@ -952,10 +1118,11 @@ const SYS =
 async function postDateOf(handle: string, code: string): Promise<string> {
   // yt-dlp info json: upload_date YYYYMMDD
   const dir = join(rawDir(handle), code);
-  const info = (await readdir(dir)).find(f => f.endsWith(".info.json"));
+  const info = (await readdir(dir)).find((f) => f.endsWith(".info.json"));
   if (info) {
     const j = JSON.parse(await readFile(join(dir, info), "utf8"));
-    if (j.upload_date) return `${j.upload_date.slice(0,4)}-${j.upload_date.slice(4,6)}-${j.upload_date.slice(6,8)}`;
+    if (j.upload_date)
+      return `${j.upload_date.slice(0, 4)}-${j.upload_date.slice(4, 6)}-${j.upload_date.slice(6, 8)}`;
   }
   return new Date().toISOString().slice(0, 10);
 }
@@ -970,19 +1137,34 @@ export async function extract(handle: string) {
     const fp = join(framesDir(handle), f);
     const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
     const user = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
-    const r = await (await groq("/chat/completions", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: text, temperature: 0,
-        response_format: { type: "json_object" },
-        messages: [{ role: "system", content: SYS }, { role: "user", content: user }] }),
-    })).json();
+    const r = await (
+      await groq("/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: text,
+          temperature: 0,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: SYS },
+            { role: "user", content: user },
+          ],
+        }),
+      })
+    ).json();
     const parsed = JSON.parse(r.choices[0].message.content);
     if (!parsed.ticker) continue;
-    out.push({ shortcode: code, postDate: await postDateOf(handle, code),
-      ticker: String(parsed.ticker).toUpperCase(), company: parsed.company ?? "",
-      direction: parsed.direction ?? "neutral", isExplicitBuy: !!parsed.isExplicitBuy,
-      conviction: Number(parsed.conviction ?? 0), quote: parsed.quote ?? "",
-      onScreenPrice: parsed.onScreenPrice ?? null });
+    out.push({
+      shortcode: code,
+      postDate: await postDateOf(handle, code),
+      ticker: String(parsed.ticker).toUpperCase(),
+      company: parsed.company ?? "",
+      direction: parsed.direction ?? "neutral",
+      isExplicitBuy: !!parsed.isExplicitBuy,
+      conviction: Number(parsed.conviction ?? 0),
+      quote: parsed.quote ?? "",
+      onScreenPrice: parsed.onScreenPrice ?? null,
+    });
   }
   await writeFile(join(creatorDir(handle), "reel-calls.json"), JSON.stringify(out, null, 2));
   await writeReview(handle, out);
@@ -990,12 +1172,21 @@ export async function extract(handle: string) {
 }
 
 async function writeReview(handle: string, calls: ReelCall[]) {
-  const bullish = calls.filter(c => c.isExplicitBuy && c.direction === "bullish");
-  const lines = ["# Calls review — verify before scoring", "",
-    `Total reels with a ticker: ${calls.length}. Explicit bullish calls: ${bullish.length}.`, "",
-    "| date | ticker | buy? | dir | conv | quote |", "|---|---|---|---|---|---|",
-    ...calls.sort((a,b)=>a.postDate.localeCompare(b.postDate)).map(c =>
-      `| ${c.postDate} | ${c.ticker} | ${c.isExplicitBuy?"✅":""} | ${c.direction} | ${c.conviction} | ${c.quote.replace(/\|/g," ").slice(0,60)} |`)];
+  const bullish = calls.filter((c) => c.isExplicitBuy && c.direction === "bullish");
+  const lines = [
+    "# Calls review — verify before scoring",
+    "",
+    `Total reels with a ticker: ${calls.length}. Explicit bullish calls: ${bullish.length}.`,
+    "",
+    "| date | ticker | buy? | dir | conv | quote |",
+    "|---|---|---|---|---|---|",
+    ...calls
+      .sort((a, b) => a.postDate.localeCompare(b.postDate))
+      .map(
+        (c) =>
+          `| ${c.postDate} | ${c.ticker} | ${c.isExplicitBuy ? "✅" : ""} | ${c.direction} | ${c.conviction} | ${c.quote.replace(/\|/g, " ").slice(0, 60)} |`,
+      ),
+  ];
   await writeFile(join(creatorDir(handle), "calls.review.md"), lines.join("\n"));
 }
 ```
@@ -1003,10 +1194,12 @@ async function writeReview(handle: string, calls: ReelCall[]) {
 - [ ] **Step 2: Smoke-verify with the fixture**
 
 Run from `influencer-tracker/`:
+
 ```bash
 bun -e 'import("./pipeline/extract").then(m=>m.extract("kevvonz"))'
 cat data/creators/kevvonz/calls.review.md
 ```
+
 Expected: a row for `NBIS` with `✅` buy and `bullish` direction.
 
 - [ ] **Step 3: Commit**
@@ -1019,6 +1212,7 @@ git commit -m "feat: llm extraction of explicit bullish calls + review file"
 ### Task 3.5: Prices stage
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/prices.ts`
 
 - [ ] **Step 1: Implement prices.ts**
@@ -1034,25 +1228,40 @@ import type { OhlcBar, ReelCall } from "../src/lib/types";
 async function fetchOhlc(symbol: string, from: string): Promise<OhlcBar[]> {
   const rows = await yahooFinance.chart(symbol, { period1: from, interval: "1d" });
   return rows.quotes
-    .filter(q => q.open != null && q.close != null)
-    .map(q => ({ date: new Date(q.date).toISOString().slice(0,10),
-      o: q.open!, h: q.high!, l: q.low!, c: q.close! }));
+    .filter((q) => q.open != null && q.close != null)
+    .map((q) => ({
+      date: new Date(q.date).toISOString().slice(0, 10),
+      o: q.open!,
+      h: q.high!,
+      l: q.low!,
+      c: q.close!,
+    }));
 }
 
 export async function prices(handle: string) {
   await mkdir(pricesDir(handle), { recursive: true });
-  const calls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
-  const tickers = [...new Set(calls.map(c => c.ticker)), "SPY"];
-  const from = calls.reduce((m, c) => c.postDate < m ? c.postDate : m, calls[0]?.postDate ?? "2025-01-01");
+  const calls: ReelCall[] = JSON.parse(
+    await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"),
+  );
+  const tickers = [...new Set(calls.map((c) => c.ticker)), "SPY"];
+  const from = calls.reduce(
+    (m, c) => (c.postDate < m ? c.postDate : m),
+    calls[0]?.postDate ?? "2025-01-01",
+  );
   for (const t of tickers) {
     const out = join(pricesDir(handle), `${t}.json`);
     if (existsSync(out)) continue;
     try {
       const ohlc = await fetchOhlc(t, from);
-      if (!ohlc.length) { console.warn(`FLAG ${t}: no price data`); continue; }
+      if (!ohlc.length) {
+        console.warn(`FLAG ${t}: no price data`);
+        continue;
+      }
       await writeFile(out, JSON.stringify(ohlc));
       console.log(`prices ${t}: ${ohlc.length} bars`);
-    } catch (e) { console.warn(`FLAG ${t}: ${(e as Error).message}`); }
+    } catch (e) {
+      console.warn(`FLAG ${t}: ${(e as Error).message}`);
+    }
   }
 }
 ```
@@ -1060,10 +1269,12 @@ export async function prices(handle: string) {
 - [ ] **Step 2: Smoke-verify**
 
 Run from `influencer-tracker/`:
+
 ```bash
 bun -e 'import("./pipeline/prices").then(m=>m.prices("kevvonz"))'
 ls data/creators/kevvonz/prices
 ```
+
 Expected: `NBIS.json` and `SPY.json` exist with many bars.
 
 - [ ] **Step 3: Commit**
@@ -1076,6 +1287,7 @@ git commit -m "feat: yahoo-finance price fetch stage"
 ### Task 3.6: Score stage → dataset.json + index.json
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/score.ts`
 - Test: `influencer-tracker/pipeline/score.test.ts`
 
@@ -1087,11 +1299,19 @@ import { assembleDataset } from "./score";
 import type { ReelCall, OhlcBar } from "../src/lib/types";
 
 test("assembleDataset scores calls and validates against schema", () => {
-  const reelCalls: ReelCall[] = [{
-    shortcode: "DZDmQutB0Ep", postDate: "2026-06-01", ticker: "NBIS",
-    company: "Nebius Group N.V.", direction: "bullish", isExplicitBuy: true,
-    conviction: 0.9, quote: "buy right here", onScreenPrice: 273.01,
-  }];
+  const reelCalls: ReelCall[] = [
+    {
+      shortcode: "DZDmQutB0Ep",
+      postDate: "2026-06-01",
+      ticker: "NBIS",
+      company: "Nebius Group N.V.",
+      direction: "bullish",
+      isExplicitBuy: true,
+      conviction: 0.9,
+      quote: "buy right here",
+      onScreenPrice: 273.01,
+    },
+  ];
   const nbis: OhlcBar[] = [
     { date: "2026-06-01", o: 100, h: 100, l: 100, c: 100 },
     { date: "2026-06-08", o: 110, h: 110, l: 110, c: 110 },
@@ -1100,10 +1320,14 @@ test("assembleDataset scores calls and validates against schema", () => {
     { date: "2026-06-01", o: 50, h: 50, l: 50, c: 50 },
     { date: "2026-06-08", o: 50, h: 50, l: 50, c: 50 },
   ];
-  const ds = assembleDataset({ handle: "kevvonz", name: "Kevin Hu" },
-    reelCalls, { NBIS: nbis, SPY: spy }, "2026-06-09");
+  const ds = assembleDataset(
+    { handle: "kevvonz", name: "Kevin Hu" },
+    reelCalls,
+    { NBIS: nbis, SPY: spy },
+    "2026-06-09",
+  );
   expect(ds.calls[0].isFirstCall).toBe(true);
-  expect(ds.calls[0].returns["1w"].excess).toBeCloseTo(0.10, 6);
+  expect(ds.calls[0].returns["1w"].excess).toBeCloseTo(0.1, 6);
   expect(ds.scorecard.totalCalls).toBe(1);
 });
 ```
@@ -1134,28 +1358,47 @@ export function assembleDataset(
   generatedAt: string,
 ): Dataset {
   const spy = ohlc["SPY"] ?? [];
-  const bullish = reelCalls.filter(c => c.isExplicitBuy && c.direction === "bullish");
-  let calls: Call[] = bullish.map(c => ({
-    shortcode: c.shortcode, postDate: c.postDate, ticker: c.ticker, company: c.company,
-    isFirstCall: false, conviction: c.conviction, quote: c.quote, onScreenPrice: c.onScreenPrice,
+  const bullish = reelCalls.filter((c) => c.isExplicitBuy && c.direction === "bullish");
+  let calls: Call[] = bullish.map((c) => ({
+    shortcode: c.shortcode,
+    postDate: c.postDate,
+    ticker: c.ticker,
+    company: c.company,
+    isFirstCall: false,
+    conviction: c.conviction,
+    quote: c.quote,
+    onScreenPrice: c.onScreenPrice,
     returns: computeReturns(ohlc[c.ticker] ?? [], spy, c.postDate),
   }));
   calls = dedupeFirstCall(calls);
   const tickers: Record<string, { ohlc: OhlcBar[] }> = {};
-  for (const t of [...new Set(calls.map(c => c.ticker)), "SPY"]) tickers[t] = { ohlc: ohlc[t] ?? [] };
+  for (const t of [...new Set(calls.map((c) => c.ticker)), "SPY"])
+    tickers[t] = { ohlc: ohlc[t] ?? [] };
   const ds: Dataset = {
-    creator, generatedAt, spyAnchor: "SPY", calls, tickers,
-    scorecard: buildScorecard(calls), caveats: CAVEATS,
+    creator,
+    generatedAt,
+    spyAnchor: "SPY",
+    calls,
+    tickers,
+    scorecard: buildScorecard(calls),
+    caveats: CAVEATS,
   };
   DatasetSchema.parse(ds); // fail-closed on a malformed dataset
   return ds;
 }
 
-export async function score(handle: string, name: string, today = new Date().toISOString().slice(0,10)) {
-  const reelCalls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
+export async function score(
+  handle: string,
+  name: string,
+  today = new Date().toISOString().slice(0, 10),
+) {
+  const reelCalls: ReelCall[] = JSON.parse(
+    await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"),
+  );
   const ohlc: Record<string, OhlcBar[]> = {};
   for (const f of await readdir(pricesDir(handle))) {
-    if (f.endsWith(".json")) ohlc[f.replace(".json","")] = JSON.parse(await readFile(join(pricesDir(handle), f), "utf8"));
+    if (f.endsWith(".json"))
+      ohlc[f.replace(".json", "")] = JSON.parse(await readFile(join(pricesDir(handle), f), "utf8"));
   }
   const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today);
   await writeFile(join(creatorDir(handle), "dataset.json"), JSON.stringify(ds, null, 2));
@@ -1166,10 +1409,16 @@ export async function score(handle: string, name: string, today = new Date().toI
 async function updateIndex(handle: string, name: string, ds: Dataset) {
   const path = join(DATA, "index.json");
   const idx: any[] = existsSync(path) ? JSON.parse(await readFile(path, "utf8")) : [];
-  const entry = { handle, name, totalCalls: ds.scorecard.totalCalls,
-    avgExcess3m: ds.scorecard.avgExcess["3m"], generatedAt: ds.generatedAt };
-  const i = idx.findIndex(e => e.handle === handle);
-  if (i >= 0) idx[i] = entry; else idx.push(entry);
+  const entry = {
+    handle,
+    name,
+    totalCalls: ds.scorecard.totalCalls,
+    avgExcess3m: ds.scorecard.avgExcess["3m"],
+    generatedAt: ds.generatedAt,
+  };
+  const i = idx.findIndex((e) => e.handle === handle);
+  if (i >= 0) idx[i] = entry;
+  else idx.push(entry);
   await mkdir(DATA, { recursive: true });
   await writeFile(path, JSON.stringify(idx, null, 2));
 }
@@ -1190,6 +1439,7 @@ git commit -m "feat: score stage assembling validated dataset.json + index"
 ### Task 3.7: Pipeline orchestrator CLI
 
 **Files:**
+
 - Create: `influencer-tracker/pipeline/run.ts`
 - Modify: `influencer-tracker/package.json` (add `"pipeline"` script)
 
@@ -1204,19 +1454,29 @@ import { prices } from "./prices";
 import { score } from "./score";
 
 // Usage: bun run pipeline --handle kevvonz --name "Kevin Hu" [--from <stage>]
-const args = Object.fromEntries(process.argv.slice(2).flatMap((a,i,arr)=>a.startsWith("--")?[[a.slice(2),arr[i+1]]]:[]));
-const handle = args.handle; const name = args.name ?? handle;
+const args = Object.fromEntries(
+  process.argv
+    .slice(2)
+    .flatMap((a, i, arr) => (a.startsWith("--") ? [[a.slice(2), arr[i + 1]]] : [])),
+);
+const handle = args.handle;
+const name = args.name ?? handle;
 if (!handle) throw new Error("--handle required");
-const stages = ["scrape","transcribe","frames","extract","prices","score"];
+const stages = ["scrape", "transcribe", "frames", "extract", "prices", "score"];
 const start = args.from ? stages.indexOf(args.from) : 0;
 
 for (const stage of stages.slice(start)) {
   console.log(`\n=== ${stage} ===`);
-  if (stage === "scrape") { const codes = await scrape(handle); for (const c of codes) downloadReel(handle, c); }
-  else if (stage === "transcribe") await transcribe(handle);
+  if (stage === "scrape") {
+    const codes = await scrape(handle);
+    for (const c of codes) downloadReel(handle, c);
+  } else if (stage === "transcribe") await transcribe(handle);
   else if (stage === "frames") await frames(handle);
-  else if (stage === "extract") { await extract(handle); console.log("PAUSE: review calls.review.md then re-run with --from prices"); break; }
-  else if (stage === "prices") await prices(handle);
+  else if (stage === "extract") {
+    await extract(handle);
+    console.log("PAUSE: review calls.review.md then re-run with --from prices");
+    break;
+  } else if (stage === "prices") await prices(handle);
   else if (stage === "score") await score(handle, name);
 }
 ```
@@ -1224,6 +1484,7 @@ for (const stage of stages.slice(start)) {
 - [ ] **Step 2: Add the package.json script**
 
 In `influencer-tracker/package.json` `"scripts"`, add:
+
 ```json
 "pipeline": "bun run pipeline/run.ts"
 ```
@@ -1231,10 +1492,12 @@ In `influencer-tracker/package.json` `"scripts"`, add:
 - [ ] **Step 3: Verify the orchestrator wiring (resume path) with the fixture**
 
 Run from `influencer-tracker/`:
+
 ```bash
 bun run pipeline --handle kevvonz --name "Kevin Hu" --from prices
 cat data/creators/kevvonz/dataset.json | head -c 300
 ```
+
 Expected: a valid `dataset.json` with the NBIS call scored (assuming Tasks 3.2–3.4 fixture outputs exist).
 
 - [ ] **Step 4: Commit**
@@ -1247,6 +1510,7 @@ git commit -m "feat: pipeline orchestrator CLI with stage resume"
 ### Task 3.8: Ignore scraped data and browser profile
 
 **Files:**
+
 - Create: `influencer-tracker/.gitignore`
 
 - [ ] **Step 1: Write .gitignore**
@@ -1286,6 +1550,7 @@ git commit -m "chore: ignore scraped data, browser profile, env"
 ### Task 4.1: Data loaders (server functions)
 
 **Files:**
+
 - Create: `influencer-tracker/src/lib/data.ts`
 
 - [ ] **Step 1: Implement loaders**
@@ -1300,9 +1565,17 @@ import type { Dataset } from "./types";
 const DATA = join(process.cwd(), "data", "creators");
 
 export const listCreators = createServerFn({ method: "GET" }).handler(async () => {
-  try { return JSON.parse(await readFile(join(DATA, "index.json"), "utf8")) as
-    { handle: string; name: string; totalCalls: number; avgExcess3m: number; generatedAt: string }[]; }
-  catch { return []; }
+  try {
+    return JSON.parse(await readFile(join(DATA, "index.json"), "utf8")) as {
+      handle: string;
+      name: string;
+      totalCalls: number;
+      avgExcess3m: number;
+      generatedAt: string;
+    }[];
+  } catch {
+    return [];
+  }
 });
 
 export const getDataset = createServerFn({ method: "GET" })
@@ -1328,6 +1601,7 @@ git commit -m "feat: server-fn dataset loaders"
 ### Task 4.2: Landing route (creator list)
 
 **Files:**
+
 - Create: `influencer-tracker/src/routes/index.tsx`
 
 - [ ] **Step 1: Implement the landing route**
@@ -1347,16 +1621,21 @@ function Landing() {
   return (
     <main className="mx-auto max-w-4xl p-8">
       <h1 className="text-2xl font-bold mb-6">Influencer Signal Tracker</h1>
-      {creators.length === 0 && <p className="text-muted-foreground">No creators yet. Run the pipeline.</p>}
+      {creators.length === 0 && (
+        <p className="text-muted-foreground">No creators yet. Run the pipeline.</p>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
-        {creators.map(c => (
+        {creators.map((c) => (
           <Link key={c.handle} to="/c/$handle" params={{ handle: c.handle }}>
             <Card className="p-4 hover:bg-accent">
               <div className="font-semibold">@{c.handle}</div>
               <div className="text-sm text-muted-foreground">{c.name}</div>
-              <div className="mt-2 text-sm">{c.totalCalls} calls · 3m excess vs SPY:{" "}
+              <div className="mt-2 text-sm">
+                {c.totalCalls} calls · 3m excess vs SPY:{" "}
                 <span className={c.avgExcess3m >= 0 ? "text-green-600" : "text-red-600"}>
-                  {(c.avgExcess3m * 100).toFixed(1)}%</span></div>
+                  {(c.avgExcess3m * 100).toFixed(1)}%
+                </span>
+              </div>
             </Card>
           </Link>
         ))}
@@ -1381,6 +1660,7 @@ git commit -m "feat: landing route with creator list"
 ### Task 4.3: Caveats banner + scorecard components
 
 **Files:**
+
 - Create: `influencer-tracker/src/components/CaveatsBanner.tsx`
 - Create: `influencer-tracker/src/components/Scorecard.tsx`
 
@@ -1390,14 +1670,17 @@ git commit -m "feat: landing route with creator list"
 const TEXT: Record<string, string> = {
   survivorship: "Deleted losing-call reels can't be scraped — accuracy shown is an upper bound.",
   "reposts-deduped": "Repeated promotions are counted once (first bullish mention per ticker).",
-  "forward-from-post-date": "Returns are measured from each reel's post date forward — not the gains he brags about.",
+  "forward-from-post-date":
+    "Returns are measured from each reel's post date forward — not the gains he brags about.",
 };
 export function CaveatsBanner({ caveats }: { caveats: string[] }) {
   return (
     <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm">
       <div className="font-semibold mb-1">How to read this</div>
       <ul className="list-disc pl-5 space-y-0.5">
-        {caveats.map(c => <li key={c}>{TEXT[c] ?? c}</li>)}
+        {caveats.map((c) => (
+          <li key={c}>{TEXT[c] ?? c}</li>
+        ))}
       </ul>
     </div>
   );
@@ -1410,7 +1693,9 @@ export function CaveatsBanner({ caveats }: { caveats: string[] }) {
 import type { Scorecard as SC } from "../lib/types";
 import { Card } from "./ui/card";
 
-function pct(x: number) { return `${(x * 100).toFixed(1)}%`; }
+function pct(x: number) {
+  return `${(x * 100).toFixed(1)}%`;
+}
 
 export function Scorecard({ sc }: { sc: SC }) {
   const stats = [
@@ -1447,6 +1732,7 @@ git commit -m "feat: caveats banner and scorecard components"
 ### Task 4.4: Creator overview route (scorecard + timeline)
 
 **Files:**
+
 - Create: `influencer-tracker/src/routes/c.$handle.tsx`
 - Create: `influencer-tracker/src/components/Timeline.tsx`
 
@@ -1468,10 +1754,14 @@ export function Timeline({ handle, calls }: { handle: string; calls: Call[] }) {
         const ex = c.returns.toDate.excess;
         const color = ex == null ? "bg-muted" : ex >= 0 ? "bg-green-500" : "bg-red-500";
         return (
-          <Link key={c.shortcode + i} to="/c/$handle/ticker/$symbol"
+          <Link
+            key={c.shortcode + i}
+            to="/c/$handle/ticker/$symbol"
             params={{ handle, symbol: c.ticker }}
             className={`absolute top-1/2 -translate-y-1/2 size-3 rounded-full ${color} ring-2 ring-background`}
-            style={{ left: `${x}%` }} title={`${c.ticker} ${c.postDate} ${ex != null ? (ex*100).toFixed(0)+"% vs SPY" : "pending"}`} />
+            style={{ left: `${x}%` }}
+            title={`${c.ticker} ${c.postDate} ${ex != null ? (ex * 100).toFixed(0) + "% vs SPY" : "pending"}`}
+          />
         );
       })}
     </div>
@@ -1498,12 +1788,18 @@ function Overview() {
   const { handle } = Route.useParams();
   return (
     <main className="mx-auto max-w-5xl p-8 space-y-6">
-      <header><h1 className="text-2xl font-bold">@{ds.creator.handle}</h1>
-        <p className="text-muted-foreground">{ds.creator.name} · as of {ds.generatedAt}</p></header>
+      <header>
+        <h1 className="text-2xl font-bold">@{ds.creator.handle}</h1>
+        <p className="text-muted-foreground">
+          {ds.creator.name} · as of {ds.generatedAt}
+        </p>
+      </header>
       <CaveatsBanner caveats={ds.caveats} />
       <Scorecard sc={ds.scorecard} />
-      <section><h2 className="font-semibold mb-2">Calls timeline</h2>
-        <Timeline handle={handle} calls={ds.calls} /></section>
+      <section>
+        <h2 className="font-semibold mb-2">Calls timeline</h2>
+        <Timeline handle={handle} calls={ds.calls} />
+      </section>
     </main>
   );
 }
@@ -1524,6 +1820,7 @@ git commit -m "feat: creator overview route with scorecard and timeline"
 ### Task 4.5: Ticker detail route (price chart + call markers)
 
 **Files:**
+
 - Create: `influencer-tracker/src/routes/c.$handle.ticker.$symbol.tsx`
 
 - [ ] **Step 1: Implement the ticker route**
@@ -1537,31 +1834,46 @@ import { LineChart, Line } from "#/components/charts/line-chart";
 import { Grid } from "#/components/charts/grid";
 import { XAxis } from "#/components/charts/x-axis";
 import { ChartTooltip } from "#/components/charts/tooltip";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "#/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "#/components/ui/table";
 
 export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   loader: ({ params }) => getDataset({ data: params.handle }),
   component: TickerPage,
 });
 
-function pct(x: number | null) { return x == null ? "—" : `${(x * 100).toFixed(1)}%`; }
+function pct(x: number | null) {
+  return x == null ? "—" : `${(x * 100).toFixed(1)}%`;
+}
 
 function TickerPage() {
   const ds = Route.useLoaderData();
   const { symbol } = Route.useParams();
   const ohlc = ds.tickers[symbol]?.ohlc ?? [];
   const spy = ds.tickers["SPY"]?.ohlc ?? [];
-  const calls = ds.calls.filter(c => c.ticker === symbol);
-  const callDates = new Set(calls.map(c => c.postDate));
+  const calls = ds.calls.filter((c) => c.ticker === symbol);
+  const callDates = new Set(calls.map((c) => c.postDate));
 
   // Candlestick price action (data shape: Date + open/high/low/close).
-  const candles = ohlc.map(b => ({ date: new Date(b.date), open: b.o, high: b.h, low: b.l, close: b.c }));
+  const candles = ohlc.map((b) => ({
+    date: new Date(b.date),
+    open: b.o,
+    high: b.h,
+    low: b.l,
+    close: b.c,
+  }));
 
   // Stock vs SPY rebased to 100 at the first bar, with call points marked.
   const base = ohlc[0]?.c ?? 1;
   const spyBase = spy[0]?.c ?? 1;
-  const spyByDate = new Map(spy.map(b => [b.date, b.c]));
-  const norm = ohlc.map(b => ({
+  const spyByDate = new Map(spy.map((b) => [b.date, b.c]));
+  const norm = ohlc.map((b) => ({
     date: new Date(b.date),
     stock: (b.c / base) * 100,
     spy: spyByDate.has(b.date) ? (spyByDate.get(b.date)! / spyBase) * 100 : null,
@@ -1570,7 +1882,9 @@ function TickerPage() {
 
   return (
     <main className="mx-auto max-w-5xl p-8 space-y-6">
-      <h1 className="text-2xl font-bold">{symbol} <span className="text-muted-foreground text-base">{calls[0]?.company}</span></h1>
+      <h1 className="text-2xl font-bold">
+        {symbol} <span className="text-muted-foreground text-base">{calls[0]?.company}</span>
+      </h1>
       <section>
         <h2 className="font-semibold mb-2">Price</h2>
         <CandlestickChart data={candles} style={{ height: 320 }}>
@@ -1581,7 +1895,9 @@ function TickerPage() {
         </CandlestickChart>
       </section>
       <section>
-        <h2 className="font-semibold mb-2">Stock vs SPY, rebased to 100 — markers are his call dates</h2>
+        <h2 className="font-semibold mb-2">
+          Stock vs SPY, rebased to 100 — markers are his call dates
+        </h2>
         <LineChart data={norm}>
           <Grid horizontal highlightRowValues={[100]} />
           <Line dataKey="stock" />
@@ -1594,14 +1910,23 @@ function TickerPage() {
       <section>
         <h2 className="font-semibold mb-2">Calls & forward return vs SPY</h2>
         <Table>
-          <TableHeader><TableRow>
-            <TableHead>Date</TableHead><TableHead>1w</TableHead><TableHead>1m</TableHead>
-            <TableHead>3m</TableHead><TableHead>To date</TableHead><TableHead>Quote</TableHead>
-          </TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>1w</TableHead>
+              <TableHead>1m</TableHead>
+              <TableHead>3m</TableHead>
+              <TableHead>To date</TableHead>
+              <TableHead>Quote</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
-            {calls.map(c => (
+            {calls.map((c) => (
               <TableRow key={c.shortcode}>
-                <TableCell>{c.postDate}{c.isFirstCall ? " ⭐" : ""}</TableCell>
+                <TableCell>
+                  {c.postDate}
+                  {c.isFirstCall ? " ⭐" : ""}
+                </TableCell>
                 <TableCell>{pct(c.returns["1w"].excess)}</TableCell>
                 <TableCell>{pct(c.returns["1m"].excess)}</TableCell>
                 <TableCell>{pct(c.returns["3m"].excess)}</TableCell>
@@ -1632,6 +1957,7 @@ git commit -m "feat: ticker detail route with price chart and returns table"
 ### Task 4.7: Analytics charts on overview (gauge, bar, scatter, funnel)
 
 **Files:**
+
 - Modify: `influencer-tracker/src/lib/types.ts` (add optional funnel)
 - Modify: `influencer-tracker/src/lib/schema.ts` (add optional funnel)
 - Modify: `influencer-tracker/pipeline/score.ts` (populate funnel counts)
@@ -1641,10 +1967,16 @@ git commit -m "feat: ticker detail route with price chart and returns table"
 - [ ] **Step 1: Add an optional funnel field to types.ts**
 
 Add to `src/lib/types.ts`:
+
 ```ts
-export interface FunnelStage { label: string; value: number }
+export interface FunnelStage {
+  label: string;
+  value: number;
+}
 ```
+
 And add this line inside the `Scorecard` interface (optional, so existing tests/data stay valid):
+
 ```ts
   funnel?: FunnelStage[];
 ```
@@ -1652,6 +1984,7 @@ And add this line inside the `Scorecard` interface (optional, so existing tests/
 - [ ] **Step 2: Add the optional funnel to schema.ts**
 
 In `src/lib/schema.ts`, inside the `scorecard` object, add:
+
 ```ts
     funnel: z.array(z.object({ label: z.string(), value: z.number() })).optional(),
 ```
@@ -1660,6 +1993,7 @@ In `src/lib/schema.ts`, inside the `scorecard` object, add:
 
 Change `assembleDataset`'s signature to accept optional counts and set the funnel.
 Replace the `assembleDataset` parameter list and the `ds` construction:
+
 ```ts
 export function assembleDataset(
   creator: { handle: string; name: string },
@@ -1669,31 +2003,47 @@ export function assembleDataset(
   counts?: { reelsScraped: number; reelsWithTicker: number },
 ): Dataset {
 ```
+
 After `calls = dedupeFirstCall(calls);`, build the funnel:
+
 ```ts
-  const firstCalls = calls.filter(c => c.isFirstCall);
-  const beatSpy = firstCalls.filter(c => (c.returns.toDate.excess ?? -1) > 0).length;
-  const funnel = counts ? [
-    { label: "Reels (12mo)", value: counts.reelsScraped },
-    { label: "Named a stock", value: counts.reelsWithTicker },
-    { label: "Explicit buy call", value: calls.length },
-    { label: "Beat SPY (to date)", value: beatSpy },
-  ] : undefined;
+const firstCalls = calls.filter((c) => c.isFirstCall);
+const beatSpy = firstCalls.filter((c) => (c.returns.toDate.excess ?? -1) > 0).length;
+const funnel = counts
+  ? [
+      { label: "Reels (12mo)", value: counts.reelsScraped },
+      { label: "Named a stock", value: counts.reelsWithTicker },
+      { label: "Explicit buy call", value: calls.length },
+      { label: "Beat SPY (to date)", value: beatSpy },
+    ]
+  : undefined;
 ```
+
 Then add `funnel` to the scorecard when building `ds`:
+
 ```ts
     scorecard: { ...buildScorecard(calls), funnel }, caveats: CAVEATS,
 ```
+
 In `score()`, read the counts and pass them. After loading `reelCalls`, add:
+
 ```ts
-  const { readFile: rf } = await import("node:fs/promises");
-  let reelsScraped = reelCalls.length;
-  try { reelsScraped = JSON.parse(await rf(join(creatorDir(handle), "raw", "shortcodes.json"), "utf8")).length; } catch {}
+const { readFile: rf } = await import("node:fs/promises");
+let reelsScraped = reelCalls.length;
+try {
+  reelsScraped = JSON.parse(
+    await rf(join(creatorDir(handle), "raw", "shortcodes.json"), "utf8"),
+  ).length;
+} catch {}
 ```
+
 And change the `assembleDataset(...)` call to:
+
 ```ts
-  const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today,
-    { reelsScraped, reelsWithTicker: reelCalls.length });
+const ds = assembleDataset({ handle, name }, reelCalls, ohlc, today, {
+  reelsScraped,
+  reelsWithTicker: reelCalls.length,
+});
 ```
 
 - [ ] **Step 4: Re-run score tests to confirm no regression**
@@ -1719,17 +2069,27 @@ const HORIZONS: Horizon[] = ["1w", "1m", "3m", "toDate"];
 
 export function AnalyticsCharts({ ds }: { ds: Dataset }) {
   const sc = ds.scorecard;
-  const excessByHorizon = HORIZONS.map(h => ({ horizon: h, excess: +(sc.avgExcess[h] * 100).toFixed(1) }));
+  const excessByHorizon = HORIZONS.map((h) => ({
+    horizon: h,
+    excess: +(sc.avgExcess[h] * 100).toFixed(1),
+  }));
   const convVsReturn = ds.calls
-    .filter(c => c.returns.toDate.excess != null)
-    .map(c => ({ conviction: c.conviction, excess: +(c.returns.toDate.excess! * 100).toFixed(1) }));
+    .filter((c) => c.returns.toDate.excess != null)
+    .map((c) => ({
+      conviction: c.conviction,
+      excess: +(c.returns.toDate.excess! * 100).toFixed(1),
+    }));
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Card className="p-4">
         <div className="text-sm font-medium mb-2">Hit rate (calls beating SPY, 3m)</div>
-        <Gauge value={Math.round(sc.hitRate["3m"] * 100)} centerValue={sc.hitRate["3m"]}
-          defaultLabel="beat SPY" inactiveFillOpacity={0.4}
-          formatOptions={{ style: "percent", maximumFractionDigits: 0 }} />
+        <Gauge
+          value={Math.round(sc.hitRate["3m"] * 100)}
+          centerValue={sc.hitRate["3m"]}
+          defaultLabel="beat SPY"
+          inactiveFillOpacity={0.4}
+          formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
+        />
       </Card>
       <Card className="p-4">
         <div className="text-sm font-medium mb-2">Avg excess return by horizon (%)</div>
@@ -1741,7 +2101,9 @@ export function AnalyticsCharts({ ds }: { ds: Dataset }) {
         </BarChart>
       </Card>
       <Card className="p-4">
-        <div className="text-sm font-medium mb-2">Conviction vs return (does confidence predict accuracy?)</div>
+        <div className="text-sm font-medium mb-2">
+          Conviction vs return (does confidence predict accuracy?)
+        </div>
         <ScatterChart data={convVsReturn} xDataKey="conviction">
           <Grid horizontal highlightRowValues={[0]} />
           <Scatter dataKey="excess" strokeWidth={0} yGradient />
@@ -1751,9 +2113,11 @@ export function AnalyticsCharts({ ds }: { ds: Dataset }) {
       </Card>
       <Card className="p-4">
         <div className="text-sm font-medium mb-2">Call funnel</div>
-        {sc.funnel
-          ? <FunnelChart data={sc.funnel} color="var(--chart-1)" layers={3} />
-          : <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>}
+        {sc.funnel ? (
+          <FunnelChart data={sc.funnel} color="var(--chart-1)" layers={3} />
+        ) : (
+          <p className="text-sm text-muted-foreground">Run the full pipeline to populate.</p>
+        )}
       </Card>
     </div>
   );
@@ -1767,17 +2131,21 @@ export function AnalyticsCharts({ ds }: { ds: Dataset }) {
 - [ ] **Step 6: Render AnalyticsCharts in the overview route**
 
 In `src/routes/c.$handle.tsx`, import and place it under the timeline section:
+
 ```tsx
 import { AnalyticsCharts } from "../components/AnalyticsCharts";
 // ...inside <main>, after the timeline <section>:
-      <section><h2 className="font-semibold mb-2">Analytics</h2>
-        <AnalyticsCharts ds={ds} /></section>
+<section>
+  <h2 className="font-semibold mb-2">Analytics</h2>
+  <AnalyticsCharts ds={ds} />
+</section>;
 ```
 
 - [ ] **Step 7: Verify and commit**
 
 Run `bun run dev`, open `localhost:3000/c/kevvonz`.
 Expected: gauge, bar, scatter, and funnel charts render below the timeline.
+
 ```bash
 bunx tsc --noEmit
 git add src/lib/types.ts src/lib/schema.ts pipeline/score.ts src/components/AnalyticsCharts.tsx 'src/routes/c.$handle.tsx'
@@ -1787,6 +2155,7 @@ git commit -m "feat: overview analytics charts (gauge, bar, scatter, funnel)"
 ### Task 4.8: README
 
 **Files:**
+
 - Create: `influencer-tracker/README.md`
 
 - [ ] **Step 1: Write the README**
@@ -1797,21 +2166,29 @@ git commit -m "feat: overview analytics charts (gauge, bar, scatter, funnel)"
 Scores finfluencer stock calls against real forward prices (vs SPY).
 
 ## Setup
+
 - `bun install`
 - `bunx playwright install chromium`
 - `cp .env.example .env` and set `GROQ_API_KEY`
 
 ## Run the pipeline for a creator
 ```
+
 bun run pipeline --handle <handle> --name "<Name>"
+
 # log into Instagram in the launched browser when prompted
+
 # after the extract stage, review data/creators/<handle>/calls.review.md
+
 bun run pipeline --handle <handle> --name "<Name>" --from prices
+
 ```
 
 ## View the dashboard
 ```
-bun run dev   # http://localhost:3000
+
+bun run dev # http://localhost:3000
+
 ```
 
 Adding a creator needs no code change — just run the pipeline with a new handle.
@@ -1835,4 +2212,7 @@ git commit -m "docs: influencer-tracker README"
 - **Deferred (per spec):** cross-creator comparison UI — intentionally not a task. Sankey sector-flow chart — needs sector enrichment.
 - **Type consistency:** `Horizon`, `Call`, `ReelCall`, `OhlcBar`, `ReturnTriple`, `Dataset`, `Scorecard` defined once in `types.ts`; `computeReturns`, `closeOnOrAfter`, `forwardReturn`, `dedupeFirstCall`, `buildScorecard`, `assembleDataset` signatures consistent across tasks.
 - **External-shape risks flagged inline:** Instagram GraphQL node shape (3.1), Groq model ids (3.0 discovery), TanStack `createServerFn` import (4.1) — each has a verification step.
+
+```
+
 ```

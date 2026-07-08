@@ -17,10 +17,10 @@ if you already have them up on 3100/3200 they're reused (non-CI).
 
 ## Two projects, two builds (intentional)
 
-| Project | Server | What it measures | Why this build |
-|---|---|---|---|
-| `render-dev` | `vite dev` :3100 | per-component re-renders on timeframe/creator switch | dev has React profiling + readable component names |
-| `page-prod` | prod build → nitro node server :3200 | LCP/FCP/CLS/TTFB, JS+total transfer, long tasks, LoAF, heap growth | realistic, minified, profiling off |
+| Project      | Server                               | What it measures                                                   | Why this build                                     |
+| ------------ | ------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------- |
+| `render-dev` | `vite dev` :3100                     | per-component re-renders on timeframe/creator switch               | dev has React profiling + readable component names |
+| `page-prod`  | prod build → nitro node server :3200 | LCP/FCP/CLS/TTFB, JS+total transfer, long tasks, LoAF, heap growth | realistic, minified, profiling off                 |
 
 ## Files
 

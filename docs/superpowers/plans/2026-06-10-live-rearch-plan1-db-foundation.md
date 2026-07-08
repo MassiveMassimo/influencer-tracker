@@ -4,7 +4,7 @@
 
 **Goal:** Stand up Neon Postgres as the source of truth, backfill it losslessly from the existing static JSON, and route the dashboard's read path through the DB behind an env flag — with static JSON as the panic fallback and a golden-master test proving DB output is byte-identical to static.
 
-**Architecture:** Add a drizzle-orm schema (`creators`, `calls`, `prices`) over Neon. A backfill script parses `data/creators/index.json`, each `data/creators/<h>/dataset.json`, and `data/prices/<sym>.json` into the DB. A DB read module reassembles the exact `Dataset` / `IndexEntry[]` / OHLC shapes. `src/lib/data.ts` branches on `USE_DB` so the site serves from DB or static. `prices` is DB-enforced insert-only (frozen-scoring guarantee). No ingest changes, no new user-facing features, no recomputation — this plan only moves the *read* path. Plans 2–4 build features, ingest, and the LLM gate on top.
+**Architecture:** Add a drizzle-orm schema (`creators`, `calls`, `prices`) over Neon. A backfill script parses `data/creators/index.json`, each `data/creators/<h>/dataset.json`, and `data/prices/<sym>.json` into the DB. A DB read module reassembles the exact `Dataset` / `IndexEntry[]` / OHLC shapes. `src/lib/data.ts` branches on `USE_DB` so the site serves from DB or static. `prices` is DB-enforced insert-only (frozen-scoring guarantee). No ingest changes, no new user-facing features, no recomputation — this plan only moves the _read_ path. Plans 2–4 build features, ingest, and the LLM gate on top.
 
 **Tech Stack:** drizzle-orm + drizzle-kit, `@neondatabase/serverless` (neon-http driver, works on Vercel functions and in Bun scripts), Neon Postgres, zod v4, `bun test`. `#/` → `src/`.
 
@@ -17,21 +17,25 @@
 ### Task 1: Add dependencies and the `#/db` setup
 
 **Files:**
+
 - Modify: `package.json` (dependencies + scripts)
 - Create: `drizzle.config.ts`
 
 - [ ] **Step 1: Install deps**
 
 Run:
+
 ```bash
 bun add drizzle-orm @neondatabase/serverless
 bun add -d drizzle-kit
 ```
+
 Expected: `drizzle-orm`, `@neondatabase/serverless` in `dependencies`; `drizzle-kit` in `devDependencies`.
 
 - [ ] **Step 2: Add db scripts to `package.json`**
 
 Add to the `"scripts"` block:
+
 ```json
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -64,6 +68,7 @@ git commit -m "chore(db): add drizzle + neon deps and db scripts"
 ### Task 2: Define the drizzle schema
 
 **Files:**
+
 - Create: `db/schema.ts`
 
 The columns mirror `src/lib/types.ts` (`Call`, `IndexEntry`) and `src/lib/schema.ts` exactly so backfill is lossless. `returns` (a `Record<Horizon, ReturnTriple>`) and `spark` (`number[]`) are stored as `jsonb` to round-trip without flattening. Scorecards are NOT stored as a table — they are recomputed/materialized later (Plan 2/3); for Plan 1 the per-creator `scorecard` and `caveats`/`spyAnchor`/`generatedAt` are stored as `jsonb` on the `creators` row so the `Dataset` round-trips exactly.
@@ -71,7 +76,17 @@ The columns mirror `src/lib/types.ts` (`Call`, `IndexEntry`) and `src/lib/schema
 - [ ] **Step 1: Write the schema**
 
 ```ts
-import { pgTable, text, doublePrecision, boolean, jsonb, integer, timestamp, primaryKey, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  doublePrecision,
+  boolean,
+  jsonb,
+  integer,
+  timestamp,
+  primaryKey,
+  index,
+} from "drizzle-orm/pg-core";
 
 // One row per creator. Holds the non-call parts of Dataset verbatim (jsonb) so the
 // Dataset shape round-trips losslessly in Plan 1. These jsonb blobs are replaced by
@@ -80,48 +95,58 @@ export const creators = pgTable("creators", {
   handle: text("handle").primaryKey(),
   name: text("name").notNull(),
   avatar: text("avatar"),
-  ord: integer("ord").notNull(),                  // position in index.json — deterministic roster order
+  ord: integer("ord").notNull(), // position in index.json — deterministic roster order
   generatedAt: text("generated_at").notNull(),
   spyAnchor: text("spy_anchor").notNull(),
-  scorecard: jsonb("scorecard").notNull(),       // Scorecard
-  caveats: jsonb("caveats").notNull(),            // string[]
-  indexStats: jsonb("index_stats").notNull(),     // IndexEntry minus handle/name/avatar
+  scorecard: jsonb("scorecard").notNull(), // Scorecard
+  caveats: jsonb("caveats").notNull(), // string[]
+  indexStats: jsonb("index_stats").notNull(), // IndexEntry minus handle/name/avatar
 });
 
 // One row per call. Upsert key is (handle, shortcode).
-export const calls = pgTable("calls", {
-  handle: text("handle").notNull().references(() => creators.handle, { onDelete: "cascade" }),
-  shortcode: text("shortcode").notNull(),
-  ord: integer("ord").notNull(),                  // array index in the source dataset — preserves file order
-  postDate: text("post_date").notNull(),
-  ticker: text("ticker").notNull(),
-  company: text("company").notNull(),
-  isFirstCall: boolean("is_first_call").notNull(),
-  conviction: doublePrecision("conviction").notNull(),
-  quote: text("quote").notNull(),
-  summary: text("summary"),
-  onScreenPrice: doublePrecision("on_screen_price"),
-  spark: jsonb("spark"),                          // number[] | null
-  returns: jsonb("returns").notNull(),            // Record<Horizon, ReturnTriple>
-}, (t) => ({
-  pk: primaryKey({ columns: [t.handle, t.shortcode] }),
-  byTicker: index("calls_ticker_idx").on(t.ticker),
-  byDate: index("calls_post_date_idx").on(t.postDate),
-}));
+export const calls = pgTable(
+  "calls",
+  {
+    handle: text("handle")
+      .notNull()
+      .references(() => creators.handle, { onDelete: "cascade" }),
+    shortcode: text("shortcode").notNull(),
+    ord: integer("ord").notNull(), // array index in the source dataset — preserves file order
+    postDate: text("post_date").notNull(),
+    ticker: text("ticker").notNull(),
+    company: text("company").notNull(),
+    isFirstCall: boolean("is_first_call").notNull(),
+    conviction: doublePrecision("conviction").notNull(),
+    quote: text("quote").notNull(),
+    summary: text("summary"),
+    onScreenPrice: doublePrecision("on_screen_price"),
+    spark: jsonb("spark"), // number[] | null
+    returns: jsonb("returns").notNull(), // Record<Horizon, ReturnTriple>
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.handle, t.shortcode] }),
+    byTicker: index("calls_ticker_idx").on(t.ticker),
+    byDate: index("calls_post_date_idx").on(t.postDate),
+  }),
+);
 
 // Shared per-symbol daily OHLC. INSERT-ONLY (enforced by DB role in Task 7): a frozen
 // scoring input must never be rewritten. Upsert key (symbol, date), but writes only
 // ever insert missing dates — never update existing ones.
-export const prices = pgTable("prices", {
-  symbol: text("symbol").notNull(),
-  date: text("date").notNull(),
-  o: doublePrecision("o").notNull(),
-  h: doublePrecision("h").notNull(),
-  l: doublePrecision("l").notNull(),
-  c: doublePrecision("c").notNull(),
-}, (t) => ({
-  pk: primaryKey({ columns: [t.symbol, t.date] }),
-}));
+export const prices = pgTable(
+  "prices",
+  {
+    symbol: text("symbol").notNull(),
+    date: text("date").notNull(),
+    o: doublePrecision("o").notNull(),
+    h: doublePrecision("h").notNull(),
+    l: doublePrecision("l").notNull(),
+    c: doublePrecision("c").notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.symbol, t.date] }),
+  }),
+);
 ```
 
 - [ ] **Step 2: Generate the migration**
@@ -132,10 +157,12 @@ Expected: a new SQL file under `db/migrations/` with `CREATE TABLE creators/call
 - [ ] **Step 3: Apply it to BOTH the dev DB and the test branch**
 
 Migrations only target `DATABASE_URL`; the test branch (a point-in-time copy) does not inherit migrations created after it was branched, so apply explicitly to both:
+
 ```bash
 bun run db:migrate
 DATABASE_URL="$DATABASE_URL_TEST" bun run db:migrate
 ```
+
 Expected: `[✓] migrations applied` twice. Verify: `psql $DATABASE_URL -c "\dt"` and `psql $DATABASE_URL_TEST -c "\dt"` both list the three tables.
 
 - [ ] **Step 4: Commit**
@@ -150,6 +177,7 @@ git commit -m "feat(db): creators/calls/prices schema + initial migration"
 ### Task 3: DB client
 
 **Files:**
+
 - Create: `db/client.ts`
 
 - [ ] **Step 1: Write the client**
@@ -170,7 +198,9 @@ export type Db = ReturnType<typeof makeDb>;
 // Lazy, memoized. NEVER construct at module load: data.ts is reachable from client
 // routes, and eager construction reads process.env + bundles neon into the client.
 let _db: Db | undefined;
-export function getDb(): Db { return (_db ??= makeDb()); }
+export function getDb(): Db {
+  return (_db ??= makeDb());
+}
 ```
 
 - [ ] **Step 2: Commit**
@@ -185,6 +215,7 @@ git commit -m "feat(db): neon-http drizzle client"
 ### Task 4: Backfill — write the failing test first
 
 **Files:**
+
 - Create: `db/backfill.ts` (skeleton in this task)
 - Test: `db/backfill.test.ts`
 
@@ -214,31 +245,30 @@ const HANDLE = indexEntry?.handle;
 const ds = RUN ? readJson(join(ROOT, "data", "creators", HANDLE, "dataset.json")) : null;
 
 describe.skipIf(!RUN)("backfillCreator", () => {
-const db = makeDb(process.env.DATABASE_URL_TEST!);
+  const db = makeDb(process.env.DATABASE_URL_TEST!);
 
-beforeAll(async () => {
-  await db.execute(sql`TRUNCATE creators, calls RESTART IDENTITY CASCADE`);
-  await backfillCreator(db, indexEntry, ds, 0);
-});
+  beforeAll(async () => {
+    await db.execute(sql`TRUNCATE creators, calls RESTART IDENTITY CASCADE`);
+    await backfillCreator(db, indexEntry, ds, 0);
+  });
 
-test("backfill inserts one creator row", async () => {
-  const rows = await db.select().from(creators).where(eq(creators.handle, HANDLE));
-  expect(rows.length).toBe(1);
-  expect(rows[0].name).toBe(ds.creator.name);
-});
+  test("backfill inserts one creator row", async () => {
+    const rows = await db.select().from(creators).where(eq(creators.handle, HANDLE));
+    expect(rows.length).toBe(1);
+    expect(rows[0].name).toBe(ds.creator.name);
+  });
 
-test("backfill inserts every call", async () => {
-  const rows = await db.select().from(calls).where(eq(calls.handle, HANDLE));
-  expect(rows.length).toBe(ds.calls.length);
-});
+  test("backfill inserts every call", async () => {
+    const rows = await db.select().from(calls).where(eq(calls.handle, HANDLE));
+    expect(rows.length).toBe(ds.calls.length);
+  });
 
-test("a call round-trips its returns jsonb", async () => {
-  const sample = ds.calls[0];
-  const rows = await db.select().from(calls)
-    .where(eq(calls.shortcode, sample.shortcode));
-  expect(rows[0].returns).toEqual(sample.returns);
-  expect(rows[0].ticker).toBe(sample.ticker);
-});
+  test("a call round-trips its returns jsonb", async () => {
+    const sample = ds.calls[0];
+    const rows = await db.select().from(calls).where(eq(calls.shortcode, sample.shortcode));
+    expect(rows[0].returns).toEqual(sample.returns);
+    expect(rows[0].ticker).toBe(sample.ticker);
+  });
 }); // describe.skipIf
 ```
 
@@ -248,7 +278,11 @@ test("a call round-trips its returns jsonb", async () => {
 // db/backfill.ts
 import type { Db } from "./client";
 
-export async function backfillCreator(_db: Db, _indexEntry: unknown, _dataset: unknown): Promise<void> {
+export async function backfillCreator(
+  _db: Db,
+  _indexEntry: unknown,
+  _dataset: unknown,
+): Promise<void> {
   throw new Error("not implemented");
 }
 ```
@@ -263,6 +297,7 @@ Expected: FAIL — "not implemented".
 ### Task 5: Backfill — implement `backfillCreator` and `backfillPrices`
 
 **Files:**
+
 - Modify: `db/backfill.ts`
 
 - [ ] **Step 1: Implement**
@@ -275,24 +310,46 @@ import type { IndexEntry } from "#/lib/dataset-source";
 
 // `ord` (index position) is required by the caller so creator roster order is
 // deterministic; pass it from the index array index in the runner.
-export async function backfillCreator(db: Db, indexEntry: IndexEntry, ds: Dataset, ord: number): Promise<void> {
+export async function backfillCreator(
+  db: Db,
+  indexEntry: IndexEntry,
+  ds: Dataset,
+  ord: number,
+): Promise<void> {
   const { handle, name, avatar, ...indexStats } = indexEntry;
   const creatorRow = {
-    handle, name, avatar: avatar ?? null, ord,
-    generatedAt: ds.generatedAt, spyAnchor: ds.spyAnchor,
-    scorecard: ds.scorecard, caveats: ds.caveats, indexStats,
+    handle,
+    name,
+    avatar: avatar ?? null,
+    ord,
+    generatedAt: ds.generatedAt,
+    spyAnchor: ds.spyAnchor,
+    scorecard: ds.scorecard,
+    caveats: ds.caveats,
+    indexStats,
   };
-  await db.insert(creators).values(creatorRow).onConflictDoUpdate({
-    target: creators.handle,
-    set: { name, avatar: avatar ?? null, ord, generatedAt: ds.generatedAt,
-      spyAnchor: ds.spyAnchor, scorecard: ds.scorecard, caveats: ds.caveats, indexStats },
-  });
+  await db
+    .insert(creators)
+    .values(creatorRow)
+    .onConflictDoUpdate({
+      target: creators.handle,
+      set: {
+        name,
+        avatar: avatar ?? null,
+        ord,
+        generatedAt: ds.generatedAt,
+        spyAnchor: ds.spyAnchor,
+        scorecard: ds.scorecard,
+        caveats: ds.caveats,
+        indexStats,
+      },
+    });
 
   if (ds.calls.length === 0) return;
   const rows = ds.calls.map((c, i) => ({
     handle,
     shortcode: c.shortcode,
-    ord: i,                               // array position preserves file order (postDate has ties)
+    ord: i, // array position preserves file order (postDate has ties)
     postDate: c.postDate,
     ticker: c.ticker,
     company: c.company,
@@ -306,28 +363,41 @@ export async function backfillCreator(db: Db, indexEntry: IndexEntry, ds: Datase
   }));
   // Chunk to keep each neon-http request body well under limits (TheProfInvestor: 880 calls).
   for (let i = 0; i < rows.length; i += 200) {
-    await db.insert(calls).values(rows.slice(i, i + 200)).onConflictDoUpdate({
-      target: [calls.handle, calls.shortcode],
-      // Update every non-PK column so a re-run after a re-score never leaves stale data.
-      set: {
-        ord: ex("ord"), postDate: ex("post_date"), ticker: ex("ticker"), company: ex("company"),
-        isFirstCall: ex("is_first_call"), conviction: ex("conviction"), quote: ex("quote"),
-        summary: ex("summary"), onScreenPrice: ex("on_screen_price"), spark: ex("spark"),
-        returns: ex("returns"),
-      },
-    });
+    await db
+      .insert(calls)
+      .values(rows.slice(i, i + 200))
+      .onConflictDoUpdate({
+        target: [calls.handle, calls.shortcode],
+        // Update every non-PK column so a re-run after a re-score never leaves stale data.
+        set: {
+          ord: ex("ord"),
+          postDate: ex("post_date"),
+          ticker: ex("ticker"),
+          company: ex("company"),
+          isFirstCall: ex("is_first_call"),
+          conviction: ex("conviction"),
+          quote: ex("quote"),
+          summary: ex("summary"),
+          onScreenPrice: ex("on_screen_price"),
+          spark: ex("spark"),
+          returns: ex("returns"),
+        },
+      });
   }
 }
 
 // Insert-only: never updates existing (symbol,date) rows — preserves frozen prices.
 export async function backfillPrices(db: Db, symbol: string, bars: OhlcBar[]): Promise<void> {
   if (bars.length === 0) return;
-  await db.insert(prices).values(bars.map((b) => ({ symbol, date: b.date, o: b.o, h: b.h, l: b.l, c: b.c })))
+  await db
+    .insert(prices)
+    .values(bars.map((b) => ({ symbol, date: b.date, o: b.o, h: b.h, l: b.l, c: b.c })))
     .onConflictDoNothing();
 }
 ```
 
 Add this helper at the top of the file (drizzle `excluded`-row reference for upserts; quote the column to be safe with reserved words like `returns`):
+
 ```ts
 import { sql } from "drizzle-orm";
 const ex = (col: string) => sql.raw(`excluded."${col}"`);
@@ -350,6 +420,7 @@ git commit -m "feat(db): lossless backfill of creators/calls/prices from static 
 ### Task 6: Backfill runner script
 
 **Files:**
+
 - Create: `scripts/backfill.ts`
 
 - [ ] **Step 1: Write the runner**
@@ -378,8 +449,12 @@ async function main() {
     await backfillCreator(db, entry, ds, ord);
     // Guard against the (handle, shortcode) PK silently merging rows if a post ever
     // yields two calls: inserted count must equal the source call count.
-    const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(calls).where(eq(calls.handle, entry.handle));
-    if (n !== ds.calls.length) throw new Error(`${entry.handle}: ${n} rows != ${ds.calls.length} calls`);
+    const [{ n }] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(calls)
+      .where(eq(calls.handle, entry.handle));
+    if (n !== ds.calls.length)
+      throw new Error(`${entry.handle}: ${n} rows != ${ds.calls.length} calls`);
     console.log(`creator ${entry.handle}: ${ds.calls.length} calls`);
   }
   for (const file of readdirSync(PRICES).filter((f) => f.endsWith(".json"))) {
@@ -408,6 +483,7 @@ git commit -m "feat(db): backfill runner script"
 ### Task 7: Enforce frozen prices at the DB level
 
 **Files:**
+
 - Create: `scripts/apply-roles.ts`
 - Test: `db/prices-immutable.test.ts`
 
@@ -420,15 +496,19 @@ import { neon } from "@neondatabase/serverless";
 // Connects as the restricted ingest role (DATABASE_URL_INGEST_TEST = ingest creds at the
 // TEST-branch host) and asserts UPDATE/DELETE on prices are forbidden.
 describe.skipIf(!process.env.DATABASE_URL_INGEST_TEST)("prices immutability", () => {
-const sqlRole = neon(process.env.DATABASE_URL_INGEST_TEST!);
+  const sqlRole = neon(process.env.DATABASE_URL_INGEST_TEST!);
 
-test("ingest role cannot UPDATE prices", async () => {
-  await expect(sqlRole`UPDATE prices SET c = 0 WHERE symbol = 'SPY'`).rejects.toThrow(/permission denied/i);
-});
+  test("ingest role cannot UPDATE prices", async () => {
+    await expect(sqlRole`UPDATE prices SET c = 0 WHERE symbol = 'SPY'`).rejects.toThrow(
+      /permission denied/i,
+    );
+  });
 
-test("ingest role cannot DELETE prices", async () => {
-  await expect(sqlRole`DELETE FROM prices WHERE symbol = 'SPY'`).rejects.toThrow(/permission denied/i);
-});
+  test("ingest role cannot DELETE prices", async () => {
+    await expect(sqlRole`DELETE FROM prices WHERE symbol = 'SPY'`).rejects.toThrow(
+      /permission denied/i,
+    );
+  });
 });
 ```
 
@@ -471,10 +551,12 @@ main();
 - [ ] **Step 4: Apply to the test branch and verify the test passes**
 
 The role must exist on the TEST branch (a branch created before the role does not inherit it). Apply there and point the test at the ingest credentials on the test-branch host:
+
 ```bash
 DATABASE_URL="$DATABASE_URL_TEST" bun run db:roles
 DATABASE_URL_INGEST_TEST="<ingest creds @ test-branch host>" bun test db/prices-immutable.test.ts
 ```
+
 Expected: PASS (2 tests). Also apply to prod/dev later, at cutover: `bun run db:roles`.
 
 - [ ] **Step 5: Commit**
@@ -489,6 +571,7 @@ git commit -m "feat(db): enforce insert-only prices via restricted ingest role"
 ### Task 8: DB read module — write the golden-master test first
 
 **Files:**
+
 - Create: `src/lib/db-read.ts` (skeleton)
 - Test: `src/lib/db-read.test.ts`
 
@@ -512,39 +595,44 @@ const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 const index = RUN ? readJson(join(ROOT, "data", "creators", "index.json")) : [];
 
 describe.skipIf(!RUN)("DB read golden master", () => {
-const db = makeDb(process.env.DATABASE_URL_TEST!);
+  const db = makeDb(process.env.DATABASE_URL_TEST!);
 
-beforeAll(async () => {
-  await db.execute(sql`TRUNCATE creators, calls, prices RESTART IDENTITY CASCADE`);
-  for (const [ord, e] of index.entries()) {
-    await backfillCreator(db, e, readJson(join(ROOT, "data", "creators", e.handle, "dataset.json")), ord);
-  }
-  for (const f of readdirSync(join(ROOT, "data", "prices")).filter((f) => f.endsWith(".json"))) {
-    await backfillPrices(db, f.replace(/\.json$/, ""), readJson(join(ROOT, "data", "prices", f)));
-  }
-});
+  beforeAll(async () => {
+    await db.execute(sql`TRUNCATE creators, calls, prices RESTART IDENTITY CASCADE`);
+    for (const [ord, e] of index.entries()) {
+      await backfillCreator(
+        db,
+        e,
+        readJson(join(ROOT, "data", "creators", e.handle, "dataset.json")),
+        ord,
+      );
+    }
+    for (const f of readdirSync(join(ROOT, "data", "prices")).filter((f) => f.endsWith(".json"))) {
+      await backfillPrices(db, f.replace(/\.json$/, ""), readJson(join(ROOT, "data", "prices", f)));
+    }
+  });
 
-test("readDataset deep-equals the static dataset.json (incl. call order)", async () => {
-  for (const e of index) {
-    const static_ = readJson(join(ROOT, "data", "creators", e.handle, "dataset.json"));
-    const fromDb = await readDataset(db, e.handle);
-    // Schema-shaped deep-equal (validates shape + compares meaning, key-order-insensitive).
-    // Array order IS asserted by toEqual — proves the `ord` column reconstructs file order.
-    expect(DatasetSchema.parse(fromDb)).toEqual(DatasetSchema.parse(static_));
-  }
-});
+  test("readDataset deep-equals the static dataset.json (incl. call order)", async () => {
+    for (const e of index) {
+      const static_ = readJson(join(ROOT, "data", "creators", e.handle, "dataset.json"));
+      const fromDb = await readDataset(db, e.handle);
+      // Schema-shaped deep-equal (validates shape + compares meaning, key-order-insensitive).
+      // Array order IS asserted by toEqual — proves the `ord` column reconstructs file order.
+      expect(DatasetSchema.parse(fromDb)).toEqual(DatasetSchema.parse(static_));
+    }
+  });
 
-test("readIndex equals index.json in order", async () => {
-  const fromDb = await readIndex(db);
-  expect(fromDb).toEqual(index); // order-sensitive: WorkspaceRail roster order must be stable
-});
+  test("readIndex equals index.json in order", async () => {
+    const fromDb = await readIndex(db);
+    expect(fromDb).toEqual(index); // order-sensitive: WorkspaceRail roster order must be stable
+  });
 
-test("readPrices deep-equals the static price file", async () => {
-  const symbol = "SPY";
-  const static_ = readJson(join(ROOT, "data", "prices", `${symbol}.json`));
-  const fromDb = await readPrices(db, symbol);
-  expect(fromDb).toEqual(static_);
-});
+  test("readPrices deep-equals the static price file", async () => {
+    const symbol = "SPY";
+    const static_ = readJson(join(ROOT, "data", "prices", `${symbol}.json`));
+    const fromDb = await readPrices(db, symbol);
+    expect(fromDb).toEqual(static_);
+  });
 });
 ```
 
@@ -556,9 +644,15 @@ import type { Db } from "../../db/client";
 import type { Dataset, OhlcBar } from "./types";
 import type { IndexEntry } from "./dataset-source";
 
-export async function readDataset(_db: Db, _handle: string): Promise<Dataset> { throw new Error("ni"); }
-export async function readIndex(_db: Db): Promise<IndexEntry[]> { throw new Error("ni"); }
-export async function readPrices(_db: Db, _symbol: string): Promise<OhlcBar[]> { throw new Error("ni"); }
+export async function readDataset(_db: Db, _handle: string): Promise<Dataset> {
+  throw new Error("ni");
+}
+export async function readIndex(_db: Db): Promise<IndexEntry[]> {
+  throw new Error("ni");
+}
+export async function readPrices(_db: Db, _symbol: string): Promise<OhlcBar[]> {
+  throw new Error("ni");
+}
 ```
 
 - [ ] **Step 3: Run to verify it fails**
@@ -571,6 +665,7 @@ Expected: FAIL — "ni".
 ### Task 9: DB read module — implement reassembly
 
 **Files:**
+
 - Modify: `src/lib/db-read.ts`
 
 - [ ] **Step 1: Implement**
@@ -607,7 +702,11 @@ export async function readDataset(db: Db, handle: string): Promise<Dataset> {
   if (!c) throw new Error(`dataset ${handle}: not found`);
   // `ord` (array index at backfill) reconstructs exact file order — postDate has ties
   // (597 dup dates for TheProfInvestor) so a date sort would scramble it.
-  const callRows = await db.select().from(calls).where(eq(calls.handle, handle)).orderBy(asc(calls.ord));
+  const callRows = await db
+    .select()
+    .from(calls)
+    .where(eq(calls.handle, handle))
+    .orderBy(asc(calls.ord));
   return {
     creator: { handle: c.handle, name: c.name },
     generatedAt: c.generatedAt,
@@ -629,7 +728,11 @@ export async function readIndex(db: Db): Promise<IndexEntry[]> {
 }
 
 export async function readPrices(db: Db, symbol: string): Promise<OhlcBar[]> {
-  const rows = await db.select().from(prices).where(eq(prices.symbol, symbol)).orderBy(asc(prices.date));
+  const rows = await db
+    .select()
+    .from(prices)
+    .where(eq(prices.symbol, symbol))
+    .orderBy(asc(prices.date));
   return rows.map((r) => ({ date: r.date, o: r.o, h: r.h, l: r.l, c: r.c }));
 }
 ```
@@ -651,6 +754,7 @@ git commit -m "feat(db): DB read module with golden-master parity vs static JSON
 ### Task 10: Route `data.ts` through the DB behind `USE_DB` flag
 
 **Files:**
+
 - Modify: `src/lib/data.ts`
 
 The existing `listCreators`/`fetchDataset`/`fetchPrices` keep their signatures. When `USE_DB === "1"` they read from the DB; otherwise the current static path runs unchanged. On any DB error they fall back to static (panic fallback) and log.
@@ -658,25 +762,39 @@ The existing `listCreators`/`fetchDataset`/`fetchPrices` keep their signatures. 
 - [ ] **Step 1: Write the failing test**
 
 Test: `src/lib/data.test.ts`. In `bun test`, `typeof window === "undefined"` is true and `USE_DB` is unset, so `serverUseDb()` is false → the static branch runs and never imports the DB. The test stubs `fetch` and asserts the parsed dataset comes back.
+
 ```ts
 import { test, expect } from "bun:test";
 import { fetchDataset } from "./data";
 
 const SAMPLE = {
-  creator: { handle: "TheProfInvestor", name: "X" }, generatedAt: "2026-01-01",
-  spyAnchor: "2026-01-01", calls: [], caveats: [],
-  scorecard: { totalCalls: 0, uniqueTickers: 0, hitRate: { "1m": 0, "3m": 0 },
-    hitRateN: { "1m": 0, "3m": 0 }, avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0 },
-    callsPerWeek: 0, best: [], worst: [] },
+  creator: { handle: "TheProfInvestor", name: "X" },
+  generatedAt: "2026-01-01",
+  spyAnchor: "2026-01-01",
+  calls: [],
+  caveats: [],
+  scorecard: {
+    totalCalls: 0,
+    uniqueTickers: 0,
+    hitRate: { "1m": 0, "3m": 0 },
+    hitRateN: { "1m": 0, "3m": 0 },
+    avgExcess: { "1w": 0, "1m": 0, "3m": 0, toDate: 0 },
+    callsPerWeek: 0,
+    best: [],
+    worst: [],
+  },
 };
 
 test("static branch (USE_DB unset) parses the fetched dataset", async () => {
   const orig = globalThis.fetch;
-  globalThis.fetch = (async () => new Response(JSON.stringify(SAMPLE), { status: 200 })) as typeof fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify(SAMPLE), { status: 200 })) as typeof fetch;
   try {
     const ds = await fetchDataset("TheProfInvestor");
     expect(ds.creator.handle).toBe("TheProfInvestor");
-  } finally { globalThis.fetch = orig; }
+  } finally {
+    globalThis.fetch = orig;
+  }
 });
 ```
 
@@ -690,6 +808,7 @@ Expected: FAIL — `fetchDataset` not exported yet / module error (the new `data
 CRITICAL: `data.ts` is imported by client routes, so it must NOT eagerly import the DB client or read `process.env` at module top-level (the browser has no `process`, and `db/client.ts` calls `neon(process.env.DATABASE_URL!)` at module load — that would crash every client page and pull `@neondatabase/serverless` into the client bundle / break `vite build`). Therefore: (1) the window guard comes FIRST, before any `process.env` read; (2) DB modules are `await import(...)`-ed only inside the server-only branch; (3) `db/client.ts` must memoize lazily (no eager `export const db`).
 
 `db/client.ts` already exposes the lazy `getDb()` (Task 3). Now `src/lib/data.ts`:
+
 ```ts
 import { createServerFn } from "@tanstack/react-start";
 import { DatasetSchema, PriceFileSchema } from "./schema";
@@ -706,7 +825,9 @@ export const listCreators = createServerFn({ method: "GET" }).handler(async () =
       const { getDb } = await import("../../db/client");
       const { readIndex } = await import("./db-read");
       return await readIndex(getDb());
-    } catch (e) { console.error("listCreators DB fallback", e); }
+    } catch (e) {
+      console.error("listCreators DB fallback", e);
+    }
   }
   return loadIndex();
 });
@@ -717,7 +838,9 @@ export async function fetchDataset(handle: string): Promise<Dataset> {
       const { getDb } = await import("../../db/client");
       const { readDataset } = await import("./db-read");
       return await readDataset(getDb(), handle);
-    } catch (e) { console.error(`fetchDataset DB fallback ${handle}`, e); }
+    } catch (e) {
+      console.error(`fetchDataset DB fallback ${handle}`, e);
+    }
   }
   const path = `/datasets/${handle}.json`;
   const url = typeof window === "undefined" ? siteUrl(path) : path;
@@ -733,7 +856,9 @@ export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
       const { readPrices } = await import("./db-read");
       const r = await readPrices(getDb(), symbol);
       if (r.length) return r;
-    } catch (e) { console.error(`fetchPrices DB fallback ${symbol}`, e); }
+    } catch (e) {
+      console.error(`fetchPrices DB fallback ${symbol}`, e);
+    }
   }
   const path = `/prices/${symbol}.json`;
   const url = typeof window === "undefined" ? siteUrl(path) : path;
@@ -752,6 +877,7 @@ bun test src/lib/data.test.ts
 bunx tsc --noEmit
 USE_DB=0 bun run build
 ```
+
 Expected: tests PASS; no type errors; **`vite build` succeeds with `DATABASE_URL` unset** — this is the gate that proves the DB client did not leak into the client bundle. (`bun test`/`tsc` alone cannot catch a client-bundle import leak.) If the build fails resolving `@neondatabase/serverless` in a client chunk, the dynamic-import/window-guard ordering was not followed.
 
 - [ ] **Step 5: Commit**
@@ -766,9 +892,10 @@ git commit -m "feat(db): route data.ts reads through DB behind USE_DB flag with 
 ### Task 11: DB-vs-static parity check against the target database
 
 **Files:**
+
 - Create: `scripts/parity-check.ts`
 
-The pre-cutover go/no-go gate: run against the **prod** DB after backfill to prove the DB reassembles every committed dataset and the index identically. jsonb does not preserve key order, so compare by deep-equal of a canonical (key-sorted) serialization, not raw `JSON.stringify` — parity of *meaning* is the gate, not bytes.
+The pre-cutover go/no-go gate: run against the **prod** DB after backfill to prove the DB reassembles every committed dataset and the index identically. jsonb does not preserve key order, so compare by deep-equal of a canonical (key-sorted) serialization, not raw `JSON.stringify` — parity of _meaning_ is the gate, not bytes.
 
 - [ ] **Step 1: Write the parity script**
 
@@ -787,7 +914,11 @@ const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 function canon(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(canon);
   if (v && typeof v === "object") {
-    return Object.fromEntries(Object.keys(v as object).sort().map((k) => [k, canon((v as Record<string, unknown>)[k])]));
+    return Object.fromEntries(
+      Object.keys(v as object)
+        .sort()
+        .map((k) => [k, canon((v as Record<string, unknown>)[k])]),
+    );
   }
   return v;
 }
@@ -799,7 +930,8 @@ async function main() {
   if (!eq(index, await readIndex(db))) throw new Error("index parity FAILED");
   for (const e of index) {
     const stat = readJson(join(ROOT, "data", "creators", e.handle, "dataset.json"));
-    if (!eq(stat, await readDataset(db, e.handle))) throw new Error(`dataset parity FAILED for ${e.handle}`);
+    if (!eq(stat, await readDataset(db, e.handle)))
+      throw new Error(`dataset parity FAILED for ${e.handle}`);
     console.log(`✓ ${e.handle}`);
   }
   console.log("PARITY OK — safe to flip USE_DB=1");
@@ -824,12 +956,14 @@ git commit -m "test(db): end-to-end DB-vs-static parity check script"
 ### Task 12: Documentation + flag flip procedure
 
 **Files:**
+
 - Modify: `CLAUDE.md` (add a "Data source: DB vs static" subsection)
 - Modify: `.env.example`
 
 - [ ] **Step 1: Document the env vars**
 
 Add to `.env.example`:
+
 ```
 # Neon Postgres (Vercel Marketplace). DATABASE_URL = pooled owner connection.
 DATABASE_URL=
@@ -862,6 +996,7 @@ git commit -m "docs(db): data-source flag, backfill, and cutover procedure"
 ## Self-Review
 
 **Spec coverage (Plan 1 slice):**
+
 - Neon Postgres as source of truth → Tasks 1–3. ✓
 - Backfill from existing JSON → Tasks 4–6. ✓
 - Frozen scoring DB-enforced (insert-only prices) → Task 7. ✓ (denormalized price-hash-on-call is deferred to Plan 3, where scoring runs against the DB — noted in spec, not needed for a read-only backfill.)

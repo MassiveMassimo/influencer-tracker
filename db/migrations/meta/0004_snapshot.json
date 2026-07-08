@@ -95,12 +95,8 @@
           "name": "call_overrides_handle_creators_handle_fk",
           "tableFrom": "call_overrides",
           "tableTo": "creators",
-          "columnsFrom": [
-            "handle"
-          ],
-          "columnsTo": [
-            "handle"
-          ],
+          "columnsFrom": ["handle"],
+          "columnsTo": ["handle"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -108,11 +104,7 @@
       "compositePrimaryKeys": {
         "call_overrides_handle_shortcode_target_ticker_pk": {
           "name": "call_overrides_handle_shortcode_target_ticker_pk",
-          "columns": [
-            "handle",
-            "shortcode",
-            "target_ticker"
-          ]
+          "columns": ["handle", "shortcode", "target_ticker"]
         }
       },
       "uniqueConstraints": {},
@@ -245,16 +237,8 @@
           "name": "call_reports_handle_shortcode_ticker_calls_handle_shortcode_ticker_fk",
           "tableFrom": "call_reports",
           "tableTo": "calls",
-          "columnsFrom": [
-            "handle",
-            "shortcode",
-            "ticker"
-          ],
-          "columnsTo": [
-            "handle",
-            "shortcode",
-            "ticker"
-          ],
+          "columnsFrom": ["handle", "shortcode", "ticker"],
+          "columnsTo": ["handle", "shortcode", "ticker"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -385,12 +369,8 @@
           "name": "calls_handle_creators_handle_fk",
           "tableFrom": "calls",
           "tableTo": "creators",
-          "columnsFrom": [
-            "handle"
-          ],
-          "columnsTo": [
-            "handle"
-          ],
+          "columnsFrom": ["handle"],
+          "columnsTo": ["handle"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -398,11 +378,7 @@
       "compositePrimaryKeys": {
         "calls_handle_shortcode_ticker_pk": {
           "name": "calls_handle_shortcode_ticker_pk",
-          "columns": [
-            "handle",
-            "shortcode",
-            "ticker"
-          ]
+          "columns": ["handle", "shortcode", "ticker"]
         }
       },
       "uniqueConstraints": {},
@@ -523,10 +499,7 @@
       "compositePrimaryKeys": {
         "prices_symbol_date_pk": {
           "name": "prices_symbol_date_pk",
-          "columns": [
-            "symbol",
-            "date"
-          ]
+          "columns": ["symbol", "date"]
         }
       },
       "uniqueConstraints": {},

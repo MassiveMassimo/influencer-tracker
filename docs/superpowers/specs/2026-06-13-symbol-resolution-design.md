@@ -34,6 +34,7 @@ symbols therefore flow all the way through:
   (typos / OTC / pre-IPO / renamed / hallucinated).
 
 Affected data, by kind:
+
 - **15 committed-but-empty** `data/prices/<symbol>.json` files (`BTCUSD`,
   `ETHUSD`, `$ETH.X`, `BTC.X`, `BTCUSDT`, `ETH.X`, `SI1!`, `SPCFD`, `BITNR`,
   `MBLR`, `RBT`, `CCCX`, `HEIA`, `SIVE`, `USARE`).
@@ -45,13 +46,13 @@ Affected data, by kind:
 
 Three failure modes:
 
-| Mode | Trigger | Symptom |
-|---|---|---|
-| Hard error | Yahoo *throws* "No data found" → loader `ensureQueryData` rejects (`c.$handle.ticker.$symbol.tsx:51`) → whole route dies | `Something went wrong` page |
-| Soft empty | Yahoo *returns* `[]` (no throw) + baked file empty | Blank chart with "PRICE" label + dashed grid |
-| Wrong asset | bare `BTC`/`ETH` resolves to the Grayscale ETF | Chart + scored returns against the wrong instrument (no visible error) |
+| Mode        | Trigger                                                                                                                  | Symptom                                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Hard error  | Yahoo _throws_ "No data found" → loader `ensureQueryData` rejects (`c.$handle.ticker.$symbol.tsx:51`) → whole route dies | `Something went wrong` page                                            |
+| Soft empty  | Yahoo _returns_ `[]` (no throw) + baked file empty                                                                       | Blank chart with "PRICE" label + dashed grid                           |
+| Wrong asset | bare `BTC`/`ETH` resolves to the Grayscale ETF                                                                           | Chart + scored returns against the wrong instrument (no visible error) |
 
-Note: the *current* `pipeline/prices.ts:76` and `pipeline/score.ts:64` already
+Note: the _current_ `pipeline/prices.ts:76` and `pipeline/score.ts:64` already
 skip writing empty files. The empty + wrong files are **legacy commits**
 (tracked at HEAD, not regenerated). They persist because `score` only appends to
 the shared store; it never deletes a stale or now-non-canonical file.
@@ -99,9 +100,9 @@ Rules, applied in order:
 4. **Reject** out-of-scope notations → `null`: continuous-futures suffix
    (`/!$/`, e.g. `SI1!`) and known CFD codes (e.g. `SPCFD`).
 5. **Passthrough** — anything else returned unchanged (normal equities, and
-   unknowns like `BITNR` that the *gate* will catch).
+   unknowns like `BITNR` that the _gate_ will catch).
 
-**Stated assumption (crypto-wins override).** `BTC` and `ETH` are *also* real US
+**Stated assumption (crypto-wins override).** `BTC` and `ETH` are _also_ real US
 equity tickers (the Grayscale Mini Trust ETFs that the current data wrongly
 scores against). Mapping bare `BTC`/`ETH` → spot `BTC-USD`/`ETH-USD`
 **deliberately overrides** those equities, because in this product a creator
@@ -149,7 +150,7 @@ hit the empty/crash state from bad data.
   client `useQuery` already degrades via `query.isError` (`:114`). The fix is
   therefore narrow: wrap the prefetch so a rejection becomes a no-op
   (`.catch(() => undefined)`), letting the component fall through to its
-  existing `usingFallback` branch. The catch belongs on **that** call, *not* on
+  existing `usingFallback` branch. The catch belongs on **that** call, _not_ on
   `fetchPrices` — `fetchPrices` already returns `[]` (never throws) when prices
   are missing (`src/lib/data.ts:90,96`), so the baked-empty case is already
   handled.
@@ -174,7 +175,7 @@ special-case here.
 
 1. Delete **every** `data/prices/<raw>.json` whose name is non-canonical —
    i.e. `<raw> !== resolveSymbol(<raw>)`. This covers both the 15 empty files
-   *and* the 2 wrong-asset files (`BTC.json`, `ETH.json`), and is the general
+   _and_ the 2 wrong-asset files (`BTC.json`, `ETH.json`), and is the general
    rule (don't enumerate by emptiness). Deletes tolerate already-missing files
    (idempotent re-run).
 2. Also clean the stale per-creator `data/creators/<h>/prices/<raw>.json` files
@@ -194,14 +195,14 @@ static store no longer has:
 
 - **Orphan `calls` rows** (the ~9 dropped + the renamed `BTCUSD`→`BTC-USD`
   shortcodes if PK includes ticker — verify PK is `(handle, shortcode)`, so a
-  ticker change is an *update*, not an orphan; only truly-dropped calls orphan).
+  ticker change is an _update_, not an orphan; only truly-dropped calls orphan).
   `scripts/parity-check.ts:52` reassembles the dataset from the DB and asserts
   `static == db` — with orphan call rows the DB dataset has more calls than
   static, so **dataset parity FAILS**. (The earlier review's claim that
-  `db:sync`/`backfill` *throws* on a row-count mismatch is incorrect — backfill
+  `db:sync`/`backfill` _throws_ on a row-count mismatch is incorrect — backfill
   upserts silently; the failure surfaces here, at parity-check.)
 - **Orphan `prices` symbols** (`BTC`, `ETH`, `BTCUSD`, …). `parity-check.ts:58`
-  only iterates *static* price files, so orphan DB symbols are **invisible** to
+  only iterates _static_ price files, so orphan DB symbols are **invisible** to
   it — parity can pass while they linger. They must still be deleted for
   correctness.
 
@@ -233,24 +234,24 @@ applied downstream at `prices`/`score`).
 Canonicalization changes the file **key** (`BTCUSD`→`BTC-USD`,
 `BTC`→`BTC-USD`), so the new canonical file starts from `existing = []`.
 `mergePrices`/`detectBasisShift` (`src/lib/prices-merge.ts`) only fire on
-*overlapping* dates within the *same* symbol, so a rename writes fresh bars with
+_overlapping_ dates within the _same_ symbol, so a rename writes fresh bars with
 no basis comparison. The insert-only/frozen guarantee is unaffected — no scored
 bar is rewritten, the old symbol's file is simply deleted and a new one created.
 
 ## Component boundaries
 
-| Unit | Does | Used by | Depends on |
-|---|---|---|---|
-| `src/lib/symbol.ts` | raw ticker → canonical Yahoo symbol or `null` | prices.ts, score.ts, chart-fetch.ts, route loader | nothing (pure) |
-| gate in `assembleDataset` | exclude + log unpriceable calls; emit canonical | score.ts | symbol.ts, OHLC map |
-| loader resilience + empty state | never crash on live-Yahoo error; show explicit empty | ticker route | — |
+| Unit                            | Does                                                 | Used by                                           | Depends on          |
+| ------------------------------- | ---------------------------------------------------- | ------------------------------------------------- | ------------------- |
+| `src/lib/symbol.ts`             | raw ticker → canonical Yahoo symbol or `null`        | prices.ts, score.ts, chart-fetch.ts, route loader | nothing (pure)      |
+| gate in `assembleDataset`       | exclude + log unpriceable calls; emit canonical      | score.ts                                          | symbol.ts, OHLC map |
+| loader resilience + empty state | never crash on live-Yahoo error; show explicit empty | ticker route                                      | —                   |
 
 ## Testing
 
 - **`src/lib/symbol.test.ts`** — table-driven: `BTC` / `BTCUSD` / `BTCUSDT` /
   `BTC.X` / `$ETH.X` collapse to `<BASE>-USD`; bare `BTC`/`ETH` map to the
   `-USD` pair (crypto-wins override, not the Grayscale equity); `HEIA →
-  HEIA.AS`; `SI1!` / `SPCFD` → `null`; normal equities pass through unchanged;
+HEIA.AS`; `SI1!` / `SPCFD` → `null`; normal equities pass through unchanged;
   idempotent (`resolve(resolve(x)) === resolve(x)`); a non-crypto 3-letter
   ticker (e.g. `IBM`, `MMM`) is NOT mistaken for crypto (guards against
   pattern-matching regression).
@@ -258,7 +259,7 @@ bar is rewritten, the old symbol's file is simply deleted and a new one created.
   and one whose resolved symbol has no bars; canonical ticker emitted for a
   crypto call; existing scoring unaffected for normal equities.
 - **Migration verification** — after re-score: **no** `data/prices/<raw>.json`
-  exists where `raw !== resolveSymbol(raw)` (catches empty *and* wrong-asset
+  exists where `raw !== resolveSymbol(raw)` (catches empty _and_ wrong-asset
   files); `BTC-USD` / `ETH-USD` / `HEIA.AS` price files exist and are non-empty
   with sane magnitudes (BTC-USD ≫ $1000, not ~$48); the dead tickers no longer
   appear in either `dataset.json`; bare `BTC`/`ETH` calls now carry canonical

@@ -30,7 +30,7 @@ report changes its debt ratio or revenue mix. Baking it at `score()` time (like
 `symbol-types.json`) would go stale between ingests. So this follows the
 codebase's existing **"baked for scoring, live for display"** split: a server
 function fetches on demand with a server-side key and a fail-open fallback, and
-the client caches via TanStack Query. (See "Caching" — this is *not* a copy of
+the client caches via TanStack Query. (See "Caching" — this is _not_ a copy of
 `fetchChart`'s SSR-prefetch path; the feature is client-gated, so there is no SSR
 prefetch.)
 
@@ -48,13 +48,13 @@ the reference implementation we port to TypeScript.
 
 ### Fields consumed (per ticker doc)
 
-| Field | Use |
-|---|---|
-| `musaffaHalalRating` / `sharia_compliance` | headline verdict (`COMPLIANT` / `NON_COMPLIANT` / `QUESTIONABLE`) |
-| `halal_revenue_percent` | gauge value (0–100), "revenue purity" |
-| `nothalal_revenue_percent`, `doubtful_revenue_percent` | breakdown text in the card |
-| `exchange` | Musaffa URL segment (e.g. `NASDAQ`) |
-| `ticker` / `id` | Musaffa URL segment + match key |
+| Field                                                  | Use                                                               |
+| ------------------------------------------------------ | ----------------------------------------------------------------- |
+| `musaffaHalalRating` / `sharia_compliance`             | headline verdict (`COMPLIANT` / `NON_COMPLIANT` / `QUESTIONABLE`) |
+| `halal_revenue_percent`                                | gauge value (0–100), "revenue purity"                             |
+| `nothalal_revenue_percent`, `doubtful_revenue_percent` | breakdown text in the card                                        |
+| `exchange`                                             | Musaffa URL segment (e.g. `NASDAQ`)                               |
+| `ticker` / `id`                                        | Musaffa URL segment + match key                                   |
 
 All other Typesense fields (fundamentals, prices, ESG, analyst rec) are ignored.
 
@@ -70,7 +70,7 @@ anything else / not found → "unknown"
 ### Symbol → Musaffa key (do NOT use `resolveSymbol`)
 
 **Critical correction from review.** `src/lib/symbol.ts` `resolveSymbol`
-canonicalizes *toward Yahoo* notation: `$BTC`→`BTC-USD`, and via OVERRIDES
+canonicalizes _toward Yahoo_ notation: `$BTC`→`BTC-USD`, and via OVERRIDES
 `HEIA`→`HEIA.AS`. Musaffa is keyed by the **US-equity ticker**, and uses a **dot**
 for class shares (verified: `BRK.B` matches, `BRK-B`/`BRKB` do not). So we must
 NOT canonicalize before querying Musaffa.
@@ -120,6 +120,7 @@ fetchMusaffa(keys, apiKey)              Typesense GET, batch 250, MUSAFFA_API_KE
 ### Units
 
 **`src/lib/halal/musaffa.ts`** (server-only)
+
 - `parseRating(raw: string): HalalStatus` — pure status mapper.
 - `musaffaKey(symbol: string): string` — pure symbol→lookup-key (rules above).
 - `musaffaUrl(ticker: string): string` — pure URL builder (ticker only, no exchange).
@@ -130,6 +131,7 @@ fetchMusaffa(keys, apiKey)              Typesense GET, batch 250, MUSAFFA_API_KE
   `MusaffaRecord`/`HalalInfo = { status, halalPct, notHalalPct, doubtfulPct, exchange, musaffaUrl }`.
 
 **`src/lib/halal-fetch.ts`**
+
 - `fetchHalal` = `createServerFn` taking `{ symbols: string[] }`, returning
   `Record<string, HalalInfo>` keyed by the **input symbol** (so the client can
   look up by the symbol it rendered).
@@ -145,13 +147,14 @@ fetchMusaffa(keys, apiKey)              Typesense GET, batch 250, MUSAFFA_API_KE
   requested symbol returns `{ status: "unknown" }`; logs a warning once; never throws.
 
 **`src/lib/halal-query.ts`**
+
 - `halalQuery(symbols: string[])` → `queryOptions` with
   `queryKey: ["halal", [...symbols].sort()]`, `queryFn: () => fetchHalal({ symbols })`,
   `staleTime: 12h`, `gcTime: 24h`. Consumers set `enabled` from the toggle.
 - `useHalalStatus(symbols)` hook: reads `showHalalStatus`, runs
   `useQuery(halalQuery(symbols))` with `enabled: showHalalStatus && symbols.length`,
   returns `(symbol) => HalalInfo | undefined`.
-- **Caching trade-off (accepted):** the query key is the *sorted symbol set*, so
+- **Caching trade-off (accepted):** the query key is the _sorted symbol set_, so
   two pages with overlapping-but-different sets are distinct client cache entries
   and refetch. That is acceptable because the server-fn's per-key Map makes the
   overlap cheap (already-seen keys resolve from the warm Map) and most surfaces
@@ -160,17 +163,20 @@ fetchMusaffa(keys, apiKey)              Typesense GET, batch 250, MUSAFFA_API_KE
   opt-in display feature; revisit with per-symbol `useQueries` only if it bites.
 
 **`src/lib/preferences.tsx`**
+
 - Add `showHalalStatus: boolean` to `Preferences` (default `false`).
 - localStorage key `show-halal`; `setShowHalalStatus` following `setReduceHaptics`
   exactly (no DOM side effect). Hydrated in the existing mount `useEffect`.
 
 **`src/components/Preferences.tsx`**
+
 - One `SwitchRow`: "Show halal status" / "Badge stocks with their Musaffa
   Shariah-compliance rating." after the existing switches.
 
 **`src/components/halal/halal-badge.tsx`**
+
 - Props `{ info: HalalInfo }`. `halal` → `<span className="icon-[hugeicons--halal] …"
-  role="img" aria-label="Shariah-compliant (Musaffa)" />`; `doubtful` → lucide
+role="img" aria-label="Shariah-compliant (Musaffa)" />`; `doubtful` → lucide
   `CircleQuestionMark` with `aria-label="Shariah compliance questionable (Musaffa)"`;
   `not_halal` / `unknown` → `null`. Inherits text size.
 - Wrapped by the PreviewCard trigger; trigger is a real `<button>` so it is
@@ -178,6 +184,7 @@ fetchMusaffa(keys, apiKey)              Typesense GET, batch 250, MUSAFFA_API_KE
   the button gives focus/tap parity on mobile).
 
 **`src/components/halal/halal-card-content.tsx`**
+
 - Presentational, props `{ info: HalalInfo }`. Renders rating label + colored dot,
   the revenue-purity gauge, the one-line breakdown
   (`halal {x}% · doubtful {y}% · non-halal {z}%`), and "View on Musaffa ↗".
@@ -185,17 +192,19 @@ fetchMusaffa(keys, apiKey)              Typesense GET, batch 250, MUSAFFA_API_KE
   section — no `variant` prop forcing one primitive into two modes (review N2).
 
 **`src/components/halal/halal-preview-card.tsx`**
+
 - coss `preview-card` (`bunx --bun shadcn@latest add @coss/preview-card`),
   wrapping `HalalBadge` as trigger and `HalalCardContent` as body.
 
 **Gauge config (corrected — review B2).** `Gauge.value` is the 0–100 fill level
 (correct as `halalPct`), but `centerValue` is formatted by `Intl.NumberFormat`,
 and `style:"percent"` multiplies by 100. So pass the fraction:
+
 ```tsx
 <ChartBoundary>
   <Gauge
-    value={info.halalPct}                       // 0–100 fill
-    centerValue={info.halalPct / 100}           // fraction; percent style ×100 → "95%"
+    value={info.halalPct} // 0–100 fill
+    centerValue={info.halalPct / 100} // fraction; percent style ×100 → "95%"
     formatOptions={{ style: "percent", maximumFractionDigits: 0 }}
     useGradient
     activeGradient={["#a855f7", "#06b6d4"]}
@@ -209,11 +218,13 @@ and `style:"percent"` multiplies by 100. So pass the fraction:
   />
 </ChartBoundary>
 ```
+
 Gauge already respects `prefers-reduced-motion` (`useReducedMotion` in `gauge.tsx`).
 
 ### Wiring (all gated by `showHalalStatus`)
 
 Badges render wherever a symbol is shown:
+
 - `src/routes/t.$symbol.tsx` — header next to the symbol; **plus** the standalone
   `HalalCardContent` inline section. Client-fetched via `useHalalStatus([symbol])`;
   **no loader/SSR prefetch** (this route has no QueryClient loader today, and the
@@ -230,6 +241,7 @@ once. Toggle off → query disabled → no network, nothing rendered.
 `showHalalStatus` is read from localStorage, which is server-blind:
 `readStoredPrefs` returns `DEFAULTS` (false) on the server and hydrates in a mount
 `useEffect`. Therefore:
+
 - **SSR and first client render are identical** (toggle off → badges/card render
   nothing) → no hydration mismatch.
 - For opted-in users, badges/card **appear after hydration** (a deliberate
@@ -241,14 +253,14 @@ once. Toggle off → query disabled → no network, nothing rendered.
 
 ## Error handling
 
-| Condition | Behavior |
-|---|---|
-| Toggle off | Query disabled, no fetch, no badge/card |
-| `MUSAFFA_API_KEY` missing | Server fn returns all `unknown`, warns once |
-| Musaffa 5xx / timeout | Caught → all requested symbols `unknown` |
-| Symbol not in Typesense (crypto, non-US, class-share miss) | `unknown` |
-| Invalid symbol (fails `isSafeAssetKey`) | dropped to `unknown`, never queried |
-| Partial batch | found symbols get status; missing → `unknown` |
+| Condition                                                  | Behavior                                      |
+| ---------------------------------------------------------- | --------------------------------------------- |
+| Toggle off                                                 | Query disabled, no fetch, no badge/card       |
+| `MUSAFFA_API_KEY` missing                                  | Server fn returns all `unknown`, warns once   |
+| Musaffa 5xx / timeout                                      | Caught → all requested symbols `unknown`      |
+| Symbol not in Typesense (crypto, non-US, class-share miss) | `unknown`                                     |
+| Invalid symbol (fails `isSafeAssetKey`)                    | dropped to `unknown`, never queried           |
+| Partial batch                                              | found symbols get status; missing → `unknown` |
 
 The feature can never break a page: worst case it renders nothing, exactly as if
 the toggle were off.

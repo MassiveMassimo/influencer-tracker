@@ -21,7 +21,7 @@
 
 ## Task -1 [v2]: Seed VM per-creator state (prerequisite — prevents data loss)
 
-**Why:** `reel-calls.json`, `raw/`, `prices/` are gitignored (`.gitignore:19-23`), absent on a fresh clone. `score` rebuilds `dataset.json`/`index.json` from `reel-calls.json` (`score.ts:45,52`); an unseeded clone would scrape a short window → `db:sync` (upsert-only, no delete) would **corrupt the creator's scorecard/stats and break parity** (not delete call rows, but skew every aggregate). Seed full state from the source-of-truth checkout (your Mac), then a guard run *before* score makes a truncated sync impossible.
+**Why:** `reel-calls.json`, `raw/`, `prices/` are gitignored (`.gitignore:19-23`), absent on a fresh clone. `score` rebuilds `dataset.json`/`index.json` from `reel-calls.json` (`score.ts:45,52`); an unseeded clone would scrape a short window → `db:sync` (upsert-only, no delete) would **corrupt the creator's scorecard/stats and break parity** (not delete call rows, but skew every aggregate). Seed full state from the source-of-truth checkout (your Mac), then a guard run _before_ score makes a truncated sync impossible.
 
 **Files:** Create `scripts/guard-no-shrink.ts`; Test `scripts/guard-no-shrink.test.ts`.
 
@@ -34,8 +34,8 @@
 import { test, expect } from "bun:test";
 import { wouldShrink } from "./guard-no-shrink";
 test("flags a shrink below tolerance", () => {
-  expect(wouldShrink(100, 80)).toBe(true);    // 80 < 100*0.95
-  expect(wouldShrink(100, 99)).toBe(false);   // within tolerance
+  expect(wouldShrink(100, 80)).toBe(true); // 80 < 100*0.95
+  expect(wouldShrink(100, 99)).toBe(false); // within tolerance
   expect(wouldShrink(0, 0)).toBe(false);
 });
 ```
@@ -66,7 +66,7 @@ if (import.meta.main) {
 }
 ```
 
-(Comparing scored-vs-scored against the *committed* baseline is the only valid signal — comparing all-ticker `reel-calls.length` to scored `dataset.calls`, or running after `score`, makes the guard mathematically unable to fire.)
+(Comparing scored-vs-scored against the _committed_ baseline is the only valid signal — comparing all-ticker `reel-calls.length` to scored `dataset.calls`, or running after `score`, makes the guard mathematically unable to fire.)
 
 - [ ] **Step 4: Run** — `bun test scripts/guard-no-shrink.test.ts` + `bunx tsc --noEmit` — PASS / 0.
 - [ ] **Step 5: Commit** — `feat(vm): no-shrink sync guard (data-loss prevention)`
@@ -82,22 +82,31 @@ if (import.meta.main) {
 - [ ] **Step 1:** Implement Task 1 (`detectBasisShift`) first, then replace the `continue` at `pipeline/prices.ts:43`:
 
 ```ts
-        if (cacheCovers(cached, from)) {
-          // Front-covered: extend FORWARD instead of skipping, else to-date freezes and
-          // recent horizons never mature. Fetch from ~10 days before the last bar so the
-          // overlap is >=2 trading days — detectBasisShift needs >=2 overlapping bars to fire.
-          const lastDate = cachedBars[cachedBars.length - 1]?.date ?? from;
-          const overlapFrom = new Date(new Date(lastDate).getTime() - 10 * 86400_000).toISOString().slice(0, 10);
-          try {
-            const fwd = await fetchOhlc(t, overlapFrom);
-            const shift = detectBasisShift(cachedBars, fwd);
-            if (shift != null) { console.warn(`SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping append, needs OWNER restatement`); continue; }
-            const ohlc = mergePrices(cachedBars, fwd);
-            await writeFile(out, JSON.stringify(ohlc));
-            console.log(`prices ${t}: extended to ${ohlc[ohlc.length - 1]?.date} (${ohlc.length} bars)`);
-          } catch (e) { console.warn(`FLAG ${t}: forward-extend failed: ${(e as Error).message}`); }
-          continue;
-        }
+if (cacheCovers(cached, from)) {
+  // Front-covered: extend FORWARD instead of skipping, else to-date freezes and
+  // recent horizons never mature. Fetch from ~10 days before the last bar so the
+  // overlap is >=2 trading days — detectBasisShift needs >=2 overlapping bars to fire.
+  const lastDate = cachedBars[cachedBars.length - 1]?.date ?? from;
+  const overlapFrom = new Date(new Date(lastDate).getTime() - 10 * 86400_000)
+    .toISOString()
+    .slice(0, 10);
+  try {
+    const fwd = await fetchOhlc(t, overlapFrom);
+    const shift = detectBasisShift(cachedBars, fwd);
+    if (shift != null) {
+      console.warn(
+        `SPLIT ${t}: basis shift x${shift.toFixed(4)} — skipping append, needs OWNER restatement`,
+      );
+      continue;
+    }
+    const ohlc = mergePrices(cachedBars, fwd);
+    await writeFile(out, JSON.stringify(ohlc));
+    console.log(`prices ${t}: extended to ${ohlc[ohlc.length - 1]?.date} (${ohlc.length} bars)`);
+  } catch (e) {
+    console.warn(`FLAG ${t}: forward-extend failed: ${(e as Error).message}`);
+  }
+  continue;
+}
 ```
 
 - [ ] **Step 2:** Import `detectBasisShift` from `../src/lib/prices-merge` at top of `prices.ts`.
@@ -118,14 +127,24 @@ if (import.meta.main) {
 // add to src/lib/prices-merge.test.ts
 import { detectBasisShift } from "./prices-merge";
 test("detects consistent split-factor shift", () => {
-  const existing = [{date:"2025-01-01",o:400,h:400,l:400,c:400},{date:"2025-01-02",o:404,h:404,l:404,c:404}];
-  const incoming = [{date:"2025-01-01",o:100,h:100,l:100,c:100},{date:"2025-01-02",o:101,h:101,l:101,c:101},{date:"2025-01-03",o:102,h:102,l:102,c:102}];
+  const existing = [
+    { date: "2025-01-01", o: 400, h: 400, l: 400, c: 400 },
+    { date: "2025-01-02", o: 404, h: 404, l: 404, c: 404 },
+  ];
+  const incoming = [
+    { date: "2025-01-01", o: 100, h: 100, l: 100, c: 100 },
+    { date: "2025-01-02", o: 101, h: 101, l: 101, c: 101 },
+    { date: "2025-01-03", o: 102, h: 102, l: 102, c: 102 },
+  ];
   expect(detectBasisShift(existing, incoming)).toBeCloseTo(0.25, 3);
 });
 test("null on same basis / <2 overlap", () => {
-  const bars = [{date:"2025-01-01",o:100,h:100,l:100,c:100},{date:"2025-01-02",o:101,h:101,l:101,c:101}];
+  const bars = [
+    { date: "2025-01-01", o: 100, h: 100, l: 100, c: 100 },
+    { date: "2025-01-02", o: 101, h: 101, l: 101, c: 101 },
+  ];
   expect(detectBasisShift(bars, bars)).toBeNull();
-  expect(detectBasisShift([bars[0]], [{...bars[0], c: 9}])).toBeNull();
+  expect(detectBasisShift([bars[0]], [{ ...bars[0], c: 9 }])).toBeNull();
 });
 ```
 
@@ -146,19 +165,38 @@ test("null on same basis / <2 overlap", () => {
 - [ ] **Step 1:** Add an optional forward mode to `scrapeX`:
 
 ```ts
-export async function scrapeX(handle: string, months = 12, opts: { forward?: boolean } = {}): Promise<TweetRecord[]> {
+export async function scrapeX(
+  handle: string,
+  months = 12,
+  opts: { forward?: boolean } = {},
+): Promise<TweetRecord[]> {
   // ... existing setup: rettiwt, user, cutoff, records=loadExisting, seen ...
   if (opts.forward && records.length) {
     // Incremental: only tweets NEWER than the newest we already have. Use `newest` as-is
     // (no +1s) — `seen` dedupes the boundary tweet, and +1s would skip a different tweet
     // posted in the same second.
     const newest = new Date(Math.max(...records.map((r) => new Date(r.createdAt).getTime())));
-    const filter = { fromUsers: [user], onlyOriginal: true, startDate: newest, endDate: new Date() };
+    const filter = {
+      fromUsers: [user],
+      onlyOriginal: true,
+      startDate: newest,
+      endDate: new Date(),
+    };
     let cursor: string | undefined;
     for (let page = 0; page < 400; page++) {
-      const data: any = await withRetry(() => rettiwt.tweet.search(filter as any, 20, cursor),
-        { label: `x.fwd`, isRetryable: isTransient, retries: 10, delayMs: (a) => Math.min(2 ** a, 120) * 1000 });
-      for (const t of data.list ?? []) { const rec = toRecord(t); if (!seen.has(rec.id)) { seen.add(rec.id); records.push(rec); } }
+      const data: any = await withRetry(() => rettiwt.tweet.search(filter as any, 20, cursor), {
+        label: `x.fwd`,
+        isRetryable: isTransient,
+        retries: 10,
+        delayMs: (a) => Math.min(2 ** a, 120) * 1000,
+      });
+      for (const t of data.list ?? []) {
+        const rec = toRecord(t);
+        if (!seen.has(rec.id)) {
+          seen.add(rec.id);
+          records.push(rec);
+        }
+      }
       await persist(handle, records);
       if (!data.next || !data.list?.length) break;
       cursor = data.next;
@@ -209,11 +247,17 @@ export function reviewMessage(handle: string, newCalls: number, newScored: numbe
   ].join("\n");
 }
 export async function notify(text: string): Promise<void> {
-  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chat) { console.warn("notify: TELEGRAM_* unset"); return; }
+  const token = process.env.TELEGRAM_BOT_TOKEN,
+    chat = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chat) {
+    console.warn("notify: TELEGRAM_* unset");
+    return;
+  }
   const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chat, text, disable_web_page_preview: true }) });
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chat, text, disable_web_page_preview: true }),
+  });
   if (!r.ok) console.warn(`notify failed: ${r.status}`);
 }
 ```
@@ -224,11 +268,16 @@ export async function notify(text: string): Promise<void> {
 import { readFile } from "node:fs/promises";
 import { $ } from "bun";
 const handle = process.argv[2];
-if (!handle) { console.error("usage: resume <handle>"); process.exit(1); }
+if (!handle) {
+  console.error("usage: resume <handle>");
+  process.exit(1);
+}
 // 1. Guard against a truncated scrape BEFORE score overwrites the committed baseline.
 await $`bun run scripts/guard-no-shrink.ts ${handle}`;
 // 2. Score (reads name from the committed dataset so updateIndex doesn't rename the creator).
-const name = JSON.parse(await readFile(`data/creators/${handle}/dataset.json`, "utf8")).creator?.name ?? handle;
+const name =
+  JSON.parse(await readFile(`data/creators/${handle}/dataset.json`, "utf8")).creator?.name ??
+  handle;
 await $`bun run pipeline:x --handle ${handle} --name ${name} --from prices`;
 // 3. Sync to Neon + parity, then best-effort cache-bust.
 await $`bun run db:sync`;
@@ -254,26 +303,40 @@ import { readFile } from "node:fs/promises";
 import { $ } from "bun";
 import { notify, reviewMessage } from "./notify";
 
-const handles = (process.env.INGEST_HANDLES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-if (!handles.length) { console.error("INGEST_HANDLES unset"); process.exit(1); }
+const handles = (process.env.INGEST_HANDLES ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+if (!handles.length) {
+  console.error("INGEST_HANDLES unset");
+  process.exit(1);
+}
 
 async function counts(h: string) {
   try {
     const rc = JSON.parse(await readFile(`data/creators/${h}/reel-calls.json`, "utf8"));
-    return { total: rc.length, scored: rc.filter((x: any) => x.isExplicitBuy && x.direction === "bullish").length };
-  } catch { return { total: 0, scored: 0 }; }
+    return {
+      total: rc.length,
+      scored: rc.filter((x: any) => x.isExplicitBuy && x.direction === "bullish").length,
+    };
+  } catch {
+    return { total: 0, scored: 0 };
+  }
 }
 
 for (const h of handles) {
   try {
     const before = await counts(h);
-    const name = JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
-    await $`bun run pipeline:x --handle ${h} --name ${name} --forward`;   // scrape(forward)+extract, pauses
+    const name =
+      JSON.parse(await readFile(`data/creators/${h}/dataset.json`, "utf8")).creator?.name ?? h;
+    await $`bun run pipeline:x --handle ${h} --name ${name} --forward`; // scrape(forward)+extract, pauses
     const after = await counts(h);
     const fresh = after.total - before.total;
     if (fresh > 0) await notify(reviewMessage(h, fresh, after.scored - before.scored));
     else console.log(`${h}: no new calls`);
-  } catch (e) { await notify(`🚨 ingest FAILED ${h}: ${(e as Error).message}`); }
+  } catch (e) {
+    await notify(`🚨 ingest FAILED ${h}: ${(e as Error).message}`);
+  }
 }
 ```
 
@@ -367,6 +430,7 @@ ExecStart=/home/ubuntu/.bun/bin/bun -e 'import("./scripts/notify.ts").then(m=>m.
 ---
 
 ## Self-review notes
+
 - **Blockers from v1 fixed:** forward-scrape (Task 2), VM seeding + shrink guard (Task -1), git policy (header + Task 6), 1-bar-overlap split blindness (Task 0 overlapFrom), purge mechanism (Task 5 bypass-token), `--name` in resume (Task 3), `DATABASE_URL_SERVE` (prereqs), amend-not-recreate `prices.test.ts` (Task 0).
 - **v2.1 fixes (2nd Fable pass):** `--forward` tested by membership `"forward" in args` not value (else dead code → cron silently no-ops); shrink guard runs FIRST via `scripts/resume.ts` and compares scored-vs-scored (else mathematically unable to fire); resume is `flock`'d (matches the timer); `git clean -fd data/prices/` (new-symbol untracked files would break `--ff-only`); dropped `newest+1s`; `existsSync`-skip the image re-download; softened "wipe history" → "corrupt stats/parity (backfill is upsert-only)".
 - **Verify-before-implementing:** Task 5 spike (Nitro `isr` bypassToken). Everything else verified against code during review.

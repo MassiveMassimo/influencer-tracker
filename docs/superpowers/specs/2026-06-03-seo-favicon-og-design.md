@@ -46,7 +46,7 @@ Pure module, framework-agnostic:
   1200×630) → `@resvg/resvg-js` (PNG).
 - Fonts loaded once from local files (see Fonts below) and cached at module scope.
 - `OgCard` is a discriminated union: `{ kind: 'home' } | { kind: 'creator', ... } |
-  { kind: 'ticker', ... }`. The renderer composes a common frame (background,
+{ kind: 'ticker', ... }`. The renderer composes a common frame (background,
   fade motif, brand footer mark) + a per-kind content block.
 - Theme (`'light' | 'dark'`) is a field on the call, decided by the route (B).
 
@@ -58,15 +58,16 @@ live chart (see C).
 File-based routes in `src/routes/`, each returns a `Response` with
 `Content-Type: image/png`:
 
-| File | Path | Card |
-|---|---|---|
-| `og[.]png.ts` | `/og.png` | home / default |
-| `og.$handle[.]png.ts` | `/og/$handle.png` | creator (reads `index.json`) |
+| File                          | Path                      | Card                          |
+| ----------------------------- | ------------------------- | ----------------------------- |
+| `og[.]png.ts`                 | `/og.png`                 | home / default                |
+| `og.$handle[.]png.ts`         | `/og/$handle.png`         | creator (reads `index.json`)  |
 | `og.$handle.$symbol[.]png.ts` | `/og/$handle/$symbol.png` | ticker (reads `dataset.json`) |
 
 (`[.]` escapes a literal dot in TanStack flat-file route names.)
 
 Each handler:
+
 1. Resolves the data it needs.
 2. Computes `theme` via the sunrise/sunset helper (D).
 3. Calls `renderOgPng` and returns the PNG with

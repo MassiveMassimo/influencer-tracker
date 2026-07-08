@@ -25,7 +25,7 @@
 Two defects in the pricing fetch, both feeding bad data downstream:
 
 1. **Null high/low slip through.** `fetchOhlc` filters quotes on `open != null &&
-   close != null`, then non-null-asserts `q.high!` / `q.low!`. A Yahoo quote with
+close != null`, then non-null-asserts `q.high!` / `q.low!`. A Yahoo quote with
    a null high or low writes `{ h: null, l: null }` into the price file. On read,
    `PriceFileSchema` (`src/lib/schema.ts:13`, every field `z.number()`) **throws**,
    so the ticker-page fallback for that symbol 500s. The live-chart path
@@ -56,16 +56,26 @@ const yahooFinance = new YahooFinance();
 async function fetchOhlc(symbol: string, from: string): Promise<OhlcBar[]> {
   const rows = await yahooFinance.chart(symbol, { period1: from, interval: "1d" });
   return rows.quotes
-    .filter(q => q.open != null && q.close != null)
-    .map(q => ({ date: new Date(q.date).toISOString().slice(0,10),
-      o: q.open!, h: q.high!, l: q.low!, c: q.close! }));
+    .filter((q) => q.open != null && q.close != null)
+    .map((q) => ({
+      date: new Date(q.date).toISOString().slice(0, 10),
+      o: q.open!,
+      h: q.high!,
+      l: q.low!,
+      c: q.close!,
+    }));
 }
 
 export async function prices(handle: string) {
   await mkdir(pricesDir(handle), { recursive: true });
-  const calls: ReelCall[] = JSON.parse(await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"));
-  const tickers = [...new Set(calls.map(c => c.ticker)), "SPY"];
-  const from = calls.reduce((m, c) => c.postDate < m ? c.postDate : m, calls[0]?.postDate ?? "2025-01-01");
+  const calls: ReelCall[] = JSON.parse(
+    await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"),
+  );
+  const tickers = [...new Set(calls.map((c) => c.ticker)), "SPY"];
+  const from = calls.reduce(
+    (m, c) => (c.postDate < m ? c.postDate : m),
+    calls[0]?.postDate ?? "2025-01-01",
+  );
   for (const t of tickers) {
     const out = join(pricesDir(handle), `${t}.json`);
     if (existsSync(out)) {
@@ -82,10 +92,15 @@ export async function prices(handle: string) {
     }
     try {
       const ohlc = await fetchOhlc(t, from);
-      if (!ohlc.length) { console.warn(`FLAG ${t}: no price data`); continue; }
+      if (!ohlc.length) {
+        console.warn(`FLAG ${t}: no price data`);
+        continue;
+      }
       await writeFile(out, JSON.stringify(ohlc));
       console.log(`prices ${t}: ${ohlc.length} bars`);
-    } catch (e) { console.warn(`FLAG ${t}: ${(e as Error).message}`); }
+    } catch (e) {
+      console.warn(`FLAG ${t}: ${(e as Error).message}`);
+    }
   }
 }
 ```
@@ -106,19 +121,21 @@ export async function prices(handle: string) {
 
 ## Commands you will need
 
-| Purpose   | Command                          | Expected on success |
-|-----------|----------------------------------|---------------------|
-| Typecheck | `bunx tsc --noEmit`              | exit 0              |
-| Unit test | `bun test pipeline/prices.test.ts` | all pass          |
-| Full      | `bun test`                       | all pass            |
+| Purpose   | Command                            | Expected on success |
+| --------- | ---------------------------------- | ------------------- |
+| Typecheck | `bunx tsc --noEmit`                | exit 0              |
+| Unit test | `bun test pipeline/prices.test.ts` | all pass            |
+| Full      | `bun test`                         | all pass            |
 
 ## Scope
 
 **In scope**:
+
 - `pipeline/prices.ts`
 - `pipeline/prices.test.ts` (create)
 
 **Out of scope** (do NOT touch):
+
 - `src/lib/prices-merge.ts` — the insert-only merge is correct (do not change the
   freeze semantics).
 - `src/lib/chart-fetch.ts` — already correct; it's the reference, not a target.
@@ -142,9 +159,14 @@ Replace the `.filter` in `fetchOhlc` to match `toLiveBars`:
 
 ```ts
 return rows.quotes
-  .filter(q => q.open != null && q.high != null && q.low != null && q.close != null)
-  .map(q => ({ date: new Date(q.date).toISOString().slice(0,10),
-    o: q.open!, h: q.high!, l: q.low!, c: q.close! }));
+  .filter((q) => q.open != null && q.high != null && q.low != null && q.close != null)
+  .map((q) => ({
+    date: new Date(q.date).toISOString().slice(0, 10),
+    o: q.open!,
+    h: q.high!,
+    l: q.low!,
+    c: q.close!,
+  }));
 ```
 
 (The `!` assertions are now justified by the filter — same pattern as
@@ -176,7 +198,9 @@ if (existsSync(out)) {
   try {
     const cached = JSON.parse(await readFile(out, "utf8"));
     if (cacheCovers(cached, from)) continue;
-    console.warn(`REFETCH ${t}: cache misses coverage (need <= ${from}, have ${Array.isArray(cached) && cached[0]?.date ? cached[0].date : "?"} / ${Array.isArray(cached) ? cached.length : 0} bar(s))`);
+    console.warn(
+      `REFETCH ${t}: cache misses coverage (need <= ${from}, have ${Array.isArray(cached) && cached[0]?.date ? cached[0].date : "?"} / ${Array.isArray(cached) ? cached.length : 0} bar(s))`,
+    );
   } catch {
     console.warn(`REFETCH ${t}: unreadable cache`);
   }
@@ -185,7 +209,7 @@ if (existsSync(out)) {
 
 A refetch re-fetches from `from` and overwrites the file. Because the shared
 store merge (`src/lib/prices-merge.ts`, applied later in `score.ts`) is
-insert-only, refetching can only *add* older bars — it never rewrites a frozen
+insert-only, refetching can only _add_ older bars — it never rewrites a frozen
 bar. (Note: this per-creator file is the fetch cache, overwritten on refetch;
 the frozen, insert-only store is `data/prices/`, written by `score.ts` — not
 touched here.)
@@ -202,7 +226,10 @@ import { describe, it, expect } from "bun:test";
 import { cacheCovers } from "./prices";
 
 describe("cacheCovers", () => {
-  const bars = [{ date: "2025-01-01", o:1,h:1,l:1,c:1 }, { date: "2025-02-01", o:1,h:1,l:1,c:1 }];
+  const bars = [
+    { date: "2025-01-01", o: 1, h: 1, l: 1, c: 1 },
+    { date: "2025-02-01", o: 1, h: 1, l: 1, c: 1 },
+  ];
   it("true when earliest bar is at/before `from`", () => {
     expect(cacheCovers(bars, "2025-03-01")).toBe(true);
     expect(cacheCovers(bars, "2025-01-01")).toBe(true);

@@ -13,6 +13,7 @@
 ## File Structure
 
 **Create:**
+
 - `src/og/solar.ts` — pure sunrise/sunset (solar altitude) → `light|dark`
 - `src/og/solar.test.ts`
 - `src/og/motif.ts` — seeded PRNG + point gen + standalone faded-chart SVG string
@@ -32,6 +33,7 @@
 - `src/og/icon-mark.ts` — the app-mark SVG (shared by icons + cards)
 
 **Modify:**
+
 - `src/routes/__root.tsx` — favicon links, default OG/Twitter, theme-color
 - `src/routes/index.tsx` — `head:`
 - `src/routes/c.$handle.index.tsx` — `head:`
@@ -49,6 +51,7 @@
 - [ ] **Step 1: Install**
 
 Run:
+
 ```bash
 cd /Users/imo/Documents/GitHub/stonks/influencer-tracker
 bun add satori @resvg/resvg-js @fontsource/fraunces @fontsource/geist-mono
@@ -57,10 +60,12 @@ bun add satori @resvg/resvg-js @fontsource/fraunces @fontsource/geist-mono
 - [ ] **Step 2: Confirm the static woff files exist (satori needs ttf/otf/woff — NOT woff2)**
 
 Run:
+
 ```bash
 ls node_modules/@fontsource/fraunces/files/ | grep -E 'latin-600-normal' ; \
 ls node_modules/@fontsource/geist-mono/files/ | grep -E 'latin-(400|600)-normal'
 ```
+
 Expected: lines including `fraunces-latin-600-normal.woff`, `geist-mono-latin-400-normal.woff`, `geist-mono-latin-600-normal.woff`.
 If only `.woff2` appears (no `.woff`), STOP and tell the user — satori can't read woff2; we'll need to vendor TTFs instead.
 
@@ -76,6 +81,7 @@ git commit -m "build: add satori, resvg, og fonts"
 ## Task 2: Solar day/night helper (TDD)
 
 **Files:**
+
 - Create: `src/og/solar.ts`
 - Test: `src/og/solar.test.ts`
 
@@ -136,8 +142,7 @@ export function solarAltitudeDeg(date: Date, lat: number, lng: number): number {
   const ha = (gmst + lng) * rad - ra; // local hour angle
   const latR = lat * rad;
   const alt = Math.asin(
-    Math.sin(latR) * Math.sin(delta) +
-      Math.cos(latR) * Math.cos(delta) * Math.cos(ha),
+    Math.sin(latR) * Math.sin(delta) + Math.cos(latR) * Math.cos(delta) * Math.cos(ha),
   );
   return alt / rad;
 }
@@ -172,6 +177,7 @@ git commit -m "feat(og): sunrise/sunset theme helper"
 ## Task 3: Faded chart motif — seeded SVG (TDD)
 
 **Files:**
+
 - Create: `src/og/theme.ts`, `src/og/motif.ts`
 - Test: `src/og/motif.test.ts`
 
@@ -256,7 +262,13 @@ describe("motif", () => {
     expect(pts[pts.length - 1].y).toBeGreaterThan(pts[0].y);
   });
   it("builds a self-contained svg with gradient + mask", () => {
-    const svg = buildMotifSvg({ seed: "x", up: true, palette: palette("light"), width: 1200, height: 630 });
+    const svg = buildMotifSvg({
+      seed: "x",
+      up: true,
+      palette: palette("light"),
+      width: 1200,
+      height: 630,
+    });
     expect(svg.startsWith("<svg")).toBe(true);
     expect(svg).toContain("linearGradient");
     expect(svg).toContain("<mask");
@@ -409,6 +421,7 @@ git commit -m "feat(og): seeded faded chart motif svg + palette"
 ## Task 4: Motif preview — CHECKPOINT (is it pretty?)
 
 **Files:**
+
 - Create: `scripts/render-motif-preview.ts`
 
 This renders the motif alone to PNGs (no fonts/cards needed) so the user can judge
@@ -450,9 +463,11 @@ for (const c of cases) {
 - [ ] **Step 2: Run it**
 
 Run:
+
 ```bash
 bun run scripts/render-motif-preview.ts
 ```
+
 Expected: 4 `.png` files in `.og-preview/`.
 
 - [ ] **Step 3: CHECKPOINT — send PNGs to the user**
@@ -472,6 +487,7 @@ git commit -m "chore(og): motif preview script"
 ## Task 5: Font loader for satori
 
 **Files:**
+
 - Create: `src/og/fonts.ts`
 
 - [ ] **Step 1: Write the loader**
@@ -501,9 +517,24 @@ let cache: SatoriFont[] | null = null;
 export function ogFonts(): SatoriFont[] {
   if (cache) return cache;
   cache = [
-    { name: "Geist Mono", data: read("@fontsource/geist-mono", "geist-mono-latin-400-normal.woff"), weight: 400, style: "normal" },
-    { name: "Geist Mono", data: read("@fontsource/geist-mono", "geist-mono-latin-600-normal.woff"), weight: 600, style: "normal" },
-    { name: "Fraunces", data: read("@fontsource/fraunces", "fraunces-latin-600-normal.woff"), weight: 600, style: "normal" },
+    {
+      name: "Geist Mono",
+      data: read("@fontsource/geist-mono", "geist-mono-latin-400-normal.woff"),
+      weight: 400,
+      style: "normal",
+    },
+    {
+      name: "Geist Mono",
+      data: read("@fontsource/geist-mono", "geist-mono-latin-600-normal.woff"),
+      weight: 600,
+      style: "normal",
+    },
+    {
+      name: "Fraunces",
+      data: read("@fontsource/fraunces", "fraunces-latin-600-normal.woff"),
+      weight: 600,
+      style: "normal",
+    },
   ];
   return cache;
 }
@@ -512,9 +543,11 @@ export function ogFonts(): SatoriFont[] {
 - [ ] **Step 2: Smoke-check it loads (no test file — fs/resolve only)**
 
 Run:
+
 ```bash
 bun -e 'import("./src/og/fonts.ts").then(m=>console.log(m.ogFonts().map(f=>[f.name,f.weight,f.data.byteLength])))'
 ```
+
 Expected: three rows with non-zero byte lengths. If `require.resolve` throws, the package's `exports` may not expose `./files/*` — fall back to a hardcoded `node_modules/...` path read.
 
 - [ ] **Step 3: Commit**
@@ -529,6 +562,7 @@ git commit -m "feat(og): satori font loader"
 ## Task 6: OG card renderer
 
 **Files:**
+
 - Create: `src/og/render.tsx`
 - Test: `src/og/render.test.ts`
 
@@ -600,18 +634,43 @@ function BrandFooter({ pal }: { pal: OgPalette }) {
           border: `1px solid ${pal.line}`,
         }}
       >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={pal.bg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={pal.bg}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d={LINE_CHART_D} />
         </svg>
       </div>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 26, fontWeight: 600, color: pal.fg }}>
+      <div
+        style={{
+          display: "flex",
+          fontFamily: "Geist Mono",
+          fontSize: 26,
+          fontWeight: 600,
+          color: pal.fg,
+        }}
+      >
         Signal Tracker
       </div>
     </div>
   );
 }
 
-function Frame({ pal, motif, children }: { pal: OgPalette; motif: string; children: React.ReactNode }) {
+function Frame({
+  pal,
+  motif,
+  children,
+}: {
+  pal: OgPalette;
+  motif: string;
+  children: React.ReactNode;
+}) {
   return (
     <div
       style={{
@@ -626,7 +685,15 @@ function Frame({ pal, motif, children }: { pal: OgPalette; motif: string; childr
       }}
     >
       <img src={motif} width={W} height={H} style={{ position: "absolute", top: 0, left: 0 }} />
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between", position: "relative" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          justifyContent: "space-between",
+          position: "relative",
+        }}
+      >
         {children}
       </div>
     </div>
@@ -635,7 +702,16 @@ function Frame({ pal, motif, children }: { pal: OgPalette; motif: string; childr
 
 function Kicker({ pal, text }: { pal: OgPalette; text: string }) {
   return (
-    <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 22, letterSpacing: 6, textTransform: "uppercase", color: pal.fgMuted }}>
+    <div
+      style={{
+        display: "flex",
+        fontFamily: "Geist Mono",
+        fontSize: 22,
+        letterSpacing: 6,
+        textTransform: "uppercase",
+        color: pal.fgMuted,
+      }}
+    >
       {text}
     </div>
   );
@@ -646,10 +722,14 @@ function Stat({ pal, value }: { pal: OgPalette; value: number | null }) {
   const color = value == null ? pal.fgMuted : ok ? pal.up : pal.down;
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 96, fontWeight: 600, color }}>
+      <div
+        style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 96, fontWeight: 600, color }}
+      >
         {value == null ? "—" : signed(value)}
       </div>
-      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, color: pal.fgMuted }}>vs SPY · 3m</div>
+      <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, color: pal.fgMuted }}>
+        vs SPY · 3m
+      </div>
     </div>
   );
 }
@@ -660,13 +740,39 @@ function cardTree(card: OgCard, pal: OgPalette, motif: string): React.ReactEleme
       <Frame pal={pal} motif={motif}>
         <Kicker pal={pal} text="Signal Tracker · vs SPY" />
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 84, lineHeight: 1, color: pal.fg }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Fraunces",
+              fontWeight: 600,
+              fontSize: 84,
+              lineHeight: 1,
+              color: pal.fg,
+            }}
+          >
             Influencer accuracy,
           </div>
-          <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 84, lineHeight: 1, color: pal.lagoonDeep }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Fraunces",
+              fontWeight: 600,
+              fontSize: 84,
+              lineHeight: 1,
+              color: pal.lagoonDeep,
+            }}
+          >
             measured against the market.
           </div>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 28, color: pal.fgMuted, marginTop: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontSize: 28,
+              color: pal.fgMuted,
+              marginTop: 8,
+            }}
+          >
             Forward returns of stock calls, net of SPY.
           </div>
         </div>
@@ -680,11 +786,35 @@ function cardTree(card: OgCard, pal: OgPalette, motif: string): React.ReactEleme
         <Kicker pal={pal} text="Signal accuracy" />
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           {card.avatar ? (
-            <img src={card.avatar} width={120} height={120} style={{ borderRadius: 999, border: `2px solid ${pal.line}` }} />
+            <img
+              src={card.avatar}
+              width={120}
+              height={120}
+              style={{ borderRadius: 999, border: `2px solid ${pal.line}` }}
+            />
           ) : null}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 64, color: pal.fg }}>{card.name}</div>
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 30, color: pal.fgMuted }}>@{card.handle} · {card.totalCalls} calls</div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "Fraunces",
+                fontWeight: 600,
+                fontSize: 64,
+                color: pal.fg,
+              }}
+            >
+              {card.name}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "Geist Mono",
+                fontSize: 30,
+                color: pal.fgMuted,
+              }}
+            >
+              @{card.handle} · {card.totalCalls} calls
+            </div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -700,12 +830,41 @@ function cardTree(card: OgCard, pal: OgPalette, motif: string): React.ReactEleme
       <Kicker pal={pal} text={`@${card.handle}`} />
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 20 }}>
-          <div style={{ display: "flex", fontFamily: "Geist Mono", fontWeight: 600, fontSize: 96, color: pal.fg }}>{card.symbol}</div>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "Geist Mono",
+              fontWeight: 600,
+              fontSize: 96,
+              color: pal.fg,
+            }}
+          >
+            {card.symbol}
+          </div>
           {card.company ? (
-            <div style={{ display: "flex", fontFamily: "Geist Mono", fontSize: 34, color: pal.fgMuted }}>{card.company}</div>
+            <div
+              style={{
+                display: "flex",
+                fontFamily: "Geist Mono",
+                fontSize: 34,
+                color: pal.fgMuted,
+              }}
+            >
+              {card.company}
+            </div>
           ) : null}
         </div>
-        <div style={{ display: "flex", fontFamily: "Fraunces", fontWeight: 600, fontSize: 36, color: pal.fgMuted }}>called by {card.name}</div>
+        <div
+          style={{
+            display: "flex",
+            fontFamily: "Fraunces",
+            fontWeight: 600,
+            fontSize: 36,
+            color: pal.fgMuted,
+          }}
+        >
+          called by {card.name}
+        </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <Stat pal={pal} value={card.excess3m} />
@@ -717,8 +876,18 @@ function cardTree(card: OgCard, pal: OgPalette, motif: string): React.ReactEleme
 
 export async function renderOgPng(card: OgCard): Promise<Buffer> {
   const pal = palette(card.theme);
-  const seed = card.kind === "home" ? "signal-tracker" : "handle" in card ? card.handle + ("symbol" in card ? card.symbol : "") : "signal-tracker";
-  const up = card.kind === "creator" ? card.excess3m >= 0 : card.kind === "ticker" ? (card.excess3m ?? 0) >= 0 : true;
+  const seed =
+    card.kind === "home"
+      ? "signal-tracker"
+      : "handle" in card
+        ? card.handle + ("symbol" in card ? card.symbol : "")
+        : "signal-tracker";
+  const up =
+    card.kind === "creator"
+      ? card.excess3m >= 0
+      : card.kind === "ticker"
+        ? (card.excess3m ?? 0) >= 0
+        : true;
   const motif = motifDataUri(seed, up, pal);
   const svg = await satori(cardTree(card, pal, motif), { width: W, height: H, fonts: ogFonts() });
   return new Resvg(svg, { fitTo: { mode: "width", value: W } }).render().asPng();
@@ -779,6 +948,7 @@ git commit -m "feat(og): card renderer (home/creator/ticker)"
 ## Task 7: Site origin helper
 
 **Files:**
+
 - Create: `src/og/site.ts`
 
 - [ ] **Step 1: Write it**
@@ -808,6 +978,7 @@ git commit -m "feat(og): siteUrl helper"
 ## Task 8: Home OG route `/og.png`
 
 **Files:**
+
 - Create: `src/routes/og[.]png.ts`
 
 - [ ] **Step 1: Write the route**
@@ -841,9 +1012,11 @@ export { pngResponse };
 - [ ] **Step 2: Verify route returns a PNG**
 
 Run (in one terminal `bun run dev`, then):
+
 ```bash
 curl -sS -D - http://localhost:3000/og.png -o /tmp/og-home.png | grep -i content-type ; file /tmp/og-home.png
 ```
+
 Expected: `Content-Type: image/png` and `PNG image data, 1200 x 630`.
 
 - [ ] **Step 3: Commit**
@@ -858,6 +1031,7 @@ git commit -m "feat(og): /og.png home route"
 ## Task 9: Creator OG route `/og/$handle.png`
 
 **Files:**
+
 - Create: `src/routes/og.$handle[.]png.ts`
 
 Reads `data/creators/index.json` (light — no full dataset).
@@ -883,7 +1057,9 @@ interface IndexEntry {
 
 async function loadIndex(): Promise<IndexEntry[]> {
   try {
-    return JSON.parse(await readFile(join(process.cwd(), "data", "creators", "index.json"), "utf8"));
+    return JSON.parse(
+      await readFile(join(process.cwd(), "data", "creators", "index.json"), "utf8"),
+    );
   } catch {
     return [];
   }
@@ -919,10 +1095,12 @@ export const Route = createFileRoute("/og/$handle.png")({
 - [ ] **Step 2: Verify (use a real handle from `data/creators/index.json`)**
 
 Run:
+
 ```bash
 HANDLE=$(bun -e 'console.log(JSON.parse(require("fs").readFileSync("data/creators/index.json","utf8"))[0].handle)')
 curl -sS http://localhost:3000/og/$HANDLE.png -o /tmp/og-creator.png ; file /tmp/og-creator.png
 ```
+
 Expected: `PNG image data, 1200 x 630`.
 
 - [ ] **Step 3: Commit**
@@ -937,6 +1115,7 @@ git commit -m "feat(og): /og/\$handle.png creator route"
 ## Task 10: Ticker OG route `/og/$handle/$symbol.png`
 
 **Files:**
+
 - Create: `src/routes/og.$handle.$symbol[.]png.ts`
 
 - [ ] **Step 1: Write the route**
@@ -959,7 +1138,10 @@ export const Route = createFileRoute("/og/$handle/$symbol.png")({
         let ds: Dataset | null = null;
         try {
           ds = JSON.parse(
-            await readFile(join(process.cwd(), "data", "creators", params.handle, "dataset.json"), "utf8"),
+            await readFile(
+              join(process.cwd(), "data", "creators", params.handle, "dataset.json"),
+              "utf8",
+            ),
           );
         } catch {
           ds = null;
@@ -987,9 +1169,11 @@ export const Route = createFileRoute("/og/$handle/$symbol.png")({
 - [ ] **Step 2: Verify**
 
 Run (pick a real handle+symbol):
+
 ```bash
 curl -sS "http://localhost:3000/og/$HANDLE/AAPL.png" -o /tmp/og-ticker.png ; file /tmp/og-ticker.png
 ```
+
 Expected: `PNG image data, 1200 x 630` (a home fallback if AAPL isn't a call for that creator — try a real symbol from the dataset).
 
 - [ ] **Step 3: Commit**
@@ -1004,6 +1188,7 @@ git commit -m "feat(og): /og/\$handle/\$symbol.png ticker route"
 ## Task 11: Favicon + app icons
 
 **Files:**
+
 - Create: `src/og/icon-mark.ts`, `scripts/gen-icons.ts`
 - Modify: `public/manifest.json`, generated icon files; remove `public/logo192.png`, `public/logo512.png`
 
@@ -1055,7 +1240,9 @@ writeFileSync("public/favicon.ico", png(48));
 
 // drop CRA defaults
 for (const f of ["public/logo192.png", "public/logo512.png"]) {
-  try { rmSync(f); } catch {}
+  try {
+    rmSync(f);
+  } catch {}
 }
 console.log("icons written");
 ```
@@ -1070,6 +1257,7 @@ Expected: `icons written`; `public/icon.svg`, `icon-192.png`, `icon-512.png`, `a
 Send `public/icon-512.png` + `public/apple-touch-icon.png` to the user for a quick OK on the mark.
 
 Replace `public/manifest.json` with:
+
 ```json
 {
   "short_name": "Signal Tracker",
@@ -1102,16 +1290,19 @@ git commit -m "feat: on-brand favicon + app icons"
 ## Task 12: Root head — favicon links, default OG/Twitter, theme-color
 
 **Files:**
+
 - Modify: `src/routes/__root.tsx:19-38`
 
 - [ ] **Step 1: Replace the `head()` block**
 
 In `src/routes/__root.tsx`, add the import near the top:
+
 ```ts
 import { siteUrl } from "#/og/site.ts";
 ```
 
 Replace the existing `head: () => ({ ... })` (lines ~19–38) with:
+
 ```ts
   head: () => ({
     meta: [
@@ -1165,15 +1356,19 @@ git commit -m "feat(seo): root favicon links + default og/twitter meta"
 ## Task 13: Per-route head — index, creator, ticker
 
 **Files:**
+
 - Modify: `src/routes/index.tsx:5-8`, `src/routes/c.$handle.index.tsx:14-17`, `src/routes/c.$handle.ticker.$symbol.tsx:22-25`
 
 - [ ] **Step 1: Index route head**
 
 In `src/routes/index.tsx`, add import:
+
 ```ts
 import { siteUrl } from "#/og/site.ts";
 ```
+
 Add a `head` to the route options (alongside `loader`/`component`):
+
 ```ts
 export const Route = createFileRoute("/")({
   loader: () => listCreators(),
@@ -1192,10 +1387,13 @@ export const Route = createFileRoute("/")({
 - [ ] **Step 2: Creator route head** (uses loaderData → `ds.creator.name`)
 
 In `src/routes/c.$handle.index.tsx`, add import:
+
 ```ts
 import { siteUrl } from "#/og/site.ts";
 ```
+
 Update the route to add `head` using params + loaderData:
+
 ```ts
 export const Route = createFileRoute("/c/$handle/")({
   loader: ({ params }) => getDataset({ data: params.handle }),
@@ -1220,10 +1418,13 @@ export const Route = createFileRoute("/c/$handle/")({
 - [ ] **Step 3: Ticker route head**
 
 In `src/routes/c.$handle.ticker.$symbol.tsx`, add import:
+
 ```ts
 import { siteUrl } from "#/og/site.ts";
 ```
+
 Update the route:
+
 ```ts
 export const Route = createFileRoute("/c/$handle/ticker/$symbol")({
   loader: ({ params }) => getDataset({ data: params.handle }),
@@ -1263,6 +1464,7 @@ git commit -m "feat(seo): per-page og:image + titles"
 ## Task 14: Sitemap + robots
 
 **Files:**
+
 - Create: `src/routes/sitemap[.]xml.ts`
 - Modify: `public/robots.txt`
 
@@ -1303,6 +1505,7 @@ ${urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n")}
 - [ ] **Step 2: Update robots.txt**
 
 Replace `public/robots.txt` with:
+
 ```
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
@@ -1310,6 +1513,7 @@ Disallow:
 
 Sitemap: /sitemap.xml
 ```
+
 (Note: relative `Sitemap:` is tolerated by major crawlers; absolute is set via `SITE_URL` at deploy if needed.)
 
 - [ ] **Step 3: Verify**
@@ -1329,6 +1533,7 @@ git commit -m "feat(seo): sitemap.xml + robots sitemap ref"
 ## Task 15: Full preview — CHECKPOINT + final verification
 
 **Files:**
+
 - Create: `scripts/render-og-preview.ts`
 
 - [ ] **Step 1: Write the full preview script**
@@ -1342,16 +1547,52 @@ const out = ".og-preview";
 mkdirSync(out, { recursive: true });
 
 const idx = JSON.parse(readFileSync("data/creators/index.json", "utf8")) as {
-  handle: string; name: string; totalCalls: number; avgExcess3m: number; avatar?: string;
+  handle: string;
+  name: string;
+  totalCalls: number;
+  avgExcess3m: number;
+  avatar?: string;
 }[];
 const c = idx[0];
 
 const cards = [
   { file: "home-light.png", card: { kind: "home", theme: "light" } as const },
   { file: "home-dark.png", card: { kind: "home", theme: "dark" } as const },
-  c && { file: "creator-light.png", card: { kind: "creator", theme: "light", name: c.name, handle: c.handle, avatar: c.avatar, excess3m: c.avgExcess3m, totalCalls: c.totalCalls } as const },
-  c && { file: "creator-dark.png", card: { kind: "creator", theme: "dark", name: c.name, handle: c.handle, avatar: c.avatar, excess3m: c.avgExcess3m, totalCalls: c.totalCalls } as const },
-  c && { file: "ticker-light.png", card: { kind: "ticker", theme: "light", symbol: "NVDA", name: c.name, handle: c.handle, excess3m: 0.082 } as const },
+  c && {
+    file: "creator-light.png",
+    card: {
+      kind: "creator",
+      theme: "light",
+      name: c.name,
+      handle: c.handle,
+      avatar: c.avatar,
+      excess3m: c.avgExcess3m,
+      totalCalls: c.totalCalls,
+    } as const,
+  },
+  c && {
+    file: "creator-dark.png",
+    card: {
+      kind: "creator",
+      theme: "dark",
+      name: c.name,
+      handle: c.handle,
+      avatar: c.avatar,
+      excess3m: c.avgExcess3m,
+      totalCalls: c.totalCalls,
+    } as const,
+  },
+  c && {
+    file: "ticker-light.png",
+    card: {
+      kind: "ticker",
+      theme: "light",
+      symbol: "NVDA",
+      name: c.name,
+      handle: c.handle,
+      excess3m: 0.082,
+    } as const,
+  },
 ].filter(Boolean) as { file: string; card: Parameters<typeof renderOgPng>[0] }[];
 
 for (const { file, card } of cards) {
@@ -1372,9 +1613,11 @@ Send the `.og-preview/*.png` files + `public/icon-512.png` via SendUserFile. Get
 - [ ] **Step 4: Full verification**
 
 Run:
+
 ```bash
 bunx tsc --noEmit && bun test
 ```
+
 Expected: tsc clean; all tests pass (solar, motif, render + existing suites).
 
 - [ ] **Step 5: Commit**

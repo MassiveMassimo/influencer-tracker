@@ -83,21 +83,23 @@ actually runs in CI.
 
 ## Commands you will need
 
-| Purpose   | Command                  | Expected on success |
-|-----------|--------------------------|---------------------|
-| Typecheck | `bunx tsc --noEmit`      | exit 0, no output   |
-| Tests     | `bun test`               | exit 0, all pass (DB suites skip) |
-| Lint YAML | (none — visual review)   | —                   |
+| Purpose   | Command                | Expected on success               |
+| --------- | ---------------------- | --------------------------------- |
+| Typecheck | `bunx tsc --noEmit`    | exit 0, no output                 |
+| Tests     | `bun test`             | exit 0, all pass (DB suites skip) |
+| Lint YAML | (none — visual review) | —                                 |
 
 (Verified during recon: both commands exit 0 at commit `fa39041`.)
 
 ## Scope
 
 **In scope** (the only files you should modify/create):
+
 - `.github/workflows/ci.yml` (create)
 - `package.json` (add a `typecheck` script only)
 
 **Out of scope** (do NOT touch):
+
 - `.github/workflows/react-doctor.yml` — leave the existing workflow exactly as is.
 - Any source file, test file, or config other than `package.json`'s scripts block.
 - Do NOT add a linter/formatter, pre-commit hooks, or a test database — those are
@@ -169,6 +171,7 @@ jobs:
 ```
 
 Rationale for the choices, so you don't second-guess them:
+
 - `oven-sh/setup-bun@v2` is the standard Bun setup action.
 - `--frozen-lockfile` makes CI fail if `bun.lock` is out of sync rather than
   silently resolving new versions.
@@ -178,6 +181,7 @@ Rationale for the choices, so you don't second-guess them:
   also gated, not just PRs.
 
 **Verify**:
+
 - `bun run typecheck` → exit 0.
 - `bun test` → exit 0 (DB-gated suites report as skipped, not failed).
 - The YAML is valid (no tabs; 2-space indent). If you have `actionlint`

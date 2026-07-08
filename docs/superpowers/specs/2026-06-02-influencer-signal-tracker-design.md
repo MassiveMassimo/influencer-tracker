@@ -60,6 +60,7 @@ stonks/                      # monorepo root
 ```
 
 Move rules:
+
 - `git mv` every existing top-level Python entry into `stock-pipeline-v2/` EXCEPT
   the new `docs/superpowers/` specs tree (stays at root) and `.git`.
 - `pyproject.toml` `testpaths`/packaging stays valid because everything moves
@@ -88,9 +89,9 @@ Per-creator data root: `data/creators/<handle>/`.
 
 1. **scrape** (`scrape.ts`) — Playwright + stealth, browser-driven
    - Drive a real Chromium session via **Playwright with stealth** (`playwright`
-     + `playwright-extra` + `puppeteer-extra-plugin-stealth`, or `rebrowser-playwright`)
-     to look like a human browser and minimize ban risk. Reuse the user's logged-in
-     Instagram session via cookies / a persistent user-data dir.
+     - `playwright-extra` + `puppeteer-extra-plugin-stealth`, or `rebrowser-playwright`)
+       to look like a human browser and minimize ban risk. Reuse the user's logged-in
+       Instagram session via cookies / a persistent user-data dir.
    - Navigate to `instagram.com/<handle>/`, scroll the reels grid with human-like
      randomized delays until 12 months of posts are loaded, harvesting shortcodes +
      **post dates** from the page's embedded GraphQL/JSON responses (intercept
@@ -112,7 +113,7 @@ Per-creator data root: `data/creators/<handle>/`.
 4. **extract** (`extract.ts`)
    - Groq `llama-3.3-70b` over transcript + caption + frame hints.
    - Emits structured per reel: `{ ticker, company, direction, is_explicit_buy,
-     conviction (0-1), quote, on_screen_price? }`.
+conviction (0-1), quote, on_screen_price? }`.
    - **Filter: keep only `is_explicit_buy === true` bullish calls** for scoring;
      retain the rest tagged for the timeline.
    - Writes `.../calls.review.md` (human-readable) so the user sanity-checks
@@ -181,6 +182,7 @@ Stack: TanStack Start (file routing + server fns), Vite, Bun, Tailwind v4,
 shadcn/ui, and **bklit-ui** charts (shadcn registry: candlestick, line, composed).
 
 Routes / views:
+
 - **`/` Landing**: list of tracked creators from `index.json`, each a card with
   headline scorecard (total calls, avg 3m excess). One creator today; grows as more
   are added. (Cross-creator comparison view deferred — see Deferred.)
@@ -204,7 +206,7 @@ The dashboard must not overclaim. Three caveats are first-class, shown in-produc
 2. **Re-posts.** Creators re-promote winners repeatedly. Scorecard dedupes to the
    first bullish mention per ticker; the timeline still shows every reel.
 3. **Forward-from-post-date.** We ignore the gains a creator brags about from old
-   entries and measure only what happened *after* each reel's post date — the honest
+   entries and measure only what happened _after_ each reel's post date — the honest
    test of signal quality for a viewer who acted on the reel.
 
 Excess-vs-SPY is the headline metric specifically so a rising-tide bull market does
@@ -246,9 +248,12 @@ not make a creator look skilled.
   caching, a throwaway account if available. If a full year can't be pulled, fall
   back to user-supplied reel URLs.
 - **Ticker extraction errors.** LLM may misclassify. Mitigation: vision cross-check
-  + mandatory human review of `calls.review.md` before scoring.
+  - mandatory human review of `calls.review.md` before scoring.
 - **Sparse / delisted tickers.** Some picks may lack clean Yahoo data. Mitigation:
   flag and exclude with a visible note, never fabricate.
 - **Groq rate limits** across whisper/vision/llm for dozens of reels. Mitigation:
   cache per shortcode, sequential with backoff.
+
+```
+
 ```
