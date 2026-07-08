@@ -97,8 +97,8 @@ const haloStops = (hue: Trait["hue"]): Stops => {
   const ld = (lightL: number, lightC: number, lightA: number, darkA: number) =>
     `light-dark(${oklchStr(lightL, lightC, h, lightA)}, ${oklchStr(40, c * 0.6, h, darkA)})`; // dark = shade 950
   return {
-    top: ld(81, c * 0.48, 0.35, 1), //   light shade ~300 @.35 / dark 950 @1
-    bot: ld(97, c * 0.06, 0.35, 0.2), // light shade ~50  @.35 / dark 950 @.2
+    top: ld(81, c * 0.48, 0.35, 0.5), // light shade ~300 @.35 / dark 950 @.5
+    bot: ld(97, c * 0.06, 0.35, 0.1), // light shade ~50  @.35 / dark 950 @.1
   };
 };
 
