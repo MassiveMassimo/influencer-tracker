@@ -234,17 +234,15 @@ t("loadOverrides returns the rows for a handle, mapped to the Override shape", a
       indexStats: {},
     })
     .onConflictDoNothing();
-  await db
-    .insert(callOverrides)
-    .values({
-      handle: "h",
-      shortcode: "AAA",
-      ticker: "AMD",
-      isExplicitBuy: null,
-      direction: null,
-      reason: "wrong ticker",
-      createdAt: "2026-06-13",
-    });
+  await db.insert(callOverrides).values({
+    handle: "h",
+    shortcode: "AAA",
+    ticker: "AMD",
+    isExplicitBuy: null,
+    direction: null,
+    reason: "wrong ticker",
+    createdAt: "2026-06-13",
+  });
   const got = await loadOverrides(db, "h");
   expect(got).toEqual([
     {
