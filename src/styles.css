@@ -5,8 +5,6 @@
 
 @import "tw-animate-css";
 
-@import "tw-animate-css";
-
 @import "shadcn/tailwind.css";
 
 @import "@fontsource-variable/geist-mono";
@@ -320,6 +318,16 @@ a {
     color 180ms ease,
     border-color 180ms ease,
     transform 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .island-shell,
+  a,
+  .feature-card,
+  .nav-link::after {
+    transition: none !important;
+  }
 }
 
 .island-kicker {
@@ -810,6 +818,39 @@ number-flow-group {
     transition: none !important;
   }
 }
+
+/* Ring shimmer: each char pulses muted → foreground → muted in a staggered wave.
+   Pure CSS — replaces 38 infinite motion.js color tweens (non-composited color writes
+   over the sticky backdrop-blur header were the dominant creator-switch paint cost).
+   --sc-char-index is set per char by SpinningCircularText; RING_CHARS is fixed (38) so
+   the period (SHIMMER 4s + 1.14s pause) and per-char step (4s/38 ≈ 0.105s) are constant.
+   CSS re-resolves --color/--shimmering-color on a theme flip, so no JS restart is needed.
+   data-frozen on the ring (reduced-motion / off-screen duplicate) holds the lit state. */
+.t-medallion-char {
+  color: var(--color);
+  animation: medallion-shimmer 5.14s ease-in-out infinite;
+  animation-delay: calc(var(--sc-char-index, 0) * 0.105s);
+}
+.t-medallion-ring[data-frozen] .t-medallion-char {
+  animation: none;
+  color: var(--shimmering-color);
+}
+@keyframes medallion-shimmer {
+  0%,
+  78%,
+  100% {
+    color: var(--color);
+  }
+  39% {
+    color: var(--shimmering-color);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-medallion-char {
+    animation: none;
+    color: var(--shimmering-color);
+  }
+}
 /* Scroll-driven edge fade (chanhdai scroll-fade-effect, @ncdai). Pure CSS:
    mask-image fades content to transparent at the leading/trailing edge, with the
    fade band sized by scroll position via animation-timeline: scroll(self).
@@ -907,6 +948,22 @@ number-flow-group {
     0 var(--scroll-buffer),
     calc(100% - var(--scroll-buffer)) 100%;
   animation-fill-mode: both;
+}
+
+/* Kill the trailing edge fade when the axis doesn't overflow. The @property initial
+   values leave a static trailing mask whenever the scroll-timeline is inactive (content
+   fits), so a non-scrollable region shows a stray fade. Base UI's viewport exposes
+   data-has-overflow-x/y; reset the masks to 0 when the attr is absent. Scoped away from
+   the touch viewport (data-native, no attrs) so native-scroll fade is untouched. When
+   the axis DOES overflow the attr is present, this rule drops out, and the scroll-driven
+   animation (higher cascade origin) drives the mask. */
+[data-slot="scroll-area-viewport"]:not([data-native]):not([data-has-overflow-y]) {
+  --top-mask-height: 0px;
+  --bottom-mask-height: 0px;
+}
+[data-slot="scroll-area-viewport"]:not([data-native]):not([data-has-overflow-x]) {
+  --left-mask-width: 0px;
+  --right-mask-width: 0px;
 }
 
 /* Sticky ticker header: shrinks the heading + reveals a hairline bottom border
@@ -1088,5 +1145,216 @@ number-flow-group {
     to {
       rotate: -360deg;
     }
+  }
+}
+
+/* --- Trait-badge hover tilt + shape-masked glare --------------------------------
+   Transitions.dev card-tilt pattern (https://transitions.dev) scaled to the 32px
+   badge. Pointer is tracked on the flat outer .t-tilt (never transforms); JS writes
+   --tilt-rx/ry/gx/gy and toggles .is-tilting (fast follow) + .is-hover (glare fade).
+   No overflow-clip so the scaled rim shows; the glare is masked to the icon shape in
+   the component, not a rectangle. */
+:root {
+  --tilt-perspective: 1000px;
+  --tilt-return: 1000ms;
+  --tilt-return-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tilt-follow: 400ms;
+  --tilt-follow-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tilt-glare-opacity: 0.5;
+  --tilt-glare-fade: 300ms;
+  --tilt-glare-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.t-tilt {
+  touch-action: none;
+  /* Light: neutral downward drop-shadow (Tailwind drop-shadow-xs), grows on hover. */
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05));
+  transition:
+    transform 200ms var(--tilt-return-ease),
+    filter 200ms var(--tilt-return-ease);
+}
+.t-tilt:hover {
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.12));
+}
+/* Dark: swap the shadow for a colored hue glow (0 offset, --glow set per-badge). Blur is
+   kept tight: a drop-shadow's soft tail extends well past its radius (~1.5-2x), and this
+   sits inside a horizontal ScrollArea whose padding can't grow forever — so a big glow
+   would clip. ~8px reads at 0.3 alpha and its tail fits the row padding. */
+.dark .t-tilt {
+  filter: drop-shadow(0 0 4px var(--glow, transparent));
+}
+.dark .t-tilt:hover {
+  filter: drop-shadow(0 0 8px var(--glow, transparent));
+}
+
+/* Hover grow. Scale grows the box outward around center, so the pointer stays inside
+   the element — no enter/leave flip like the removed lift had. Rides the outer .t-tilt;
+   pointer math (getBoundingClientRect ratios) is scale-invariant, so the 3D tilt on the
+   inner card still tracks correctly. */
+.t-tilt:hover {
+  transform: scale(1.1);
+}
+
+.t-tilt-card {
+  transform: perspective(var(--tilt-perspective)) rotateX(var(--tilt-rx, 0deg))
+    rotateY(var(--tilt-ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform var(--tilt-return) var(--tilt-return-ease);
+  will-change: transform;
+}
+
+.t-tilt.is-tilting .t-tilt-card {
+  transition: transform var(--tilt-follow) var(--tilt-follow-ease);
+}
+
+.t-tilt-glare {
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(
+      circle 95px at var(--tilt-gx, 50%) var(--tilt-gy, 50%),
+      rgba(255, 255, 255, 0.48),
+      rgba(255, 255, 255, 0.06) 52%,
+      rgba(255, 255, 255, 0) 84%
+    ),
+    radial-gradient(
+      circle 200px at var(--tilt-gx, 50%) var(--tilt-gy, 50%),
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.04) 58%,
+      rgba(255, 255, 255, 0) 78%
+    ),
+    radial-gradient(
+      circle 360px at var(--tilt-gx, 50%) var(--tilt-gy, 50%),
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0) 88%
+    );
+  transition: opacity var(--tilt-glare-fade) var(--tilt-glare-ease);
+}
+
+.t-tilt.is-hover .t-tilt-glare {
+  opacity: var(--tilt-glare-opacity);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-tilt-card {
+    transform: none !important;
+    transition: none !important;
+  }
+  .t-tilt {
+    transition: none !important;
+  }
+  .t-tilt:hover {
+    transform: none;
+  }
+}
+
+/* --- Identity NavigationMenu: one popup morphs across badge + medallion triggers ---
+   Base UI NavigationMenu shared-viewport pattern (base-ui.com/react/components/
+   navigation-menu). The popup stays mounted and animates size + position between
+   triggers; the content slides in the activation direction. Desktop only. */
+.t-nav-positioner {
+  --nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nav-duration: 0.35s;
+  box-sizing: border-box;
+  /* Freeze the box to the measured size during the morph (Base UI requirement, else
+     content-driven resize thrashes / flips sides). */
+  width: var(--positioner-width);
+  height: var(--positioner-height);
+  max-width: var(--available-width);
+  /* Base UI positions the menu via inset (top/left/…), so animate THOSE to slide the
+     surface between triggers — not transform (which never moved). */
+  transition-property: top, left, right, bottom;
+  transition-duration: var(--nav-duration);
+  transition-timing-function: var(--nav-ease);
+}
+.t-nav-positioner[data-instant] {
+  transition: none;
+}
+/* Invisible bridge across the sideOffset gap so the pointer can travel trigger→popup
+   without the menu closing. */
+.t-nav-positioner::before {
+  content: "";
+  position: absolute;
+}
+.t-nav-positioner[data-side="top"]::before {
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 10px;
+}
+.t-nav-positioner[data-side="bottom"]::before {
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 10px;
+}
+.t-nav-positioner[data-side="left"]::before {
+  top: 0;
+  bottom: 0;
+  right: -10px;
+  width: 10px;
+}
+.t-nav-positioner[data-side="right"]::before {
+  top: 0;
+  bottom: 0;
+  left: -10px;
+  width: 10px;
+}
+
+.t-nav-popup {
+  box-sizing: border-box;
+  width: var(--popup-width);
+  height: var(--popup-height);
+  transform-origin: var(--transform-origin);
+  transition-property: opacity, transform, width, height;
+  transition-duration: var(--nav-duration);
+  transition-timing-function: var(--nav-ease);
+}
+.t-nav-popup[data-starting-style],
+.t-nav-popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.9);
+}
+.t-nav-popup[data-ending-style] {
+  transition-timing-function: ease;
+  transition-duration: 0.15s;
+}
+
+.t-nav-viewport {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.t-nav-content {
+  box-sizing: border-box;
+  transition:
+    opacity calc(var(--nav-duration) * 0.5) ease,
+    transform var(--nav-duration) var(--nav-ease);
+}
+.t-nav-content[data-starting-style],
+.t-nav-content[data-ending-style] {
+  opacity: 0;
+}
+.t-nav-content[data-starting-style][data-activation-direction="left"] {
+  transform: translateX(-50%);
+}
+.t-nav-content[data-starting-style][data-activation-direction="right"] {
+  transform: translateX(50%);
+}
+.t-nav-content[data-ending-style][data-activation-direction="left"] {
+  transform: translateX(50%);
+}
+.t-nav-content[data-ending-style][data-activation-direction="right"] {
+  transform: translateX(-50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-nav-positioner,
+  .t-nav-popup,
+  .t-nav-content {
+    transition-duration: 0s;
   }
 }

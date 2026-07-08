@@ -11,6 +11,8 @@ import { DataAsOf } from "../components/DataAsOf";
 import { gradeFor } from "#/lib/grade";
 import { GradeDetail } from "#/components/grade-detail";
 import { TraitBadges } from "#/components/trait-badges";
+import { traitsFor } from "#/lib/traits";
+import { IdentityMenu } from "#/components/identity-menu";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { ConvictionBars, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
 import {
@@ -247,6 +249,7 @@ function Overview() {
   const [statsRef, statsInView] = useInView<HTMLElement>();
 
   const grade = useMemo(() => gradeFor(ds.scorecard, ds.calls), [ds]);
+  const traits = useMemo(() => traitsFor(ds.calls), [ds]);
   // Header medallion shows at md+, the grid-cell one below md — only animate the
   // visible one (false on SSR/first paint → both idle until this resolves).
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -290,12 +293,13 @@ function Overview() {
               Date (top) crossfades to the stat summary on scroll; both are
               absolutely stacked so neither sizes the zone. */}
           <div className="relative min-w-0 flex-1 self-stretch">
-            <div className="t-stick-fade absolute inset-y-0 right-0 flex items-center justify-end text-right max-md:hidden">
+            {/* inset-x-0 (full width), not right-0 (shrink-to-content): gives IdentityMenu's
+                Root a stable, non-collapsing frame so popLayout-exited badges don't drift
+                right over the medallion. justify-end keeps content right-aligned as before.
+                Faded-out on scroll it sets pointer-events:none, so the wider box is inert. */}
+            <div className="t-stick-fade absolute inset-0 flex items-center justify-end text-right max-md:hidden">
               {grade ? (
-                <div className="flex items-center gap-3">
-                  <TraitBadges calls={ds.calls} />
-                  <GradeDetail grade={grade} active={isDesktop} />
-                </div>
+                <IdentityMenu grade={grade} traits={traits} active={isDesktop} />
               ) : (
                 <>
                   <DataAsOf iso={ds.generatedAt} />
@@ -363,7 +367,7 @@ function Overview() {
                 letterClassName="text-xl"
                 active={!isDesktop}
               />
-              <TraitBadges calls={ds.calls} />
+              <TraitBadges traits={traits} />
             </div>
           )}
         </section>

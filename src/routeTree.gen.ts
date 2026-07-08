@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevBadgesRouteImport } from './routes/dev.badges'
 import { Route as CHandleRouteImport } from './routes/c.$handle'
 import { Route as ApiRevalidateRouteImport } from './routes/api/revalidate'
 import { Route as ApiReportRouteImport } from './routes/api/report'
@@ -45,6 +46,11 @@ const ChangelogRoute = ChangelogRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevBadgesRoute = DevBadgesRouteImport.update({
+  id: '/dev/badges',
+  path: '/dev/badges',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CHandleRoute = CHandleRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/c/$handle': typeof CHandleRouteWithChildren
+  '/dev/badges': typeof DevBadgesRoute
   '/api/dataset/$handle': typeof ApiDatasetHandleRoute
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/t/$symbol/$creator': typeof TSymbolCreatorRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/api/calls-index': typeof ApiCallsIndexRoute
   '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
+  '/dev/badges': typeof DevBadgesRoute
   '/api/dataset/$handle': typeof ApiDatasetHandleRoute
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/t/$symbol/$creator': typeof TSymbolCreatorRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/api/report': typeof ApiReportRoute
   '/api/revalidate': typeof ApiRevalidateRoute
   '/c/$handle': typeof CHandleRouteWithChildren
+  '/dev/badges': typeof DevBadgesRoute
   '/api/dataset/$handle': typeof ApiDatasetHandleRoute
   '/api/prices/$symbol': typeof ApiPricesSymbolRoute
   '/t/$symbol/$creator': typeof TSymbolCreatorRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/api/report'
     | '/api/revalidate'
     | '/c/$handle'
+    | '/dev/badges'
     | '/api/dataset/$handle'
     | '/api/prices/$symbol'
     | '/t/$symbol/$creator'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/api/calls-index'
     | '/api/report'
     | '/api/revalidate'
+    | '/dev/badges'
     | '/api/dataset/$handle'
     | '/api/prices/$symbol'
     | '/t/$symbol/$creator'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/api/report'
     | '/api/revalidate'
     | '/c/$handle'
+    | '/dev/badges'
     | '/api/dataset/$handle'
     | '/api/prices/$symbol'
     | '/t/$symbol/$creator'
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   ApiReportRoute: typeof ApiReportRoute
   ApiRevalidateRoute: typeof ApiRevalidateRoute
   CHandleRoute: typeof CHandleRouteWithChildren
+  DevBadgesRoute: typeof DevBadgesRoute
   ApiDatasetHandleRoute: typeof ApiDatasetHandleRoute
   ApiPricesSymbolRoute: typeof ApiPricesSymbolRoute
   TSymbolCreatorRoute: typeof TSymbolCreatorRoute
@@ -275,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/badges': {
+      id: '/dev/badges'
+      path: '/dev/badges'
+      fullPath: '/dev/badges'
+      preLoaderRoute: typeof DevBadgesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/c/$handle': {
@@ -393,6 +413,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReportRoute: ApiReportRoute,
   ApiRevalidateRoute: ApiRevalidateRoute,
   CHandleRoute: CHandleRouteWithChildren,
+  DevBadgesRoute: DevBadgesRoute,
   ApiDatasetHandleRoute: ApiDatasetHandleRoute,
   ApiPricesSymbolRoute: ApiPricesSymbolRoute,
   TSymbolCreatorRoute: TSymbolCreatorRoute,

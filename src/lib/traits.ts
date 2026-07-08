@@ -69,8 +69,8 @@ export interface Trait {
   id: string;
   name: string;
   blurb: string; // one playful line, PERSONA_BLURB voice
-  hue: "orange" | "violet" | "amber" | "emerald" | "rose" | "teal" | "fuchsia";
-  shape: "hexagon" | "ticket" | "shield" | "star" | "rosette";
+  hue: "orange" | "violet" | "amber" | "emerald" | "rose" | "teal" | "fuchsia" | "red";
+  shape: "hexagon" | "ticket" | "shield" | "rosette" | "star";
   icon: string; // iconify tailwind class, e.g. "icon-[mdi--fire]"
 }
 
@@ -125,16 +125,16 @@ const TRAITS: TraitDef[] = [
     blurb: "When they say high conviction, believe it — confidence tracks results.",
     hue: "teal",
     shape: "rosette",
-    icon: "icon-[mdi--bullseye-arrow]",
+    icon: "icon-[tabler--target-arrow]",
     test: ({ first }) => calibrationR(first) >= CALIBRATION_R,
   },
   {
     id: "confidently-wrong",
     name: "Confidently Wrong",
     blurb: "The louder the conviction, the worse the call. Fade the pounding table.",
-    hue: "fuchsia",
+    hue: "red",
     shape: "rosette",
-    icon: "icon-[mdi--compass-off]",
+    icon: "icon-[tabler--compass-off]",
     test: ({ first }) => calibrationR(first) <= -CALIBRATION_R,
   },
   {
@@ -155,7 +155,7 @@ const TRAITS: TraitDef[] = [
     blurb: "The recent record is way better than the early one. Improving.",
     hue: "emerald",
     shape: "star",
-    icon: "icon-[mdi--arrow-up-bold]",
+    icon: "icon-[tabler--arrow-big-up-line-filled]",
     test: ({ ex3 }) => trajectoryDelta(ex3) >= TRAJECTORY_DELTA,
   },
   {
@@ -164,7 +164,7 @@ const TRAITS: TraitDef[] = [
     blurb: "Used to be sharp. The recent calls don't keep up.",
     hue: "rose",
     shape: "star",
-    icon: "icon-[mdi--arrow-down-bold]",
+    icon: "icon-[tabler--arrow-big-down-line-filled]",
     test: ({ ex3 }) => trajectoryDelta(ex3) <= -TRAJECTORY_DELTA,
   },
   {
@@ -173,7 +173,7 @@ const TRAITS: TraitDef[] = [
     blurb: "Most calls fizzle; the occasional moonshot pays for the rest.",
     hue: "violet",
     shape: "ticket",
-    icon: "icon-[mdi--dice-multiple]",
+    icon: "icon-[fa7-solid--dice]",
     test: ({ ex3 }) =>
       ex3.length >= LOTTERY_MIN_N && skewness(ex3) > LOTTERY_SKEW && median(ex3) < 0,
   },
@@ -183,12 +183,15 @@ const TRAITS: TraitDef[] = [
     blurb: "Portfolio's mostly crypto. Number-go-up technology.",
     hue: "orange",
     shape: "hexagon",
-    icon: "icon-[mdi--fire]",
+    icon: "icon-[tabler--flame-filled]",
     test: ({ first }) =>
       first.length >= CRYPTO_MIN_N &&
       first.filter((c) => c.ticker.endsWith("-USD")).length / first.length > CRYPTO_SHARE,
   },
 ];
+
+// Every trait's metadata, priority order (drops the predicate). For the dev gallery.
+export const ALL_TRAITS: Trait[] = TRAITS.map(({ test: _test, ...meta }) => meta);
 
 // Earned traits, in display-priority order. Pure; never mutates `calls`.
 export function traitsFor(calls: Call[]): Trait[] {

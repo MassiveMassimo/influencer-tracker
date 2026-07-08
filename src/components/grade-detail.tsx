@@ -40,7 +40,7 @@ function Delta({ n }: { n: number }) {
 
 // Big score + nickname + one-line blurb — shown in the hover card and reused atop
 // the full breakdown.
-function GradeHead({ grade }: { grade: Grade }) {
+export function GradeHead({ grade }: { grade: Grade }) {
   const score = Math.round(grade.score);
   return (
     <div className="space-y-3">
@@ -78,7 +78,7 @@ function GradeHead({ grade }: { grade: Grade }) {
 }
 
 // The score math — starts at 50 (C), then the two components move it.
-function GradeBreakdown({ grade }: { grade: Grade }) {
+export function GradeBreakdown({ grade }: { grade: Grade }) {
   const d = grade.detail;
   return (
     <div className="space-y-3">
@@ -125,6 +125,44 @@ function GradeBreakdown({ grade }: { grade: Grade }) {
         Based on <span className="tabular-nums">{d.scoredN}</span> scored calls.
       </p>
     </div>
+  );
+}
+
+// The full breakdown Dialog (desktop). Shared by GradeDetail's desktop branch and
+// IdentityMenu so the popup markup + a11y wiring live in one place.
+export function GradeBreakdownDialog({
+  grade,
+  open,
+  onOpenChange,
+}: {
+  grade: Grade;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+        <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <Dialog.Title className="font-heading text-lg">Grade breakdown</Dialog.Title>
+            <Dialog.Close
+              aria-label="Close"
+              className="-mt-1 -mr-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
+            >
+              <X className="size-4" />
+            </Dialog.Close>
+          </div>
+          <Dialog.Description className="sr-only">
+            How this creator's {grade.grade} grade was scored.
+          </Dialog.Description>
+          <div className="space-y-5">
+            <GradeHead grade={grade} />
+            <GradeBreakdown grade={grade} />
+          </div>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
@@ -181,29 +219,7 @@ export function GradeDetail({
             </button>
           </PreviewCardPopup>
         </PreviewCard>
-        <Dialog.Root open={open} onOpenChange={setOpen}>
-          <Dialog.Portal>
-            <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-            <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <Dialog.Title className="font-heading text-lg">Grade breakdown</Dialog.Title>
-                <Dialog.Close
-                  aria-label="Close"
-                  className="-mt-1 -mr-1 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95"
-                >
-                  <X className="size-4" />
-                </Dialog.Close>
-              </div>
-              <Dialog.Description className="sr-only">
-                How this creator's {grade.grade} grade was scored.
-              </Dialog.Description>
-              <div className="space-y-5">
-                <GradeHead grade={grade} />
-                <GradeBreakdown grade={grade} />
-              </div>
-            </Dialog.Popup>
-          </Dialog.Portal>
-        </Dialog.Root>
+        <GradeBreakdownDialog grade={grade} open={open} onOpenChange={setOpen} />
       </>
     );
   }

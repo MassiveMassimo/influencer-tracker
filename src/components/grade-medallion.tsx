@@ -5,18 +5,20 @@
 // Shimmer pattern from @ncdai's spinning-circular-text example, adapted to
 // motion/react + our preferences theme (restart key re-resolves the CSS color vars).
 import { motion, useAnimationFrame, useMotionValue, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SpinningCircularText } from "#/components/spinning-circular-text";
 import { useTextSwap } from "#/components/text-swap";
 import { usePreferences } from "#/lib/preferences";
 import type { Grade } from "#/lib/grade";
 
-const SHIMMER_DURATION = 4; // seconds for one color sweep
-
-// Repeat "LABEL • " until the ring has enough characters to form a readable circle.
+// Ring char count sets the medallion diameter (--sc-char-count drives --sc-container-size
+// in SpinningCircularText). Repeat "LABEL • " then clamp to a FIXED length so every
+// persona yields the same diameter — otherwise a longer/shorter label changes the circle
+// size and a creator switch jumps the header layout. Fixed length = only the text swaps.
+const RING_CHARS = 38;
 function ringText(label: string): string {
   const unit = `${label} • `.toUpperCase();
-  return unit.repeat(Math.max(1, Math.ceil(28 / unit.length)));
+  return unit.repeat(Math.ceil(RING_CHARS / unit.length)).slice(0, RING_CHARS);
 }
 
 export function GradeMedallion({
@@ -35,7 +37,7 @@ export function GradeMedallion({
   active?: boolean;
 }) {
   const osReduce = useReducedMotion();
-  const { theme, reduceMotion } = usePreferences();
+  const { reduceMotion } = usePreferences();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   // The OS reduce-motion signal is applied post-mount so the first client render matches SSR.
@@ -47,7 +49,7 @@ export function GradeMedallion({
   // same grade animates only the persona ring, and vice versa.
   const letter = useTextSwap<HTMLSpanElement>(grade.grade);
   const ring = useTextSwap<HTMLDivElement>(grade.label);
-  const text = ringText(ring.display);
+  const text = useMemo(() => ringText(ring.display), [ring.display]);
 
   // Hover flourish (desktop): the ring bursts to a fast spin then eases back to its
   // lazy idle speed while the whole medallion grows a touch. Rotation is a motion
@@ -92,7 +94,15 @@ export function GradeMedallion({
       onPointerEnter={(e) => e.pointerType !== "touch" && onEnter()}
       onPointerLeave={onLeave}
     >
-      <motion.div ref={ring.ref} className="t-medallion-ring" style={{ rotate }}>
+      <motion.div
+        ref={ring.ref}
+        className="t-medallion-ring"
+        style={{ rotate }}
+        // Drives the pure-CSS shimmer (.t-medallion-char in styles.css): present =
+        // hold every char at --shimmering-color, absent = run the staggered color wave.
+        // Replaces the old 38 per-char motion.js color tweens (the dominant paint cost).
+        data-frozen={frozen ? "" : undefined}
+      >
         <SpinningCircularText
           aria-hidden
           spin={false}
@@ -100,29 +110,7 @@ export function GradeMedallion({
           charSpacing={1.2}
           fontSize={fontSize}
           className="tracking-normal text-muted-foreground [--color:var(--muted-foreground)] [--shimmering-color:var(--foreground)]"
-          renderChar={(char, index) =>
-            frozen ? (
-              <span className="text-(--shimmering-color)">{char}</span>
-            ) : (
-              <motion.span
-                // Restart on theme change so motion re-resolves the CSS color vars.
-                key={theme}
-                animate={{
-                  color: ["var(--color)", "var(--shimmering-color)", "var(--color)"],
-                }}
-                transition={{
-                  duration: SHIMMER_DURATION,
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  repeatDelay: text.length * 0.03,
-                  delay: (index * SHIMMER_DURATION) / text.length,
-                  ease: "easeInOut",
-                }}
-              >
-                {char}
-              </motion.span>
-            )
-          }
+          renderChar={(char) => <span className="t-medallion-char">{char}</span>}
         />
       </motion.div>
       <span
