@@ -1178,6 +1178,22 @@ number-flow-group {
 .t-tilt:hover {
   filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.12));
 }
+/* Badge style: BadgeShape renders BOTH variants (data-badge="enamel"/"candy"); this shows
+   one. The pre-paint script in __root sets data-badge-style from localStorage before first
+   paint, so the choice applies with no flash — including on the ISR-cached serve routes,
+   where a cookie would be stripped by Vercel's edge cache. display:none = no layout/paint
+   for the hidden variant. Default (no attr) shows enamel. Restore uses grid — BadgeShell's
+   outer span is a grid box. */
+[data-badge="candy"] {
+  display: none;
+}
+html[data-badge-style="candy"] [data-badge="candy"] {
+  display: grid;
+}
+html[data-badge-style="candy"] [data-badge="enamel"] {
+  display: none;
+}
+
 /* Enamel pin sits higher above the surface than the flat candy badge, so it casts a
    deeper light-mode shadow. Scoped to enamel only (dark-mode glow below is shared). */
 .t-tilt-enamel {

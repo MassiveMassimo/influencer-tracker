@@ -28,20 +28,6 @@ export const setThemeTransitioning = (v: boolean) => {
   themeTransitioning = v;
 };
 
-// badgeStyle + showHalalStatus ride cookies (not localStorage) so the server can read them
-// during SSR and get the first paint right — badgeStyle swaps React SVG subtrees and
-// showHalalStatus gates whole halal panels, neither of which a pre-paint CSS script can
-// fix. Read/written here; the server side is getSsrPrefs (ui-prefs-cookie.ts).
-function readCookie(name: string): string | undefined {
-  if (typeof document === "undefined") return undefined;
-  return document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`))?.[1];
-}
-
-function writeCookie(name: string, value: string) {
-  // One year; Lax suffices (same-site read during SSR navigation).
-  document.cookie = `${name}=${value}; path=/; max-age=31536000; samesite=lax`;
-}
-
 export function readStoredPrefs(): Preferences {
   if (typeof window === "undefined") return DEFAULTS;
   const t = window.localStorage.getItem("theme");
@@ -49,8 +35,8 @@ export function readStoredPrefs(): Preferences {
     theme: t === "light" || t === "dark" || t === "auto" ? t : "auto",
     reduceMotion: window.localStorage.getItem("reduce-motion") === "true",
     reduceHaptics: window.localStorage.getItem("reduce-haptics") === "true",
-    showHalalStatus: readCookie("show-halal") === "true",
-    badgeStyle: readCookie("badge-style") === "candy" ? "candy" : "enamel",
+    showHalalStatus: window.localStorage.getItem("show-halal") === "true",
+    badgeStyle: window.localStorage.getItem("badge-style") === "candy" ? "candy" : "enamel",
   };
 }
 
@@ -74,6 +60,13 @@ function applyReduceMotion(on: boolean) {
   else document.documentElement.removeAttribute("data-reduce-motion");
 }
 
+// BadgeShape renders both variants; this <html> attr is what CSS reads to show one
+// (see trait-badges.tsx + styles.css). The pre-paint script sets it before first paint;
+// this keeps it in sync when the user toggles live.
+function applyBadgeStyle(style: BadgeStyle) {
+  document.documentElement.setAttribute("data-badge-style", style);
+}
+
 interface PreferencesContextValue extends Preferences {
   setTheme: (t: ThemeMode) => void;
   setReduceMotion: (v: boolean) => void;
@@ -84,27 +77,19 @@ interface PreferencesContextValue extends Preferences {
 
 const PreferencesContext = React.createContext<PreferencesContextValue | null>(null);
 
-export function PreferencesProvider({
-  children,
-  initial,
-}: {
-  children: React.ReactNode;
-  // Seeded from cookies by the root loader so SSR + first client render agree — no flash,
-  // no hydration mismatch — for the prefs the server must know (badge variant, halal UI).
-  initial?: { badgeStyle?: BadgeStyle; showHalalStatus?: boolean };
-}) {
-  const [prefs, setPrefs] = React.useState<Preferences>(() => ({
-    ...DEFAULTS,
-    badgeStyle: initial?.badgeStyle ?? DEFAULTS.badgeStyle,
-    showHalalStatus: initial?.showHalalStatus ?? DEFAULTS.showHalalStatus,
-  }));
+export function PreferencesProvider({ children }: { children: React.ReactNode }) {
+  const [prefs, setPrefs] = React.useState<Preferences>(DEFAULTS);
 
-  // Hydrate + apply on mount (SSR-safe: no window access during render).
+  // Hydrate + apply on mount (SSR-safe: no window access during render, so SSR and the
+  // first client render both start from DEFAULTS — no hydration mismatch). The pre-paint
+  // script already set the CSS-driven attrs (theme, reduce-motion, badge-style) before
+  // paint; this re-applies them from the source of truth and syncs React state.
   React.useEffect(() => {
     const stored = readStoredPrefs();
     setPrefs(stored);
     applyTheme(stored.theme);
     applyReduceMotion(stored.reduceMotion);
+    applyBadgeStyle(stored.badgeStyle);
   }, []);
 
   // Follow system changes while in auto.
@@ -135,12 +120,13 @@ export function PreferencesProvider({
 
   const setShowHalalStatus = React.useCallback((showHalalStatus: boolean) => {
     setPrefs((p) => ({ ...p, showHalalStatus }));
-    writeCookie("show-halal", String(showHalalStatus));
+    window.localStorage.setItem("show-halal", String(showHalalStatus));
   }, []);
 
   const setBadgeStyle = React.useCallback((badgeStyle: BadgeStyle) => {
     setPrefs((p) => ({ ...p, badgeStyle }));
-    writeCookie("badge-style", badgeStyle);
+    applyBadgeStyle(badgeStyle);
+    window.localStorage.setItem("badge-style", badgeStyle);
   }, []);
 
   const value = React.useMemo<PreferencesContextValue>(
