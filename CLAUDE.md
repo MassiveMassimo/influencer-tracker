@@ -107,10 +107,19 @@ deduplicates existing `reel-calls.json` entries, and only classifies NEW posts v
 heal-loop (transient errors skip + retry instead of crashing). Each platform provides a
 `BuildPost` callback that resolves a shortcode to a `{ shortcode, postDate, body }`
 post; the core handles classification, done-tracking, dedup, and checkpoint persistence.
-On the first run after this change, the core seeds `extract-done.json` from ALL existing
-shortcodes (when `reel-calls.json` already has calls), so existing posts are NOT
-re-classified — zero API cost. Subsequent daily runs classify only newly-scraped posts
-(typically 0–3 for IG, 0–10 for X). IG's `extract-done.json` is committed (`.gitignore`
+On the first run after this change (no `extract-done.json` yet, `reel-calls.json` already
+has calls), the core seeds `done` **only from posts that already produced a call** — those
+are frozen and never re-classified (LLM non-determinism would drift the scored set). Every
+other post (a genuinely no-call post, or a reel scraped-but-never-classified) flows through
+classification once and is then persisted as done — so the seed run does a **one-time**
+classification of the uncalled backlog (not zero-cost), can only ADD calls, and self-heals
+posts a prior run swallowed. The seed is written to disk immediately: if every post is
+already called, `pending` is empty and the early return fires before the checkpoint
+`persist()` — so without the eager seed write the file would never be created and every run
+would re-seed, swallowing newly-scraped posts unclassified (bug fixed 2026-07-09; the prior
+seed marked ALL shortcodes done and never persisted on the empty-pending path). Subsequent
+daily runs classify only newly-scraped posts (typically 0–3 for IG, 0–10 for X). IG's
+`extract-done.json` is committed (`.gitignore`
 allow-list, like `post-dates.json`) so it survives the VM's `git checkout -- data/` +
 `git clean -fd data/`. X's stays in `raw/` (gitignored) — consistent with `tweets.json`
 as the incremental cursor (purging `raw/` triggers a full re-extract, same as the

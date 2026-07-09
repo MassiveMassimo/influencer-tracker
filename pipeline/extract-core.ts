@@ -58,12 +58,20 @@ export async function extractPosts(
   let done: Set<string>;
   if (!existsSync(opts.donePath)) {
     if (loaded.length > 0) {
-      // First run with resume support: seed done from ALL shortcodes so existing
-      // posts aren't re-classified (LLM non-determinism would drift the call set).
-      // Only new posts (scraped after this change) will be classified.
-      done = new Set(shortcodes);
+      // First run with resume support: seed done ONLY from posts that already
+      // produced a call. Those are frozen — never re-classified, since LLM
+      // non-determinism would drift the scored call set. Every other post (a
+      // genuinely no-call post, or a reel scraped but never classified) flows
+      // through classification once and is then persisted as done, so the seed
+      // recovers missed posts instead of swallowing them, and can only ADD calls.
+      done = new Set(out.map((c) => c.shortcode));
+      // Persist the seed immediately: if every post is already called, pending is
+      // empty and the early return below fires before persist() ever runs — so
+      // without this write the file is never created and every run re-seeds.
+      await writeFile(opts.donePath, JSON.stringify([...done]));
       console.log(
-        `seeded extract-done.json: ${done.size} posts (preserving ${loaded.length} existing calls)`,
+        `seeded extract-done.json: ${done.size} called posts of ${shortcodes.length}; ` +
+          `${shortcodes.length - done.size} to classify`,
       );
     } else {
       done = new Set();
