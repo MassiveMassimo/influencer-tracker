@@ -30,8 +30,6 @@ beforeEach(() => {
   document.documentElement.removeAttribute("data-theme");
   document.documentElement.removeAttribute("data-reduce-motion");
   localStorage.clear();
-  document.cookie = "badge-style=; path=/; max-age=0";
-  document.cookie = "show-halal=; path=/; max-age=0";
 });
 
 describe("readStoredPrefs", () => {
@@ -49,8 +47,8 @@ describe("readStoredPrefs", () => {
     localStorage.setItem("theme", "dark");
     localStorage.setItem("reduce-motion", "true");
     localStorage.setItem("reduce-haptics", "true");
-    document.cookie = "show-halal=true; path=/";
-    document.cookie = "badge-style=candy; path=/";
+    localStorage.setItem("show-halal", "true");
+    localStorage.setItem("badge-style", "candy");
     expect(readStoredPrefs()).toEqual({
       theme: "dark",
       reduceMotion: true,

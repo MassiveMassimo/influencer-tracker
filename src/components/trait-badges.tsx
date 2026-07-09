@@ -9,7 +9,7 @@ import {
   useId,
 } from "react";
 import { type Trait } from "#/lib/traits";
-import { usePreferences, type BadgeStyle } from "#/lib/preferences.tsx";
+import { type BadgeStyle } from "#/lib/preferences.tsx";
 import {
   PreviewCard,
   PreviewCardTrigger,
@@ -369,16 +369,19 @@ function BadgeShell({
   glow,
   tiltClass,
   halo,
+  dataBadge,
   children,
 }: {
   size: number;
   glow: string;
   tiltClass?: string;
   halo?: ReactNode;
+  dataBadge?: string;
   children: ReactNode;
 }) {
   return (
     <span
+      data-badge={dataBadge}
       className="relative grid shrink-0 place-items-center"
       style={{ width: size, height: size }}
     >
@@ -408,11 +411,19 @@ function Glare({ shape }: { shape: Trait["shape"] }) {
   );
 }
 
-export function EnamelBadgeShape({ trait, size = 32 }: { trait: Trait; size?: number }) {
+export function EnamelBadgeShape({
+  trait,
+  size = 32,
+  dataBadge,
+}: {
+  trait: Trait;
+  size?: number;
+  dataBadge?: string;
+}) {
   const style = HUE_STYLE[trait.hue];
   const uid = useId().replace(/:/g, "");
   return (
-    <BadgeShell size={size} glow={style.glow} tiltClass="t-tilt-enamel">
+    <BadgeShell size={size} glow={style.glow} tiltClass="t-tilt-enamel" dataBadge={dataBadge}>
       <EnamelPinSvg shape={trait.shape} uid={uid} fill={style.fill} />
       <IconSvg icon={trait.icon} uid={uid} size={size * 0.4} />
       <Glare shape={trait.shape} />
@@ -420,13 +431,22 @@ export function EnamelBadgeShape({ trait, size = 32 }: { trait: Trait; size?: nu
   );
 }
 
-export function CandyBadgeShape({ trait, size = 32 }: { trait: Trait; size?: number }) {
+export function CandyBadgeShape({
+  trait,
+  size = 32,
+  dataBadge,
+}: {
+  trait: Trait;
+  size?: number;
+  dataBadge?: string;
+}) {
   const style = CANDY_STYLE[trait.hue];
   const uid = useId().replace(/:/g, "");
   return (
     <BadgeShell
       size={size}
       glow={style.glow}
+      dataBadge={dataBadge}
       halo={
         <CandyShapeSvg
           shape={trait.shape}
@@ -476,10 +496,19 @@ export function BadgeShapePreview({
   );
 }
 
-// Public API — picks the style from the badge-style preference.
+// Public API — renders BOTH variants; CSS (html[data-badge-style]) hides the inactive
+// one. The pre-paint script in __root sets data-badge-style from localStorage, so the
+// choice is applied before first paint with no flash — including on the ISR-cached serve
+// routes, where a cookie would be stripped by Vercel's edge cache. display:none means the
+// hidden variant costs no layout/paint (only a few badges render, header-only), so the
+// double render is free. Live toggling flips the <html> attr (see setBadgeStyle).
 export function BadgeShape({ trait, size = 32 }: { trait: Trait; size?: number }) {
-  const { badgeStyle } = usePreferences();
-  return <BadgeShapePreview trait={trait} size={size} style={badgeStyle} />;
+  return (
+    <>
+      <EnamelBadgeShape trait={trait} size={size} dataBadge="enamel" />
+      <CandyBadgeShape trait={trait} size={size} dataBadge="candy" />
+    </>
+  );
 }
 
 export function TraitBlurb({ trait }: { trait: Trait }) {
