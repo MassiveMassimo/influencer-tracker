@@ -143,7 +143,7 @@ const TRAITS: TraitDef[] = [
     blurb: "Great when SPY's green. When it's red, so are the calls.",
     hue: "amber",
     shape: "shield",
-    icon: "icon-[game-icons--bull-horns]",
+    icon: "icon-[local--bull]",
     test: ({ first }) => {
       const r = regimeSplit(first);
       return r != null && r.gap >= REGIME_GAP && r.downHit < 0.5;
