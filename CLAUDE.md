@@ -711,6 +711,15 @@ https://icon-sets.iconify.design (pick an icon → CSS → Tailwind CSS). Only i
 classes appear in the source get emitted to the output CSS — the full `@iconify/json` set
 is a build-time index, not shipped. Both deps are `devDependencies`.
 
+**Exception — enamel trait badges vendor raw SVG paths.** `trait-badges.tsx` (`ICON_SVG`
+
+- `IconSvg`) deliberately breaks the "no JS icon data, no component" rule for the enamel
+  style: the metallic emboss is a `filter: drop-shadow` that needs real path alpha, which the
+  Iconify `mask-image` class can't provide. Each enamel trait icon is hand-vendored from
+  `@iconify/json`, keyed by its `icon-[…]` class. Adding/renaming a trait icon in `traits.ts`
+  means adding the matching `ICON_SVG` body — otherwise `IconSvg` falls back to a flat (no
+  emboss) Iconify render. The candy style still uses the standard Tailwind-class approach.
+
 ## Scroll areas
 
 Any scrollable region (overflow lists, wide tables, drawer bodies) uses

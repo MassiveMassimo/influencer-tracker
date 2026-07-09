@@ -5,6 +5,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "#/compone
 import { Switch } from "#/components/ui/switch.tsx";
 import { Separator } from "#/components/ui/separator.tsx";
 import { ThemePicker } from "./ThemePicker";
+import { BadgeStylePicker } from "./BadgeStylePicker";
 import { usePreferences, isThemeTransitioning } from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
@@ -48,6 +49,13 @@ function Body({ onClose }: { onClose: () => void }) {
           Theme
         </div>
         <ThemePicker />
+      </div>
+      <Separator />
+      <div className="space-y-2">
+        <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
+          Badge style
+        </div>
+        <BadgeStylePicker />
       </div>
       <Separator />
       <div className="space-y-4">

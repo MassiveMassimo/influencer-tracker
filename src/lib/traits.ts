@@ -155,7 +155,7 @@ const TRAITS: TraitDef[] = [
     blurb: "The recent record is way better than the early one. Improving.",
     hue: "emerald",
     shape: "star",
-    icon: "icon-[tabler--arrow-big-up-line-filled]",
+    icon: "icon-[tabler--arrow-big-up-line]",
     test: ({ ex3 }) => trajectoryDelta(ex3) >= TRAJECTORY_DELTA,
   },
   {
@@ -164,7 +164,7 @@ const TRAITS: TraitDef[] = [
     blurb: "Used to be sharp. The recent calls don't keep up.",
     hue: "rose",
     shape: "star",
-    icon: "icon-[tabler--arrow-big-down-line-filled]",
+    icon: "icon-[tabler--arrow-big-down-line]",
     test: ({ ex3 }) => trajectoryDelta(ex3) <= -TRAJECTORY_DELTA,
   },
   {
@@ -173,7 +173,7 @@ const TRAITS: TraitDef[] = [
     blurb: "Most calls fizzle; the occasional moonshot pays for the rest.",
     hue: "violet",
     shape: "ticket",
-    icon: "icon-[fa7-solid--dice]",
+    icon: "icon-[tabler--dice-6]",
     test: ({ ex3 }) =>
       ex3.length >= LOTTERY_MIN_N && skewness(ex3) > LOTTERY_SKEW && median(ex3) < 0,
   },
@@ -183,7 +183,7 @@ const TRAITS: TraitDef[] = [
     blurb: "Portfolio's mostly crypto. Number-go-up technology.",
     hue: "orange",
     shape: "hexagon",
-    icon: "icon-[tabler--flame-filled]",
+    icon: "icon-[tabler--flame]",
     test: ({ first }) =>
       first.length >= CRYPTO_MIN_N &&
       first.filter((c) => c.ticker.endsWith("-USD")).length / first.length > CRYPTO_SHARE,
