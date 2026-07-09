@@ -1,12 +1,14 @@
 import * as React from "react";
 
 export type ThemeMode = "light" | "dark" | "auto";
+export type BadgeStyle = "enamel" | "candy";
 
 export interface Preferences {
   theme: ThemeMode;
   reduceMotion: boolean;
   reduceHaptics: boolean;
   showHalalStatus: boolean;
+  badgeStyle: BadgeStyle;
 }
 
 const DEFAULTS: Preferences = {
@@ -14,6 +16,7 @@ const DEFAULTS: Preferences = {
   reduceMotion: false,
   reduceHaptics: false,
   showHalalStatus: false,
+  badgeStyle: "enamel",
 };
 
 // True while the theme view-transition is animating. A click during that window
@@ -25,6 +28,20 @@ export const setThemeTransitioning = (v: boolean) => {
   themeTransitioning = v;
 };
 
+// badgeStyle + showHalalStatus ride cookies (not localStorage) so the server can read them
+// during SSR and get the first paint right — badgeStyle swaps React SVG subtrees and
+// showHalalStatus gates whole halal panels, neither of which a pre-paint CSS script can
+// fix. Read/written here; the server side is getSsrPrefs (ui-prefs-cookie.ts).
+function readCookie(name: string): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  return document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`))?.[1];
+}
+
+function writeCookie(name: string, value: string) {
+  // One year; Lax suffices (same-site read during SSR navigation).
+  document.cookie = `${name}=${value}; path=/; max-age=31536000; samesite=lax`;
+}
+
 export function readStoredPrefs(): Preferences {
   if (typeof window === "undefined") return DEFAULTS;
   const t = window.localStorage.getItem("theme");
@@ -32,7 +49,8 @@ export function readStoredPrefs(): Preferences {
     theme: t === "light" || t === "dark" || t === "auto" ? t : "auto",
     reduceMotion: window.localStorage.getItem("reduce-motion") === "true",
     reduceHaptics: window.localStorage.getItem("reduce-haptics") === "true",
-    showHalalStatus: window.localStorage.getItem("show-halal") === "true",
+    showHalalStatus: readCookie("show-halal") === "true",
+    badgeStyle: readCookie("badge-style") === "candy" ? "candy" : "enamel",
   };
 }
 
@@ -61,12 +79,25 @@ interface PreferencesContextValue extends Preferences {
   setReduceMotion: (v: boolean) => void;
   setReduceHaptics: (v: boolean) => void;
   setShowHalalStatus: (v: boolean) => void;
+  setBadgeStyle: (v: BadgeStyle) => void;
 }
 
 const PreferencesContext = React.createContext<PreferencesContextValue | null>(null);
 
-export function PreferencesProvider({ children }: { children: React.ReactNode }) {
-  const [prefs, setPrefs] = React.useState<Preferences>(DEFAULTS);
+export function PreferencesProvider({
+  children,
+  initial,
+}: {
+  children: React.ReactNode;
+  // Seeded from cookies by the root loader so SSR + first client render agree — no flash,
+  // no hydration mismatch — for the prefs the server must know (badge variant, halal UI).
+  initial?: { badgeStyle?: BadgeStyle; showHalalStatus?: boolean };
+}) {
+  const [prefs, setPrefs] = React.useState<Preferences>(() => ({
+    ...DEFAULTS,
+    badgeStyle: initial?.badgeStyle ?? DEFAULTS.badgeStyle,
+    showHalalStatus: initial?.showHalalStatus ?? DEFAULTS.showHalalStatus,
+  }));
 
   // Hydrate + apply on mount (SSR-safe: no window access during render).
   React.useEffect(() => {
@@ -104,12 +135,24 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
 
   const setShowHalalStatus = React.useCallback((showHalalStatus: boolean) => {
     setPrefs((p) => ({ ...p, showHalalStatus }));
-    window.localStorage.setItem("show-halal", String(showHalalStatus));
+    writeCookie("show-halal", String(showHalalStatus));
+  }, []);
+
+  const setBadgeStyle = React.useCallback((badgeStyle: BadgeStyle) => {
+    setPrefs((p) => ({ ...p, badgeStyle }));
+    writeCookie("badge-style", badgeStyle);
   }, []);
 
   const value = React.useMemo<PreferencesContextValue>(
-    () => ({ ...prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus }),
-    [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus],
+    () => ({
+      ...prefs,
+      setTheme,
+      setReduceMotion,
+      setReduceHaptics,
+      setShowHalalStatus,
+      setBadgeStyle,
+    }),
+    [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus, setBadgeStyle],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

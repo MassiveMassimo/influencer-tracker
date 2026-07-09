@@ -1178,6 +1178,14 @@ number-flow-group {
 .t-tilt:hover {
   filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.12));
 }
+/* Enamel pin sits higher above the surface than the flat candy badge, so it casts a
+   deeper light-mode shadow. Scoped to enamel only (dark-mode glow below is shared). */
+.t-tilt-enamel {
+  filter: drop-shadow(0 1.5px 2px rgb(0 0 0 / 0.12));
+}
+.t-tilt-enamel:hover {
+  filter: drop-shadow(0 5px 8px rgb(0 0 0 / 0.2));
+}
 /* Dark: swap the shadow for a colored hue glow (0 offset, --glow set per-badge). Blur is
    kept tight: a drop-shadow's soft tail extends well past its radius (~1.5-2x), and this
    sits inside a horizontal ScrollArea whose padding can't grow forever — so a big glow

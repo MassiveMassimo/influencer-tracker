@@ -66,7 +66,9 @@ function fakeGrade(letter: Grade["letter"], label: string): Grade {
 
 function DevBadges() {
   const [persona, setPersona] = useState(PERSONAS[3]); // Money Printer
-  const [on, setOn] = useState<Record<string, boolean>>({});
+  const [on, setOn] = useState<Record<string, boolean>>(
+    Object.fromEntries(ALL_TRAITS.map((t) => [t.id, true])),
+  );
   const comboGrade = fakeGrade(persona.letter, persona.label);
   const comboTraits = ALL_TRAITS.filter((t) => on[t.id]);
 

@@ -1,9 +1,15 @@
 // Trait badges: 0-N independently-earned behavioral signals next to the grade
-// medallion. Each trait has its own bg shape (a gradient-filled inline SVG path with an
-// outer vector stroke) and a filled icon on top; hover/tap opens a preview card.
-// Data layer: src/lib/traits.ts. Spec: docs/superpowers/specs/2026-07-08-*.md.
-import { type CSSProperties, type PointerEvent as RPointerEvent, useId } from "react";
+// medallion. Each trait has its own bg shape rendered as an enamel pin — a gold metal
+// rim with saturated enamel fill and glassy gloss — plus a dark-gold icon on top.
+// Hover/tap opens a preview card. Data layer: src/lib/traits.ts.
+import {
+  type CSSProperties,
+  type PointerEvent as RPointerEvent,
+  type ReactNode,
+  useId,
+} from "react";
 import { type Trait } from "#/lib/traits";
+import { usePreferences, type BadgeStyle } from "#/lib/preferences.tsx";
 import {
   PreviewCard,
   PreviewCardTrigger,
@@ -38,6 +44,80 @@ const SHAPE_ICON: Record<Trait["shape"], string> = {
   star: "icon-[material-symbols--kid-star]",
 };
 
+// Inline SVG icon bodies (vendored from @iconify/json), keyed by the Trait.icon string.
+// Real SVG paths give the emboss drop-shadow actual alpha to follow — the Iconify
+// mask-image approach doesn't produce alpha that filter: drop-shadow can read.
+const ICON_SVG: Record<string, { body: string; viewBox?: string }> = {
+  "icon-[tabler--target-arrow]": {
+    body: '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0"/><path d="M12 7a5 5 0 1 0 5 5"/><path d="M13 3.055A9 9 0 1 0 20.941 11"/><path d="M15 6v3h3l3-3h-3V3zm0 3l-3 3"/></g>',
+  },
+  "icon-[tabler--compass-off]": {
+    body: '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m13 9l3-1l-1 3m-1 3l-6 2l2-6"/><path d="M20.042 16.045A9 9 0 0 0 7.955 3.958M5.637 5.635a9 9 0 1 0 12.725 12.73M12 3v2m0 14v2m-9-9h2m14 0h2M3 3l18 18"/></g>',
+  },
+  "icon-[local--bull]": {
+    body: '<path fill="currentColor" d="M604 432.8c-18.8 11-46 30.7-68.2 49.4a594 594 0 0 0-61.8 62.3c-29.4 36.8-49.7 75.6-58.6 112-8.5 35.1-7 74.5 4.2 105.7 18.3 50.9 66.8 93.1 136.2 118.7 39.9 14.7 87.6 24.6 151.5 31.6 14.3 1.5 17.7 2.5 17.7 5.1 0 .8-3 4.5-6.8 8.2a74 74 0 0 1-29 17.4c-5.6 1.2-7.3 1.1-26.7-2.8a269 269 0 0 0-60.3-1 224 224 0 0 0-71.8 23.5c-30.2 15.7-63.4 41.8-63.4 49.9 0 4.5 4.7 10 15.7 18.4 30.1 23.1 56.8 36.2 85.6 42 15.7 3.2 43.4 3.2 58.4 0 25-5.4 48.3-16.7 75.6-36.8 3.2-2.3 4.1-2.6 6.2-1.6 3.3 1.5 4.1 5.2 6 27.2a863 863 0 0 0 9.1 73.5c6.9 41.6 13.9 66.1 25.4 89.3 9.8 19.6 17.5 30.8 49.8 72.2 17.5 22.4 27.6 39.5 33.1 56.4 6.5 19.6 9.9 37.4 10.8 55.6.5 12.1.4 13.1-3.6 30.5-6.4 28.3-7.1 36.4-5.1 59.5 2.1 22.5 7.6 37.4 18 47.9a57 57 0 0 0 27.1 14.7c15 4.2 17.6 6 27.5 19.1 16.5 21.8 32.8 32.6 55.9 37 7 1.4 11 1.4 32.8.3 17.4-.9 30.7-1 44.5-.4 41.5 1.9 50.4 1.1 66-6.2 14.3-6.5 25.3-16.2 37.6-33a57 57 0 0 1 9.2-10.3c1.8-1.2 8.3-3.8 14.6-5.8 15.4-4.8 22.1-8.4 29.3-15.7 13.1-13.2 18.5-32.1 18.5-64.6 0-13.9-1.2-22.5-6.2-44l-4-17.5 1.1-13.5c1.4-16.1 6-40 10.2-52.5 7-20.8 14.6-33.3 40.4-66.5 26.3-33.8 36.4-49 45.1-67.6 15-32 24.9-80 31.9-154.9 2-21.3 2.8-26.4 4.3-28.5 1.1-1.4 2.5-2.6 3.3-2.8 1.5-.2 2.1.1 18.4 11.4a221 221 0 0 0 44.8 22.9c17.1 5.6 25.7 6.9 46.7 6.9 16.4 0 21.1-.3 29.7-2.2 28.3-6.1 53.4-18.3 81.5-39.4 19.4-14.6 22.1-19.4 15.6-27.6-9.4-11.8-40.9-34.2-64.3-45.7a201 201 0 0 0-94-22.5c-17.3 0-25.3.8-42.7 4.2-13.3 2.6-17 2.1-29.1-3.9-7-3.6-10.9-6.3-16.4-11.9-7.3-7.2-9-10.8-5.5-11.8.9-.3 11.8-1.7 24.2-3.1 78-8.8 134.3-23.6 180.5-47.4 81.2-41.8 117.5-106.6 105.9-189.1-11.3-80-78-167.8-176.5-232.3-17.8-11.7-21.8-13.7-26.7-13.7a15 15 0 0 0-11.9 7c-.7 1.4-1.3 4.9-1.3 7.7 0 5.1.3 5.7 9.3 17.5 77.5 102.3 104.4 174.2 83.2 222.5-12.2 27.6-42.9 48.6-86.9 59.4-39 9.5-99.1 11.4-151.6 4.8-12.6-1.6-14-2.2-20.8-9.8-11.4-12.7-19.3-16.5-47.6-22.6a792 792 0 0 0-164.6-17.2 945 945 0 0 0-134.5 6.3 679 679 0 0 0-86 16.5 60 60 0 0 0-25.8 17.7c-5.1 6.8-6.7 7.4-23.8 9.6a482 482 0 0 1-116.4 0c-65.1-8.2-107.1-32.8-120.8-70.9-11.5-32-1.4-77.3 29.4-132.3a674 674 0 0 1 51.6-78.4c6.9-9.2 12.9-18.3 13.4-20.3 1.2-4.4-.3-10.4-3.3-13.2-6.2-5.6-11.8-5.8-20.8-.5"/>',
+    viewBox: "307.6 311.4 1439.7 1439.7",
+  },
+  "icon-[tabler--arrow-big-up-line]": {
+    body: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12H5.414a1 1 0 0 1-.707-1.707l6.586-6.586a1 1 0 0 1 1.414 0l6.586 6.586A1 1 0 0 1 18.586 12H15v6H9zm0 9h6"/>',
+  },
+  "icon-[tabler--arrow-big-down-line]": {
+    body: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12h3.586a1 1 0 0 1 .707 1.707l-6.586 6.586a1 1 0 0 1-1.414 0l-6.586-6.586A1 1 0 0 1 5.414 12H9V6h6zm0-9H9"/>',
+  },
+  "icon-[tabler--dice-6]": {
+    body: '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path fill="currentColor" d="M8 7.5a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0m7 0a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0M8 12a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0m7 0a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0m0 4.5a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0m-7 0a.5.5 0 1 0 1 0a.5.5 0 1 0-1 0"/></g>',
+  },
+  "icon-[tabler--flame]": {
+    body: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10.941c2.333-3.308.167-7.823-1-8.941c0 3.395-2.235 5.299-3.667 6.706C5.903 10.114 5 12 5 14.294C5 17.998 8.134 21 12 21s7-3.002 7-6.706c0-1.712-1.232-4.403-2.333-5.588c-2.084 3.353-3.257 3.353-4.667 2.235"/>',
+  },
+};
+
+// Renders a trait icon as inline SVG with an emboss (white top-left, black bottom-right)
+// that follows the icon shape — only possible with real SVG paths, not mask-image.
+function IconSvg({ icon, uid, size }: { icon: string; uid: string; size: number }) {
+  const data = ICON_SVG[icon];
+  // Fallback for an icon with no vendored path (e.g. a trait added without an ICON_SVG
+  // entry): render the Iconify class flat with the gold ramp — no emboss, but visible,
+  // never a blank pin.
+  if (!data)
+    return (
+      <span
+        aria-hidden
+        className={`${icon} relative bg-linear-to-b from-[#E8C547] to-[#6B5210] text-transparent`}
+        style={{ fontSize: size }}
+      />
+    );
+  return (
+    <svg
+      aria-hidden
+      viewBox={data.viewBox ?? "0 0 24 24"}
+      fill="currentColor"
+      className="relative"
+      style={{
+        width: size,
+        height: size,
+        filter:
+          "drop-shadow(-0.5px -0.5px 0.5px rgb(255 255 255 / 0.5)) drop-shadow(0.5px 0.5px 0.5px rgb(0 0 0 / 0.3))",
+      }}
+    >
+      <defs>
+        <linearGradient id={`i-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#E8C547" />
+          <stop offset="50%" stopColor="#A07B16" />
+          <stop offset="100%" stopColor="#6B5210" />
+        </linearGradient>
+      </defs>
+      <g
+        fill={`url(#i-${uid})`}
+        stroke={`url(#i-${uid})`}
+        dangerouslySetInnerHTML={{
+          __html: data.body.replace(/currentColor/g, `url(#i-${uid})`),
+        }}
+      />
+    </svg>
+  );
+}
+
 // OKLCH anchor per hue = the Tailwind -500 stop (each hue's vibrant peak: L% C H).
 // The fill ramps lightness around this at FIXED hue+chroma, so every badge is a clean
 // light→dark shade of ONE color. Ramping the palette instead (300→600) drifted the hue
@@ -53,21 +133,12 @@ const HUE_OKLCH: Record<Trait["hue"], { l: number; c: number; h: number }> = {
   rose: { l: 64.5, c: 0.246, h: 16.439 },
 };
 
-const DL = 13; // lightness swing around the anchor (± = lighter top, darker bottom)
+const DL = 8; // flatter gradient for enamel (less swing than the old 13)
 const oklchStr = (l: number, c: number, h: number, a?: number) =>
   `oklch(${l.toFixed(1)}% ${c.toFixed(3)} ${h}${a === undefined ? "" : ` / ${a}`})`;
 
-// Two-stop gradient endpoints (top→bottom), shared by the fill + halo layers.
+// Two-stop gradient endpoints (top→bottom), shared by the enamel fill layer.
 type Stops = { top: string; bot: string };
-
-// Rim: the crisp THIN-px inner border, a vector stroke on the shape path (paint-order
-// stroke, so it sits just outside the fill and hugs the silhouette exactly — star tips
-// included). Theme-aware via CSS light-dark() (color-scheme is set on <html> by the theme
-// init script): a lighter rim in light mode, the deep rim in dark mode.
-const rimColor = (hue: Trait["hue"]) => {
-  const { l, c, h } = HUE_OKLCH[hue];
-  return `light-dark(${oklchStr(l - 12, c, h)}, ${oklchStr(l - 23, c, h)})`;
-};
 
 // Dark-mode drop-shadow is a colored glow of the hue (styles.css .dark .t-tilt reads
 // --glow) instead of the neutral shadow used in light mode. ~30% alpha, like rose-500/30.
@@ -76,79 +147,80 @@ const glowColor = (hue: Trait["hue"]) => {
   return oklchStr(l, c, h, 0.3);
 };
 
-// Fill gradient stops (top→bottom): light top, deep vibrant bottom. Chroma is tapered at
-// the light end (×0.8) — lighter tints are naturally less chromatic (mirrors the palette),
-// and it keeps wide-gamut hues (violet/fuchsia) inside sRGB instead of a dull grey.
+// Enamel fill gradient stops (top→bottom): saturated, with a subtle lightness ramp. Full
+// chroma at both ends (no taper) — enamel colors are vivid and flat, and the reduced DL
+// keeps wide-gamut hues in sRGB without a chroma taper.
 const fillStops = (hue: Trait["hue"]): Stops => {
   const { l, c, h } = HUE_OKLCH[hue];
-  return { top: oklchStr(l + DL, c * 0.8, h), bot: oklchStr(l - DL, c, h) };
-};
-
-// Faded halo gradient stops for the thick outer glow. Theme-aware, each stop a light-dark()
-// so the browser swaps by color-scheme. The fade lives in the stop ALPHA (not a path-wide
-// opacity) so each mode can carry its own curve:
-//   • light — a light tint fading in place: top ≈ shade 300 → bottom ≈ shade 50, both at
-//     ~0.35 alpha (a soft, uniform wash of the light tints).
-//   • dark  — one dark shade fading OUT: top = shade 950 @ full → bottom = shade 950 @ 0.2
-//     (i.e. from-<hue>-950 to-<hue>-950/20).
-// Shade L/C values map to the Tailwind v4 OKLCH palette.
-const haloStops = (hue: Trait["hue"]): Stops => {
-  const { c, h } = HUE_OKLCH[hue];
-  const ld = (lightL: number, lightC: number, lightA: number, darkA: number) =>
-    `light-dark(${oklchStr(lightL, lightC, h, lightA)}, ${oklchStr(40, c * 0.6, h, darkA)})`; // dark = shade 950
-  return {
-    top: ld(81, c * 0.48, 0.35, 0.5), // light shade ~300 @.35 / dark 950 @.5
-    bot: ld(97, c * 0.06, 0.35, 0.1), // light shade ~50  @.35 / dark 950 @.1
-  };
+  return { top: oklchStr(l + DL, c, h), bot: oklchStr(l - DL, c, h) };
 };
 
 // The rim/glow/gradient strings depend only on hue (8 values), so resolve them once at
 // module load instead of rebuilding them on every BadgeShape render (badges re-render on
 // any parent update, e.g. the grade dialog toggling).
-type HueStyle = { rim: string; glow: string; fill: Stops; halo: Stops };
+type HueStyle = { glow: string; fill: Stops };
 const HUE_STYLE = Object.fromEntries(
   (Object.keys(HUE_OKLCH) as Trait["hue"][]).map((hue) => [
     hue,
-    {
-      rim: rimColor(hue),
-      glow: glowColor(hue),
-      fill: fillStops(hue),
-      halo: haloStops(hue),
-    },
+    { glow: glowColor(hue), fill: fillStops(hue) },
   ]),
 ) as Record<Trait["hue"], HueStyle>;
 
-// Pointer-tracked 3D tilt (Transitions.dev card-tilt pattern, scaled to the badge):
-// write the four --tilt-* vars on the flat outer .t-tilt and toggle is-tilting/is-hover.
-function tiltMove(e: RPointerEvent<HTMLSpanElement>) {
-  const el = e.currentTarget;
-  const r = el.getBoundingClientRect();
-  const px = (e.clientX - r.left) / r.width;
-  const py = (e.clientY - r.top) / r.height;
-  const MAX = 20; // deg
-  el.style.setProperty("--tilt-ry", `${(px - 0.5) * 2 * MAX}deg`);
-  el.style.setProperty("--tilt-rx", `${(0.5 - py) * 2 * MAX}deg`);
-  el.style.setProperty("--tilt-gx", `${px * 100}%`);
-  el.style.setProperty("--tilt-gy", `${py * 100}%`);
-  el.classList.add("is-tilting", "is-hover");
-}
-function tiltLeave(e: RPointerEvent<HTMLSpanElement>) {
-  const el = e.currentTarget;
-  el.classList.remove("is-tilting", "is-hover");
-  el.style.setProperty("--tilt-rx", "0deg");
-  el.style.setProperty("--tilt-ry", "0deg");
-}
+// --- Candy style (the original gradient-rim + halo look from main) ----------------
+// Reconstructed here so BadgeShape can toggle between enamel and candy via preference.
+const CANDY_DL = 13;
 
-// Outer-border widths in px, constant across badge sizes via non-scaling-stroke (the
-// 1px/5px spec is literal, not scaled). Each stroke is drawn double-width and the opaque
-// fill on top covers its inner half, so THIN/HALO is the amount that shows OUTSIDE the edge.
-const THIN = 1; // crisp inner rim, on top
-const HALO = 5; // faded gradient glow behind → ~HALO-THIN px shows past the rim (≈4px)
+// Candy rim: theme-aware crisp inner border (light-dark via CSS color-scheme).
+const candyRimColor = (hue: Trait["hue"]) => {
+  const { l, c, h } = HUE_OKLCH[hue];
+  return `light-dark(${oklchStr(l - 12, c, h)}, ${oklchStr(l - 23, c, h)})`;
+};
 
-// One shape layer: a gradient-filled/stroked 24×24 path. Both the halo and the fill+rim
-// layers are the same SVG scaffold (viewBox, non-scaling round-join stroke, 2-stop vertical
-// gradient), differing only in colors/width/paint-order — so they share this, kept in sync.
-function ShapeSvg({
+// Candy fill: chroma-tapered at the light end (×0.8) to keep wide-gamut hues in sRGB.
+const candyFillStops = (hue: Trait["hue"]): Stops => {
+  const { l, c, h } = HUE_OKLCH[hue];
+  return { top: oklchStr(l + CANDY_DL, c * 0.8, h), bot: oklchStr(l - CANDY_DL, c, h) };
+};
+
+// Candy halo: faded gradient glow behind the shape, theme-aware via light-dark().
+const candyHaloStops = (hue: Trait["hue"]): Stops => {
+  const { c, h } = HUE_OKLCH[hue];
+  const ld = (lightL: number, lightC: number, lightA: number, darkA: number) =>
+    `light-dark(${oklchStr(lightL, lightC, h, lightA)}, ${oklchStr(40, c * 0.6, h, darkA)})`;
+  return {
+    top: ld(81, c * 0.48, 0.35, 0.5),
+    bot: ld(97, c * 0.06, 0.35, 0.1),
+  };
+};
+
+type CandyHueStyle = { rim: string; glow: string; fill: Stops; halo: Stops };
+const CANDY_STYLE = Object.fromEntries(
+  (Object.keys(HUE_OKLCH) as Trait["hue"][]).map((hue) => [
+    hue,
+    {
+      rim: candyRimColor(hue),
+      glow: glowColor(hue),
+      fill: candyFillStops(hue),
+      halo: candyHaloStops(hue),
+    },
+  ]),
+) as Record<Trait["hue"], CandyHueStyle>;
+
+const CANDY_THIN = 1;
+const CANDY_HALO = 5;
+
+// Candy masks a solid glyph (mask-image → white gradient), so it needs the FILLED icon
+// variant. traits.ts stores the outline variant that enamel's ICON_SVG paths key off;
+// map those back to their filled form so candy renders a solid icon, not a hollow outline.
+const CANDY_ICON: Record<string, string> = {
+  "icon-[tabler--arrow-big-up-line]": "icon-[tabler--arrow-big-up-line-filled]",
+  "icon-[tabler--arrow-big-down-line]": "icon-[tabler--arrow-big-down-line-filled]",
+  "icon-[tabler--dice-6]": "icon-[fa7-solid--dice]",
+  "icon-[tabler--flame]": "icon-[tabler--flame-filled]",
+};
+const candyIconClass = (icon: string) => CANDY_ICON[icon] ?? icon;
+
+function CandyShapeSvg({
   shape,
   gid,
   stops,
@@ -164,7 +236,7 @@ function ShapeSvg({
   fill: string;
   stroke: string;
   strokeWidth: number;
-  paintOrderStroke?: boolean; // draw the stroke outside the fill (crisp outer rim)
+  paintOrderStroke?: boolean;
   className?: string;
 }) {
   return (
@@ -192,70 +264,222 @@ function ShapeSvg({
   );
 }
 
-export function BadgeShape({ trait, size = 32 }: { trait: Trait; size?: number }) {
-  const style = HUE_STYLE[trait.hue];
-  // Unique gradient ids per instance — the same trait renders at two sizes on one page
-  // (header 44, overview 32); shared ids would make both reuse the first def.
-  const uid = useId().replace(/:/g, "");
+// Pointer-tracked 3D tilt (Transitions.dev card-tilt pattern, scaled to the badge):
+// write the four --tilt-* vars on the flat outer .t-tilt and toggle is-tilting/is-hover.
+function tiltMove(e: RPointerEvent<HTMLSpanElement>) {
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width;
+  const py = (e.clientY - r.top) / r.height;
+  const MAX = 20; // deg
+  el.style.setProperty("--tilt-ry", `${(px - 0.5) * 2 * MAX}deg`);
+  el.style.setProperty("--tilt-rx", `${(0.5 - py) * 2 * MAX}deg`);
+  el.style.setProperty("--tilt-gx", `${px * 100}%`);
+  el.style.setProperty("--tilt-gy", `${py * 100}%`);
+  el.classList.add("is-tilting", "is-hover");
+}
+function tiltLeave(e: RPointerEvent<HTMLSpanElement>) {
+  const el = e.currentTarget;
+  el.classList.remove("is-tilting", "is-hover");
+  el.style.setProperty("--tilt-rx", "0deg");
+  el.style.setProperty("--tilt-ry", "0deg");
+}
+
+// Gold metal rim width in screen px (non-scaling-stroke, constant across badge sizes).
+// Drawn double-width with the opaque fill covering its inner half, so RIM is the amount
+// that shows OUTSIDE the fill edge.
+const RIM = 2;
+
+// Gold metal gradient for the raised rim — light at top-left, dark at bottom-right,
+// so the rim reads as a single directional light source.
+const METAL: { o: string; c: string }[] = [
+  { o: "0%", c: "#FFF0B3" },
+  { o: "50%", c: "#D4A522" },
+  { o: "100%", c: "#8B6914" },
+];
+
+// Enamel pin SVG: gold metal rim + saturated enamel fill + glassy gloss. The rim is a
+// thick diagonal gold stroke (paint-order: stroke, so it sits outside the fill). A thin
+// dark inner-shadow line at the boundary shows the enamel is recessed below the raised
+// metal. A clipped white gradient overlay adds the glassy sheen of fired enamel.
+function EnamelPinSvg({ shape, uid, fill }: { shape: Trait["shape"]; uid: string; fill: Stops }) {
+  const d = SHAPE_PATH[shape];
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="absolute inset-0 size-full overflow-visible">
+      <defs>
+        <linearGradient id={`m-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          {METAL.map((s) => (
+            <stop key={s.o} offset={s.o} stopColor={s.c} />
+          ))}
+        </linearGradient>
+        <linearGradient id={`e-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={fill.top} />
+          <stop offset="100%" stopColor={fill.bot} />
+        </linearGradient>
+        <linearGradient id={`g-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff" stopOpacity={0.28} />
+          <stop offset="45%" stopColor="#fff" stopOpacity={0.06} />
+          <stop offset="100%" stopColor="#fff" stopOpacity={0} />
+        </linearGradient>
+        <linearGradient id={`s-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#000" stopOpacity={0.5} />
+          <stop offset="100%" stopColor="#fff" stopOpacity={0.9} />
+        </linearGradient>
+        <clipPath id={`c-${uid}`}>
+          <path d={d} />
+        </clipPath>
+        <filter id={`b-${uid}`} x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="0.6" />
+        </filter>
+      </defs>
+      {/* Enamel fill + gold metal rim (paint-order: stroke → rim outside the fill) */}
+      <path
+        d={d}
+        fill={`url(#e-${uid})`}
+        stroke={`url(#m-${uid})`}
+        strokeWidth={RIM * 2}
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+        style={{ paintOrder: "stroke" }}
+      />
+      {/* Inner shadow (dark top-left, light bottom-right) + glassy gloss, clipped to
+          the shape so only the interior half of the stroke shows — reads as the raised
+          rim casting a shadow onto the recessed enamel. */}
+      <g clipPath={`url(#c-${uid})`}>
+        <path
+          d={d}
+          fill="none"
+          stroke={`url(#s-${uid})`}
+          strokeWidth={2}
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+          filter={`url(#b-${uid})`}
+        />
+        <rect x="0" y="0" width="24" height="24" fill={`url(#g-${uid})`} />
+      </g>
+    </svg>
+  );
+}
+
+// Shared scaffolding for both styles: sizing box → optional static halo (kept OUTSIDE
+// .t-tilt so the hover scale + 3D tilt don't move it) → tilt layer (--glow + pointer
+// tilt) → tilt-card holding the pin/icon/glare stack.
+function BadgeShell({
+  size,
+  glow,
+  tiltClass,
+  halo,
+  children,
+}: {
+  size: number;
+  glow: string;
+  tiltClass?: string;
+  halo?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <span
       className="relative grid shrink-0 place-items-center"
       style={{ width: size, height: size }}
     >
-      {/* Static halo — deliberately OUTSIDE .t-tilt, so the hover scale + 3D tilt don't move
-          it: the badge lifts and tilts over a fixed glow. A wide faded stroke; the opaque
-          fill on the tilt layer covers its inner half, leaving ~HALO px of glow outside the
-          shape edge (~HALO-THIN px past the crisp rim). */}
-      <ShapeSvg
-        shape={trait.shape}
-        gid={`h-${uid}`}
-        stops={style.halo}
-        fill="none"
-        stroke={`url(#h-${uid})`}
-        strokeWidth={HALO * 2}
-        className="pointer-events-none"
-      />
+      {halo}
       <span
-        className="t-tilt relative grid size-full place-items-center"
-        style={{ "--glow": style.glow } as CSSProperties}
+        className={`t-tilt relative grid size-full place-items-center${tiltClass ? ` ${tiltClass}` : ""}`}
+        style={{ "--glow": glow } as CSSProperties}
         onPointerMove={tiltMove}
         onPointerLeave={tiltLeave}
       >
-        <span className="t-tilt-card grid size-full place-items-center">
-          {/* Shape fill + crisp THIN-px rim (paint-order: stroke so the rim hugs the
-              silhouette just outside the fill). This layer scales + tilts on hover; the
-              halo behind it stays put. */}
-          <ShapeSvg
-            shape={trait.shape}
-            gid={`f-${uid}`}
-            stops={style.fill}
-            fill={`url(#f-${uid})`}
-            stroke={style.rim}
-            strokeWidth={THIN * 2}
-            paintOrderStroke
-          />
-          {/* Icon: white→white/70 gradient clipped by the icon mask. text-transparent
-              zeroes the plugin's currentColor fill so only the gradient shows. Icon
-              scales with the badge (≈0.4 of the box, matching the 13px-in-32px default). */}
-          <span
-            className={`${trait.icon} relative bg-linear-to-b from-white to-white/70 text-transparent`}
-            style={{ fontSize: size * 0.4 }}
-          />
-          {/* Glare: radial sheen (from .t-tilt-glare) masked to the icon shape; screen-
-              blends and tracks the pointer via --tilt-gx/gy. */}
-          <span
-            aria-hidden
-            className={`${SHAPE_ICON[trait.shape]} t-tilt-glare absolute inset-0`}
-            style={{
-              width: "100%",
-              height: "100%",
-              backgroundColor: "transparent",
-            }}
-          />
-        </span>
+        <span className="t-tilt-card grid size-full place-items-center">{children}</span>
       </span>
     </span>
   );
+}
+
+// Radial sheen masked to the shape silhouette; screen-blends and tracks the pointer via
+// --tilt-gx/gy from .t-tilt-glare. backgroundColor:transparent zeroes the Iconify class's
+// currentColor fill so only the glare gradient shows through the mask.
+function Glare({ shape }: { shape: Trait["shape"] }) {
+  return (
+    <span
+      aria-hidden
+      className={`${SHAPE_ICON[shape]} t-tilt-glare absolute inset-0 size-full`}
+      style={{ backgroundColor: "transparent" }}
+    />
+  );
+}
+
+export function EnamelBadgeShape({ trait, size = 32 }: { trait: Trait; size?: number }) {
+  const style = HUE_STYLE[trait.hue];
+  const uid = useId().replace(/:/g, "");
+  return (
+    <BadgeShell size={size} glow={style.glow} tiltClass="t-tilt-enamel">
+      <EnamelPinSvg shape={trait.shape} uid={uid} fill={style.fill} />
+      <IconSvg icon={trait.icon} uid={uid} size={size * 0.4} />
+      <Glare shape={trait.shape} />
+    </BadgeShell>
+  );
+}
+
+export function CandyBadgeShape({ trait, size = 32 }: { trait: Trait; size?: number }) {
+  const style = CANDY_STYLE[trait.hue];
+  const uid = useId().replace(/:/g, "");
+  return (
+    <BadgeShell
+      size={size}
+      glow={style.glow}
+      halo={
+        <CandyShapeSvg
+          shape={trait.shape}
+          gid={`h-${uid}`}
+          stops={style.halo}
+          fill="none"
+          stroke={`url(#h-${uid})`}
+          strokeWidth={CANDY_HALO * 2}
+          className="pointer-events-none"
+        />
+      }
+    >
+      {/* Fill + crisp rim */}
+      <CandyShapeSvg
+        shape={trait.shape}
+        gid={`f-${uid}`}
+        stops={style.fill}
+        fill={`url(#f-${uid})`}
+        stroke={style.rim}
+        strokeWidth={CANDY_THIN * 2}
+        paintOrderStroke
+      />
+      {/* Icon: filled glyph, white→white/70 gradient via Iconify mask-image */}
+      <span
+        className={`${candyIconClass(trait.icon)} relative bg-linear-to-b from-white to-white/70 text-transparent`}
+        style={{ fontSize: size * 0.4 }}
+      />
+      <Glare shape={trait.shape} />
+    </BadgeShell>
+  );
+}
+
+// Forced-style renderer — the shared core for the picker preview and the public component.
+export function BadgeShapePreview({
+  trait,
+  size = 32,
+  style,
+}: {
+  trait: Trait;
+  size?: number;
+  style: BadgeStyle;
+}) {
+  return style === "candy" ? (
+    <CandyBadgeShape trait={trait} size={size} />
+  ) : (
+    <EnamelBadgeShape trait={trait} size={size} />
+  );
+}
+
+// Public API — picks the style from the badge-style preference.
+export function BadgeShape({ trait, size = 32 }: { trait: Trait; size?: number }) {
+  const { badgeStyle } = usePreferences();
+  return <BadgeShapePreview trait={trait} size={size} style={badgeStyle} />;
 }
 
 export function TraitBlurb({ trait }: { trait: Trait }) {

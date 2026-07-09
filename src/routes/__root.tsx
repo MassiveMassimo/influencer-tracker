@@ -8,6 +8,7 @@ import { listCreators, fetchCallsIndex } from "../lib/data";
 import { topStocksByLastCall } from "../lib/rail-stocks";
 import { platformOf, type Platform } from "../lib/platform";
 import { PreferencesProvider } from "#/lib/preferences.tsx";
+import { getSsrPrefs } from "#/lib/ui-prefs-cookie.ts";
 import { HapticsProvider } from "#/lib/haptics.tsx";
 import { Analytics } from "#/lib/analytics.tsx";
 import { Agentation } from "agentation";
@@ -15,11 +16,19 @@ import { siteUrl } from "#/og/site.ts";
 
 import appCss from "../styles.css?url";
 
-const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`;
+// Pre-paint: apply the CSS-driven prefs (theme + reduce-motion) before first paint so
+// they never flash. Theme's `auto` resolves against prefers-color-scheme, a client-only
+// signal, which is exactly why these stay on localStorage + this script rather than the
+// SSR cookie path (badgeStyle/showHalalStatus). See ui-prefs-cookie.ts.
+const THEME_INIT_SCRIPT = `(function(){try{var root=document.documentElement;var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;if(window.localStorage.getItem('reduce-motion')==='true'){root.setAttribute('data-reduce-motion','true')}else{root.removeAttribute('data-reduce-motion')}}catch(e){}})();`;
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async () => {
-    const [creators, index] = await Promise.all([listCreators(), fetchCallsIndex()]);
+    const [creators, index, ssrPrefs] = await Promise.all([
+      listCreators(),
+      fetchCallsIndex(),
+      getSsrPrefs(),
+    ]);
     // Platform is a per-creator constant (a handle is scraped from one source);
     // derive it from the first indexed shortcode (numeric ⇒ X tweet id, else IG)
     // so MobileNav can show the platform icon + profile link without the dataset.
@@ -33,7 +42,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ...c,
       platform: platformByHandle.get(c.handle),
     }));
-    return { creators: creatorsWithPlatform, stocks: topStocksByLastCall(index) };
+    return { creators: creatorsWithPlatform, stocks: topStocksByLastCall(index), ssrPrefs };
   },
   head: () => ({
     meta: [
@@ -72,9 +81,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootComponent() {
-  const { creators, stocks } = Route.useLoaderData();
+  const { creators, stocks, ssrPrefs } = Route.useLoaderData();
   return (
-    <PreferencesProvider>
+    <PreferencesProvider initial={ssrPrefs}>
       <HapticsProvider>
         <Analytics />
         {import.meta.env.DEV && (
