@@ -36,6 +36,9 @@ export async function prefetchHalal(queryClient: QueryClient, symbols: string[])
 export function useHalalStatus(symbols: string[]): (symbol: string) => HalalInfo {
   const { showHalalStatus } = usePreferences();
   const key = symbols.join(",");
+  // `symbols` is a fresh array each render; `key` is its stable content signature,
+  // so the dedupe+sort recomputes only when the tickers actually change.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
   const sorted = React.useMemo(() => [...new Set(symbols)].sort(), [key]);
   const q = useQuery({
     ...halalQuery(sorted),

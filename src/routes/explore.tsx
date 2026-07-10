@@ -8,6 +8,8 @@ import { siteUrl } from "#/og/site.ts";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
+import { NavMenu } from "#/components/ui/nav-menu.tsx";
+import { NavRow } from "#/components/ui/nav-row.tsx";
 
 export const Route = createFileRoute("/explore")({
   loader: async ({ context }) => {
@@ -166,7 +168,7 @@ function Explore() {
         </div>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+      <section className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
         <div className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] tracking-[0.08em] text-muted-foreground uppercase md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5">
           <span>Call</span>
           <button
@@ -198,68 +200,61 @@ function Explore() {
             Excess→now
           </button>
         </div>
-        <ul className="divide-y divide-border/40">
-          {rows.length === 0 ? (
-            <li className="px-5 py-6 text-sm text-muted-foreground">No calls match.</li>
-          ) : (
-            rows.slice(0, 500).map((r) => (
-              <li key={`${r.handle}:${r.shortcode}:${r.ticker}`}>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`View proof for ${r.ticker} call by @${r.handle}`}
-                  onClick={() => setSelected(r)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelected(r);
-                    }
-                  }}
-                  className="grid cursor-pointer grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-3 transition-colors hover:bg-muted/50 md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to="/t/$symbol/$creator"
-                        params={{ symbol: r.ticker, creator: "all" }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-sm font-medium text-foreground no-underline hover:underline"
-                      >
-                        {r.ticker}
-                      </Link>
-                      <HalalIndicator info={getHalal(r.ticker)} />
-                      <Link
-                        to="/c/$handle"
-                        params={{ handle: r.handle }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground"
-                      >
-                        @{r.handle}
-                      </Link>
-                    </div>
-                    {r.summary && (
-                      <div className="truncate text-xs text-muted-foreground">{r.summary}</div>
-                    )}
+        {rows.length === 0 ? (
+          <div className="px-5 py-6 text-sm text-muted-foreground">No calls match.</div>
+        ) : (
+          <NavMenu activeSlug={null} radius="rounded-none" separated aria-label="Calls">
+            {rows.slice(0, 500).map((r, i) => (
+              <NavRow
+                key={`${r.handle}:${r.shortcode}:${r.ticker}`}
+                index={i}
+                slug={`${r.handle}:${r.shortcode}:${r.ticker}`}
+                onActivate={() => setSelected(r)}
+                aria-label={`View proof for ${r.ticker} call by @${r.handle}`}
+                className="grid grid-cols-[1fr_5rem_5rem] items-center gap-2 px-4 py-3 md:grid-cols-[1fr_8rem_6rem_6rem_6rem] md:gap-3 md:px-5"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to="/t/$symbol/$creator"
+                      params={{ symbol: r.ticker, creator: "all" }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-sm font-medium text-foreground no-underline hover:underline"
+                    >
+                      {r.ticker}
+                    </Link>
+                    <HalalIndicator info={getHalal(r.ticker)} />
+                    <Link
+                      to="/c/$handle"
+                      params={{ handle: r.handle }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="truncate font-mono text-xs text-muted-foreground no-underline hover:text-foreground"
+                    >
+                      @{r.handle}
+                    </Link>
                   </div>
-                  <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
-                    {r.postDate.slice(5)}
-                  </div>
-                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">
-                    {(r.conviction * 100).toFixed(0)}
-                  </div>
-                  <div className={`text-right font-mono text-sm tabular-nums ${tone(r.ex3m)}`}>
-                    {signed(r.ex3m)}
-                  </div>
-                  <div
-                    className={`hidden text-right font-mono text-sm tabular-nums md:block ${tone(r.exToDate)}`}
-                  >
-                    {signed(r.exToDate)}
-                  </div>
+                  {r.summary && (
+                    <div className="truncate text-xs text-muted-foreground">{r.summary}</div>
+                  )}
                 </div>
-              </li>
-            ))
-          )}
-        </ul>
+                <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
+                  {r.postDate.slice(5)}
+                </div>
+                <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">
+                  {(r.conviction * 100).toFixed(0)}
+                </div>
+                <div className={`text-right font-mono text-sm tabular-nums ${tone(r.ex3m)}`}>
+                  {signed(r.ex3m)}
+                </div>
+                <div
+                  className={`hidden text-right font-mono text-sm tabular-nums md:block ${tone(r.exToDate)}`}
+                >
+                  {signed(r.exToDate)}
+                </div>
+              </NavRow>
+            ))}
+          </NavMenu>
+        )}
         {rows.length > 500 && (
           <div className="border-t border-border/40 px-5 py-3 text-center text-xs text-muted-foreground">
             Showing first 500 of {rows.length}. Narrow the filter to see more.

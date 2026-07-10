@@ -11,6 +11,9 @@ import { NavigationMenu } from "@base-ui/react/navigation-menu";
 import { GradeMedallion } from "#/components/grade-medallion";
 import { GradeHead, GradeBreakdownDialog } from "#/components/grade-detail";
 import { BadgeShape, TraitBlurb } from "#/components/trait-badges";
+import { useSurface, SurfaceProvider } from "#/lib/surface-context.tsx";
+import { surfaceClasses } from "#/lib/surface-classes.ts";
+import { cn } from "#/lib/utils.ts";
 import { EASE_OUT } from "#/lib/ease.ts";
 import type { Trait } from "#/lib/traits";
 import type { Grade } from "#/lib/grade";
@@ -40,6 +43,8 @@ export function IdentityMenu({
 }) {
   const [open, setOpen] = useState(false);
   const reduce = useReducedMotion();
+  // Dropdown reads substrate + lifts +2 (FF convention); shadow pinned to 3.
+  const level = Math.min(useSurface() + 2, 8);
 
   return (
     <NavigationMenu.Root
@@ -121,8 +126,15 @@ export function IdentityMenu({
           align="center"
           collisionPadding={12}
         >
-          <NavigationMenu.Popup className="t-nav-popup rounded-lg border bg-popover text-popover-foreground shadow-lg/5">
-            <NavigationMenu.Viewport className="t-nav-viewport" />
+          <NavigationMenu.Popup
+            className={cn(
+              "t-nav-popup rounded-lg text-popover-foreground",
+              surfaceClasses(level, 3),
+            )}
+          >
+            <SurfaceProvider value={level}>
+              <NavigationMenu.Viewport className="t-nav-viewport" />
+            </SurfaceProvider>
           </NavigationMenu.Popup>
         </NavigationMenu.Positioner>
       </NavigationMenu.Portal>

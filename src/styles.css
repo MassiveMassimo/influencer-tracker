@@ -14,34 +14,14 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --sea-ink: #173a40;
-  --sea-ink-soft: #416166;
-  --lagoon: #4fb8b2;
-  --lagoon-deep: #328f97;
-  --palm: #2f6a4a;
-  --sand: #e7f0e8;
-  --foam: #f3faf5;
-  --surface: rgba(255, 255, 255, 0.74);
-  --surface-strong: rgba(255, 255, 255, 0.9);
-  --line: rgba(23, 58, 64, 0.14);
-  --inset-glint: rgba(255, 255, 255, 0.82);
-  --kicker: rgba(47, 106, 74, 0.9);
-  --bg-base: #e7f3ec;
-  --header-bg: rgba(251, 255, 248, 0.84);
-  --chip-bg: rgba(255, 255, 255, 0.8);
-  --chip-line: rgba(47, 106, 74, 0.18);
-  --link-bg-hover: rgba(255, 255, 255, 0.9);
-  --hero-a: rgba(79, 184, 178, 0.36);
-  --hero-b: rgba(47, 106, 74, 0.2);
-
   /* Neutral scale = Tailwind zinc (oklch literals; the zinc theme vars are
      tree-shaken so they're inlined here). Pure-white surfaces stay white per
      the canonical shadcn zinc theme; everything else carries the zinc tint. */
-  --background: oklch(1 0 0);
+  --background: var(--surface-1);
   --foreground: oklch(0.141 0.005 285.823); /* zinc-950 */
-  --card: oklch(1 0 0);
+  --card: var(--surface-2);
   --card-foreground: oklch(0.141 0.005 285.823); /* zinc-950 */
-  --popover: oklch(1 0 0);
+  --popover: var(--surface-3);
   --popover-foreground: oklch(0.141 0.005 285.823); /* zinc-950 */
   --primary: oklch(0.21 0.006 285.885); /* zinc-900 */
   --primary-foreground: oklch(0.985 0.001 286.375); /* zinc-50 */
@@ -92,35 +72,58 @@
   --warning: var(--color-amber-500);
   --warning-foreground: var(--color-amber-700);
   --chart-brush-border: var(--chart-grid);
+  --surface-1: #fafafa;
+  --surface-2: #fcfcfc;
+  --surface-3: #ffffff;
+  --surface-4: #ffffff;
+  --surface-5: #ffffff;
+  --surface-6: #ffffff;
+  --surface-7: #ffffff;
+  --surface-8: #ffffff;
+  --shadow-color: rgb(0 0 0 / 0.06);
+  --shadow-1: 0 0 0 1px var(--shadow-color);
+  --shadow-2: 0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color);
+  --shadow-3:
+    0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color),
+    0 3px 3px -1.5px var(--shadow-color);
+  --shadow-4:
+    0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color),
+    0 3px 3px -1.5px var(--shadow-color), 0 6px 6px -3px var(--shadow-color);
+  --shadow-5:
+    0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color),
+    0 3px 3px -1.5px var(--shadow-color), 0 6px 6px -3px var(--shadow-color),
+    0 12px 12px -6px var(--shadow-color);
+  --shadow-6:
+    0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color),
+    0 3px 3px -1.5px var(--shadow-color), 0 6px 6px -3px var(--shadow-color),
+    0 12px 12px -6px var(--shadow-color), 0 24px 24px -12px var(--shadow-color);
+  --shadow-7:
+    0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color),
+    0 3px 3px -1.5px var(--shadow-color), 0 6px 6px -3px var(--shadow-color),
+    0 12px 12px -6px var(--shadow-color), 0 24px 24px -12px var(--shadow-color),
+    0 48px 48px -24px var(--shadow-color);
+  --shadow-8:
+    0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color),
+    0 3px 3px -1.5px var(--shadow-color), 0 6px 6px -3px var(--shadow-color),
+    0 12px 12px -6px var(--shadow-color), 0 24px 24px -12px var(--shadow-color),
+    0 48px 48px -24px var(--shadow-color), 0 96px 96px -48px var(--shadow-color);
+  /* FF interaction tints — pre-mixed hover/active fills behind the pill
+     indicators (tabs, nav-menu). Match the rail's foreground-tint convention. */
+  --hover: rgb(0 0 0 / 0.04);
+  --active: rgb(0 0 0 / 0.07);
+  --focus-ring: #6b97ff;
+  /* Tint-direction triplet consumed as rgb(var(--overlay) / α): black on light
+     surfaces, white on dark (see .dark). FF components (switch, scrollbar) need it. */
+  --overlay: 0 0 0;
 }
 
 .dark {
-  --sea-ink: #d7ece8;
-  --sea-ink-soft: #afcdc8;
-  --lagoon: #60d7cf;
-  --lagoon-deep: #8de5db;
-  --palm: #6ec89a;
-  --sand: #0f1a1e;
-  --foam: #101d22;
-  --surface: rgba(16, 30, 34, 0.8);
-  --surface-strong: rgba(15, 27, 31, 0.92);
-  --line: rgba(141, 229, 219, 0.18);
-  --inset-glint: rgba(194, 247, 238, 0.14);
-  --kicker: #b8efe5;
-  --bg-base: #0a1418;
-  --header-bg: rgba(10, 20, 24, 0.8);
-  --chip-bg: rgba(13, 28, 32, 0.9);
-  --chip-line: rgba(141, 229, 219, 0.24);
-  --link-bg-hover: rgba(24, 44, 49, 0.8);
-  --hero-a: rgba(96, 215, 207, 0.18);
-  --hero-b: rgba(110, 200, 154, 0.12);
-
   /* Neutral scale = Tailwind zinc (oklch literals; see light block). */
-  --background: oklch(0.141 0.005 285.823); /* zinc-950 */
+  --background: var(--surface-1);
   --foreground: oklch(0.985 0.001 286.375); /* zinc-50 */
-  --card: oklch(0.21 0.006 285.885); /* zinc-900 */
+  --card: var(--surface-2);
   --card-foreground: oklch(0.985 0.001 286.375); /* zinc-50 */
-  --popover: oklch(0.21 0.006 285.885); /* zinc-900 */
+  --popover: var(--surface-3);
   --popover-foreground: oklch(0.985 0.001 286.375); /* zinc-50 */
   --primary: oklch(0.92 0.004 286.32); /* zinc-200 */
   --primary-foreground: oklch(0.21 0.006 285.885); /* zinc-900 */
@@ -165,6 +168,55 @@
   --warning: var(--color-amber-500);
   --warning-foreground: var(--color-amber-400);
   --chart-brush-border: var(--chart-grid);
+  --surface-1: #171717;
+  --surface-2: #1e1e1e;
+  --surface-3: #252525;
+  --surface-4: #2c2c2c;
+  --surface-5: #333333;
+  --surface-6: #3a3a3a;
+  --surface-7: #414141;
+  --surface-8: #484848;
+  --dm-hi-base: rgba(255, 255, 255, 0.01);
+  --dm-hi-mid: rgba(255, 255, 255, 0.02);
+  --dm-hi-high: rgba(255, 255, 255, 0.04);
+  --dm-hi-peak: rgba(255, 255, 255, 0.06);
+  --dm-ring-base: rgba(255, 255, 255, 0.02);
+  --dm-ring-mid: rgba(255, 255, 255, 0.04);
+  --dm-ring-high: rgba(255, 255, 255, 0.06);
+  --dm-drop: rgba(0, 0, 0, 0.18);
+  --shadow-1: inset 0 0 0 1px var(--dm-ring-base);
+  --shadow-2:
+    inset 0 1px 0 0 var(--dm-hi-base), inset 0 0 0 1px var(--dm-ring-base),
+    0 1px 1px -0.5px var(--dm-drop);
+  --shadow-3:
+    inset 0 1px 0 0 var(--dm-hi-mid), inset 0 0 0 1px var(--dm-ring-base),
+    0 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop);
+  --shadow-4:
+    inset 0 1px 0 0 var(--dm-hi-mid), inset 0 0 0 1px var(--dm-ring-mid),
+    0 0 0 1px rgba(0, 0, 0, 0.14), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop),
+    0 6px 6px -3px var(--dm-drop);
+  --shadow-5:
+    inset 0 1px 0 0 var(--dm-hi-high), inset 0 0 0 1px var(--dm-ring-mid),
+    0 0 0 1px rgba(0, 0, 0, 0.16), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop),
+    0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop);
+  --shadow-6:
+    inset 0 1px 0 0 var(--dm-hi-high), inset 0 0 0 1px var(--dm-ring-high),
+    0 0 0 1px rgba(0, 0, 0, 0.18), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop),
+    0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop), 0 24px 24px -12px var(--dm-drop);
+  --shadow-7:
+    inset 0 1px 0 0 var(--dm-hi-peak), inset 0 0 0 1px var(--dm-ring-high),
+    0 0 0 1px rgba(0, 0, 0, 0.2), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop),
+    0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop),
+    0 24px 24px -12px var(--dm-drop), 0 48px 48px -24px var(--dm-drop);
+  --shadow-8:
+    inset 0 1px 0 0 var(--dm-hi-peak), inset 0 0 0 1px var(--dm-ring-high),
+    0 0 0 1px rgba(0, 0, 0, 0.22), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop),
+    0 6px 6px -3px var(--dm-drop), 0 12px 12px -6px var(--dm-drop),
+    0 24px 24px -12px var(--dm-drop), 0 48px 48px -24px var(--dm-drop),
+    0 96px 96px -48px var(--dm-drop);
+  --hover: rgb(255 255 255 / 0.06);
+  --active: rgb(255 255 255 / 0.1);
+  --overlay: 255 255 255;
 }
 
 @theme inline {
@@ -232,6 +284,41 @@
   --color-info-foreground: var(--info-foreground);
   --color-info: var(--info);
   --color-chart-brush-border: var(--chart-brush-border);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-surface-5: var(--surface-5);
+  --color-surface-6: var(--surface-6);
+  --color-surface-7: var(--surface-7);
+  --color-surface-8: var(--surface-8);
+  --shadow-surface-1: var(--shadow-1);
+  --shadow-surface-2: var(--shadow-2);
+  --shadow-surface-3: var(--shadow-3);
+  --shadow-surface-4: var(--shadow-4);
+  --shadow-surface-5: var(--shadow-5);
+  --shadow-surface-6: var(--shadow-6);
+  --shadow-surface-7: var(--shadow-7);
+  --shadow-surface-8: var(--shadow-8);
+  --color-dm-drop: var(--dm-drop);
+  --color-dm-ring-high: var(--dm-ring-high);
+  --color-dm-ring-mid: var(--dm-ring-mid);
+  --color-dm-ring-base: var(--dm-ring-base);
+  --color-dm-hi-peak: var(--dm-hi-peak);
+  --color-dm-hi-high: var(--dm-hi-high);
+  --color-dm-hi-mid: var(--dm-hi-mid);
+  --color-dm-hi-base: var(--dm-hi-base);
+  --shadow-8: var(--shadow-8);
+  --shadow-7: var(--shadow-7);
+  --shadow-6: var(--shadow-6);
+  --shadow-5: var(--shadow-5);
+  --shadow-4: var(--shadow-4);
+  --shadow-3: var(--shadow-3);
+  --shadow-2: var(--shadow-2);
+  --shadow-1: var(--shadow-1);
+  --color-shadow-color: var(--shadow-color);
 }
 
 html,
@@ -254,8 +341,8 @@ a {
 
 code {
   font-size: 0.9em;
-  border: 1px solid var(--line);
-  background: color-mix(in oklab, var(--surface-strong) 82%, white 18%);
+  border: 1px solid var(--border);
+  background: var(--muted);
   border-radius: 7px;
   padding: 2px 7px;
 }
@@ -269,51 +356,11 @@ pre code {
   color: inherit;
 }
 
-.prose pre {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #1d2e45;
-  color: #e8efff;
-}
-
-.page-wrap {
-  width: min(1080px, calc(100% - 2rem));
-  margin-inline: auto;
-}
-
 .display-title {
   font-family: "Fraunces", Georgia, serif;
 }
 
-.island-shell {
-  border: 1px solid var(--line);
-  background: linear-gradient(165deg, var(--surface-strong), var(--surface));
-  box-shadow:
-    0 1px 0 var(--inset-glint) inset,
-    0 22px 44px rgba(30, 90, 72, 0.1),
-    0 6px 18px rgba(23, 58, 64, 0.08);
-  backdrop-filter: blur(4px);
-}
-
-.feature-card {
-  background: linear-gradient(
-    165deg,
-    color-mix(in oklab, var(--surface-strong) 93%, white 7%),
-    var(--surface)
-  );
-  box-shadow:
-    0 1px 0 var(--inset-glint) inset,
-    0 18px 34px rgba(30, 90, 72, 0.1),
-    0 4px 14px rgba(23, 58, 64, 0.06);
-}
-
-.feature-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--lagoon-deep) 35%, var(--line));
-}
-
 button,
-.island-shell,
 a {
   transition:
     background-color 180ms ease,
@@ -324,69 +371,9 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   button,
-  .island-shell,
-  a,
-  .feature-card,
-  .nav-link::after {
+  a {
     transition: none !important;
   }
-}
-
-.island-kicker {
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-weight: 700;
-  font-size: 0.69rem;
-  color: var(--kicker);
-}
-
-.nav-link {
-  position: relative;
-  text-decoration: none;
-  color: var(--sea-ink-soft);
-}
-
-.nav-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -8px;
-  width: 100%;
-  height: 2px;
-  transform: scaleX(0);
-  transform-origin: left;
-  background: linear-gradient(90deg, var(--lagoon), #7ed3bf);
-  transition: transform 170ms ease;
-}
-
-.nav-link:hover,
-.nav-link.is-active {
-  color: var(--sea-ink);
-}
-
-.nav-link:hover::after,
-.nav-link.is-active::after {
-  transform: scaleX(1);
-}
-
-.rise-in {
-  animation: rise-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.site-footer {
-  border-top: 1px solid var(--line);
-  background: color-mix(in oklab, var(--header-bg) 84%, transparent 16%);
 }
 
 @layer base {
@@ -403,13 +390,17 @@ a {
   }
 }
 
-/* Sliding-pill timeframe tabs (transitions.dev pattern, themed to design tokens). */
+/* Sliding-pill tabs — styling matched to the FF `tabs` component (bg-muted
+   track, elevated surface indicator) since the creator switcher's tab↔combobox
+   morph has no FF equivalent. Metrics mirror FF: p-1 track, gap-0.5, h-8 tabs,
+   13px labels. Now used only by the creator switcher (timeframe tabs moved to
+   the FF `Tabs` component). */
 .t-tabs {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 3px;
+  gap: 2px;
+  padding: 4px;
   border-radius: 48px;
   background: var(--muted);
   /* Never overflow the card; scroll horizontally on very narrow screens. */
@@ -425,44 +416,53 @@ a {
   appearance: none;
   border: 0;
   background: transparent;
-  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
   /* nowrap stops "1D" wrapping to "1"/"D"; flex-none keeps tabs from squishing. */
   white-space: nowrap;
   flex: 0 0 auto;
-  padding: 4px 9px;
+  padding: 0 12px;
   color: var(--muted-foreground);
   cursor: pointer;
   border-radius: 48px;
   z-index: 1;
-  font-size: 12px;
-  transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-@media (min-width: 768px) {
-  .t-tab {
-    padding: 4px 12px;
-  }
+  font-size: 13px;
+  transition:
+    color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    font-weight 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .t-tab:not([aria-selected="true"]):hover,
 .t-tab[aria-selected="true"] {
   color: var(--foreground);
 }
+/* FF bumps the active tab to semibold. Mono is fixed-width, so the weight
+   change never reflows the label. */
+.t-tab[aria-selected="true"] {
+  font-weight: 600;
+}
 .t-tabs-pill {
   position: absolute;
-  top: 3px;
-  /* left:0, not 3px — offsetLeft is measured from the offsetParent's border
-     edge, so it already includes the container's left padding. Adding 3px here
+  top: 4px;
+  /* left:0, not 4px — offsetLeft is measured from the offsetParent's border
+     edge, so it already includes the container's left padding. Adding it here
      double-counts it and shifts every pill right, eating the right padding on
      the last tab. */
   left: 0;
-  height: 30px;
+  height: 32px;
   width: 0;
-  background: var(--background);
+  /* FF indicator: an elevated surface (level 4 = substrate 1 + 3) floating
+     above the muted track, not a flat fill. */
+  background: var(--surface-4);
+  box-shadow: var(--shadow-4);
   border-radius: 48px;
   transform: translateX(0);
   transition:
     transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
     width 200ms cubic-bezier(0.22, 1, 0.36, 1),
     background-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
     top 200ms cubic-bezier(0.22, 1, 0.36, 1),
     height 200ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform, width;
@@ -669,14 +669,12 @@ number-flow-group {
   top: 1px;
   height: calc(100% - 2px);
   background: var(--card);
+  /* The open combobox reads as the input field inside the --border ring, not a
+     floating indicator — drop the resting elevation shadow. */
+  box-shadow: none;
 }
 .cs-root[data-open] .cs-tabs {
   background: var(--border);
-}
-/* Dark resting pill: zinc-700, one step lighter than the zinc-800 (--muted)
-   container so the indicator stays visible against it. */
-.dark .t-tabs-pill {
-  background: oklch(0.37 0.013 285.805); /* zinc-700 */
 }
 /* The search icon is the shared anchor: it occupies the same left edge in both
    layers, so the crossfade reads as one icon staying put while the row swaps. */
@@ -742,10 +740,7 @@ number-flow-group {
   border-radius: 10px;
   cursor: pointer;
   text-align: left;
-}
-.cs-option:hover,
-.cs-option[data-active="true"] {
-  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+  /* Hover/active highlight is the NavMenu animated pill, not a static fill. */
 }
 /* Neutralize the morph for OS-level reduced motion (the manual toggle is
    already covered by the broad html[data-reduce-motion] rule above). */
@@ -853,121 +848,6 @@ number-flow-group {
     color: var(--shimmering-color);
   }
 }
-/* Scroll-driven edge fade (chanhdai scroll-fade-effect, @ncdai). Pure CSS:
-   mask-image fades content to transparent at the leading/trailing edge, with the
-   fade band sized by scroll position via animation-timeline: scroll(self).
-   Firefox (no scroll-timeline yet) falls back to the @property initial state:
-   no leading fade, static trailing fade. */
-@property --top-mask-height {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 0px;
-}
-@property --bottom-mask-height {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 64px;
-}
-@property --left-mask-width {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 0px;
-}
-@property --right-mask-width {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 64px;
-}
-
-@keyframes show-top-mask {
-  to {
-    --top-mask-height: var(--mask-height);
-  }
-}
-@keyframes hide-bottom-mask {
-  to {
-    --bottom-mask-height: 0px;
-  }
-}
-@keyframes show-left-mask {
-  to {
-    --left-mask-width: var(--mask-width);
-  }
-}
-@keyframes hide-right-mask {
-  to {
-    --right-mask-width: 0px;
-  }
-}
-
-@utility scroll-fade-effect-y {
-  --mask-height: 64px;
-  --mask-offset-top: 0px;
-  --mask-offset-bottom: 0px;
-  --scroll-buffer: 2rem;
-  mask-image:
-    linear-gradient(to top, transparent, black 90%),
-    linear-gradient(to bottom, transparent 0%, black 100%), linear-gradient(black, black);
-  mask-size:
-    100% var(--top-mask-height),
-    100% var(--bottom-mask-height),
-    100% 100%;
-  mask-repeat: no-repeat, no-repeat, no-repeat;
-  mask-position:
-    0 var(--mask-offset-top),
-    0 calc(100% - var(--mask-offset-bottom)),
-    0 0;
-  mask-composite: exclude;
-  animation-name: show-top-mask, hide-bottom-mask;
-  animation-timeline: scroll(self), scroll(self);
-  animation-range:
-    0 var(--scroll-buffer),
-    calc(100% - var(--scroll-buffer)) 100%;
-  animation-fill-mode: both;
-}
-
-@utility scroll-fade-effect-x {
-  --mask-width: 64px;
-  --mask-offset-left: 0px;
-  --mask-offset-right: 0px;
-  --scroll-buffer: 2rem;
-  mask-image:
-    linear-gradient(to left, transparent, black 90%),
-    linear-gradient(to right, transparent 0%, black 100%), linear-gradient(black, black);
-  mask-size:
-    var(--left-mask-width) 100%,
-    var(--right-mask-width) 100%,
-    100% 100%;
-  mask-repeat: no-repeat, no-repeat, no-repeat;
-  mask-position:
-    var(--mask-offset-left) 0,
-    calc(100% - var(--mask-offset-right)) 0,
-    0 0;
-  mask-composite: exclude;
-  animation-name: show-left-mask, hide-right-mask;
-  animation-timeline: scroll(self inline), scroll(self inline);
-  animation-range:
-    0 var(--scroll-buffer),
-    calc(100% - var(--scroll-buffer)) 100%;
-  animation-fill-mode: both;
-}
-
-/* Kill the trailing edge fade when the axis doesn't overflow. The @property initial
-   values leave a static trailing mask whenever the scroll-timeline is inactive (content
-   fits), so a non-scrollable region shows a stray fade. Base UI's viewport exposes
-   data-has-overflow-x/y; reset the masks to 0 when the attr is absent. Scoped away from
-   the touch viewport (data-native, no attrs) so native-scroll fade is untouched. When
-   the axis DOES overflow the attr is present, this rule drops out, and the scroll-driven
-   animation (higher cascade origin) drives the mask. */
-[data-slot="scroll-area-viewport"]:not([data-native]):not([data-has-overflow-y]) {
-  --top-mask-height: 0px;
-  --bottom-mask-height: 0px;
-}
-[data-slot="scroll-area-viewport"]:not([data-native]):not([data-has-overflow-x]) {
-  --left-mask-width: 0px;
-  --right-mask-width: 0px;
-}
-
 /* Sticky ticker header: shrinks the heading + reveals a hairline bottom border
    as the page scrolls (juhg.hu scroll-driven technique, root scroll timeline).
    The frosted bg/blur are permanent Tailwind classes — invisible at the top
@@ -1092,12 +972,468 @@ number-flow-group {
     pointer-events: auto;
   }
 }
+/* TOC minimap (creator overview, 2xl+): rests at 2/3 height so it clears the
+   full-bleed performance-vs-SPY chart at the top, then recenters to 1/2 as the
+   page scrolls past it (root scroll timeline, same technique as the sticky
+   header above). Base `top` is the rested 2/3 so Firefox (no scroll-timeline)
+   and reduced-motion both stay in the chart-clearing position. */
+@keyframes toc-minimap-recenter {
+  to {
+    top: 50%;
+  }
+}
+.t-toc-minimap {
+  top: 66%;
+  animation: toc-minimap-recenter linear both;
+  animation-timeline: scroll(root block);
+  animation-range: 0 480px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-toc-minimap {
+    animation: none;
+  }
+}
+/* Scroll-driven edge fade — shadcn's `scroll-fade` utility
+   (ui.shadcn.com/docs/utils/scroll-fade), the exact edge treatment FF's scroll-area
+   builds on ("shadcn's scroll-fade as the baseline edge treatment"). Copied in rather
+   than `@import "shadcn/tailwind.css"` per the project's copy-in-over-npm-UI-dep rule.
+   Only `scroll-fade` + `scroll-fade-x` are used today; Tailwind v4 emits @utility on
+   demand, so the unused directional/sizing variants cost nothing in the output CSS.
+   `animation-timeline: scroll(self)` sizes the mask by scroll position (an edge only
+   fades once there's content past it); Firefox (no scroll-timeline) falls back via the
+   `@supports not` branch to a static both-edges fade. */
+@property --scroll-fade-t {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-b {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-s {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-e {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-mask {
+  syntax: "*";
+  inherits: false;
+}
+
+@theme inline {
+  @keyframes scroll-fade-reveal-t {
+    from {
+      --scroll-fade-t: 0px;
+    }
+    to {
+      --scroll-fade-t: var(
+        --_scroll-fade-size-t,
+        var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+      );
+    }
+  }
+  @keyframes scroll-fade-reveal-b {
+    from {
+      --scroll-fade-b: var(
+        --_scroll-fade-size-b,
+        var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+      );
+    }
+    to {
+      --scroll-fade-b: 0px;
+    }
+  }
+  @keyframes scroll-fade-reveal-s {
+    from {
+      --scroll-fade-s: 0px;
+    }
+    to {
+      --scroll-fade-s: var(
+        --_scroll-fade-size-s,
+        var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+      );
+    }
+  }
+  @keyframes scroll-fade-reveal-e {
+    from {
+      --scroll-fade-e: var(
+        --_scroll-fade-size-e,
+        var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+      );
+    }
+    to {
+      --scroll-fade-e: 0px;
+    }
+  }
+}
+
+@utility scroll-fade {
+  --_scroll-fade-size-t: var(
+    --scroll-fade-t-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --_scroll-fade-size-b: var(
+    --scroll-fade-b-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-block: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-t, 0px),
+    #000 calc(100% - var(--scroll-fade-b, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask, var(--scroll-fade-block));
+  mask-image: var(--scroll-fade-mask, var(--scroll-fade-block));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation:
+      scroll-fade-reveal-t 1ms ease-in-out,
+      scroll-fade-reveal-b 1ms ease-in-out;
+    animation-timeline: scroll(self y), scroll(self y);
+    animation-range:
+      0 var(--scroll-fade-reveal, calc(var(--spacing) * 24)),
+      calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-t: var(--_scroll-fade-size-t);
+    --scroll-fade-b: var(--_scroll-fade-size-b);
+  }
+}
+
+@utility scroll-fade-y {
+  --_scroll-fade-size-t: var(
+    --scroll-fade-t-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --_scroll-fade-size-b: var(
+    --scroll-fade-b-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-block: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-t, 0px),
+    #000 calc(100% - var(--scroll-fade-b, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask, var(--scroll-fade-block));
+  mask-image: var(--scroll-fade-mask, var(--scroll-fade-block));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation:
+      scroll-fade-reveal-t 1ms ease-in-out,
+      scroll-fade-reveal-b 1ms ease-in-out;
+    animation-timeline: scroll(self y), scroll(self y);
+    animation-range:
+      0 var(--scroll-fade-reveal, calc(var(--spacing) * 24)),
+      calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-t: var(--_scroll-fade-size-t);
+    --scroll-fade-b: var(--_scroll-fade-size-b);
+  }
+}
+
+@utility scroll-fade-x {
+  --_scroll-fade-size-s: var(
+    --scroll-fade-s-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --_scroll-fade-size-e: var(
+    --scroll-fade-e-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-inline: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--scroll-fade-s, 0px),
+    #000 calc(100% - var(--scroll-fade-e, 0px)),
+    transparent 100%
+  );
+  &:where([dir="rtl"], [dir="rtl"] *) {
+    --scroll-fade-inline: linear-gradient(
+      to left,
+      transparent 0,
+      #000 var(--scroll-fade-s, 0px),
+      #000 calc(100% - var(--scroll-fade-e, 0px)),
+      transparent 100%
+    );
+  }
+  -webkit-mask-image: var(--scroll-fade-mask, var(--scroll-fade-inline));
+  mask-image: var(--scroll-fade-mask, var(--scroll-fade-inline));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation:
+      scroll-fade-reveal-s 1ms ease-in-out,
+      scroll-fade-reveal-e 1ms ease-in-out;
+    animation-timeline: scroll(self inline), scroll(self inline);
+    animation-range:
+      0 var(--scroll-fade-reveal, calc(var(--spacing) * 24)),
+      calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-s: var(--_scroll-fade-size-s);
+    --scroll-fade-e: var(--_scroll-fade-size-e);
+  }
+}
+
+@utility scroll-fade-t {
+  --_scroll-fade-size-t: var(
+    --scroll-fade-t-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-mask: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--scroll-fade-t, 0px),
+    #000 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask);
+  mask-image: var(--scroll-fade-mask);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-fade-reveal-t 1ms ease-in-out;
+    animation-timeline: scroll(self y);
+    animation-range: 0 var(--scroll-fade-reveal, calc(var(--spacing) * 24));
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-t: var(--_scroll-fade-size-t);
+  }
+}
+
+@utility scroll-fade-b {
+  --_scroll-fade-size-b: var(
+    --scroll-fade-b-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-mask: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - var(--scroll-fade-b, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask);
+  mask-image: var(--scroll-fade-mask);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-fade-reveal-b 1ms ease-in-out;
+    animation-timeline: scroll(self y);
+    animation-range: calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-b: var(--_scroll-fade-size-b);
+  }
+}
+
+@utility scroll-fade-l {
+  --_scroll-fade-size-s: var(
+    --scroll-fade-s-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-mask: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--scroll-fade-s, 0px),
+    #000 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask);
+  mask-image: var(--scroll-fade-mask);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-fade-reveal-s 1ms ease-in-out;
+    animation-timeline: scroll(self x);
+    animation-range: 0 var(--scroll-fade-reveal, calc(var(--spacing) * 24));
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-s: var(--_scroll-fade-size-s);
+  }
+}
+
+@utility scroll-fade-r {
+  --_scroll-fade-size-e: var(
+    --scroll-fade-e-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-mask: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - var(--scroll-fade-e, 0px)),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--scroll-fade-mask);
+  mask-image: var(--scroll-fade-mask);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-fade-reveal-e 1ms ease-in-out;
+    animation-timeline: scroll(self x);
+    animation-range: calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-e: var(--_scroll-fade-size-e);
+  }
+}
+
+@utility scroll-fade-s {
+  --_scroll-fade-size-s: var(
+    --scroll-fade-s-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-mask: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--scroll-fade-s, 0px),
+    #000 100%
+  );
+  &:where([dir="rtl"], [dir="rtl"] *) {
+    --scroll-fade-mask: linear-gradient(
+      to left,
+      transparent 0,
+      #000 var(--scroll-fade-s, 0px),
+      #000 100%
+    );
+  }
+  -webkit-mask-image: var(--scroll-fade-mask);
+  mask-image: var(--scroll-fade-mask);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-fade-reveal-s 1ms ease-in-out;
+    animation-timeline: scroll(self inline);
+    animation-range: 0 var(--scroll-fade-reveal, calc(var(--spacing) * 24));
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-s: var(--_scroll-fade-size-s);
+  }
+}
+
+@utility scroll-fade-e {
+  --_scroll-fade-size-e: var(
+    --scroll-fade-e-size,
+    var(--scroll-fade-size, min(12%, calc(var(--spacing) * 10)))
+  );
+  --scroll-fade-mask: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - var(--scroll-fade-e, 0px)),
+    transparent 100%
+  );
+  &:where([dir="rtl"], [dir="rtl"] *) {
+    --scroll-fade-mask: linear-gradient(
+      to left,
+      #000 0,
+      #000 calc(100% - var(--scroll-fade-e, 0px)),
+      transparent 100%
+    );
+  }
+  -webkit-mask-image: var(--scroll-fade-mask);
+  mask-image: var(--scroll-fade-mask);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-fade-reveal-e 1ms ease-in-out;
+    animation-timeline: scroll(self inline);
+    animation-range: calc(100% - var(--scroll-fade-reveal, calc(var(--spacing) * 24))) 100%;
+    animation-fill-mode: both;
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    --scroll-fade-e: var(--_scroll-fade-size-e);
+  }
+}
+
+@utility scroll-fade-* {
+  --scroll-fade-size: calc(var(--spacing) * --value(integer));
+  --scroll-fade-size: --value([length], [percentage]);
+}
+
+@utility scroll-fade-t-* {
+  --scroll-fade-t-size: calc(var(--spacing) * --value(integer));
+  --scroll-fade-t-size: --value([length], [percentage]);
+}
+
+@utility scroll-fade-b-* {
+  --scroll-fade-b-size: calc(var(--spacing) * --value(integer));
+  --scroll-fade-b-size: --value([length], [percentage]);
+}
+
+@utility scroll-fade-s-* {
+  --scroll-fade-s-size: calc(var(--spacing) * --value(integer));
+  --scroll-fade-s-size: --value([length], [percentage]);
+}
+
+@utility scroll-fade-e-* {
+  --scroll-fade-e-size: calc(var(--spacing) * --value(integer));
+  --scroll-fade-e-size: --value([length], [percentage]);
+}
+
+@utility scroll-fade-none {
+  --scroll-fade-mask: none;
+}
+
 /* Thin styled scrollbar for the stats strip, matching the sidebar's bar
-   (bg-border thumb, rounded, ~6px). Also narrows the scroll-fade edge band from
-   the 4rem default so a small trailing pad clears it at full scroll. */
+   (bg-border thumb, rounded, ~6px). Also narrows the scroll-fade edge band via
+   shadcn's --scroll-fade-size so a small trailing pad clears it at full scroll
+   (default is min(12%, 40px)). */
 .t-stat-scroll {
-  --mask-width: 1rem; /* left fade target (matches the row's pe-4 trailing pad) */
-  --right-mask-width: 1rem; /* right fade start (animates to 0 at scroll end); the @property default is a wide 64px */
+  --scroll-fade-size: 1rem;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }

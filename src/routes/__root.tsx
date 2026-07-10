@@ -100,7 +100,7 @@ function RootComponent() {
         )}
         <div
           data-vaul-drawer-wrapper=""
-          className="grid min-h-svh grid-cols-1 bg-background text-foreground md:grid-cols-[260px_1fr]"
+          className="grid min-h-svh grid-cols-1 bg-surface-1 text-foreground md:grid-cols-[260px_1fr]"
         >
           <div className="sticky top-0 hidden h-svh self-start md:block">
             <WorkspaceRail creators={creators} stocks={stocks} />

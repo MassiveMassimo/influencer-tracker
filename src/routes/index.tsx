@@ -1,5 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDownRightIcon, ArrowUpRightIcon, ChevronDownIcon } from "lucide-react";
+import { NavMenu } from "#/components/ui/nav-menu.tsx";
+import { NavItem } from "#/components/ui/nav-item.tsx";
 import { useState } from "react";
 import { listCreators } from "../lib/data";
 import { LOW_CONFIDENCE_N } from "../lib/scorecard";
@@ -80,7 +82,10 @@ function SortHeader({
 
 function Landing() {
   const creators = Route.useLoaderData();
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "hitRate3m", dir: -1 });
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({
+    key: "hitRate3m",
+    dir: -1,
+  });
   const rows = sortCreators(creators, sort.key, sort.dir);
 
   const onSort = (key: SortKey) =>
@@ -102,7 +107,7 @@ function Landing() {
       {creators.length === 0 ? (
         <p className="text-sm text-muted-foreground">No creators yet. Run the pipeline.</p>
       ) : (
-        <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+        <section className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
           <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] tracking-[0.08em] text-muted-foreground uppercase md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5 md:tracking-[0.2em]">
             <span className="hidden md:block">#</span>
             <span>Creator</span>
@@ -126,66 +131,72 @@ function Landing() {
             />
             <span className="hidden text-right md:block">Updated</span>
           </div>
-          <ul className="divide-y divide-border/40">
+          <NavMenu
+            activeSlug={null}
+            radius="rounded-none"
+            separated
+            aria-label="Creators ranked by hit rate"
+          >
             {rows.map((c, i) => (
-              <li key={c.handle}>
-                <Link
-                  to="/c/$handle"
-                  params={{ handle: c.handle }}
-                  className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] items-center gap-2 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5"
-                >
-                  <span className="hidden font-mono text-xs text-muted-foreground tabular-nums md:block">
-                    {i + 1}
-                  </span>
-                  <div className="flex min-w-0 items-center gap-3">
-                    {c.avatar ? (
-                      <img
-                        src={c.avatar}
-                        alt=""
-                        className="size-9 shrink-0 rounded-full object-cover ring-1 ring-border/60"
-                      />
-                    ) : (
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-xs text-foreground uppercase ring-1 ring-border/60">
-                        {c.handle.slice(0, 2)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-foreground">{c.name}</div>
-                      <div className="truncate font-mono text-xs text-muted-foreground">
-                        @{c.handle}
-                      </div>
+              <NavItem
+                key={c.handle}
+                index={i}
+                slug={c.handle}
+                to="/c/$handle"
+                params={{ handle: c.handle }}
+                className="grid grid-cols-[minmax(0,1fr)_3.5rem_4.5rem_2.5rem] gap-2 px-4 py-4 md:grid-cols-[2rem_1fr_7rem_6rem_5rem_5rem] md:gap-3 md:px-5"
+              >
+                <span className="hidden font-mono text-xs text-muted-foreground tabular-nums md:block">
+                  {i + 1}
+                </span>
+                <div className="flex min-w-0 items-center gap-3">
+                  {c.avatar ? (
+                    <img
+                      src={c.avatar}
+                      alt=""
+                      className="size-9 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                    />
+                  ) : (
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-xs text-foreground uppercase ring-1 ring-border/60">
+                      {c.handle.slice(0, 2)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-foreground">{c.name}</div>
+                    <div className="truncate font-mono text-xs text-muted-foreground">
+                      @{c.handle}
                     </div>
                   </div>
-                  <div className="text-right font-mono text-sm tabular-nums">
-                    <div className="text-foreground">{pct(c.hitRate3m)}</div>
-                    <div
-                      className={`text-[10px] ${lowConf(c) ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
-                    >
-                      {lowConf(c)
-                        ? `low · ${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`
-                        : `${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`}
-                    </div>
-                  </div>
+                </div>
+                <div className="text-right font-mono text-sm tabular-nums">
+                  <div className="text-foreground">{pct(c.hitRate3m)}</div>
                   <div
-                    className={`flex items-center justify-end gap-1 font-mono text-sm tabular-nums ${c.avgExcess3m > 0 ? "text-emerald-600 dark:text-emerald-400" : c.avgExcess3m < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"}`}
+                    className={`text-[10px] ${lowConf(c) ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
                   >
-                    {c.avgExcess3m > 0 ? (
-                      <ArrowUpRightIcon className="size-3.5" />
-                    ) : c.avgExcess3m < 0 ? (
-                      <ArrowDownRightIcon className="size-3.5" />
-                    ) : null}
-                    {signed(c.avgExcess3m)}
+                    {lowConf(c)
+                      ? `low · ${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`
+                      : `${Math.round(c.hitRate3m * c.hitRate3mN)}/${c.hitRate3mN}`}
                   </div>
-                  <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">
-                    {c.totalCalls}
-                  </div>
-                  <div className="hidden text-right font-mono text-[10px] text-muted-foreground tabular-nums md:block">
-                    {relativeDate(c.generatedAt)}
-                  </div>
-                </Link>
-              </li>
+                </div>
+                <div
+                  className={`flex items-center justify-end gap-1 font-mono text-sm tabular-nums ${c.avgExcess3m > 0 ? "text-emerald-600 dark:text-emerald-400" : c.avgExcess3m < 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"}`}
+                >
+                  {c.avgExcess3m > 0 ? (
+                    <ArrowUpRightIcon className="size-3.5" />
+                  ) : c.avgExcess3m < 0 ? (
+                    <ArrowDownRightIcon className="size-3.5" />
+                  ) : null}
+                  {signed(c.avgExcess3m)}
+                </div>
+                <div className="text-right font-mono text-xs text-muted-foreground tabular-nums">
+                  {c.totalCalls}
+                </div>
+                <div className="hidden text-right font-mono text-[10px] text-muted-foreground tabular-nums md:block">
+                  {relativeDate(c.generatedAt)}
+                </div>
+              </NavItem>
             ))}
-          </ul>
+          </NavMenu>
         </section>
       )}
 

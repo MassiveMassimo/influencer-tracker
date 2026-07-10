@@ -70,10 +70,7 @@ export function HalalIndicator({ info }: { info: HalalInfo }) {
       >
         <HalalBadge info={info} />
       </PreviewCardTrigger>
-      <PreviewCardPopup
-        onClick={(e) => e.stopPropagation()}
-        className="rounded-xl border border-border/60 bg-background p-3 shadow-lg"
-      >
+      <PreviewCardPopup onClick={(e) => e.stopPropagation()} className="rounded-xl p-3">
         <HalalCardContent info={info} />
       </PreviewCardPopup>
     </PreviewCard>

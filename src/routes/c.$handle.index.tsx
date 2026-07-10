@@ -1,7 +1,13 @@
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
-import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-react";
+import {
+  ArrowDownRightIcon,
+  ArrowUpRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
@@ -15,15 +21,11 @@ import { traitsFor } from "#/lib/traits";
 import { IdentityMenu } from "#/components/identity-menu";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { ConvictionBars, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "../components/ui/pagination";
+import { NavMenu } from "../components/ui/nav-menu";
+import { NavButton } from "../components/ui/nav-button";
+import { NavRow } from "../components/ui/nav-row";
+import { Button } from "../components/ui/button";
+import { StatGrid } from "../components/ui/stat-grid";
 import type { Call, Dataset } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { TextSwap, useTextSwap } from "#/components/text-swap.tsx";
@@ -243,7 +245,11 @@ function Overview() {
     const seg = t.segments.find(
       (s): s is Extract<StatSegment, { kind: "num" }> => s.kind === "num",
     )!;
-    return { label: t.label, text: formatNum(seg.value, seg.format), tone: t.tone };
+    return {
+      label: t.label,
+      text: formatNum(seg.value, seg.format),
+      tone: t.tone,
+    };
   });
 
   const [statsRef, statsInView] = useInView<HTMLElement>();
@@ -254,7 +260,10 @@ function Overview() {
   // visible one (false on SSR/first paint → both idle until this resolves).
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  const calls = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
+  const calls = useMemo(
+    () => [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate)),
+    [ds.calls],
+  );
 
   const platform = platformOf(String(ds.calls[0]?.shortcode ?? ""));
   const profileUrl = profileLink(platform, ds.creator.handle);
@@ -268,7 +277,7 @@ function Overview() {
           { title: "Analytics", url: "#analytics", depth: 2 },
           { title: "Calls", url: "#calls", depth: 2 },
         ]}
-        className="fixed top-1/2 right-3 hidden -translate-y-1/2 2xl:flex"
+        className="t-toc-minimap fixed right-3 hidden -translate-y-1/2 2xl:flex"
       />
       <header className="t-ticker-header t-creator-bar sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
         <div className="t-ticker-pad relative mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
@@ -323,7 +332,7 @@ function Overview() {
               {/* ms-auto on the first stat right-aligns the row when it fits, but
                   collapses to 0 on overflow so scroll-to-start still reaches the
                   first stat. */}
-              <div className="t-stat-scroll flex size-full items-center overflow-x-auto scroll-fade-effect-x">
+              <div className="t-stat-scroll flex size-full scroll-fade-x items-center overflow-x-auto">
                 {/* pe matches the fade width so when the row fits (right-aligned)
                     the right fade lands on empty padding, not the last stat. */}
                 <div className="flex w-full items-center gap-4 pe-4 font-mono md:gap-5 [&>:first-child]:ms-auto">
@@ -347,10 +356,10 @@ function Overview() {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
-        <section
+        <StatGrid
           id="overview"
-          className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 sm:grid-cols-3 lg:grid-cols-5"
           ref={statsRef}
+          gridClassName="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
         >
           <NumberFlowGroup>
             {tiles.map((t) => (
@@ -360,7 +369,7 @@ function Overview() {
           {/* Fills the empty 6th grid cell on mobile; md+ shows the grade in the
               header instead, so hide it there to keep the 5-col row full. */}
           {grade && (
-            <div className="grid place-items-center gap-2 bg-background p-4 md:hidden">
+            <div className="grid place-items-center gap-2 bg-card p-4 md:hidden">
               <GradeDetail
                 grade={grade}
                 fontSize="0.4rem"
@@ -370,30 +379,26 @@ function Overview() {
               <TraitBadges traits={traits} />
             </div>
           )}
-        </section>
+        </StatGrid>
+      </div>
 
-        <section
-          id="performance"
-          className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6"
-        >
-          <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
-            Performance vs SPY · cumulative
-            <span className="ml-1 tracking-normal normal-case opacity-70">
-              (equal-weight, not risk-adjusted)
-            </span>
-          </div>
-          <div className="mt-3">
-            <ChartBoundary>
-              <CumulativeExcess ds={ds} />
-            </ChartBoundary>
-          </div>
-        </section>
+      <section id="performance" className="py-6">
+        <div className="mx-auto max-w-6xl px-4 font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase md:px-16">
+          Performance vs SPY · cumulative
+          <span className="ml-1 block tracking-normal normal-case opacity-70 md:inline">
+            (equal-weight, not risk-adjusted)
+          </span>
+        </div>
+        <div className="mt-3">
+          <ChartBoundary>
+            <CumulativeExcess ds={ds} />
+          </ChartBoundary>
+        </div>
+      </section>
 
-        <section
-          id="analytics"
-          className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60 lg:grid-cols-2"
-        >
-          <div className="bg-background p-6">
+      <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
+        <StatGrid id="analytics" gridClassName="grid-cols-1 lg:grid-cols-2">
+          <div className="bg-card p-6">
             <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
               Avg excess vs SPY · by horizon
               <span className="ml-1 tracking-normal normal-case opacity-70">
@@ -404,7 +409,7 @@ function Overview() {
               <HorizonBars ds={ds} />
             </div>
           </div>
-          <div className="bg-background p-6">
+          <div className="bg-card p-6">
             <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
               Avg excess vs SPY · by conviction
               <span className="ml-1 tracking-normal normal-case opacity-70">
@@ -415,7 +420,7 @@ function Overview() {
               <ConvictionBars ds={ds} />
             </div>
           </div>
-        </section>
+        </StatGrid>
 
         <CallsList handle={handle} calls={calls} ds={ds} />
 
@@ -433,7 +438,7 @@ function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean })
   const toneCls = tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
 
   return (
-    <div className="bg-background p-4">
+    <div className="bg-card p-4">
       <div className="flex items-center gap-1 font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
         {tile.label}
         <PreviewCard>
@@ -507,10 +512,7 @@ function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: D
   );
 
   return (
-    <section
-      id="calls"
-      className="overflow-hidden rounded-2xl border border-border/60 bg-background"
-    >
+    <section id="calls" className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
       <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
         <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
           Calls
@@ -519,20 +521,22 @@ function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: D
           {calls.length} signals · newest first
         </span>
       </div>
-      <ul className="divide-y divide-border/40">
-        {visible.map((c) => (
-          <CallRow
-            key={`${c.shortcode}:${c.ticker}`}
-            handle={handle}
-            call={c}
-            halalInfo={getHalal(c.ticker)}
-            onSelect={setSelected}
-          />
-        ))}
-        {calls.length === 0 && (
-          <li className="px-5 py-6 text-sm text-muted-foreground">No calls yet.</li>
-        )}
-      </ul>
+      {calls.length === 0 ? (
+        <div className="px-5 py-6 text-sm text-muted-foreground">No calls yet.</div>
+      ) : (
+        <NavMenu activeSlug={null} radius="rounded-none" separated aria-label="Calls">
+          {visible.map((c, i) => (
+            <CallRow
+              key={`${c.shortcode}:${c.ticker}`}
+              index={i}
+              handle={handle}
+              call={c}
+              halalInfo={getHalal(c.ticker)}
+              onSelect={setSelected}
+            />
+          ))}
+        </NavMenu>
+      )}
       {pageCount > 1 && (
         <div className="flex items-center justify-between gap-3 border-t border-border/40 px-3 py-3">
           <span className="hidden pl-2 font-mono text-[10px] text-muted-foreground tabular-nums sm:block">
@@ -576,60 +580,78 @@ function CallsPagination({
   pageCount: number;
   onSelect: (page: number) => void;
 }) {
+  // Number strip is a horizontal NavMenu (variant="tabs") so the current page
+  // gets the same sliding raised-surface pill as the FF tabs; the ellipsis is an
+  // unregistered spacer the pill slides across. Prev/next are FF ghost buttons.
+  const items: ReactNode[] = [];
+  let idx = 0;
+  for (const [k, p] of pageWindow(current, pageCount).entries()) {
+    if (p === "ellipsis") {
+      items.push(
+        <span
+          key={`gap-${k}`}
+          aria-hidden
+          className="flex h-8 min-w-8 items-center justify-center text-muted-foreground"
+        >
+          <MoreHorizontalIcon className="size-4" />
+        </span>,
+      );
+      continue;
+    }
+    items.push(
+      <NavButton
+        key={p}
+        index={idx}
+        slug={String(p)}
+        aria-label={`Go to page ${p}`}
+        onClick={() => onSelect(p)}
+        className="h-8 min-w-8 px-2 tabular-nums"
+      >
+        {p}
+      </NavButton>,
+    );
+    idx++;
+  }
   return (
-    <Pagination className="mx-0 w-auto justify-end">
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            aria-disabled={current === 1}
-            onClick={(e) => {
-              e.preventDefault();
-              if (current > 1) onSelect(current - 1);
-            }}
-          />
-        </PaginationItem>
-        {pageWindow(current, pageCount).map((p, i) =>
-          p === "ellipsis" ? (
-            <PaginationItem key={`gap-${i}`}>
-              <PaginationEllipsis />
-            </PaginationItem>
-          ) : (
-            <PaginationItem key={p}>
-              <PaginationLink
-                href="#"
-                isActive={p === current}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onSelect(p);
-                }}
-              >
-                {p}
-              </PaginationLink>
-            </PaginationItem>
-          ),
-        )}
-        <PaginationItem>
-          <PaginationNext
-            href="#"
-            aria-disabled={current === pageCount}
-            onClick={(e) => {
-              e.preventDefault();
-              if (current < pageCount) onSelect(current + 1);
-            }}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+    <div className="flex items-center justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Go to previous page"
+        disabled={current === 1}
+        onClick={() => onSelect(current - 1)}
+      >
+        <ChevronLeftIcon />
+      </Button>
+      <NavMenu
+        activeSlug={String(current)}
+        orientation="horizontal"
+        variant="tabs"
+        aria-label="Pagination"
+      >
+        {items}
+      </NavMenu>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Go to next page"
+        disabled={current === pageCount}
+        onClick={() => onSelect(current + 1)}
+      >
+        <ChevronRightIcon />
+      </Button>
+    </div>
   );
 }
 
 function CallRow({
+  index,
   handle,
   call,
   halalInfo,
   onSelect,
 }: {
+  index: number;
   handle: string;
   call: Call;
   halalInfo: HalalInfo;
@@ -641,66 +663,58 @@ function CallRow({
     excess == null ? "bg-muted-foreground/40" : excess >= 0 ? "bg-emerald-500" : "bg-rose-500";
   const up = (excess ?? 0) >= 0;
   return (
-    <li>
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={`View proof for ${call.ticker}`}
-        onClick={() => onSelect(call)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect(call);
-          }
-        }}
-        className="flex cursor-pointer items-center gap-4 px-5 py-3 transition-colors hover:bg-foreground/[0.03]"
-      >
-        <span className={`size-2 shrink-0 rounded-full ${dot}`} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <Link
-              to="/t/$symbol/$creator"
-              params={{ symbol: call.ticker, creator: handle }}
-              onClick={(e) => e.stopPropagation()}
-              className="shrink-0 font-mono text-sm text-foreground no-underline hover:underline!"
+    <NavRow
+      index={index}
+      slug={`${call.shortcode}:${call.ticker}`}
+      onActivate={() => onSelect(call)}
+      aria-label={`View proof for ${call.ticker}`}
+      className="flex items-center gap-4 px-5 py-3"
+    >
+      <span className={`size-2 shrink-0 rounded-full ${dot}`} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <Link
+            to="/t/$symbol/$creator"
+            params={{ symbol: call.ticker, creator: handle }}
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0 font-mono text-sm text-foreground no-underline hover:underline!"
+          >
+            {call.ticker}
+          </Link>
+          <HalalIndicator info={halalInfo} />
+          {call.isFirstCall && (
+            <span
+              title="Only the earliest call per ticker is scored; later calls on the same ticker are not counted."
+              className="rounded-full bg-foreground/10 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.15em] text-foreground uppercase"
             >
-              {call.ticker}
-            </Link>
-            <HalalIndicator info={halalInfo} />
-            {call.isFirstCall && (
-              <span
-                title="Only the earliest call per ticker is scored; later calls on the same ticker are not counted."
-                className="rounded-full bg-foreground/10 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.15em] text-foreground uppercase"
-              >
-                first
-              </span>
-            )}
-          </div>
-          <div className="truncate text-xs text-muted-foreground">{call.company}</div>
-        </div>
-        <div className="hidden shrink-0 sm:block">
-          <Sparkline closes={call.spark ?? []} excess={call.returns.toDate.excess} />
-        </div>
-        <div className="font-mono text-[11px] text-muted-foreground tabular-nums">
-          {call.postDate}
-        </div>
-        <div
-          className={`flex w-24 shrink-0 items-center justify-end gap-1 font-mono text-sm tabular-nums ${toneClass(excess ?? 0)}`}
-        >
-          {excess == null ? (
-            <span className="text-muted-foreground">pending</span>
-          ) : (
-            <>
-              {up ? (
-                <ArrowUpRightIcon className="size-3.5" />
-              ) : (
-                <ArrowDownRightIcon className="size-3.5" />
-              )}
-              {formatNum(excess, SIGNED_PCT_FMT)}
-            </>
+              first
+            </span>
           )}
         </div>
+        <div className="truncate text-xs text-muted-foreground">{call.company}</div>
       </div>
-    </li>
+      <div className="hidden shrink-0 sm:block">
+        <Sparkline closes={call.spark ?? []} excess={call.returns.toDate.excess} />
+      </div>
+      <div className="font-mono text-[11px] text-muted-foreground tabular-nums">
+        {call.postDate}
+      </div>
+      <div
+        className={`flex w-24 shrink-0 items-center justify-end gap-1 font-mono text-sm tabular-nums ${toneClass(excess ?? 0)}`}
+      >
+        {excess == null ? (
+          <span className="text-muted-foreground">pending</span>
+        ) : (
+          <>
+            {up ? (
+              <ArrowUpRightIcon className="size-3.5" />
+            ) : (
+              <ArrowDownRightIcon className="size-3.5" />
+            )}
+            {formatNum(excess, SIGNED_PCT_FMT)}
+          </>
+        )}
+      </div>
+    </NavRow>
   );
 }

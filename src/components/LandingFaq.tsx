@@ -1,4 +1,4 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
+import { AccordionGroup, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 
 const Mono = ({ children }: { children: React.ReactNode }) => (
   <span className="font-mono text-foreground">{children}</span>
@@ -133,18 +133,18 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
 
 export function LandingFaq() {
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+    <section className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
       <div className="border-b border-border/40 px-5 py-3 font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
         How to read this
       </div>
-      <Accordion className="px-5">
-        {FAQ.map(({ q, a }) => (
-          <AccordionItem key={q} value={q}>
+      <AccordionGroup radius="rounded-md" ringRadius="rounded-md" className="w-full px-2 py-2">
+        {FAQ.map(({ q, a }, i) => (
+          <AccordionItem key={q} index={i} value={q}>
             <AccordionTrigger>{q}</AccordionTrigger>
             <AccordionContent className="max-w-prose leading-relaxed">{a}</AccordionContent>
           </AccordionItem>
         ))}
-      </Accordion>
+      </AccordionGroup>
     </section>
   );
 }

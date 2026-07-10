@@ -1,8 +1,9 @@
 import NumberFlow, { type Format } from "@number-flow/react";
-import { Link } from "@tanstack/react-router";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import type { TickerCreatorRow } from "#/lib/call-filter.ts";
+import { NavMenu } from "#/components/ui/nav-menu.tsx";
+import { NavItem } from "#/components/ui/nav-item.tsx";
 import { timelineTicks, timelineXPercent } from "#/lib/call-timeline-layout.ts";
 import { signed, toneClass } from "#/lib/returns-format.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
@@ -21,8 +22,10 @@ function DateChip({ ms, ready }: { ms: number; ready: boolean }) {
   if (!ready) return <>{`${y}-${pad2(mo)}-${pad2(day)}`}</>;
   return (
     <span className="inline-flex items-center">
-      <NumberFlow format={YEAR_FMT} isolate locales="en-US" value={y} willChange />-
-      <NumberFlow format={PAD2_FMT} isolate locales="en-US" value={mo} willChange />-
+      <NumberFlow format={YEAR_FMT} isolate locales="en-US" value={y} willChange />
+      -
+      <NumberFlow format={PAD2_FMT} isolate locales="en-US" value={mo} willChange />
+      -
       <NumberFlow format={PAD2_FMT} isolate locales="en-US" value={day} willChange />
     </span>
   );
@@ -76,14 +79,22 @@ export function CompareTable({
   rangeEnd: string;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [hover, setHover] = useState<{ ms: number; pct: number; bandPct: number } | null>(null);
+  const [hover, setHover] = useState<{
+    ms: number;
+    pct: number;
+    bandPct: number;
+  } | null>(null);
   const ready = useNumberFlowReady();
   const reduce = useReducedMotion();
 
   // Crosshair x (%) driven through a spring so it glides — both during scrub
   // and, more visibly, when the magnet snaps it onto a call column.
   const pctMV = useMotionValue(0);
-  const pctSpring = useSpring(pctMV, { stiffness: 550, damping: 42, mass: 0.45 });
+  const pctSpring = useSpring(pctMV, {
+    stiffness: 550,
+    damping: 42,
+    mass: 0.45,
+  });
   const left = useTransform(pctSpring, (v) => `${v}%`);
   // bklit `showHighlight` analog: a brighter band of the dashed baseline that
   // springs along with the crosshair. Dots inside HALF_BAND_PX brighten too.
@@ -93,7 +104,7 @@ export function CompareTable({
     () => ({ startMs: Date.parse(rangeStart), endMs: Date.parse(rangeEnd) }),
     [rangeStart, rangeEnd],
   );
-  const ticks = timelineTicks(startMs, endMs);
+  const ticks = useMemo(() => timelineTicks(startMs, endMs), [startMs, endMs]);
 
   // Per-creator dot positions (postDate + baked x%), the unique date columns as
   // snap targets, and the median gap that gates + sizes the magnet. Computed
@@ -115,7 +126,11 @@ export function CompareTable({
       .slice(1)
       .map((t, i) => t.pct - ts[i].pct)
       .sort((a, b) => a - b);
-    return { dotsByHandle, targets: ts, medianGapPct: gaps[Math.floor(gaps.length / 2)] };
+    return {
+      dotsByHandle,
+      targets: ts,
+      medianGapPct: gaps[Math.floor(gaps.length / 2)],
+    };
   }, [hits, startMs, endMs]);
 
   // Pointer x → percent of the (md-only) dot-track region, read off the overlay
@@ -149,7 +164,7 @@ export function CompareTable({
   };
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+    <section className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
       <div
         className={`grid ${COLS} items-center gap-2 border-b border-border/40 px-4 py-3 font-mono text-[10px] tracking-[0.08em] text-muted-foreground uppercase md:px-5`}
       >
@@ -164,93 +179,98 @@ export function CompareTable({
       </div>
 
       <div className="relative" onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-        <ul className="divide-y divide-border/40">
-          {rows.map((b) => {
+        <NavMenu
+          activeSlug={creatorHandle ?? null}
+          radius="rounded-none"
+          separated
+          aria-label="Creators"
+        >
+          {rows.map((b, i) => {
             const dots = dotsByHandle.get(b.handle) ?? [];
             return (
-              <li key={b.handle}>
-                <Link
-                  to="/t/$symbol/$creator"
-                  params={{ symbol, creator: b.handle }}
-                  resetScroll={false}
-                  aria-current={creatorHandle === b.handle ? "true" : undefined}
-                  className={`grid ${COLS} items-center gap-2 px-4 py-4 no-underline transition-colors hover:bg-foreground/[0.03] md:px-5 ${creatorHandle === b.handle ? "bg-foreground/[0.04]" : ""}`}
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    {avatars[b.handle] ? (
-                      <img
-                        src={avatars[b.handle]!}
-                        alt=""
-                        className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/60"
-                      />
-                    ) : (
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-[10px] uppercase ring-1 ring-border/60">
-                        {b.handle.slice(0, 2)}
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1 md:w-36 md:flex-none">
-                      <div className="truncate text-sm font-medium text-foreground">
-                        {names[b.handle] ?? b.handle}
-                      </div>
-                      <div className="truncate font-mono text-xs text-muted-foreground">
-                        {b.callCount} call{b.callCount === 1 ? "" : "s"}
-                      </div>
+              <NavItem
+                key={b.handle}
+                index={i}
+                slug={b.handle}
+                to="/t/$symbol/$creator"
+                params={{ symbol, creator: b.handle }}
+                resetScroll={false}
+                className={`grid ${COLS} items-center gap-2 px-4 py-4 md:px-5`}
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  {avatars[b.handle] ? (
+                    <img
+                      src={avatars[b.handle]!}
+                      alt=""
+                      className="size-8 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                    />
+                  ) : (
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground/[0.06] font-mono text-[10px] uppercase ring-1 ring-border/60">
+                      {b.handle.slice(0, 2)}
                     </div>
-                    {/* Inline dot track (md+). Same lead+offset as the overlay/ruler. */}
-                    <div className={`relative hidden h-8 md:block ${TRACK}`}>
-                      {/* Dashed baseline, mirrors the charts' dashed axis line. */}
-                      <div className="absolute top-1/2 right-0 left-0 -translate-y-1/2 border-t border-dashed border-foreground/15" />
-                      {/* showHighlight band — a brighter slice of the baseline that
+                  )}
+                  <div className="min-w-0 flex-1 md:w-36 md:flex-none">
+                    <div className="truncate text-sm font-medium text-foreground">
+                      {names[b.handle] ?? b.handle}
+                    </div>
+                    <div className="truncate font-mono text-xs text-muted-foreground">
+                      {b.callCount} call{b.callCount === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                  {/* Inline dot track (md+). Same lead+offset as the overlay/ruler. */}
+                  <div className={`relative hidden h-8 md:block ${TRACK}`}>
+                    {/* Dashed baseline, mirrors the charts' dashed axis line. */}
+                    <div className="absolute top-1/2 right-0 left-0 -translate-y-1/2 border-t border-dashed border-foreground/15" />
+                    {/* showHighlight band — a brighter slice of the baseline that
                           springs with the crosshair; fades in/out on hover. Clipped
                           to the track so it can't spill past the left/right ends. */}
-                      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <motion.div
-                          className={`absolute top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-foreground to-transparent transition-opacity duration-200 ${hover ? "opacity-100" : "opacity-0"}`}
-                          style={{ left: bandLeft, width: BAND_PX }}
-                        />
-                      </div>
-                      {dots.map(({ postDate, pct: dotPct }, i) => {
-                        // Proximity to the crosshair: 0 at the band edge, 1 dead
-                        // centre — drives the highlight overlay's opacity so the
-                        // dot fades in as the indicator line crosses it.
-                        const t =
-                          hover && hover.bandPct > 0
-                            ? Math.max(0, 1 - Math.abs(dotPct - hover.pct) / (hover.bandPct / 2))
-                            : 0;
-                        return (
-                          <span key={`${postDate}-${i}`} title={postDate}>
-                            <span
-                              className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/40 bg-background"
-                              style={{ left: `${dotPct}%` }}
-                            />
-                            {/* Highlight overlay — opacity tracks proximity directly
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                      <motion.div
+                        className={`absolute top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-foreground to-transparent transition-opacity duration-200 ${hover ? "opacity-100" : "opacity-0"}`}
+                        style={{ left: bandLeft, width: BAND_PX }}
+                      />
+                    </div>
+                    {dots.map(({ postDate, pct: dotPct }, i) => {
+                      // Proximity to the crosshair: 0 at the band edge, 1 dead
+                      // centre — drives the highlight overlay's opacity so the
+                      // dot fades in as the indicator line crosses it.
+                      const t =
+                        hover && hover.bandPct > 0
+                          ? Math.max(0, 1 - Math.abs(dotPct - hover.pct) / (hover.bandPct / 2))
+                          : 0;
+                      return (
+                        <span key={`${postDate}-${i}`} title={postDate}>
+                          <span
+                            className="absolute top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/40 bg-background"
+                            style={{ left: `${dotPct}%` }}
+                          />
+                          {/* Highlight overlay — opacity tracks proximity directly
                                 (no transition, so peak opacity lands exactly under
                                 the crosshair, not lagging behind it). */}
-                            <span
-                              className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground ring-2 ring-background"
-                              style={{ left: `${dotPct}%`, opacity: t }}
-                            />
-                          </span>
-                        );
-                      })}
-                    </div>
+                          <span
+                            className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground ring-2 ring-background"
+                            style={{ left: `${dotPct}%`, opacity: t }}
+                          />
+                        </span>
+                      );
+                    })}
                   </div>
-                  <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
-                    {b.firstCallDate?.slice(0, 7) ?? "—"}
-                  </div>
-                  <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.ex3m)}`}>
-                    {signed(b.ex3m)}
-                  </div>
-                  <div
-                    className={`text-right font-mono text-sm tabular-nums ${toneClass(b.exToDate)}`}
-                  >
-                    {signed(b.exToDate)}
-                  </div>
-                </Link>
-              </li>
+                </div>
+                <div className="hidden text-right font-mono text-xs text-muted-foreground tabular-nums md:block">
+                  {b.firstCallDate?.slice(0, 7) ?? "—"}
+                </div>
+                <div className={`text-right font-mono text-sm tabular-nums ${toneClass(b.ex3m)}`}>
+                  {signed(b.ex3m)}
+                </div>
+                <div
+                  className={`text-right font-mono text-sm tabular-nums ${toneClass(b.exToDate)}`}
+                >
+                  {signed(b.exToDate)}
+                </div>
+              </NavItem>
             );
           })}
-        </ul>
+        </NavMenu>
 
         {/* Shared crosshair overlay — mirrors the row grid so the full-height
             guide aligns with every row's inline dots. md+ only, click-through. */}

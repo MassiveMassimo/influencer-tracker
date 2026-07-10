@@ -25,7 +25,11 @@ export function IconSwap({ icon, className }: { icon: string; className?: string
     return <span aria-hidden className={`${icon} ${className ?? ""}`} />;
   }
   return (
-    <motion.span className="inline-grid" layout="position" transition={LAYOUT_TRANSITION}>
+    <motion.span
+      className="inline-grid place-items-center leading-none"
+      layout="position"
+      transition={LAYOUT_TRANSITION}
+    >
       <AnimatePresence initial={false} mode="popLayout">
         <motion.span
           animate={{ scale: 1, filter: "blur(0px)", opacity: 1 }}

@@ -311,7 +311,6 @@ const CandlestickBodies = memo(function CandlestickBodies({
         // a swap even when calendars differ. Dimming still keys on geometry.time
         // inside geometryDimOpacity, so hover behaviour is unaffected.
         <g
-          // biome-ignore lint/suspicious/noArrayIndexKey: chronological, no reorder
           key={index}
           opacity={geometryDimOpacity(geometry, fadedOpacity, legendHoveredIndex, hoveredTime)}
           style={{ transition: "opacity 0.15s ease-in-out" }}

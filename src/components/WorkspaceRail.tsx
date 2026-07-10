@@ -7,27 +7,28 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Link } from "@tanstack/react-router";
-import {
-  ChevronDownIcon,
-  CompassIcon,
-  HomeIcon,
-  LineChartIcon,
-  SettingsIcon,
-  UsersIcon,
-} from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { ChevronDownIcon, LineChartIcon, UsersIcon } from "lucide-react";
+import { HomeIcon } from "./icons/home";
+import { CompassIcon } from "./icons/compass";
+import { SettingsIcon } from "./icons/settings";
+import type { AnimatedIconHandle } from "./icons/types";
 import GitHubLink from "./GitHubLink";
 import { IconSwap } from "./icon-swap";
+import { Button } from "./ui/button";
+import { NavMenu } from "./ui/nav-menu";
+import { NavItem } from "./ui/nav-item";
 
 // Lazy so Base UI Dialog + vaul Drawer (only used by the settings modal) stay out
 // of the every-route rail bundle; loaded on first open, then kept mounted so the
 // close transition still plays.
 const Preferences = lazy(() => import("./Preferences").then((m) => ({ default: m.Preferences })));
 import { ScrollArea } from "./ui/scroll-area";
-import { AccordionPrimitive } from "./ui/accordion";
-import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
+import { Tooltip } from "./ui/tooltip";
 import { usePreferences } from "#/lib/preferences.tsx";
 import { RailStocks } from "./RailStocks";
+import { RailNavList } from "./RailNavList";
 import type { RailStock } from "#/lib/rail-stocks.ts";
 
 export type { RailStock } from "#/lib/rail-stocks.ts";
@@ -122,10 +123,18 @@ export function RailContent({
   // Stays true after the first open so the lazy modal remains mounted and can
   // play its close transition (gating render on prefsOpen would cut it).
   const [prefsMounted, setPrefsMounted] = useState(false);
+  const settingsRef = useRef<AnimatedIconHandle>(null);
   const { open, update, hydrated } = useRailSections();
   const { reduceMotion } = usePreferences();
   const creatorsOpen = open.includes("creators");
   const stocksOpen = open.includes("stocks");
+
+  // Active-route slugs for the NavMenu pills (matched against each item's slug).
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const primaryActive =
+    pathname === "/" ? "home" : pathname.startsWith("/explore") ? "explore" : null;
+  const activeCreator = pathname.match(/^\/c\/([^/]+)/)?.[1] ?? null;
+  const creatorsActive = activeCreator ? `c:${activeCreator}` : null;
 
   const creatorSearch = useSectionSearch();
   const stockSearch = useSectionSearch();
@@ -140,7 +149,7 @@ export function RailContent({
       )
     : creators;
   return (
-    <div className="flex h-full flex-col bg-foreground/[0.02]">
+    <div className="flex h-full flex-col bg-surface-2">
       <Link
         to="/"
         onClick={onNavigate}
@@ -157,41 +166,28 @@ export function RailContent({
         </div>
       </Link>
 
-      {/* Primary nav — fixed above the collapsible sections (Changelog moved to
-          Preferences). */}
-      <nav className="shrink-0 px-2 py-3">
-        <ul className="flex flex-col gap-0.5">
-          <li>
-            <Link
-              to="/"
-              onClick={onNavigate}
-              activeOptions={{ exact: true }}
-              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
-              activeProps={{
-                className:
-                  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
-              }}
-            >
-              <HomeIcon className="size-4 opacity-70" />
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/explore"
-              onClick={onNavigate}
-              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground"
-              activeProps={{
-                className:
-                  "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
-              }}
-            >
-              <CompassIcon className="size-4 opacity-70" />
-              Explore calls
-            </Link>
-          </li>
-        </ul>
-      </nav>
+      {/* Primary nav — FF NavMenu (animated hover/active pill). Fixed above the
+          collapsible sections (Changelog moved to Preferences). */}
+      <div className="shrink-0 px-2 py-3">
+        <NavMenu activeSlug={primaryActive} radius="rounded-md" aria-label="Primary">
+          <NavItem
+            index={0}
+            slug="home"
+            to="/"
+            onClick={onNavigate}
+            animatedIcon={HomeIcon}
+            label="Home"
+          />
+          <NavItem
+            index={1}
+            slug="explore"
+            to="/explore"
+            onClick={onNavigate}
+            animatedIcon={CompassIcon}
+            label="Explore calls"
+          />
+        </NavMenu>
+      </div>
 
       {/* Creators + Stocks split the leftover height equally and collapse. Base
           UI accordion drives open state + keyboard/a11y; grid-template-rows `fr`
@@ -228,66 +224,46 @@ export function RailContent({
             setActiveIndex={creatorSearch.setActiveIndex}
           />
           <div data-rail-section="creators" className="flex min-h-0 flex-col overflow-hidden">
-            <ScrollArea
-              className="min-h-0 flex-1"
-              viewportClassName="px-2 pb-2"
-              scrollbarClassName="w-1.5"
-            >
-              <ul
-                id="rail-creators-results"
-                role="listbox"
-                aria-label="Creators"
-                className="flex flex-col gap-0.5"
-              >
-                {creators.length === 0 ? (
-                  <li className="px-2 py-1.5 text-xs text-muted-foreground/60">No creators yet</li>
-                ) : shownCreators.length === 0 ? (
-                  <li className="px-2 py-1.5 text-xs text-muted-foreground/60">No matches</li>
-                ) : (
-                  shownCreators.map((c, i) => {
-                    const active = creatorSearch.activeIndex === i;
-                    return (
-                      <li
-                        key={c.handle}
-                        id={`creators-opt-${i}`}
-                        role="option"
-                        aria-selected={active}
-                        onMouseEnter={() => creatorSearch.open && creatorSearch.setActiveIndex(i)}
-                      >
-                        <Link
-                          to="/c/$handle"
-                          params={{ handle: c.handle }}
-                          onClick={() => {
-                            onNavigate?.();
-                            creatorSearch.close();
-                          }}
-                          tabIndex={creatorSearch.open ? -1 : undefined}
-                          className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm no-underline transition-colors hover:bg-foreground/[0.03] hover:text-foreground ${
-                            active
-                              ? "bg-foreground/[0.06] text-foreground"
-                              : "text-muted-foreground"
-                          }`}
-                          activeProps={{
-                            className:
-                              "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm bg-foreground/[0.06] text-foreground no-underline",
-                          }}
-                        >
-                          {c.avatar ? (
-                            <img
-                              src={c.avatar}
-                              alt=""
-                              className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border/60"
-                            />
-                          ) : (
-                            <UsersIcon className="size-3.5 opacity-60" />
-                          )}
-                          <span className="truncate">@{c.handle}</span>
-                        </Link>
-                      </li>
-                    );
-                  })
+            <ScrollArea className="min-h-0 flex-1" viewportClassName="px-2 pb-2 scroll-fade">
+              <RailNavList
+                items={shownCreators}
+                getKey={(c) => c.handle}
+                section="creators"
+                navAriaLabel="Creators navigation"
+                listAriaLabel="Creators"
+                activeSlug={creatorsActive}
+                // While searching, the combobox activeIndex drives the hover pill;
+                // otherwise proximity hover takes over.
+                searchOpen={creatorSearch.open}
+                activeIndex={creatorSearch.activeIndex}
+                setActiveIndex={creatorSearch.setActiveIndex}
+                getSlug={(c) => `c:${c.handle}`}
+                getLinkProps={(c) => ({ to: "/c/$handle", params: { handle: c.handle } })}
+                getItemClassName={(_c, isActiveRoute) =>
+                  `gap-2.5 px-2 py-1.5 text-sm ${
+                    isActiveRoute ? "text-foreground" : "text-muted-foreground"
+                  }`
+                }
+                onRowClick={() => {
+                  onNavigate?.();
+                  creatorSearch.close();
+                }}
+                emptyText={creators.length === 0 ? "No creators yet" : "No matches"}
+                renderRow={(c) => (
+                  <>
+                    {c.avatar ? (
+                      <img
+                        src={c.avatar}
+                        alt=""
+                        className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border/60"
+                      />
+                    ) : (
+                      <UsersIcon className="size-3.5 opacity-60" />
+                    )}
+                    <span className="truncate">@{c.handle}</span>
+                  </>
                 )}
-              </ul>
+              />
             </ScrollArea>
           </div>
         </AccordionPrimitive.Item>
@@ -323,19 +299,21 @@ export function RailContent({
       <div className="flex items-center justify-between border-t border-border/60 px-3 py-2.5">
         <BackendHealth creators={creators} />
         <div className="flex items-center gap-1.5">
-          <GitHubLink className="grid place-items-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground" />
-          <button
-            type="button"
+          <GitHubLink />
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={() => {
               setPrefsMounted(true);
               setPrefsOpen(true);
             }}
+            onMouseEnter={() => settingsRef.current?.startAnimation()}
+            onMouseLeave={() => settingsRef.current?.stopAnimation()}
             aria-label="Preferences"
             title="Preferences"
-            className="grid place-items-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-foreground/[0.05] hover:text-foreground"
           >
-            <SettingsIcon className="size-4" />
-          </button>
+            <SettingsIcon ref={settingsRef} size={16} />
+          </Button>
         </div>
       </div>
       {prefsMounted && (
@@ -385,16 +363,11 @@ function BackendHealth({ creators }: { creators: CreatorRef[] }) {
     }
   }
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <span className="flex items-center gap-1.5 truncate font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-            <span className={`size-1.5 rounded-full ${dot}`} />
-            {label}
-          </span>
-        }
-      />
-      <TooltipPopup>{detail}</TooltipPopup>
+    <Tooltip content={detail}>
+      <span className="flex items-center gap-1.5 truncate font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
+        <span className={`size-1.5 rounded-full ${dot}`} />
+        {label}
+      </span>
     </Tooltip>
   );
 }
@@ -443,13 +416,11 @@ function RailSectionTrigger({
     document.addEventListener("pointerdown", onDown);
     return () => document.removeEventListener("pointerdown", onDown);
   }, [searchOpen, region, onCloseSearch]);
-  // Keep the active option scrolled into view as it changes. (region is stable for
-  // the component's life, so activeIndex is the only meaningful dep.)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Keep the active option scrolled into view as it changes.
   useEffect(() => {
     if (activeIndex < 0) return;
-    document.getElementById(optionId(activeIndex))?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex]);
+    document.getElementById(`${region}-opt-${activeIndex}`)?.scrollIntoView({ block: "nearest" });
+  }, [region, activeIndex]);
   const optionCount = () =>
     document.querySelectorAll(`[data-rail-section="${region}"] [role="option"]`).length;
   // Combobox keyboard model: focus stays on the input, arrows move the active
@@ -536,17 +507,18 @@ function RailSectionTrigger({
       />
 
       {/* Right control: search opens the box, × closes + clears it. */}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-sm"
         onClick={() => (searchOpen ? onCloseSearch() : onOpenSearch())}
         aria-label={searchOpen ? `Clear ${label} search` : `Search ${label}`}
-        className="grid shrink-0 place-items-center px-3 py-3 text-muted-foreground/60 transition-colors hover:text-foreground"
+        className="mr-1 shrink-0 text-muted-foreground/60"
       >
         <IconSwap
           icon={searchOpen ? "icon-[lucide--x]" : "icon-[lucide--search]"}
           className="size-3.5"
         />
-      </button>
+      </Button>
     </AccordionPrimitive.Header>
   );
 }

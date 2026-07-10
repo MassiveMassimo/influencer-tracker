@@ -193,7 +193,6 @@ export function ReferenceArea({
   const areaFill = usesPattern && patternNode ? `url(#${patternId})` : fill;
 
   return (
-    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: decorative reference band
     <motion.g
       animate={{ opacity: visible ? 1 : 0 }}
       aria-hidden="true"

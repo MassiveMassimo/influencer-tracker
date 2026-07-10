@@ -464,7 +464,6 @@ export const PieSlice = memo(function PieSlice({
   return (
     <g style={{ cursor: "pointer" }}>
       {/* Invisible hitbox - stays in place, handles hover events */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: SVG path used as hover hitbox for visualization */}
       <path
         d={hitboxPath}
         fill="transparent"

@@ -7,7 +7,6 @@ import { Grid } from "./grid";
 import { ProfitLossArea } from "./profit-loss-area";
 import { ChartTooltip } from "./tooltip/chart-tooltip";
 import { XAxis } from "./x-axis";
-import { YAxis } from "./y-axis";
 
 // bklit AreaChart rendering of the cumulative-excess-vs-SPY curve. Replaces the
 // hand-rolled native SVG so the curve gains a hover tooltip, crosshair, and the
@@ -23,8 +22,6 @@ const signColor = (v: number) => (v >= 0 ? "var(--color-emerald-500)" : "var(--c
 
 const fmtPct = (v: number) => `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`;
 
-const fmtAxisPct = (v: number) => `${(v * 100).toFixed(0)}%`;
-
 export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
   const data = useMemo(
     () => pts.map((p) => ({ date: new Date(`${p.t}T00:00:00Z`), v: p.v })),
@@ -36,7 +33,7 @@ export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
       aspectRatio="auto"
       className="h-[200px]"
       data={data}
-      margin={{ top: 16, right: 16, bottom: 24, left: 44 }}
+      margin={{ top: 16, right: 16, bottom: 24, left: 8 }}
     >
       {/* Break-even baseline (== SPY), mirrors the native dashed "0% · SPY" line. */}
       <Grid
@@ -45,9 +42,8 @@ export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
         highlightRowValues={[0]}
         horizontal
       />
-      <ProfitLossArea dataKey="v" />
+      <ProfitLossArea dataKey="v" fadeEdges />
       <XAxis />
-      <YAxis formatValue={fmtAxisPct} numTicks={4} />
       <ChartTooltip
         indicatorColor={(point) => signColor((point.v as number) ?? 0)}
         rows={(point) => {

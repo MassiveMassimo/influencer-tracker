@@ -46,6 +46,9 @@ export function usePathStrokeMetrics(
 ): PathStrokeMetrics {
   const [metrics, setMetrics] = useState<PathStrokeMetrics>(EMPTY_METRICS);
 
+  // Generic hook: caller forwards the deps that should re-measure the path (the
+  // deps array is a param, so it can't be a static literal here).
+  // oxlint-disable react-hooks/exhaustive-deps
   useEffect(() => {
     const path = pathRef.current;
     if (!path) {
@@ -57,6 +60,7 @@ export function usePathStrokeMetrics(
       prev.pathD === d && prev.pathLength === len ? prev : { pathD: d, pathLength: len },
     );
   }, deps);
+  // oxlint-enable react-hooks/exhaustive-deps
 
   return metrics;
 }
