@@ -36,6 +36,8 @@ interface XAxisLabelProps {
   isHovering: boolean;
   tickerHalfWidth: number;
   animatePosition: boolean;
+  chartWidth: number;
+  labelInset: number;
 }
 
 function XAxisLabel({
@@ -46,13 +48,20 @@ function XAxisLabel({
   isHovering,
   tickerHalfWidth,
   animatePosition,
+  chartWidth,
+  labelInset,
 }: XAxisLabelProps) {
   const fadeBuffer = 20;
   const fadeRadius = tickerHalfWidth + fadeBuffer;
 
+  const isLeftEdge = x < labelInset;
+  const isRightEdge = x > chartWidth - labelInset;
+  const justifyContent = isLeftEdge ? "flex-start" : isRightEdge ? "flex-end" : "center";
+  const renderedX = isLeftEdge ? labelInset : isRightEdge ? chartWidth - labelInset : x;
+
   let opacity = 1;
   if (isHovering && crosshairX !== null) {
-    const distance = Math.abs(x - crosshairX);
+    const distance = Math.abs(renderedX - crosshairX);
     if (distance < tickerHalfWidth) {
       opacity = 0;
     } else if (hoveredLabel && label === hoveredLabel) {
@@ -66,11 +75,11 @@ function XAxisLabel({
     <div
       className="absolute"
       style={{
-        left: x,
+        left: renderedX,
         bottom: 12,
         width: 0,
         display: "flex",
-        justifyContent: "center",
+        justifyContent,
         transition: animatePosition
           ? `left ${X_AXIS_POSITION_TWEEN_MS}ms cubic-bezier(${LINE_LOADING_PULSE_EASE.join(", ")})`
           : undefined,
@@ -478,7 +487,7 @@ const XAxisInner = memo(function XAxisInner({
   tickMode = "domain",
   container,
 }: XAxisProps & { container: HTMLDivElement }) {
-  const { xScale, margin, tooltipData, data, xAccessor, dateLabels, xDomain } = useChart();
+  const { xScale, margin, tooltipData, data, xAccessor, dateLabels, xDomain, width } = useChart();
 
   const labelsToShow = useMemo(() => {
     // Brush (any extent): snap ticks to data rows with even index spacing.
@@ -507,16 +516,20 @@ const XAxisInner = memo(function XAxisInner({
       ? (dateLabels[tooltipData.index] ?? shortDateFmt.format(xAccessor(tooltipData.point)))
       : null;
 
+  const labelInset = 24;
+
   return createPortal(
     <div className="pointer-events-none absolute inset-0">
       {labelsToShow.map((item) => (
         <XAxisLabel
           animatePosition={xDomain == null}
+          chartWidth={width}
           crosshairX={crosshairX}
           hoveredLabel={hoveredLabel}
           isHovering={isHovering}
           key={`${item.date.getTime()}-${item.x}`}
           label={item.label}
+          labelInset={labelInset}
           tickerHalfWidth={tickerHalfWidth}
           x={item.x}
         />

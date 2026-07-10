@@ -85,7 +85,7 @@ export function HalalPanel({ info, symbol }: { info: HalalInfo; symbol: string }
     { label: "Non-halal", value: info.notHalalPct, color: SLICE.notHalal },
   ];
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/60 bg-background p-5">
+    <section className="overflow-hidden rounded-2xl bg-card p-5 shadow-surface-2">
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="size-2.5 rounded-full" style={{ backgroundColor: meta.fill }} />

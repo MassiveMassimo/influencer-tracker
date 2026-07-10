@@ -24,7 +24,7 @@ const HLABEL: Record<Horizon, string> = { "1w": "1w", "1m": "1m", "3m": "3m", to
 // — do higher-conviction calls beat SPY more? — in one glance.
 const CONV_BUCKETS = [
   { key: "low", label: "Low", range: "<0.7", test: (c: number) => c < 0.7 },
-  { key: "med", label: "Medium", range: "0.7–0.9", test: (c: number) => c >= 0.7 && c < 0.9 },
+  { key: "med", label: "Medium", range: "0.7‑0.9", test: (c: number) => c >= 0.7 && c < 0.9 },
   { key: "high", label: "High", range: "≥0.9", test: (c: number) => c >= 0.9 },
 ];
 
@@ -55,7 +55,7 @@ function BarsFallback({ rows }: { rows: number }) {
     <div className="space-y-2.5 py-2">
       {Array.from({ length: rows }).map((_, i) => (
         <div className="flex items-center gap-3" key={i}>
-          <div className="h-3 w-24 shrink-0 rounded bg-muted/50" />
+          <div className="h-3 w-32 shrink-0 rounded bg-muted/50" />
           <div className="h-5 flex-1 rounded bg-muted/50" />
         </div>
       ))}
@@ -89,9 +89,9 @@ export function CumulativeExcess({ ds }: { ds: Dataset }) {
           <CumExcessArea pts={pts} />
         </Suspense>
       </ChartHandoff>
-      <p className="mt-2 text-xs text-muted-foreground">
-        Equal-weight across {nPicks} scored {nPicks === 1 ? "pick" : "picks"} · excess return vs
-        SPY, to date
+      <p className="mx-auto mt-2 max-w-6xl px-4 text-xs text-muted-foreground md:px-16">
+        Equal-weight across {nPicks} scored {nPicks === 1 ? "pick" : "picks"} ·
+        <br className="md:hidden" /> excess return vs SPY, to date
       </p>
     </div>
   );

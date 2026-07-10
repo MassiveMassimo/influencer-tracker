@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { prefetchHalal, useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
@@ -138,7 +138,7 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
 
     const [ds, , bakedOhlc, bakedSpy] = await Promise.all([
       datasetPromise,
-      context.queryClient.ensureQueryData(chartQuery(symbol, "1Y", firstDate)).catch((err) => {
+      context.queryClient.ensureQueryData(chartQuery(symbol, "1D", firstDate)).catch((err) => {
         console.warn(
           "[ticker loader] live-Yahoo prefetch failed, using baked fallback:",
           (err as Error)?.message ?? err,
@@ -369,7 +369,7 @@ function TickerPage() {
   const getHalal = useHalalStatus([symbol]);
   const halal = getHalal(symbol);
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
-  const [timeframe, setTimeframe] = useState<Timeframe>("1Y");
+  const [timeframe, setTimeframe] = useState<Timeframe>("1D");
   const { impact, select } = useHaptics();
   const queryClient = useQueryClient();
   const numberFlowReady = useNumberFlowReady();
@@ -390,7 +390,7 @@ function TickerPage() {
   useEffect(() => {
     if (query.isPending || query.isPlaceholderData) return;
     const live = query.data && query.data.ohlc.length > 0 ? query.data : null;
-    setView(buildView(live));
+    setView(buildChartView({ timeframe, live, bakedOhlc, bakedSpy }));
   }, [query.isPending, query.isPlaceholderData, query.data, timeframe, bakedOhlc, bakedSpy]);
 
   useEffect(() => {
@@ -412,8 +412,11 @@ function TickerPage() {
   // since both sides are ISO dates, and avoids TZ pitfalls of `new Date`.
   const winStart = ohlc.length ? ohlc[0].date : null;
   const winEnd = ohlc.length ? ohlc[ohlc.length - 1].date : null;
-  const inWindow = (postDate: string) =>
-    winStart == null || winEnd == null || (postDate >= winStart && postDate <= winEnd);
+  const inWindow = useCallback(
+    (postDate: string) =>
+      winStart == null || winEnd == null || (postDate >= winStart && postDate <= winEnd),
+    [winStart, winEnd],
+  );
 
   // Markers: selected creator's calls (clickable → proof) or all-mode call
   // dates (non-clickable, cross-creator), filtered to the visible window so
@@ -449,7 +452,7 @@ function TickerPage() {
         title: `${names[h.handle] ?? h.handle} · ${h.postDate}`,
         description: "",
       }));
-  }, [creatorHandle, creatorCalls, hits, names, avatars, symbol, select, winStart, winEnd]);
+  }, [creatorHandle, creatorCalls, hits, names, avatars, symbol, select, inWindow]);
 
   const candles = useMemo(
     () => ohlc.map((b) => ({ date: new Date(b.date), open: b.o, high: b.h, low: b.l, close: b.c })),
@@ -475,23 +478,29 @@ function TickerPage() {
   const firstClose = ohlc.length ? ohlc[0].c : null;
   const head = headlineReadout(hoverClose, firstClose, lastClose);
 
-  // Switcher + timeline data from the cross-creator summary.
-  const switcherCreators: SwitcherCreator[] = summary.byCreator.map((b) => ({
-    handle: b.handle,
-    name: names[b.handle] ?? b.handle,
-    avatar: avatars[b.handle] ?? null,
-    lastCallDate: b.lastCallDate,
-    callCount: b.callCount,
-  }));
+  // Switcher + timeline data from the cross-creator summary. Memoized so the
+  // per-hover-frame re-renders of this route don't hand CreatorSwitcher a new array.
+  const switcherCreators: SwitcherCreator[] = useMemo(
+    () =>
+      summary.byCreator.map((b) => ({
+        handle: b.handle,
+        name: names[b.handle] ?? b.handle,
+        avatar: avatars[b.handle] ?? null,
+        lastCallDate: b.lastCallDate,
+        callCount: b.callCount,
+      })),
+    [summary.byCreator, names, avatars],
+  );
   const today = new Date().toISOString().slice(0, 10);
 
   // Count exactly the calls visible in the chart right now: the same source the
   // markers come from (creator-scoped or all), filtered to the visible window.
   // Reacts to both the creator tab and the timeframe, and stays in lockstep with
   // the rendered markers (label === markers shown).
-  const shownCallCount = (creatorHandle ? creatorCalls : hits).filter((c) =>
-    inWindow(c.postDate),
-  ).length;
+  const shownCallCount = useMemo(
+    () => (creatorHandle ? creatorCalls : hits).filter((c) => inWindow(c.postDate)).length,
+    [creatorHandle, creatorCalls, hits, inWindow],
+  );
   const callsLabel =
     numberFlowReady && !isTouch ? (
       <NumberFlow
@@ -527,10 +536,7 @@ function TickerPage() {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
-        <section
-          id="price"
-          className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6"
-        >
+        <section id="price" className="overflow-hidden rounded-2xl bg-card p-6 shadow-surface-2">
           <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex w-full flex-col items-start gap-1 sm:w-auto">
               <div className="flex w-full items-start justify-between gap-3 sm:w-auto sm:justify-start">
@@ -589,10 +595,7 @@ function TickerPage() {
           </ChartHandoff>
         </section>
 
-        <section
-          id="vs-spy"
-          className="overflow-hidden rounded-2xl border border-border/60 bg-background p-6"
-        >
+        <section id="vs-spy" className="overflow-hidden rounded-2xl bg-card p-6 shadow-surface-2">
           <div className="mb-4 flex items-start justify-between gap-2 font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
             <span>Stock vs SPY · rebased to 100 · markers are call dates</span>
             <PreviewCard>
@@ -676,7 +679,7 @@ function TickerPage() {
 
         {/* Detail table only when a specific creator is selected. */}
         {creatorHandle && (
-          <section className="overflow-hidden rounded-2xl border border-border/60 bg-background">
+          <section className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
             <div className="border-b border-border/40 px-5 py-3 font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
               {names[creatorHandle] ?? creatorHandle} · forward return vs SPY · tap a row for proof
             </div>
@@ -692,9 +695,10 @@ function TickerPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {creatorCalls.map((c) => (
+                {creatorCalls.map((c, i) => (
                   <TableRow
                     key={c.shortcode}
+                    index={i}
                     onClick={() => {
                       select();
                       setSelectedCall(c);

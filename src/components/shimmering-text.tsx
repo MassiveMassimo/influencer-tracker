@@ -68,7 +68,6 @@ export function ShimmeringText({
           aria-hidden
           className="inline-block leading-none whitespace-pre"
           initial="stopped"
-          // biome-ignore lint/suspicious/noArrayIndexKey: static label text, order never changes
           key={index}
           variants={createCharVariants(index)}
         >

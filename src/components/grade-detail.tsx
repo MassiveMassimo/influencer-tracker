@@ -14,6 +14,9 @@ import {
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "#/components/ui/drawer.tsx";
 import { ScrollArea } from "#/components/ui/scroll-area.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
+import { useSurface, SurfaceProvider } from "#/lib/surface-context.tsx";
+import { surfaceClasses } from "#/lib/surface-classes.ts";
+import { cn } from "#/lib/utils.ts";
 import { LETTER_MEANING, PERSONA_BLURB, type Grade } from "#/lib/grade";
 
 const FRAUNCES = { fontVariationSettings: "'opsz' 144, 'wght' 900, 'SOFT' 100, 'WONK' 1" };
@@ -139,11 +142,18 @@ export function GradeBreakdownDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  // Dialog lifts +4 above substrate (FF convention) + provides it to descendants.
+  const dialogLevel = Math.min(useSurface() + 4, 8);
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-        <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+        <Dialog.Popup
+          className={cn(
+            "fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+            surfaceClasses(dialogLevel),
+          )}
+        >
           <div className="mb-4 flex items-start justify-between gap-3">
             <Dialog.Title className="font-heading text-lg">Grade breakdown</Dialog.Title>
             <Dialog.Close
@@ -156,10 +166,12 @@ export function GradeBreakdownDialog({
           <Dialog.Description className="sr-only">
             How this creator's {grade.grade} grade was scored.
           </Dialog.Description>
-          <div className="space-y-5">
-            <GradeHead grade={grade} />
-            <GradeBreakdown grade={grade} />
-          </div>
+          <SurfaceProvider value={dialogLevel}>
+            <div className="space-y-5">
+              <GradeHead grade={grade} />
+              <GradeBreakdown grade={grade} />
+            </div>
+          </SurfaceProvider>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
@@ -182,6 +194,8 @@ export function GradeDetail({
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [open, setOpen] = useState(false);
+  // Drawer (mobile dialog equivalent) lifts +4 + provides its level to descendants.
+  const dialogLevel = Math.min(useSurface() + 4, 8);
   const medallion = (
     <GradeMedallion
       grade={grade}
@@ -235,7 +249,7 @@ export function GradeDetail({
         {medallion}
       </button>
       <Drawer open={open} onOpenChange={setOpen} shouldScaleBackground>
-        <DrawerContent className="h-[80vh]">
+        <DrawerContent className={cn("h-[80vh]", surfaceClasses(dialogLevel))}>
           <ScrollArea className="min-h-0 flex-1" viewportClassName="px-5 pt-2 pb-8">
             <div className="mb-4">
               <DrawerTitle className="font-heading text-lg">Grade breakdown</DrawerTitle>
@@ -243,10 +257,12 @@ export function GradeDetail({
                 How this creator's {grade.grade} grade was scored.
               </DrawerDescription>
             </div>
-            <div className="space-y-5">
-              <GradeHead grade={grade} />
-              <GradeBreakdown grade={grade} />
-            </div>
+            <SurfaceProvider value={dialogLevel}>
+              <div className="space-y-5">
+                <GradeHead grade={grade} />
+                <GradeBreakdown grade={grade} />
+              </div>
+            </SurfaceProvider>
           </ScrollArea>
         </DrawerContent>
       </Drawer>

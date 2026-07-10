@@ -9,6 +9,9 @@ import { BadgeStylePicker } from "./BadgeStylePicker";
 import { usePreferences, isThemeTransitioning } from "#/lib/preferences.tsx";
 import { useHaptics } from "#/lib/haptics.tsx";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
+import { useSurface, SurfaceProvider } from "#/lib/surface-context.tsx";
+import { surfaceClasses } from "#/lib/surface-classes.ts";
+import { cn } from "#/lib/utils.ts";
 
 function SwitchRow({
   label,
@@ -22,13 +25,18 @@ function SwitchRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center justify-between gap-4">
-      <span className="flex flex-col">
+    <div className="flex items-center justify-between gap-4">
+      <span className="flex cursor-pointer flex-col" onClick={() => onChange(!checked)}>
         <span className="text-sm font-medium text-foreground">{label}</span>
         <span className="text-xs text-muted-foreground">{description}</span>
       </span>
-      <Switch checked={checked} onCheckedChange={onChange} />
-    </label>
+      <Switch
+        label={label}
+        checked={checked}
+        onToggle={() => onChange(!checked)}
+        className="[&>span:last-child]:sr-only"
+      />
+    </div>
   );
 }
 
@@ -108,6 +116,9 @@ export function Preferences({
   onOpenChange: (o: boolean) => void;
 }) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  // Dialog lifts +4 above its substrate (FF convention) and provides that level
+  // to descendants so nested overlays stay visible at the right depth.
+  const dialogLevel = Math.min(useSurface() + 4, 8);
 
   // A theme switch runs a ~1s view transition; a click in that window can bounce
   // focus to <body>, and Base UI closes the dialog on focus-out. Veto the close
@@ -122,7 +133,12 @@ export function Preferences({
       <Dialog.Root open={open} onOpenChange={handleOpenChange}>
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-200 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-          <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/60 bg-background p-6 shadow-xl transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0">
+          <Dialog.Popup
+            className={cn(
+              "fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 transition-all duration-200 data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0",
+              surfaceClasses(dialogLevel),
+            )}
+          >
             <div className="mb-4 flex items-center justify-between">
               <Dialog.Title className="text-base font-medium">Preferences</Dialog.Title>
               <Dialog.Close
@@ -135,7 +151,9 @@ export function Preferences({
             <Dialog.Description className="sr-only">
               Theme, motion, and haptics settings.
             </Dialog.Description>
-            <Body onClose={() => onOpenChange(false)} />
+            <SurfaceProvider value={dialogLevel}>
+              <Body onClose={() => onOpenChange(false)} />
+            </SurfaceProvider>
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
@@ -144,13 +162,15 @@ export function Preferences({
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange} shouldScaleBackground>
-      <DrawerContent className="h-[70vh]">
+      <DrawerContent className={cn("h-[70vh]", surfaceClasses(dialogLevel))}>
         <div className="px-5 pt-2 pb-8">
           <DrawerTitle className="mb-4 text-base font-medium">Preferences</DrawerTitle>
           <DrawerDescription className="sr-only">
             Theme, motion, and haptics settings.
           </DrawerDescription>
-          <Body onClose={() => onOpenChange(false)} />
+          <SurfaceProvider value={dialogLevel}>
+            <Body onClose={() => onOpenChange(false)} />
+          </SurfaceProvider>
         </div>
       </DrawerContent>
     </Drawer>

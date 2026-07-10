@@ -4,7 +4,6 @@ import { curveMonotoneX } from "@visx/curve";
 import { AreaClosed, LinePath } from "@visx/shape";
 
 // CurveFactory type - simplified version compatible with visx
-// biome-ignore lint/suspicious/noExplicitAny: d3 curve factory type
 type CurveFactory = any;
 
 import { useCallback, useId, useMemo, useRef, useState } from "react";
@@ -118,7 +117,6 @@ function useAreaLoadingPulseState(
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: mirrors Line series layout (fill, stroke, dash, markers, pulse)
 export function Area({
   dataKey,
   yAxisId,

@@ -7,6 +7,14 @@ import { useEffect, useId, useMemo, useRef } from "react";
 import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
 import { EASE_OUT } from "#/lib/ease.ts";
 import { useChartStable, useYScale } from "./chart-context";
+import {
+  type FadeEdges,
+  fadeGradientStops,
+  resolveFadeSides,
+  viewportFadeGradientAttrs,
+} from "./fade-edges";
+import { SeriesHighlightLayer } from "./series-highlight-layer";
+import { SeriesHoverDim } from "./series-hover-dim";
 
 // Sign-split filled area: fills between the series and a baseline (default 0),
 // green above the baseline and red below. Forked from the synced bklit `Area`
@@ -77,6 +85,10 @@ export interface ProfitLossAreaProps {
   fillOpacity?: number;
   /** Stroke width. Default: 1.75. */
   strokeWidth?: number;
+  /** Fade the left/right edges of the fill+stroke (mirrors bklit's `fadeEdges`). */
+  fadeEdges?: FadeEdges;
+  /** Dim the series on hover + show a bright segment band (mirrors bklit's `showHighlight`). */
+  showHighlight?: boolean;
 }
 
 export function ProfitLossArea({
@@ -87,8 +99,10 @@ export function ProfitLossArea({
   negativeColor = "var(--color-rose-500)",
   fillOpacity = 0.12,
   strokeWidth = 1.75,
+  fadeEdges = false,
+  showHighlight = true,
 }: ProfitLossAreaProps) {
-  const { renderData, xScale, innerHeight, xAccessor } = useChartStable();
+  const { renderData, xScale, innerWidth, innerHeight, xAccessor } = useChartStable();
   const yScale = useYScale(yAxisId);
   // Snap to the target shape under reduced motion or on touch — no morph/reveal.
   // Mirrors candlestick.tsx / morph-area.tsx so the perf gate stays consistent.
@@ -99,6 +113,12 @@ export function ProfitLossArea({
   const uid = useId();
   const fillId = `pnl-area-fill-${dataKey}-${uid}`;
   const strokeId = `pnl-area-stroke-${dataKey}-${uid}`;
+  const edgeMaskId = `pnl-edge-mask-${dataKey}-${uid}`;
+  const edgeFadeStrokeId = `pnl-edge-stroke-${dataKey}-${uid}`;
+
+  const fadeSides = useMemo(() => resolveFadeSides(fadeEdges), [fadeEdges]);
+  const edgeStops = fadeSides.any ? fadeGradientStops(fadeSides) : null;
+  const fadeMask = fadeSides.any ? `url(#${edgeMaskId})` : undefined;
 
   // Baseline pixel, clamped into the plot so an entirely one-sided series still
   // closes to an edge (all-positive → floor, all-negative → top).
@@ -209,17 +229,51 @@ export function ProfitLossArea({
           <stop offset={zeroFrac} stopColor={negativeColor} />
           <stop offset={1} stopColor={negativeColor} />
         </linearGradient>
+        {edgeStops ? (
+          <>
+            <linearGradient id={edgeFadeStrokeId} {...viewportFadeGradientAttrs(innerWidth)}>
+              {edgeStops.map((stop) => (
+                <stop
+                  key={stop.offset}
+                  offset={stop.offset}
+                  stopColor="white"
+                  stopOpacity={stop.opacity}
+                />
+              ))}
+            </linearGradient>
+            <mask id={edgeMaskId}>
+              <rect
+                fill={`url(#${edgeFadeStrokeId})`}
+                height={innerHeight}
+                width={innerWidth}
+                x="0"
+                y="0"
+              />
+            </mask>
+          </>
+        ) : null}
       </defs>
 
-      {/* `d` is driven imperatively (mount + morph) so React never resets it to
-          the target mid-tween. Fill is painted under the stroke. */}
-      <path fill={`url(#${fillId})`} ref={fillRef} stroke="none" />
-      <path
-        fill="none"
-        ref={strokeRef}
+      <SeriesHoverDim dimOpacity={0.6} enabled={showHighlight}>
+        {/* `d` is driven imperatively (mount + morph) so React never resets it to
+            the target mid-tween. Fill is painted under the stroke. The edge mask
+            fades both at the left/right edges — mirrors bklit's `fadeEdges`. */}
+        <path fill={`url(#${fillId})`} mask={fadeMask} ref={fillRef} stroke="none" />
+        <path
+          fill="none"
+          mask={fadeMask}
+          ref={strokeRef}
+          stroke={`url(#${strokeId})`}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={strokeWidth}
+        />
+      </SeriesHoverDim>
+      <SeriesHighlightLayer
+        enabled={showHighlight}
+        height={innerHeight}
+        pathRef={strokeRef}
         stroke={`url(#${strokeId})`}
-        strokeLinecap="round"
-        strokeLinejoin="round"
         strokeWidth={strokeWidth}
       />
     </>

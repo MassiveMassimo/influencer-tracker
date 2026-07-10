@@ -187,7 +187,6 @@ const ChartCore = memo(function ChartCore({
     return data.map((d) => fmt.format(xAccessor(d)));
   }, [data, xAccessor]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: revealSignature
   useEffect(() => {
     setRevealEpoch((n) => n + 1);
     setIsLoaded(false);

@@ -340,10 +340,13 @@ function DatePillTrackerInner({
     animatedX.set(xWithMargin);
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: we need to jump the animatedX when the visible prop changes
+  // Jump animatedX to the current x only when visibility toggles — depending on
+  // xWithMargin would defeat the spring (it re-fires on every animated frame).
+  // oxlint-disable react-hooks/exhaustive-deps
   useEffect(() => {
     animatedX.set(xWithMargin);
   }, [animatedX, visible]);
+  // oxlint-enable react-hooks/exhaustive-deps
 
   return (
     <motion.div

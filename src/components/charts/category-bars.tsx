@@ -55,7 +55,7 @@ export function CategoryBars({
     <div className="space-y-2.5 py-2" ref={ref}>
       {rows.map((r, i) => (
         <div key={r.key} className="flex items-center gap-3 text-sm">
-          <div className="w-24 shrink-0 leading-tight text-muted-foreground">
+          <div className="w-32 shrink-0 leading-tight text-muted-foreground">
             {r.label}
             {r.sublabel ? (
               <span className="mt-0.5 block text-[10px] opacity-60">{r.sublabel}</span>

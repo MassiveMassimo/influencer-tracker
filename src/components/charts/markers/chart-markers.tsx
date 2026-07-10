@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
+import { surfaceClasses } from "#/lib/surface-classes.ts";
 import { chartCssVars, useChart, useChartHover } from "../chart-context";
 import { type ChartMarker, MarkerGroup } from "./marker-group";
 
@@ -207,7 +208,7 @@ export function ChartMarkers({
         containerRef?.current &&
         createPortal(
           <div
-            className={`t-marker-card absolute z-[60] rounded-lg border border-border bg-background px-3 py-2 shadow-lg${active ? " is-open" : ""}`}
+            className={`t-marker-card absolute z-[60] rounded-lg px-3 py-2 ${surfaceClasses(3)}${active ? " is-open" : ""}`}
             style={{
               left: shown.x + margin.left,
               top: margin.top + markerY + size + 6,

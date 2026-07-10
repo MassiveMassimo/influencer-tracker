@@ -116,7 +116,6 @@ export function Background({
       : { duration: BACKGROUND_ENTER_FADE_MS / 1000, ease: "easeOut" as const };
 
   return (
-    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: decorative plot-area pattern layer
     <g aria-hidden="true" className="chart-background">
       {fadeMask ? (
         <defs>

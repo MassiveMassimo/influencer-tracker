@@ -1,7 +1,8 @@
 import { useDeferredValue, useMemo } from "react";
-import { Link } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "./ui/scroll-area";
+import { RailNavList } from "./RailNavList";
 import { Sparkline } from "./Sparkline";
 import { sparks1dQuery } from "#/lib/spark-query.ts";
 import { useHalalStatus } from "#/lib/halal-query.ts";
@@ -83,78 +84,69 @@ export function RailStocks({
   // of flashing empty before its fetch starts.
   const sparksLoading = isLoading || shownSymbols !== deferredSymbols;
 
+  // Active-route slug for the NavMenu pill (matched against each item's slug).
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const activeSymbol = pathname.match(/^\/t\/([^/]+)/)?.[1] ?? null;
+  const stocksActive = activeSymbol ? `t:${activeSymbol}` : null;
+
   if (stocks.length === 0) {
     return <div className="px-2 py-1.5 text-xs text-muted-foreground/60">No stocks yet</div>;
   }
 
+  // FF scroll-area wraps children in Base UI ScrollArea.Content (inline
+  // min-width: fit-content), which forces a stray horizontal scroll on this
+  // vertical list; pin the Content to the viewport width so rows truncate.
   return (
-    <ScrollArea className="min-h-0 flex-1" viewportClassName="px-2 pb-2" scrollbarClassName="w-1.5">
-      {shown.length === 0 ? (
-        <div className="px-2 py-1.5 text-xs text-muted-foreground/60">No matches</div>
-      ) : (
-        <ul
-          id="rail-stocks-results"
-          role="listbox"
-          aria-label="Stocks"
-          className="flex flex-col gap-0.5"
-        >
-          {shown.map((s, i) => {
-            const spark = data?.[s.symbol];
-            const active = activeIndex === i;
-            return (
-              <li
-                key={s.symbol}
-                id={`stocks-opt-${i}`}
-                role="option"
-                aria-selected={active}
-                onMouseEnter={() => searchOpen && setActiveIndex?.(i)}
-              >
-                <Link
-                  to="/t/$symbol/$creator"
-                  params={{ symbol: s.symbol, creator: "all" }}
-                  onClick={() => {
-                    onNavigate?.();
-                    onSelect?.();
-                  }}
-                  tabIndex={searchOpen ? -1 : undefined}
-                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 no-underline transition-colors hover:bg-foreground/[0.03] ${
-                    active ? "bg-foreground/[0.06]" : ""
-                  }`}
-                  activeProps={{
-                    className:
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 bg-foreground/[0.06] no-underline",
-                  }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      <span className="truncate text-sm font-medium text-foreground">
-                        {s.symbol}
-                      </span>
-                      <HalalBadge info={getHalal(s.symbol)} />
-                    </div>
-                    <div className="truncate text-[11px] text-muted-foreground">{s.company}</div>
-                  </div>
-                  {spark ? (
-                    <Sparkline
-                      closes={spark.closes}
-                      excess={spark.changePct}
-                      width={48}
-                      height={18}
-                    />
-                  ) : sparksLoading ? (
-                    // Sparks for the shown set are still fetching — skeleton.
-                    <span className="block h-[18px] w-12 animate-pulse rounded bg-foreground/[0.06]" />
-                  ) : (
-                    // Settled with no data for this symbol (Yahoo gap) — render nothing.
-                    <span className="block h-[18px] w-12" />
-                  )}
-                  <span className="w-10 text-right">{pctChip(spark?.changePct ?? null)}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+    <ScrollArea
+      className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>*]:min-w-0!"
+      viewportClassName="px-2 pb-2 scroll-fade"
+    >
+      <RailNavList
+        items={shown}
+        getKey={(s) => s.symbol}
+        section="stocks"
+        navAriaLabel="Stocks navigation"
+        listAriaLabel="Stocks"
+        activeSlug={stocksActive}
+        searchOpen={searchOpen}
+        activeIndex={activeIndex}
+        setActiveIndex={setActiveIndex}
+        getSlug={(s) => `t:${s.symbol}`}
+        getLinkProps={(s) => ({
+          to: "/t/$symbol/$creator",
+          params: { symbol: s.symbol, creator: "all" },
+        })}
+        getItemClassName={() => "gap-2 px-2 py-1.5"}
+        onRowClick={() => {
+          onNavigate?.();
+          onSelect?.();
+        }}
+        emptyText="No matches"
+        renderRow={(s) => {
+          const spark = data?.[s.symbol];
+          return (
+            <>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1">
+                  <span className="truncate text-sm font-medium text-foreground">{s.symbol}</span>
+                  <HalalBadge info={getHalal(s.symbol)} />
+                </div>
+                <div className="truncate text-[11px] text-muted-foreground">{s.company}</div>
+              </div>
+              {spark ? (
+                <Sparkline closes={spark.closes} excess={spark.changePct} width={48} height={18} />
+              ) : sparksLoading ? (
+                // Sparks for the shown set are still fetching — skeleton.
+                <span className="block h-[18px] w-12 animate-pulse rounded bg-foreground/[0.06]" />
+              ) : (
+                // Settled with no data for this symbol (Yahoo gap) — render nothing.
+                <span className="block h-[18px] w-12" />
+              )}
+              <span className="w-10 text-right">{pctChip(spark?.changePct ?? null)}</span>
+            </>
+          );
+        }}
+      />
     </ScrollArea>
   );
 }

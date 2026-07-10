@@ -8,6 +8,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "#/components/ui/drawer.tsx";
+import { Button } from "#/components/ui/button.tsx";
 import { type CreatorRef, type RailStock, RailContent } from "./WorkspaceRail";
 import { useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
@@ -41,13 +42,14 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
     <div className="sticky top-0 z-30 flex items-center gap-2.5 border-b border-border/60 bg-background/80 px-3 py-2 backdrop-blur-md md:hidden">
       <Drawer direction="left" shouldScaleBackground open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             aria-label="Open navigation"
-            className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
+            className="shrink-0 [&_svg]:size-[18px]"
           >
-            <MenuIcon className="size-[18px]" />
-          </button>
+            <MenuIcon />
+          </Button>
         </DrawerTrigger>
         <DrawerContent className="p-0">
           <DrawerTitle className="sr-only">Navigation</DrawerTitle>

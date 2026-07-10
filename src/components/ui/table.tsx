@@ -1,99 +1,204 @@
 "use client";
 
-import * as React from "react";
+// FF `table` (registry/default), adapted to our stack: motion/react, #/ aliases.
+// The proximity-hover sliding row background + border-fade + is-active cell
+// brighten are FF's. The one deliberate divergence (re-apply on re-sync): the
+// table is wrapped in our `ScrollArea` so a too-wide table gets the horizontal
+// scroll-driven edge fade — FF's registry ships no scroll-area. Body rows must
+// pass `index` to opt into the hover animation; header rows omit it (semibold).
 
-import { cn } from "#/lib/utils.ts";
-
+import {
+  useRef,
+  useEffect,
+  useMemo,
+  createContext,
+  useContext,
+  forwardRef,
+  type ReactNode,
+  type HTMLAttributes,
+  type TdHTMLAttributes,
+  type ThHTMLAttributes,
+} from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { cn, mergeRefs } from "#/lib/utils.ts";
+import { spring } from "#/lib/springs.ts";
+import { fontWeights } from "#/lib/font-weight.ts";
+import { useProximityHover } from "#/hooks/use-proximity-hover.ts";
 import { ScrollArea } from "./scroll-area";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
-  // Horizontal overflow gets the scroll-driven edge fade (signals there's more
-  // to the right). viewport is forced to h-auto so the Root sizes to the table
-  // instead of collapsing on size-full's h-full.
+// ── Context ──────────────────────────────────────────────
+
+interface TableContextValue {
+  registerItem: (index: number, element: HTMLElement | null) => void;
+  activeIndex: number | null;
+}
+
+const TableContext = createContext<TableContextValue | null>(null);
+
+// ── Table ────────────────────────────────────────────────
+
+interface TableProps extends HTMLAttributes<HTMLTableElement> {
+  children: ReactNode;
+}
+
+const Table = forwardRef<HTMLTableElement, TableProps>(({ children, className, ...props }, ref) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { activeIndex, itemRects, sessionRef, handlers, registerItem, measureItems } =
+    useProximityHover(containerRef);
+
+  useEffect(() => {
+    measureItems();
+  }, [measureItems, children]);
+
+  const activeRect = activeIndex !== null ? itemRects[activeIndex] : null;
+
+  const contextValue = useMemo(() => ({ registerItem, activeIndex }), [registerItem, activeIndex]);
+
   return (
-    <ScrollArea
-      data-slot="table-container"
-      className="w-full"
-      orientation="horizontal"
-      viewportClassName="h-auto"
-    >
-      <table
-        data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+    <TableContext.Provider value={contextValue}>
+      <ScrollArea
+        data-slot="table-container"
+        className="w-full"
+        orientation="horizontal"
+        viewportClassName="h-auto"
+      >
+        {/* Proximity-hover container: offset parent for the row rects and the
+              absolute hover background, which scrolls with the table content. */}
+        <div
+          ref={containerRef}
+          className="relative"
+          onMouseEnter={handlers.onMouseEnter}
+          onMouseMove={handlers.onMouseMove}
+          onMouseLeave={handlers.onMouseLeave}
+        >
+          {/* Hover background */}
+          <AnimatePresence>
+            {activeRect && (
+              <motion.div
+                key={sessionRef.current}
+                className="pointer-events-none absolute bg-hover"
+                initial={{
+                  opacity: 0,
+                  top: activeRect.top,
+                  left: activeRect.left,
+                  width: activeRect.width,
+                  height: activeRect.height,
+                }}
+                animate={{
+                  opacity: 1,
+                  top: activeRect.top,
+                  left: activeRect.left,
+                  width: activeRect.width,
+                  height: activeRect.height,
+                }}
+                exit={{ opacity: 0, transition: spring.fast.exit }}
+                transition={{ ...spring.fast, opacity: { duration: 0.08 } }}
+              />
+            )}
+          </AnimatePresence>
+
+          <table
+            ref={ref}
+            data-slot="table"
+            className={cn("w-full border-collapse text-[13px]", className)}
+            {...props}
+          >
+            {children}
+          </table>
+        </div>
+      </ScrollArea>
+    </TableContext.Provider>
+  );
+});
+
+Table.displayName = "Table";
+
+// ── TableHeader / TableBody ──────────────────────────────
+
+const TableHeader = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
+  ({ className, ...props }, ref) => <thead ref={ref} className={cn("", className)} {...props} />,
+);
+
+TableHeader.displayName = "TableHeader";
+
+const TableBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
+  ({ className, ...props }, ref) => <tbody ref={ref} className={cn("", className)} {...props} />,
+);
+
+TableBody.displayName = "TableBody";
+
+// ── TableRow ─────────────────────────────────────────────
+
+interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
+  index?: number;
+}
+
+const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
+  ({ index, className, style, ...props }, ref) => {
+    const internalRef = useRef<HTMLTableRowElement>(null);
+    const ctx = useContext(TableContext);
+
+    useEffect(() => {
+      if (index === undefined || !ctx) return;
+      ctx.registerItem(index, internalRef.current);
+      return () => ctx.registerItem(index, null);
+    }, [index, ctx]);
+
+    const isBodyRow = index !== undefined;
+    const activeIdx = ctx?.activeIndex ?? null;
+    // Hide the border above/below the active row so the hover pill reads as one
+    // block; header row hides its border when the first body row is active.
+    const hideBorder =
+      activeIdx !== null &&
+      ((isBodyRow && (index === activeIdx || index === activeIdx - 1)) ||
+        (!isBodyRow && activeIdx === 0));
+
+    return (
+      <tr
+        ref={mergeRefs(internalRef, ref)}
+        data-proximity-index={index}
+        className={cn(
+          "group/row relative z-10 border-b transition-[border-color] duration-80",
+          hideBorder ? "border-transparent" : "border-border",
+          isBodyRow && activeIdx === index && "is-active",
+          className,
+        )}
+        style={{
+          ...style,
+          fontVariationSettings: isBodyRow ? fontWeights.normal : fontWeights.semibold,
+        }}
         {...props}
       />
-    </ScrollArea>
-  );
-}
+    );
+  },
+);
 
-function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return <thead data-slot="table-header" className={cn("[&_tr]:border-b", className)} {...props} />;
-}
+TableRow.displayName = "TableRow";
 
-function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
-  return (
-    <tbody
-      data-slot="table-body"
-      className={cn("[&_tr:last-child]:border-0", className)}
-      {...props}
-    />
-  );
-}
+// ── TableHead / TableCell ────────────────────────────────
 
-function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
-  return (
-    <tfoot
-      data-slot="table-footer"
-      className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
-      {...props}
-    />
-  );
-}
+const TableHead = forwardRef<HTMLTableCellElement, ThHTMLAttributes<HTMLTableCellElement>>(
+  ({ className, ...props }, ref) => (
+    <th ref={ref} className={cn("px-3 py-2 text-left text-foreground", className)} {...props} />
+  ),
+);
 
-function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
-  return (
-    <tr
-      data-slot="table-row"
-      className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+TableHead.displayName = "TableHead";
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
-  return (
-    <th
-      data-slot="table-head"
-      className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
-  return (
+const TableCell = forwardRef<HTMLTableCellElement, TdHTMLAttributes<HTMLTableCellElement>>(
+  ({ className, ...props }, ref) => (
     <td
-      data-slot="table-cell"
-      className={cn("p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)}
+      ref={ref}
+      className={cn(
+        "px-3 py-2 text-muted-foreground transition-colors duration-80 group-[.is-active]/row:text-foreground",
+        className,
+      )}
       {...props}
     />
-  );
-}
+  ),
+);
 
-function TableCaption({ className, ...props }: React.ComponentProps<"caption">) {
-  return (
-    <caption
-      data-slot="table-caption"
-      className={cn("mt-4 text-sm text-muted-foreground", className)}
-      {...props}
-    />
-  );
-}
+TableCell.displayName = "TableCell";
 
-export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption };
+export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };

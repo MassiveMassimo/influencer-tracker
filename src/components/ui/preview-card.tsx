@@ -3,6 +3,8 @@
 import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
 import type React from "react";
 import { cn } from "#/lib/utils.ts";
+import { useSurface, SurfaceProvider } from "#/lib/surface-context.tsx";
+import { surfaceClasses } from "#/lib/surface-classes.ts";
 
 export const PreviewCard: typeof PreviewCardPrimitive.Root = PreviewCardPrimitive.Root;
 
@@ -26,6 +28,10 @@ export function PreviewCardPopup({
   anchor?: PreviewCardPrimitive.Positioner.Props["anchor"];
   portalProps?: PreviewCardPrimitive.Portal.Props;
 }): React.ReactElement {
+  // Popover reads its substrate from context and lifts +2 (FF convention),
+  // so it stays visible whether it opens on the page or inside a dialog.
+  // Shadow is pinned to level 3 — bg tracks depth, shadow weight stays constant.
+  const level = Math.min(useSurface() + 2, 8);
   return (
     <PreviewCardPrimitive.Portal {...portalProps}>
       <PreviewCardPrimitive.Positioner
@@ -37,13 +43,16 @@ export function PreviewCardPopup({
       >
         <PreviewCardPrimitive.Popup
           className={cn(
-            "relative flex w-64 origin-(--transform-origin) rounded-lg border bg-popover p-4 text-sm text-balance text-popover-foreground shadow-lg/5 transition-[scale,opacity] not-dark:bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] data-ending-style:scale-98 data-ending-style:opacity-0 data-starting-style:scale-98 data-starting-style:opacity-0 dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
+            // FF-surface-pure: bg + ring + highlight + drop all come from
+            // surfaceClasses. No manual border / before-highlight overlay.
+            "relative flex w-64 origin-(--transform-origin) rounded-lg p-4 text-sm text-balance text-popover-foreground transition-[scale,opacity] data-ending-style:scale-98 data-ending-style:opacity-0 data-starting-style:scale-98 data-starting-style:opacity-0",
+            surfaceClasses(level, 3),
             className,
           )}
           data-slot="preview-card-content"
           {...props}
         >
-          {children}
+          <SurfaceProvider value={level}>{children}</SurfaceProvider>
         </PreviewCardPrimitive.Popup>
       </PreviewCardPrimitive.Positioner>
     </PreviewCardPrimitive.Portal>
