@@ -97,7 +97,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react-doctor": "^0.7.3",
     "react-scan": "^0.5.7",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vite": "^8.1.4",
     "vitest": "^4.1.10"
   },
