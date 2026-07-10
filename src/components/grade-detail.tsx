@@ -81,7 +81,7 @@ export function GradeHead({ grade }: { grade: Grade }) {
 }
 
 // The score math — starts at 50 (C), then the two components move it.
-export function GradeBreakdown({ grade }: { grade: Grade }) {
+function GradeBreakdown({ grade }: { grade: Grade }) {
   const d = grade.detail;
   return (
     <div className="space-y-3">

@@ -25,7 +25,9 @@ for (const f of files) {
   const inserted = writePricesDb(symbol, bars);
   totalBars += bars.length;
   if (inserted !== bars.length)
-    console.warn(`  ${symbol}: ${bars.length} bars, ${inserted} inserted (${bars.length - inserted} already present)`);
+    console.warn(
+      `  ${symbol}: ${bars.length} bars, ${inserted} inserted (${bars.length - inserted} already present)`,
+    );
 }
 
 const symbols = listSymbolsDb();

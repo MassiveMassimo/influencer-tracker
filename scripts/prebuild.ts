@@ -126,9 +126,8 @@ async function main() {
   // Prices: emit per-symbol JSON from the SQLite store for the CDN fallback.
   // The DB is the frozen, insert-only source; prebuild unpacks it to the loose
   // JSON shape the ticker-page fallback fetches at runtime (/prices/<sym>.json).
-  const { listSymbolsDb, readPricesDb, closePricesDb, pricesDbExists } = await import(
-    "../pipeline/prices-db"
-  );
+  const { listSymbolsDb, readPricesDb, closePricesDb, pricesDbExists } =
+    await import("../pipeline/prices-db");
   if (pricesDbExists()) {
     mkdirSync(PRICES_DST, { recursive: true });
     for (const sym of listSymbolsDb()) {

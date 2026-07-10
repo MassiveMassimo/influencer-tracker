@@ -210,6 +210,15 @@ export const Route = createFileRoute("/t/$symbol/$creator")({
   component: TickerPage,
 });
 
+// Static (no prop dependency) → module scope keeps the reference stable for the
+// memoized NumberFlow. Its siblings depend on lastClose, so they stay in-component.
+const CHANGE_FORMAT: Format = {
+  style: "percent",
+  signDisplay: "exceptZero",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+};
+
 function PriceReadout({
   lastClose,
   tfChange,
@@ -250,12 +259,6 @@ function PriceReadout({
     minimumFractionDigits: lastClose >= 1 ? 2 : 4,
     maximumFractionDigits: lastClose >= 1 ? 2 : 4,
   };
-  const changeFormat: Format = {
-    style: "percent",
-    signDisplay: "exceptZero",
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  };
   return (
     <div className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
       <NumberFlowGroup>
@@ -277,7 +280,7 @@ function PriceReadout({
             <>
               <NumberFlow format={deltaFormat} value={revealed ? tfDelta : 0} willChange />
               {" ("}
-              <NumberFlow format={changeFormat} value={revealed ? tfChange : 0} willChange />
+              <NumberFlow format={CHANGE_FORMAT} value={revealed ? tfChange : 0} willChange />
               {")"}
             </>
           ) : (

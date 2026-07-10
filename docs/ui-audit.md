@@ -45,11 +45,11 @@ Both are fixable. Findings below are prioritized P0 (breaks the purpose) → P3 
 - **Where:** Overview page (`c.$handle.index.tsx`): `HitRateGauge`
   (`AnalyticsCharts.tsx:23`) vs `CallFunnel` (`:37`) vs the stat tiles.
 - **What (real kevvonz numbers):**
-  | Surface | Shows | Actually is | Denominator |
-  |---|---|---|---|
-  | Hit-rate gauge | **57%** | 4 of 7 | first calls _with 3m elapsed_ |
-  | Funnel "13 → 4 beat SPY" | reads as **31%** | 4 of 13 | _all_ buy calls (incl. repeats + pending) |
-  | (unshown) to-date first-call win | **40%** | 4 of 10 | first calls |
+  | Surface                          | Shows            | Actually is | Denominator                               |
+  | -------------------------------- | ---------------- | ----------- | ----------------------------------------- |
+  | Hit-rate gauge                   | **57%**          | 4 of 7      | first calls _with 3m elapsed_             |
+  | Funnel "13 → 4 beat SPY"         | reads as **31%** | 4 of 13     | _all_ buy calls (incl. repeats + pending) |
+  | (unshown) to-date first-call win | **40%**          | 4 of 10     | first calls                               |
 - **Why it matters:** A user comparing creators will read whichever number is biggest /
   most prominent. The gauge (57%) and funnel (31%) describe the _same_ creator's _same_
   skill and disagree by 26 points purely from denominator choice. This is the single
