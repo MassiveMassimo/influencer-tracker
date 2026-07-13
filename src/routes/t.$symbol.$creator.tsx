@@ -526,7 +526,7 @@ function TickerPage() {
         ]}
         className="fixed top-1/2 right-3 hidden -translate-y-1/2 2xl:flex"
       />
-      <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
+      <header className="t-ticker-header sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0 md:rounded-tl-3xl group-data-[collapsed=true]/panel:md:rounded-tl-none">
         <div className="t-ticker-pad mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
           <div className="max-sm:min-w-0">
             <div className="t-ticker-label font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase max-sm:truncate">
@@ -683,8 +683,11 @@ function TickerPage() {
         {/* Detail table only when a specific creator is selected. */}
         {creatorHandle && (
           <section className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
-            <div className="border-b border-border/40 px-5 py-3 font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
-              {names[creatorHandle] ?? creatorHandle} · forward return vs SPY · tap a row for proof
+            <div className="border-b border-border/40 px-5 py-3 font-mono text-[10px] tracking-[0.15em] break-normal text-muted-foreground uppercase sm:tracking-[0.3em]">
+              {names[creatorHandle] ?? creatorHandle} · forward return vs SPY
+              {/* Interaction hint is desktop-only — on touch you just tap; hiding it
+                  keeps the mobile label from wrapping to 4 lines. */}
+              <span className="hidden sm:inline"> · tap a row for proof</span>
             </div>
             <Table>
               <TableHeader>

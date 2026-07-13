@@ -31,10 +31,27 @@ interface ScrollAreaProps extends ComponentPropsWithoutRef<"div"> {
   viewportClassName?: string;
   /** Which axes get scrollbars. Defaults to `"vertical"`. */
   orientation?: Orientation;
+  /**
+   * Registers the scrolling viewport with TanStack Router's scroll restoration
+   * (`data-scroll-restoration-id`), so back/forward restores this container's
+   * position. Needs a matching entry in the router's `scrollToTopSelectors` for
+   * fresh navigations to reset to top. Only for a persistent nested scroller.
+   */
+  scrollRestorationId?: string;
 }
 
 const ScrollArea = forwardRef<ComponentRef<typeof ScrollAreaPrimitive.Root>, ScrollAreaProps>(
-  ({ className, children, viewportClassName, orientation = "vertical", ...props }, ref) => {
+  (
+    {
+      className,
+      children,
+      viewportClassName,
+      orientation = "vertical",
+      scrollRestorationId,
+      ...props
+    },
+    ref,
+  ) => {
     const isTouch = useTouchPrimary();
 
     return (
@@ -57,6 +74,7 @@ const ScrollArea = forwardRef<ComponentRef<typeof ScrollAreaPrimitive.Root>, Scr
                 orientation === "both" && "overflow-auto",
                 viewportClassName,
               )}
+              data-scroll-restoration-id={scrollRestorationId}
               tabIndex={0}
             >
               {children}
@@ -72,10 +90,19 @@ const ScrollArea = forwardRef<ComponentRef<typeof ScrollAreaPrimitive.Root>, Scr
             <ScrollAreaPrimitive.Viewport
               data-slot="scroll-area-viewport"
               className={cn("size-full rounded-[inherit]", viewportClassName)}
+              data-scroll-restoration-id={scrollRestorationId}
             >
-              {/* Content gives Base UI an intrinsic size to measure
-                  horizontal overflow against. */}
-              <ScrollAreaPrimitive.Content>{children}</ScrollAreaPrimitive.Content>
+              {/* Content gives Base UI an intrinsic size to measure horizontal
+                  overflow against — it defaults to `min-width: fit-content`. For a
+                  vertical-only area that's wrong: a too-wide descendant (e.g. a
+                  min-w-max table in its own horizontal ScrollArea) would balloon
+                  this content past the viewport and scroll the whole page sideways.
+                  Cap it to the viewport width when we don't scroll horizontally. */}
+              <ScrollAreaPrimitive.Content
+                className={orientation === "vertical" ? "!w-full !min-w-0" : undefined}
+              >
+                {children}
+              </ScrollAreaPrimitive.Content>
             </ScrollAreaPrimitive.Viewport>
             {orientation !== "horizontal" && <ScrollBar orientation="vertical" />}
             {orientation !== "vertical" && <ScrollBar orientation="horizontal" />}

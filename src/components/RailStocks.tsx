@@ -99,7 +99,7 @@ export function RailStocks({
   return (
     <ScrollArea
       className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>*]:min-w-0!"
-      viewportClassName="px-2 pb-2 scroll-fade"
+      viewportClassName="overscroll-contain px-2 pb-2 scroll-fade"
     >
       <RailNavList
         items={shown}

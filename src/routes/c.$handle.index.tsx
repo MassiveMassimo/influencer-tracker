@@ -279,7 +279,7 @@ function Overview() {
         ]}
         className="t-toc-minimap fixed right-3 hidden -translate-y-1/2 2xl:flex"
       />
-      <header className="t-ticker-header t-creator-bar sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0">
+      <header className="t-ticker-header t-creator-bar sticky top-12 z-20 flex h-[60px] border-b border-transparent bg-background/80 backdrop-blur-md md:top-0 md:rounded-tl-3xl group-data-[collapsed=true]/panel:md:rounded-tl-none">
         <div className="t-ticker-pad relative mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-10">
           {/* Identity — shown only at md+ (below md MobileNav owns it, so no
               doubling). Persistent: stays put on scroll while the date/stats

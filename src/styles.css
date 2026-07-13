@@ -72,14 +72,17 @@
   --warning: var(--color-amber-500);
   --warning-foreground: var(--color-amber-700);
   --chart-brush-border: var(--chart-grid);
-  --surface-1: #fafafa;
-  --surface-2: #fcfcfc;
-  --surface-3: #ffffff;
-  --surface-4: #ffffff;
-  --surface-5: #ffffff;
-  --surface-6: #ffffff;
-  --surface-7: #ffffff;
-  --surface-8: #ffffff;
+  /* Zinc-tinted neutral ladder (hue 286, zinc chroma curve) — lightness of the
+     original custom grays preserved, so elevation is unchanged; only the hue
+     picks up zinc's faint cool cast to match the semantic tokens. */
+  --surface-1: oklch(0.985 0.001 286);
+  --surface-2: oklch(0.991 0.001 286);
+  --surface-3: oklch(1 0 286);
+  --surface-4: oklch(1 0 286);
+  --surface-5: oklch(1 0 286);
+  --surface-6: oklch(1 0 286);
+  --surface-7: oklch(1 0 286);
+  --surface-8: oklch(1 0 286);
   --shadow-color: rgb(0 0 0 / 0.06);
   --shadow-1: 0 0 0 1px var(--shadow-color);
   --shadow-2: 0 0 0 1px var(--shadow-color), 0 1px 1px -0.5px var(--shadow-color);
@@ -168,14 +171,16 @@
   --warning: var(--color-amber-500);
   --warning-foreground: var(--color-amber-400);
   --chart-brush-border: var(--chart-grid);
-  --surface-1: #171717;
-  --surface-2: #1e1e1e;
-  --surface-3: #252525;
-  --surface-4: #2c2c2c;
-  --surface-5: #333333;
-  --surface-6: #3a3a3a;
-  --surface-7: #414141;
-  --surface-8: #484848;
+  /* Zinc-tinted neutral ladder (hue 286, zinc chroma curve); lightness matches
+     the original custom grays, so the dark elevation ladder is unchanged. */
+  --surface-1: oklch(0.205 0.006 286);
+  --surface-2: oklch(0.235 0.006 286);
+  --surface-3: oklch(0.264 0.006 286);
+  --surface-4: oklch(0.293 0.007 286);
+  --surface-5: oklch(0.321 0.009 286);
+  --surface-6: oklch(0.348 0.011 286);
+  --surface-7: oklch(0.375 0.013 286);
+  --surface-8: oklch(0.402 0.015 286);
   --dm-hi-base: rgba(255, 255, 255, 0.01);
   --dm-hi-mid: rgba(255, 255, 255, 0.02);
   --dm-hi-high: rgba(255, 255, 255, 0.04);
@@ -452,10 +457,13 @@ a {
   left: 0;
   height: 32px;
   width: 0;
-  /* FF indicator: an elevated surface (level 4 = substrate 1 + 3) floating
-     above the muted track, not a flat fill. */
-  background: var(--surface-4);
-  box-shadow: var(--shadow-4);
+  /* FF indicator: an elevated surface floating above the muted track, not a
+     flat fill. Substrate 1 + 5 = surface-6 — a +3 lift lands on surface-4
+     (0.293), which is indistinct from the muted track (0.274) in dark; +5
+     clears it (ΔL ~0.074). Light caps at white either way, so shadow carries
+     elevation there. Kept in sync with indicator-track.tsx's raised pill. */
+  background: var(--surface-6);
+  box-shadow: var(--shadow-6);
   border-radius: 48px;
   transform: translateX(0);
   transition:
@@ -896,32 +904,32 @@ number-flow-group {
 }
 .t-ticker-header {
   animation: ticker-stick-bar linear both;
-  animation-timeline: scroll(root block);
+  animation-timeline: scroll(nearest block);
   animation-range: 0 88px;
 }
 .t-ticker-title {
   animation: ticker-stick-title linear both;
-  animation-timeline: scroll(root block);
+  animation-timeline: scroll(nearest block);
   animation-range: 0 88px;
 }
 .t-ticker-pad {
   animation: ticker-stick-pad linear both;
-  animation-timeline: scroll(root block);
+  animation-timeline: scroll(nearest block);
   animation-range: 0 88px;
 }
 .t-ticker-label {
   animation: ticker-stick-label linear both;
-  animation-timeline: scroll(root block);
+  animation-timeline: scroll(nearest block);
   animation-range: 0 88px;
 }
 .t-stick-fade {
   animation: ticker-stick-fade linear both;
-  animation-timeline: scroll(root block);
+  animation-timeline: scroll(nearest block);
   animation-range: 0 64px;
 }
 .t-stick-rise {
   animation: ticker-stick-rise linear both;
-  animation-timeline: scroll(root block);
+  animation-timeline: scroll(nearest block);
   animation-range: 48px 112px;
   /* Rest state on the element, not only in the keyframe: at rest this decorative
      overlay sits atop the grade medallion and must stay click-through. Keeping it
@@ -957,7 +965,11 @@ number-flow-group {
   }
   .t-creator-bar {
     position: fixed;
-    inset: 0 0 auto 0;
+    /* top reads --drawer-bar-top (set by the drawer's paint() on the panel): 0 at
+       rest, -panel.top while the drawer is open so the bar — now panel-fixed under
+       the panel's transform — re-anchors to viewport-top and slides with the content
+       instead of pinning to the scrolled-off panel-top and vanishing. */
+    inset: var(--drawer-bar-top, 0px) 0 auto 0;
     transform: translateY(-100%);
     border-bottom-color: color-mix(in oklab, var(--border) 60%, transparent);
     animation: creator-bar-reveal linear both;
@@ -971,6 +983,63 @@ number-flow-group {
        click-through so it stays touch-scrollable. */
     pointer-events: auto;
   }
+  /* Below md the window scrolls (the content column drops its md:overflow-hidden),
+     so the sticky-header shrink must track the root. scroll(nearest) is correct at
+     md+ (the desktop #main-scroll viewport), but on a NON-TOUCH narrow viewport the
+     Base UI scroll-area viewport stays a scroll container (its overflow-x clip makes
+     overflow-y:visible compute to auto), so nearest would bind to it and never
+     progress. Pin to root here — identical to nearest when the window is already the
+     nearest scroller (touch), corrective when it isn't (non-touch narrow).
+     :not(.t-creator-bar) — the creator bar shares .t-ticker-header, and this rule
+     sits after .t-creator-bar above; without the exclusion it clobbers the bar's
+     named view timeline with scroll(root), whose scroll progress timeline has no
+     `exit` range → the reveal stretches over the whole page scroll. */
+  .t-ticker-header:not(.t-creator-bar),
+  .t-ticker-pad,
+  .t-ticker-label,
+  .t-stick-fade {
+    animation-timeline: scroll(root block);
+  }
+}
+/* Faux bottom-left corner for the OPEN mobile drawer (see __root.tsx): a fixed
+   inverse-radius notch pinning the sliding panel's rounded bottom-left to the
+   viewport (the real hook-painted corner sits at the panel's document bottom,
+   below the fold). Paints only the sliver between the corner and a 1.5rem
+   quarter-circle (transparent inside so the panel shows through); currentColor
+   carries the light/dark gutter from the JSX classes; the 1px ramp between the
+   two stops antialiases the curve. The hook's paint() drives transform
+   (translateX(progress·W), tracking the panel's edge) + opacity (in with open).
+   z-40 sits above the content column's stacking context (z-20); pointer-events
+   pass through. */
+.t-corner-notch,
+.t-corner-notch-top {
+  position: fixed;
+  left: 0;
+  z-index: 40;
+  width: 1.5rem;
+  height: 1.5rem;
+  pointer-events: none;
+}
+/* Bottom-left: curve carves up-left from the box's top-right corner. */
+.t-corner-notch {
+  bottom: 0;
+  background: radial-gradient(
+    circle 1.5rem at 100% 0%,
+    transparent calc(1.5rem - 1px),
+    currentColor 1.5rem
+  );
+}
+/* Top-left: mirror — curve carves down-left from the box's bottom-right corner.
+   Needed because the window scrolls under the frosted top bar, so the bar's own
+   transparent rounded corner reveals scrolling content (faint), not the gutter;
+   this opaque gutter notch paints the corner crisply over the bar regardless. */
+.t-corner-notch-top {
+  top: 0;
+  background: radial-gradient(
+    circle 1.5rem at 100% 100%,
+    transparent calc(1.5rem - 1px),
+    currentColor 1.5rem
+  );
 }
 /* TOC minimap (creator overview, 2xl+): rests at 2/3 height so it clears the
    full-bleed performance-vs-SPY chart at the top, then recenters to 1/2 as the
@@ -985,7 +1054,7 @@ number-flow-group {
 .t-toc-minimap {
   top: 66%;
   animation: toc-minimap-recenter linear both;
-  animation-timeline: scroll(root block);
+  animation-timeline: scroll(nearest block);
   animation-range: 0 480px;
 }
 @media (prefers-reduced-motion: reduce) {

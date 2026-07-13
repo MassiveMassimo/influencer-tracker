@@ -11,7 +11,7 @@ import {
   useId,
   useMemo,
 } from "react";
-import { cn } from "#/lib/utils.ts";
+import { cn, lerp } from "#/lib/utils.ts";
 import { type ChartStatFlowFormat, defaultChartStatFlowFormat } from "./chart-stat-flow";
 import { PieCenterShell } from "./pie-center-shell";
 
@@ -308,7 +308,6 @@ function GaugeInner({
   ) => {
     const { x1, y1, x2, y2, x3, y3, x4, y4 } = points;
 
-    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     const dist = (ax: number, ay: number, bx: number, by: number) => Math.hypot(bx - ax, by - ay);
 
     const d12 = dist(x1, y1, x2, y2);

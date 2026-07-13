@@ -1,25 +1,34 @@
-import { useState } from "react";
-import { LineChartIcon, MenuIcon } from "lucide-react";
+import { LineChartIcon } from "lucide-react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 import { useMatch, useParams } from "@tanstack/react-router";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerTitle,
-  DrawerTrigger,
-} from "#/components/ui/drawer.tsx";
-import { Button } from "#/components/ui/button.tsx";
-import { type CreatorRef, type RailStock, RailContent } from "./WorkspaceRail";
+import { type CreatorRef } from "./WorkspaceRail";
+import { W } from "#/lib/use-mobile-drawer.ts";
 import { useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { profileUrl, platformIcon } from "#/lib/platform.ts";
 
-// Mobile-only top bar (hidden at md+). Hosts the menu trigger and a contextual
-// mark: creator avatar + name on a creator page, a mono ticker badge + company
-// on a ticker page, the app brand elsewhere. The GitHub link lives in the rail
-// drawer, so it's intentionally absent here.
-export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks: RailStock[] }) {
-  const [open, setOpen] = useState(false);
+// Mobile-only top bar (hidden at md+). Holds a contextual mark: creator avatar +
+// name on a creator page, a mono ticker badge + company on a ticker page, the app
+// brand elsewhere. The GitHub link lives in the rail, so it's intentionally absent
+// here. The menu toggle is an overlay in __root (it slides between here and the
+// rail header, like the desktop toggle), so a spacer reserves its slot; the mark
+// fades out while the rail is open so its brand logo doesn't double the rail's.
+export function MobileNav({
+  creators,
+  progress,
+}: {
+  creators: CreatorRef[];
+  // Drawer timeline (1 = open, 0 = closed). The mark fades out as the drawer
+  // opens; the top-left rounded corner is painted by __root's fixed .t-corner-notch-top
+  // (an opaque gutter notch), not this bar — the window scrolls under the bar, so
+  // the bar's own rounded corner would reveal scrolling content, not the gutter.
+  progress: MotionValue<number>;
+}) {
+  const markOpacity = useTransform(progress, [0, 1], [1, 0]);
+  // The bar slides with the panel, but transforms ITSELF (not via a translated
+  // ancestor) so its sticky top-0 keeps pinning when the page is scrolled. Slides
+  // by the rail width, exactly like the panel beneath it (shared W → can't desync).
+  const barX = useTransform(progress, [0, 1], [0, W]);
   // MobileNav wraps every route, so read whichever id the active route exposes
   // (strict:false → {} when none). handle = creator page, symbol = ticker page.
   const { handle, symbol } = useParams({ strict: false }) as { handle?: string; symbol?: string };
@@ -39,26 +48,13 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
   const creatorIcon = platformIcon(creator?.platform);
 
   return (
-    <div className="sticky top-0 z-30 flex items-center gap-2.5 border-b border-border/60 bg-background/80 px-3 py-2 backdrop-blur-md md:hidden">
-      <Drawer direction="left" shouldScaleBackground open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Open navigation"
-            className="shrink-0 [&_svg]:size-[18px]"
-          >
-            <MenuIcon />
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent className="p-0">
-          <DrawerTitle className="sr-only">Navigation</DrawerTitle>
-          <DrawerDescription className="sr-only">
-            Primary navigation and tracked creators
-          </DrawerDescription>
-          <RailContent creators={creators} stocks={stocks} onNavigate={() => setOpen(false)} />
-        </DrawerContent>
-      </Drawer>
+    <motion.div
+      style={{ x: barX }}
+      className="sticky top-0 z-30 flex items-center gap-2.5 overflow-hidden border-b border-border/60 bg-background/80 px-3 py-2 backdrop-blur-md md:hidden"
+    >
+      {/* Reserves the slot for the __root overlay toggle (size-8 = icon-sm), so
+          the mark stays put as the toggle slides in/out over it. */}
+      <div aria-hidden className="size-8 shrink-0" />
 
       <div className="flex min-w-0 items-center gap-2">
         {creator ? (
@@ -103,14 +99,17 @@ export function MobileNav({ creators, stocks }: { creators: CreatorRef[]; stocks
             {company && <span className="truncate text-sm text-muted-foreground">{company}</span>}
           </>
         ) : (
-          <>
+          // Only the brand logo fades as the drawer opens (the rail shows its own
+          // brand, so this would double it). Creator/ticker marks aren't duplicated
+          // by the rail, so they stay put.
+          <motion.div className="flex items-center gap-2" style={{ opacity: markOpacity }}>
             <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-foreground/80 to-foreground/40 ring-1 ring-border/60">
               <LineChartIcon className="size-3.5 text-background" />
             </div>
             <span className="text-sm font-medium text-foreground">Signal Tracker</span>
-          </>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

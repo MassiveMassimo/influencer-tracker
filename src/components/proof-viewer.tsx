@@ -236,7 +236,7 @@ export function ProofViewer({
   }
 
   return (
-    <Drawer open={open} onOpenChange={(o) => !o && onClose()} shouldScaleBackground>
+    <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
       <DrawerContent className={cn("h-[92vh]", surfaceClasses(dialogLevel))}>
         {shown && (
           <ScrollArea className="min-h-0 flex-1" viewportClassName="px-5 pt-2 pb-8">

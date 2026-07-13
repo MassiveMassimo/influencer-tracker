@@ -4,8 +4,11 @@
 // The proximity-hover sliding row background + border-fade + is-active cell
 // brighten are FF's. The one deliberate divergence (re-apply on re-sync): the
 // table is wrapped in our `ScrollArea` so a too-wide table gets the horizontal
-// scroll-driven edge fade — FF's registry ships no scroll-area. Body rows must
-// pass `index` to opt into the hover animation; header rows omit it (semibold).
+// scroll-driven edge fade — FF's registry ships no scroll-area. The `<table>`
+// pairs `w-full` with `min-w-max` so it fills a wide container but never shrinks
+// below its content on a narrow one (mobile) — without the min-width it would
+// always fit the viewport and the horizontal ScrollArea could never scroll. Body
+// rows must pass `index` to opt into the hover animation; header rows omit it.
 
 import {
   useRef,
@@ -61,7 +64,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(({ children, className, .
         data-slot="table-container"
         className="w-full"
         orientation="horizontal"
-        viewportClassName="h-auto"
+        viewportClassName="scroll-fade-x h-auto"
       >
         {/* Proximity-hover container: offset parent for the row rects and the
               absolute hover background, which scrolls with the table content. */}
@@ -101,7 +104,7 @@ const Table = forwardRef<HTMLTableElement, TableProps>(({ children, className, .
           <table
             ref={ref}
             data-slot="table"
-            className={cn("w-full border-collapse text-[13px]", className)}
+            className={cn("w-full min-w-max border-collapse text-[13px]", className)}
             {...props}
           >
             {children}

@@ -4,7 +4,12 @@ import { Drawer as DrawerPrimitive } from "vaul";
 import { cn } from "#/lib/utils.ts";
 
 function Drawer({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
-  return <DrawerPrimitive.Root data-slot="drawer" {...props} />;
+  // noBodyStyles: this shell is window-scrolled with scroll-driven CSS timelines
+  // (frosted sticky headers, the mobile creator-bar reveal). vaul's default iOS
+  // lock sets body{position:fixed;top:-scrollY}, clamping scrollY to 0 and snapping
+  // those timelines flat while any sheet is open. Opt out — the modal overlay
+  // already blocks background interaction. Callers can still override.
+  return <DrawerPrimitive.Root data-slot="drawer" noBodyStyles {...props} />;
 }
 
 function DrawerTrigger({ ...props }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
@@ -47,8 +52,8 @@ function DrawerContent({
         data-slot="drawer-content"
         className={cn(
           // No bg/border here — the surface is owned by the caller's
-          // surfaceClasses (dialog drawers) or its content panel (MobileNav's
-          // bg-surface-2 rail), per the FF surfaces paradigm.
+          // surfaceClasses (the dialog/bottom-sheet drawers: proof-viewer,
+          // grade-detail, Preferences), per the FF surfaces paradigm.
           "group/drawer-content fixed z-50 flex h-auto flex-col",
           "data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-lg",
           "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-lg",

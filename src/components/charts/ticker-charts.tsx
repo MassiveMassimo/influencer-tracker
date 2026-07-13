@@ -85,7 +85,15 @@ export const PriceCandles = memo(function PriceCandles({
         revealSignature={timeframe}
       >
         <Grid horizontal />
-        <Candlestick fadedOpacity={0.25} />
+        {/* Semantic up/down fills (matching the header delta's toneClass and the
+            P/L area), not the bklit monochrome default: zinc-800 down candles
+            vanish against the dark card, and both emerald/rose read on white +
+            dark. Overrides the candlestick-positive/negative gradient defaults. */}
+        <Candlestick
+          fadedOpacity={0.25}
+          positiveFill="var(--color-emerald-500)"
+          negativeFill="var(--color-rose-500)"
+        />
         <ChartMarkers items={markers} replayKey={timeframe} iconFill={iconFill} />
         <XAxis />
         <YAxis />

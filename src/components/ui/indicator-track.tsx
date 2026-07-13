@@ -180,7 +180,7 @@ interface IndicatorOverlaysProps {
   // null when none is in the visible set.
   selectedIndex: number | null;
   mode: "tabs" | "menu";
-  // Active-pill fill: raised FF surface pill (substrate + 3) vs flat bg-active.
+  // Active-pill fill: raised FF surface pill (substrate + 5) vs flat bg-active.
   raised?: boolean;
   // Radius overrides for the pills / focus ring; default to the shape tokens.
   radius?: string;
@@ -196,7 +196,11 @@ function IndicatorOverlays({
   ringRadius,
 }: IndicatorOverlaysProps) {
   const substrate = useSurface();
-  const indicatorLevel = Math.min(substrate + 3, 8);
+  // Raised tab pill: +5 (not the popover/dropdown +2). A +3 lift lands on
+  // surface-4 (0.293), indistinct from the muted track (0.274) in dark; +5
+  // reaches surface-6 (ΔL ~0.074). Light caps at white, so shadow carries it.
+  // Mirrors the CSS creator-switcher pill (.t-tabs-pill → surface-6).
+  const indicatorLevel = Math.min(substrate + 5, 8);
   const { hoverIndex, focusedIndex, itemRects, sessionRef, isMouseInsideRef } = track;
 
   const selectedRect = selectedIndex !== null ? itemRects[selectedIndex] : null;

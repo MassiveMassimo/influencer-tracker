@@ -41,22 +41,6 @@ export interface CreatorRef {
   generatedAt?: string; // newest of these across creators drives the backend-health dot
 }
 
-// Left workspace rail (devl workspace-rail aesthetic): app mark + name, primary
-// nav, and a creators section. Wraps all routes via __root.
-export function WorkspaceRail({
-  creators,
-  stocks,
-}: {
-  creators: CreatorRef[];
-  stocks: RailStock[];
-}) {
-  return (
-    <aside className="h-svh border-r border-border/60">
-      <RailContent creators={creators} stocks={stocks} />
-    </aside>
-  );
-}
-
 const RAIL_SECTIONS_KEY = "rail-sections";
 const DEFAULT_OPEN = ["creators", "stocks"];
 
@@ -149,11 +133,13 @@ export function RailContent({
       )
     : creators;
   return (
-    <div className="flex h-full flex-col bg-surface-2">
+    <div className="flex h-full flex-col">
+      {/* Toggle button is rendered in __root's overlay layer (right of this
+          header), not here, so it isn't scaled/blurred with the collapsing rail. */}
       <Link
         to="/"
         onClick={onNavigate}
-        className="flex w-full items-center gap-2.5 border-b border-border/60 px-3.5 py-3 text-left no-underline transition-colors hover:bg-foreground/[0.03]"
+        className="flex w-full items-center gap-2.5 border-b border-border/60 px-3.5 py-3 text-left no-underline"
       >
         <div className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-foreground/80 to-foreground/40 ring-1 ring-border/60">
           <LineChartIcon className="size-4 text-background" />
@@ -224,7 +210,10 @@ export function RailContent({
             setActiveIndex={creatorSearch.setActiveIndex}
           />
           <div data-rail-section="creators" className="flex min-h-0 flex-col overflow-hidden">
-            <ScrollArea className="min-h-0 flex-1" viewportClassName="px-2 pb-2 scroll-fade">
+            <ScrollArea
+              className="min-h-0 flex-1"
+              viewportClassName="overscroll-contain px-2 pb-2 scroll-fade"
+            >
               <RailNavList
                 items={shownCreators}
                 getKey={(c) => c.handle}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { prefersReducedMotion } from "#/lib/reduced-motion.ts";
 
 // Faithful port of the Transitions.dev "text states swap" recipe: ONE element
 // runs a three-phase swap on value change — exit up (blur + fade), swap the text
@@ -19,14 +20,6 @@ import { useEffect, useRef, useState } from "react";
 // Reduced motion (OS or the manual Preferences toggle) skips the dance and swaps
 // instantly.
 const DUR_MS = 150;
-
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ||
-    document.documentElement.getAttribute("data-reduce-motion") === "true"
-  );
-}
 
 // Drives the three-phase swap. Returns the ref to attach to the swapping span and
 // the text it should currently render. State updates here re-render the caller, so

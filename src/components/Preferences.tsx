@@ -40,7 +40,7 @@ function SwitchRow({
   );
 }
 
-function Body({ onClose }: { onClose: () => void }) {
+function Body({ onClose, isDesktop }: { onClose: () => void; isDesktop: boolean }) {
   const {
     reduceMotion,
     reduceHaptics,
@@ -73,16 +73,19 @@ function Body({ onClose }: { onClose: () => void }) {
           checked={reduceMotion}
           onChange={setReduceMotion}
         />
-        <SwitchRow
-          label="Reduce haptics"
-          description="Turn off vibration feedback."
-          checked={reduceHaptics}
-          onChange={(v) => {
-            // Fire one last tap when re-enabling, for confirmation.
-            if (!v) impact();
-            setReduceHaptics(v);
-          }}
-        />
+        {/* Haptics are touch-only; hide on desktop where there's no vibration. */}
+        {!isDesktop && (
+          <SwitchRow
+            label="Reduce haptics"
+            description="Turn off vibration feedback."
+            checked={reduceHaptics}
+            onChange={(v) => {
+              // Fire one last tap when re-enabling, for confirmation.
+              if (!v) impact();
+              setReduceHaptics(v);
+            }}
+          />
+        )}
         <SwitchRow
           label="Show halal status"
           description="Badge stocks with their Musaffa Shariah-compliance rating."
@@ -152,7 +155,7 @@ export function Preferences({
               Theme, motion, and haptics settings.
             </Dialog.Description>
             <SurfaceProvider value={dialogLevel}>
-              <Body onClose={() => onOpenChange(false)} />
+              <Body onClose={() => onOpenChange(false)} isDesktop />
             </SurfaceProvider>
           </Dialog.Popup>
         </Dialog.Portal>
@@ -161,7 +164,7 @@ export function Preferences({
   }
 
   return (
-    <Drawer open={open} onOpenChange={handleOpenChange} shouldScaleBackground>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent className={cn("h-[70vh]", surfaceClasses(dialogLevel))}>
         <div className="px-5 pt-2 pb-8">
           <DrawerTitle className="mb-4 text-base font-medium">Preferences</DrawerTitle>
@@ -169,7 +172,7 @@ export function Preferences({
             Theme, motion, and haptics settings.
           </DrawerDescription>
           <SurfaceProvider value={dialogLevel}>
-            <Body onClose={() => onOpenChange(false)} />
+            <Body onClose={() => onOpenChange(false)} isDesktop={false} />
           </SurfaceProvider>
         </div>
       </DrawerContent>

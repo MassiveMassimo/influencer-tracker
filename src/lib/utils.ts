@@ -6,6 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Linear interpolation between a and b at t (0..1).
+export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
 // Assigns a node to every ref in `refs` (function or object refs), so a single
 // DOM node can be tracked by an internal ref and forwarded to an external one.
 export function mergeRefs<T>(...refs: Array<Ref<T> | undefined>): RefCallback<T> {
