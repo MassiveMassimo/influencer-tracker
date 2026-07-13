@@ -3,6 +3,12 @@
 What's new on Signal Tracker — new features, improvements, and fixes. Entries are
 newest first. Spotted something wrong? Every call has a "Report incorrect" button.
 
+## 2026-07-13
+
+### Fixed
+
+- **Smoother sidebar on mobile** — Opening and closing the navigation drawer on a phone now slides cleanly instead of stuttering, even on heavier pages.
+
 ## 2026-07-08
 
 ### New
