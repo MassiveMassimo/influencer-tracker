@@ -3,7 +3,7 @@
     "handle": "johnnylixf",
     "name": "Johnny Li"
   },
-  "generatedAt": "2026-07-12",
+  "generatedAt": "2026-07-13",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -5942,6 +5942,42 @@
       }
     },
     {
+      "shortcode": "DaeMILsBC4a",
+      "postDate": "2026-07-07",
+      "ticker": "SKHY",
+      "company": "SK hynix",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "I think the stock should at least be worth 20% higher.",
+      "summary": "Creator recommends SK Hynex (SKHY) as a better HBM play than Micron, citing higher market share and lower PE, with a 20% upside target.",
+      "onScreenPrice": null,
+      "spark": [
+        168
+      ],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0,
+          "spy": 0.009682885104674632,
+          "excess": -0.009682885104674632
+        }
+      }
+    },
+    {
       "shortcode": "DZD2TyYBsl7",
       "postDate": "2026-06-01",
       "ticker": "FIVN",
@@ -9186,8 +9222,8 @@
     }
   ],
   "scorecard": {
-    "totalCalls": 158,
-    "uniqueTickers": 77,
+    "totalCalls": 159,
+    "uniqueTickers": 78,
     "hitRate": {
       "1m": 0.4925373134328358,
       "3m": 0.4666666666666667
@@ -9200,9 +9236,9 @@
       "1w": -0.008886342859949738,
       "1m": 0.025417438245578117,
       "3m": 0.07160273446167807,
-      "toDate": 0.005441598587281936
+      "toDate": 0.00524769495020557
     },
-    "callsPerWeek": 1.7847682119205297,
+    "callsPerWeek": 1.7960526315789473,
     "best": [
       {
         "shortcode": "DRupAA5j2e2",
@@ -9800,19 +9836,19 @@
     "funnel": [
       {
         "label": "Reels (12mo)",
-        "value": 0
+        "value": 40
       },
       {
         "label": "Named a stock",
-        "value": 231
+        "value": 232
       },
       {
         "label": "Bullish buy call",
-        "value": 158
+        "value": 159
       },
       {
         "label": "First call (unique ticker)",
-        "value": 77
+        "value": 78
       },
       {
         "label": "Beat SPY (to date)",
@@ -10178,7 +10214,7 @@
       },
       {
         "t": "2026-07-10",
-        "v": 0.0054
+        "v": 0.0052
       }
     ]
   },
