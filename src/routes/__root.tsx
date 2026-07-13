@@ -1,6 +1,6 @@
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
-import { motion, useTransform } from "motion/react";
+import { useCallback, useState, useSyncExternalStore } from "react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 import type { QueryClient } from "@tanstack/react-query";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
@@ -101,26 +101,29 @@ function RootComponent() {
   const toggleRail = useCallback(() => setCollapsed((v) => !v), []);
   // Mobile reveal drawer: the opaque content panel slides right to uncover a
   // static rail underneath (mirror of the desktop cover/reveal). The hook owns the
-  // whole open/close model — `mobileOpen` drives the scrim/inert/icon, the
-  // drag-to-close visual is written straight to refs, and tap/drag/escape dismissals
-  // all live inside it. Separate from `collapsed` — the only opener is the
-  // mobile-only hamburger, so `mobileOpen` is never true at md+.
+  // whole open/close model — it writes the scrim/inert attributes AND the drag/slide
+  // visual straight to refs (no React re-render on open/close, so the Outlet subtree
+  // never reconciles), and tap/drag/escape dismissals all live inside it. Only the
+  // toggle button subscribes to the open-state store for its aria. Separate from
+  // `collapsed` — the only opener is the mobile-only hamburger, never true at md+.
   //
   // NOTE: no overflow scroll-lock — any overflow lock lives on an ancestor
   // (html/body), which turns it into a scroll container and breaks the sticky top
   // bar (it would detach from the viewport during the whole locked close animation).
   // Touch-scrolling the background is already blocked by the scrim's touch-none.
   const {
-    isOpen: mobileOpen,
     progress,
     scrimRef,
     railRef,
     toggleRef,
     panelRef,
+    contentRef,
     cornerRef,
     cornerTopRef,
-    open: openMobile,
     close: closeMobile,
+    toggle: toggleMobile,
+    subscribeOpen,
+    getOpen,
     scrimHandlers,
   } = useMobileDrawer();
   // Same-timeline chrome: the top-bar mark and the menu glyph fade OUT as the
@@ -180,7 +183,10 @@ function RootComponent() {
           <aside
             id="mobile-rail"
             ref={railRef}
-            inert={!mobileOpen || undefined}
+            // inert is hook-owned (imperative, see useMobileDrawer) — closed-state
+            // baseline set on mount, toggled at spring-rest. No React binding here:
+            // a value rendered by this component would be re-applied on any unrelated
+            // re-render and clobber the hook's open-state.
             className="fixed top-0 left-0 z-10 block h-svh w-[260px] origin-left opacity-0 md:hidden"
           >
             <RailContent creators={creators} stocks={stocks} onNavigate={closeMobile} />
@@ -214,7 +220,8 @@ function RootComponent() {
             <div
               ref={scrimRef}
               aria-hidden
-              data-mopen={mobileOpen}
+              // data-mopen is hook-owned (imperative) — drives the pointer-events
+              // class below; set true immediately on open, false at close-commit.
               {...scrimHandlers}
               className="pointer-events-none absolute inset-0 z-40 touch-none data-[mopen=true]:pointer-events-auto md:hidden"
             />
@@ -231,8 +238,10 @@ function RootComponent() {
                 semantics — the scrim above stays live to close it). On desktop
                 mopen is always false, so this never inerts there. */}
             <div
+              ref={contentRef}
+              // inert is hook-owned (imperative) — modal semantics while the drawer
+              // is open, applied at spring-rest so the recalc is off the open frames.
               className="pointer-events-auto flex min-h-0 flex-1 flex-col"
-              inert={mobileOpen || undefined}
             >
               <MobileNav creators={creators} progress={progress} />
               {/* Opaque panel that covers the rail (the column's z-20 already
@@ -278,29 +287,13 @@ function RootComponent() {
               slide inline on toggleRef, riding the same progress as the panel so it
               tracks the drag + spring exactly (no separate CSS transition to desync). */}
           <div ref={toggleRef} className="fixed top-2.5 left-3 z-50 md:hidden">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-rail"
-              onClick={mobileOpen ? closeMobile : openMobile}
-            >
-              {/* menu↔X crossfade on the drawer progress (stacked in one grid cell
-                  so it never shifts layout), so the glyph morphs along the drag. */}
-              <span className="inline-grid place-items-center text-[18px] leading-none">
-                <motion.span
-                  aria-hidden
-                  className="icon-[lucide--menu] [grid-area:1/1]"
-                  style={{ opacity: closedOpacity }}
-                />
-                <motion.span
-                  aria-hidden
-                  className="icon-[lucide--x] [grid-area:1/1]"
-                  style={{ opacity: progress }}
-                />
-              </span>
-            </Button>
+            <MobileMenuButton
+              subscribeOpen={subscribeOpen}
+              getOpen={getOpen}
+              toggle={toggleMobile}
+              closedOpacity={closedOpacity}
+              progress={progress}
+            />
           </div>
 
           {/* Faux bottom-left corner for the OPEN drawer (mobile). Closed stays
@@ -332,6 +325,53 @@ function RootComponent() {
         </div>
       </HapticsProvider>
     </PreferencesProvider>
+  );
+}
+
+// Isolated leaf so the drawer's open-state drives only THIS button's aria — it
+// subscribes to the hook's external store via useSyncExternalStore instead of the
+// hook holding React state in RootComponent (which would reconcile the whole Outlet
+// subtree on every open/close). The menu↔X glyphs ride `progress` (motion value),
+// so they animate independently of this re-render. onClick={toggle} reads the live
+// ref, so the click is correct even between aria re-renders.
+function MobileMenuButton({
+  subscribeOpen,
+  getOpen,
+  toggle,
+  closedOpacity,
+  progress,
+}: {
+  subscribeOpen: (onChange: () => void) => () => void;
+  getOpen: () => boolean;
+  toggle: () => void;
+  closedOpacity: MotionValue<number>;
+  progress: MotionValue<number>;
+}) {
+  const open = useSyncExternalStore(subscribeOpen, getOpen, () => false);
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label={open ? "Close navigation" : "Open navigation"}
+      aria-expanded={open}
+      aria-controls="mobile-rail"
+      onClick={toggle}
+    >
+      {/* menu↔X crossfade on the drawer progress (stacked in one grid cell
+          so it never shifts layout), so the glyph morphs along the drag. */}
+      <span className="inline-grid place-items-center text-[18px] leading-none">
+        <motion.span
+          aria-hidden
+          className="icon-[lucide--menu] [grid-area:1/1]"
+          style={{ opacity: closedOpacity }}
+        />
+        <motion.span
+          aria-hidden
+          className="icon-[lucide--x] [grid-area:1/1]"
+          style={{ opacity: progress }}
+        />
+      </span>
+    </Button>
   );
 }
 

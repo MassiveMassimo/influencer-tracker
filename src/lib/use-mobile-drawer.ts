@@ -1,5 +1,5 @@
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { animate, useMotionValue } from "motion/react";
 import { prefersReducedMotion } from "#/lib/reduced-motion.ts";
 import { useMediaQuery } from "#/lib/use-media-query.ts";
@@ -22,11 +22,35 @@ export const W = 260; // rail width — matches w-[260px] / md:pl-[260px]; Mobil
 const TOGGLE_X = 208; // hamburger slide: top-bar slot (closed) → rail-header right (open)
 
 export function useMobileDrawer() {
-  // The drawer owns its own open/closed boolean (drives inert/aria/pointer-events
-  // in __root). `progress` is the continuous drag timeline; this is the discrete
-  // state — flipped by open()/settle() alongside the spring, next to the tap/drag/
-  // escape dismissals so the whole open/close model lives in one place.
-  const [isOpen, setIsOpen] = useState(false);
+  // Discrete open/closed lives in a ref + a tiny external store, NOT React state:
+  // flipping it must not re-render RootComponent (that reconciles the whole Outlet
+  // subtree — 70-200ms on the heavy pages, which froze the spring's opening frames).
+  // The attributes it used to drive (rail/content `inert`, scrim pointer-events) are
+  // written imperatively via refs below — no React binding, so an unrelated re-render
+  // can't clobber the open state. Only the toggle button, a leaf, subscribes to the
+  // store (useSyncExternalStore) for its aria; `progress` is the continuous drag
+  // timeline that drives every animated pixel with no React involvement.
+  const openRef = useRef(false);
+  const subs = useRef(new Set<() => void>());
+  const notify = useCallback(() => {
+    for (const f of subs.current) f();
+  }, []);
+  const setOpenState = useCallback(
+    (v: boolean) => {
+      if (openRef.current === v) return;
+      openRef.current = v;
+      notify();
+    },
+    [notify],
+  );
+  const subscribeOpen = useCallback((f: () => void) => {
+    subs.current.add(f);
+    return () => {
+      subs.current.delete(f);
+    };
+  }, []);
+  const getOpen = useCallback(() => openRef.current, []);
+
   const isDesktop = useMediaQuery("(min-width: 768px)"); // md — matches the layout's md: split
   // Slide the pieces individually (scrim + panel here, top bar via motion in
   // MobileNav) rather than their shared column — a transform on an ANCESTOR breaks
@@ -36,6 +60,9 @@ export function useMobileDrawer() {
   const railRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  // Content column that goes `inert` while the drawer is open (modal semantics).
+  // Hook-owned attribute — see openRef note above.
+  const contentRef = useRef<HTMLDivElement>(null);
   // Viewport-pinned faux bottom-left corner for the OPEN panel (__root's
   // .t-corner-notch). The panel's real hook-painted corner sits at its
   // document bottom — below the fold on a window-scrolled page — so this
@@ -108,6 +135,23 @@ export function useMobileDrawer() {
     return progress.on("change", paint);
   }, [progress, paint]);
 
+  // Hook-owned open-state attributes (no React binding — see openRef note). The
+  // scrim's data-mopen drives its `data-[mopen=true]:pointer-events-auto` class.
+  const setScrimActive = useCallback((on: boolean) => {
+    const s = scrimRef.current;
+    if (s) s.dataset.mopen = on ? "true" : "false";
+  }, []);
+  // Rail interactive only when open; content column inert (modal) only when open.
+  // Toggling `inert` forces a subtree style recalc, so this is deferred off the
+  // opening frames to spring-rest (see settle) — the scrim already blocks pointer
+  // input meanwhile, so only keyboard/AT focus is briefly un-trapped during open.
+  const setInert = useCallback((open: boolean) => {
+    const rail = railRef.current;
+    if (rail) rail.inert = !open;
+    const content = contentRef.current;
+    if (content) content.inert = open;
+  }, []);
+
   // Freeze the CSS transition while JS/drag owns the value; thaw it after.
   const freeze = useCallback((frozen: boolean) => {
     for (const el of [
@@ -122,73 +166,22 @@ export function useMobileDrawer() {
     }
   }, []);
 
-  const settle = useCallback(
-    (to: 0 | 1, velocity: number) => {
-      // Release inert/scrim at gesture commit, not spring-rest — else taps in the
-      // content are dead for the ~300ms close settle (native drawers unlock on commit).
-      if (to === 0) setIsOpen(false);
-      if (prefersReducedMotion()) {
-        progress.set(to);
-        freeze(false);
-        return;
-      }
-      animate(progress, to, {
-        type: "spring",
-        stiffness: 420,
-        damping: 42,
-        velocity,
-        onComplete: () => freeze(false),
-      });
-    },
-    [progress, freeze],
-  );
-
-  const open = useCallback(() => {
-    freeze(true);
-    setIsOpen(true); // scrim + inert engage immediately
-    settle(1, 0);
-  }, [freeze, settle]);
-
-  const close = useCallback(() => {
-    freeze(true);
-    settle(0, 0);
-  }, [freeze, settle]);
-
-  // Escape closes — sits with the tap/drag dismissals rather than in __root.
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [isOpen, close]);
-
-  // Widening past md while open hands layout to the desktop CSS, but the inline
-  // transforms paint() wrote (panel translateX, rail scale/blur) would linger and
-  // shove the panel right, leaving a gap. Snap the drawer shut when md flips true:
-  // set(0) runs paint(0), which clears every inline style back to the rest state.
-  useEffect(() => {
-    if (!isDesktop || !isOpen) return;
-    drag.current = null; // abandon any in-flight drag so a dangling pointer can't repaint desktop
-    progress.stop(); // skips settle()'s onComplete → thaw the frozen CSS transitions by hand
-    progress.set(0); // → paint(0) clears the inline transforms
-    freeze(false);
-    setIsOpen(false);
-  }, [isDesktop, isOpen, progress, freeze]);
-
-  // Background scroll-lock while open. Deliberately NOT a layout lock: both
-  // html/body overflow:hidden and the position:fixed-body technique collapse
-  // the root's scrollable overflow, clamping scrollY to 0 — which detaches the
-  // sticky bars and yanks every root scroll-driven timeline (ticker shrink,
-  // creator-bar reveal) to progress 0 for the whole open period. The scrim's
-  // touch-action:none already stops touch pans that start on it; this cancels
-  // what that can't reach — wheel/trackpad, scroll keys, and touch pans
-  // chaining to the window from the uncovered rail strip. Window listeners for
-  // wheel/touchmove are passive by default, so passive:false is load-bearing.
-  // Events inside the rail pass through (its nav scroller + arrow-key nav keep
-  // working); scroll keys are only cancelled when nothing is focused (target =
-  // body/html), so Space still activates the focused toggle button.
-  useEffect(() => {
-    if (!isOpen) return;
+  // Background scroll-lock, attached only while open — imperatively, not via an
+  // isOpen-keyed effect, because non-passive wheel/touchmove listeners left mounted
+  // full-time would defeat the browser's passive-scroll fast path on EVERY mobile
+  // scroll. Deliberately NOT a layout lock: both html/body overflow:hidden and the
+  // position:fixed-body technique collapse the root's scrollable overflow, clamping
+  // scrollY to 0 — which detaches the sticky bars and yanks every root scroll-driven
+  // timeline (ticker shrink, creator-bar reveal) to progress 0 for the whole open
+  // period. The scrim's touch-action:none already stops touch pans that start on it;
+  // this cancels what that can't reach — wheel/trackpad, scroll keys, and touch pans
+  // chaining to the window from the uncovered rail strip. Events inside the rail pass
+  // through (its nav scroller + arrow-key nav keep working); scroll keys are only
+  // cancelled when nothing is focused (target = body/html), so Space still activates
+  // the focused toggle button.
+  const lockRef = useRef<(() => void) | null>(null);
+  const engageScrollLock = useCallback(() => {
+    if (lockRef.current) return;
     const inRail = (t: EventTarget | null) =>
       t instanceof Node && railRef.current?.contains(t) === true;
     const block = (e: Event) => {
@@ -203,15 +196,109 @@ export function useMobileDrawer() {
         e.preventDefault();
       }
     };
+    // Window listeners for wheel/touchmove are passive by default, so passive:false
+    // is load-bearing.
     window.addEventListener("wheel", block, { passive: false });
     window.addEventListener("touchmove", block, { passive: false });
     window.addEventListener("keydown", blockKeys);
-    return () => {
+    lockRef.current = () => {
       window.removeEventListener("wheel", block);
       window.removeEventListener("touchmove", block);
       window.removeEventListener("keydown", blockKeys);
+      lockRef.current = null;
     };
-  }, [isOpen]);
+  }, []);
+  const releaseScrollLock = useCallback(() => lockRef.current?.(), []);
+
+  const settle = useCallback(
+    (to: 0 | 1, velocity: number) => {
+      // Release inert/scrim + scroll-lock at gesture commit, not spring-rest — else
+      // taps in the content are dead for the ~300ms close settle (native drawers
+      // unlock on commit).
+      if (to === 0) {
+        setOpenState(false);
+        setScrimActive(false);
+        setInert(false);
+        releaseScrollLock();
+      }
+      if (prefersReducedMotion()) {
+        progress.set(to);
+        if (to === 1) setInert(true); // no animation → apply the modal inert immediately
+        freeze(false);
+        return;
+      }
+      animate(progress, to, {
+        type: "spring",
+        stiffness: 420,
+        damping: 42,
+        velocity,
+        // Defer the inert flips (subtree style recalc) off the opening frames to
+        // spring-rest. onComplete never fires if a drag/close stops the spring first
+        // (progress.stop()), so a fling-closed-mid-open can't inert a closing drawer.
+        onComplete: () => {
+          if (to === 1 && openRef.current) setInert(true);
+          freeze(false);
+        },
+      });
+    },
+    [progress, freeze, setOpenState, setScrimActive, setInert, releaseScrollLock],
+  );
+
+  const open = useCallback(() => {
+    if (openRef.current) return;
+    setOpenState(true);
+    freeze(true);
+    setScrimActive(true); // immediate: block background pointer input during the open
+    engageScrollLock();
+    settle(1, 0); // inert applied at spring-rest (see settle)
+  }, [freeze, settle, setOpenState, setScrimActive, engageScrollLock]);
+
+  const close = useCallback(() => {
+    freeze(true);
+    settle(0, 0);
+  }, [freeze, settle]);
+
+  const toggle = useCallback(() => {
+    if (openRef.current) close();
+    else open();
+  }, [open, close]);
+
+  // Establish the closed-state attributes once on mount (rail inert, content live,
+  // scrim inactive) — replaces the removed React `inert`/`data-mopen` bindings so
+  // there's a single imperative owner. Release the scroll-lock on unmount.
+  useEffect(() => {
+    setScrimActive(false);
+    setInert(false);
+    return () => releaseScrollLock();
+  }, [setScrimActive, setInert, releaseScrollLock]);
+
+  // Escape closes. Always mounted (a keydown listener has no passive-scroll cost)
+  // and gated on openRef, so it attaches without an isOpen re-render.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && openRef.current) close();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [close]);
+
+  // Widening past md while open hands layout to the desktop CSS, but the inline
+  // transforms paint() wrote (panel translateX, rail scale/blur) would linger and
+  // shove the panel right, leaving a gap. Snap the drawer shut when md flips true:
+  // set(0) runs paint(0), which clears every inline style back to the rest state.
+  // isDesktop is React state (media query), so this still fires on the breakpoint
+  // cross even though open/close no longer re-renders.
+  useEffect(() => {
+    if (!isDesktop || !openRef.current) return;
+    drag.current = null; // abandon any in-flight drag so a dangling pointer can't repaint desktop
+    progress.stop(); // skips settle()'s onComplete → thaw the frozen CSS transitions by hand
+    progress.set(0); // → paint(0) clears the inline transforms
+    freeze(false);
+    setOpenState(false);
+    setScrimActive(false);
+    setInert(false);
+    releaseScrollLock();
+  }, [isDesktop, progress, freeze, setOpenState, setScrimActive, setInert, releaseScrollLock]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
@@ -257,16 +344,19 @@ export function useMobileDrawer() {
   );
 
   return {
-    isOpen,
     progress,
     scrimRef,
     railRef,
     toggleRef,
     panelRef,
+    contentRef,
     cornerRef,
     cornerTopRef,
     open,
     close,
+    toggle,
+    subscribeOpen,
+    getOpen,
     scrimHandlers: {
       onPointerDown,
       onPointerMove,
