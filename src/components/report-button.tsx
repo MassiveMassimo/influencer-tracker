@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { REPORT_REASONS } from "#/lib/report-reasons.ts";
 
 // Operator-facing reason keys mapped to user-facing labels. The keys are the closed
@@ -25,15 +25,17 @@ export function ReportButton({
   ticker: string;
 }) {
   const key = `reported:${shortcode}:${ticker}`;
-  // Read localStorage once on mount, not every render; guard the throw private
-  // mode / disabled storage raises on access.
-  const [state, setState] = useState<"idle" | "open" | "sent">(() => {
+  const [state, setState] = useState<"idle" | "open" | "sent">("idle");
+  // Hydrate the per-call dedupe flag after mount — reading localStorage in the
+  // state initializer touches a browser global during render (crashes/mismatches
+  // under SSR). guard the throw private mode / disabled storage raises on access.
+  useEffect(() => {
     try {
-      return localStorage.getItem(key) === "1" ? "sent" : "idle";
+      if (localStorage.getItem(key) === "1") setState("sent");
     } catch {
-      return "idle";
+      // private mode / disabled storage — stay idle
     }
-  });
+  }, [key]);
 
   async function send(reason: string) {
     setState("sent");

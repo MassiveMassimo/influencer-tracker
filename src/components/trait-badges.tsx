@@ -411,7 +411,7 @@ function Glare({ shape }: { shape: Trait["shape"] }) {
   );
 }
 
-export function EnamelBadgeShape({
+function EnamelBadgeShape({
   trait,
   size = 32,
   dataBadge,
@@ -431,7 +431,7 @@ export function EnamelBadgeShape({
   );
 }
 
-export function CandyBadgeShape({
+function CandyBadgeShape({
   trait,
   size = 32,
   dataBadge,

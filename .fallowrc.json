@@ -3,5 +3,26 @@
   "ignoreDependencies": ["react-doctor", "nitro", "@tailwindcss/vite"],
   "rules": {
     "unused-dependencies": "warn"
+  },
+  "ignoreExports": [
+    { "file": "src/components/charts/**", "exports": ["*"] },
+    { "file": "src/components/ui/**", "exports": ["*"] },
+    { "file": "src/components/icons/**", "exports": ["*"] },
+    { "file": "src/components/toc-minimap.tsx", "exports": ["*"] },
+    { "file": "src/components/GitHubLink.tsx", "exports": ["*"] },
+    { "file": "src/components/ThemePicker.tsx", "exports": ["*"] }
+  ],
+  "duplicates": {
+    "ignore": ["src/components/charts/**", "src/components/ui/**", "src/components/icons/**"]
+  },
+  "health": {
+    "ignore": [
+      "src/components/charts/**",
+      "src/components/ui/**",
+      "src/components/icons/**",
+      "src/components/toc-minimap.tsx",
+      "src/components/GitHubLink.tsx",
+      "src/components/ThemePicker.tsx"
+    ]
   }
 }

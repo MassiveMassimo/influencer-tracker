@@ -1,0 +1,41 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "ignore": {
+    // Copy-in components (bklit charts, FF/coss ui, chanhdai/pqoqubbw icons +
+    // singletons) are vendored verbatim for re-sync — see CLAUDE.md "Component
+    // provenance". Their findings are the registries' own code, not our debt.
+    "files": [
+      "src/components/charts/**",
+      "src/components/ui/**",
+      "src/components/icons/**",
+      "src/components/toc-minimap.tsx",
+      "src/components/GitHubLink.tsx",
+      "src/components/ThemePicker.tsx"
+    ],
+    // Disabled repo-wide: this app deliberately colocates a route's sub-components
+    // in one file (Overview/StatTile/CallsList in a route module, etc.), so
+    // one-component-per-file is a style this codebase has chosen against.
+    "rules": ["react-doctor/no-multi-comp"],
+    "overrides": [
+      {
+        // Deliberate, documented patterns (not bugs):
+        // - proof-viewer: latch the last non-null call through the close animation
+        //   (same as chart-markers' lastActive) so the body doesn't flash empty.
+        // - creator-switcher: the "latest-ref" pattern (openRef.current = open) so a
+        //   mount-only resize handler reads the live value — idempotent, React-endorsed.
+        "files": ["src/components/proof-viewer.tsx", "src/components/ticker/creator-switcher.tsx"],
+        "rules": ["react-doctor/no-ref-current-in-render"]
+      },
+      {
+        // The clickable label span duplicates the adjacent <Switch>, which is the
+        // fully keyboard- + screen-reader-accessible control (its `label` prop). The
+        // span is a redundant mouse affordance, so the a11y gap is already covered.
+        "files": ["src/components/Preferences.tsx"],
+        "rules": [
+          "react-doctor/click-events-have-key-events",
+          "react-doctor/no-static-element-interactions"
+        ]
+      }
+    ]
+  }
+}

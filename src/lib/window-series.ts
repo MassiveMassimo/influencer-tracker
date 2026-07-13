@@ -70,14 +70,3 @@ export function trimToLastSession<S extends { date: string }, P extends { date: 
     isRegularHours(b.date) && NY_DAY.format(new Date(b.date)) === day;
   return { ohlc: ohlc.filter(inSession), spy: spy.filter(inSession) };
 }
-
-// How many viewport-widths the full series occupies at the given zoom level.
-// `tf` days of history fill one viewport; the rest is reachable by scrolling.
-// "All" (or too little data) fits in a single viewport → 1.
-export function zoomMultiplier(bars: { date: string }[], tf: Timeframe): number {
-  if (tf === "All" || bars.length < 2) return 1;
-  const first = new Date(bars[0].date + "T00:00:00Z").getTime();
-  const last = new Date(bars[bars.length - 1].date + "T00:00:00Z").getTime();
-  const totalDays = (last - first) / 86400000;
-  return Math.max(1, totalDays / TF_DAYS[tf]);
-}
