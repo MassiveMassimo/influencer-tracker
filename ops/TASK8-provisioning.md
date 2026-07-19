@@ -63,7 +63,7 @@ build env, or on-demand revalidation silently no-ops (the 6h ISR TTL still heals
 cat > ~/influencer-tracker/.env <<'EOF'
 DATABASE_URL_INGEST=...      # ingest role: INSERT/UPDATE creators/calls/artifacts, INSERT-only prices
 DATABASE_URL_SERVE=...       # serve role: SELECT-only; parity-check reads this
-FIREWORKS_API_KEY=...        # X text + vision classification
+GEMINI_API_KEY=...           # text + vision classification (OpenAI-compat llm client)
 RETTIWT_API_KEY=...          # base64 cookie key from a THROWAWAY X account
 # Notify path — set EITHER Hermes (preferred on the VM) OR the raw Telegram bot creds:
 HERMES_BIN=/home/ubuntu/.hermes/hermes-agent/venv/bin/hermes   # reuses Hermes's Telegram creds + home channel
@@ -76,8 +76,8 @@ EOF
 chmod 600 ~/influencer-tracker/.env
 ```
 
-> `GROQ_API_KEY` is not needed — that's the Instagram path; VM ingest is X-only
-> (Fireworks).
+> `GROQ_API_KEY` is not needed (retired). Extract text + vision both run on Gemini
+> via the `llm` client.
 
 ## 4. Install + enable the systemd units
 
@@ -98,7 +98,7 @@ sudo systemctl start influencer-ingest.service          # same ExecStart + flock
 journalctl -u influencer-ingest.service -f --no-pager   # watch; Ctrl-C when done
 ```
 
-Checkpoint: `git pull` → forward scrape → Fireworks extract → writes
+Checkpoint: `git pull` → forward scrape → Gemini extract → writes
 `calls.review.md` → a **Telegram review ping arrives**. A first forward run may
 find 0 new tweets if the seed is current — fine; it still pings.
 

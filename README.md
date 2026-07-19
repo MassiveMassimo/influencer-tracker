@@ -10,7 +10,7 @@ pipeline with a new handle.
 ```bash
 bun install
 bunx playwright install chromium   # Instagram scrape only
-cp .env.example .env   # then set FIREWORKS_API_KEY (vision + extract) and RETTIWT_API_KEY (X)
+cp .env.example .env   # then set GEMINI_API_KEY (vision + extract) and RETTIWT_API_KEY (X)
 ```
 
 ## Run the pipeline for a creator
@@ -21,8 +21,8 @@ bun run pipeline:x --handle <handle> --name "<Name>"   # X/Twitter (text-first)
 ```
 
 The Instagram pipeline scrapes → transcribes (self-hosted Parakeet ASR) → reads on-screen
-tickers (Fireworks vision) → extracts explicit bullish calls (Fireworks LLM), then PAUSES.
-The X pipeline scrapes tweets → extracts (Fireworks), then PAUSES.
+tickers (Gemini vision) → extracts explicit bullish calls (Gemini LLM), then PAUSES.
+The X pipeline scrapes tweets → extracts (Gemini), then PAUSES.
 
 - Log into Instagram in the launched Chromium window when it opens (the scrape needs
   an authenticated session; cookies persist in `.chrome-profile/`).

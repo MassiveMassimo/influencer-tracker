@@ -99,6 +99,23 @@ const CASES: Case[] = [
     text: `Very obvious bullish set ups right now:\n\n$BABA\n$ZETA\n$ADUR\n$BIDU\n$JD\n$GRAB\n$ASTS\n$NVO`,
     include: ["BABA", "ZETA", "ADUR"],
   },
+  // --- hardening-block regressions (migration 2026-07-19) ---
+  {
+    name: "HARDENED rule 1 — emit the SYMBOL, and NOW (ServiceNow) is not SNOW (Snowflake)",
+    text: `ServiceNow is my highest-conviction buy here, loading up. Do not confuse it with Snowflake.`,
+    include: ["NOW"],
+    exclude: ["SNOW"],
+  },
+  {
+    name: "HARDENED rule 3 — quality ranking with an explicit no-trade → not buys",
+    text: `Ranking the chip names purely on quality: $NVDA best, $AMD second, $INTC worst. Just a tier list, not making any moves or taking any positions today.`,
+    exclude: ["NVDA", "AMD", "INTC"],
+  },
+  {
+    name: "HARDENED rule 3 — profit-taking / target reached → not a buy",
+    text: `Taking profits on $AMD here — it hit my target at $200 and I'm locking in the gains. Trimming the position.`,
+    exclude: ["AMD"],
+  },
 ];
 
 async function scoredTickers(text: string): Promise<Set<string>> {

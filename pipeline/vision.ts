@@ -49,8 +49,11 @@ export async function readImage(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     })
-  ).json()) as { choices: { message: { content: string } }[] };
-  return parseHint(r.choices[0].message.content);
+  ).json()) as { choices?: { message?: { content?: string | null } }[] };
+  // Gemini can return 200 with no usable choice (safety block / truncation) — a null hint
+  // is the designed degradation, so don't let an empty choices array throw and abort the stage.
+  const content = r.choices?.[0]?.message?.content;
+  return typeof content === "string" ? parseHint(content) : { ticker: null, price: null };
 }
 
 // Disk-cached wrapper. Vision OCR is deterministic per image (temp 0) and the source
