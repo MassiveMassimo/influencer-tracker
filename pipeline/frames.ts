@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { mkdir, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { rawDir, framesDir } from "./config";
-import { fireworks, FIREWORKS_VISION_MODEL } from "./fireworks";
+import { llm, VISION_MODEL } from "./llm";
 import { readImage, type FrameHint } from "./vision";
 
 // Real video duration in seconds, or null if it can't be determined.
@@ -35,10 +35,10 @@ function videoDuration(dir: string, video: string): number | null {
   return Number.isFinite(d) && d > 0 ? d : null;
 }
 
-// Vision OCR runs on Fireworks (like the X path) — Groq's free tier throttled the
-// IG frame reads into multi-minute backoffs. Transcribe stays on Groq Whisper.
+// Vision OCR runs on the shared LLM client (Gemini; like the X path). Transcribe is
+// self-hosted Parakeet, not this client.
 export async function frames(handle: string) {
-  const vision = FIREWORKS_VISION_MODEL;
+  const vision = VISION_MODEL;
   await mkdir(framesDir(handle), { recursive: true });
   for (const d of await readdir(rawDir(handle), { withFileTypes: true })) {
     if (!d.isDirectory()) continue;
@@ -58,7 +58,7 @@ export async function frames(handle: string) {
         ["-y", "-ss", String(pct * duration), "-i", join(dir, video), "-frames:v", "1", img],
         { stdio: "ignore" },
       );
-      if (existsSync(img)) hints.push(await readImage(vision, img, fireworks));
+      if (existsSync(img)) hints.push(await readImage(vision, img, llm));
     }
     await writeFile(out, JSON.stringify({ shortcode: code, hints }, null, 2));
     console.log(`frames ${code}:`, hints);

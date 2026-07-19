@@ -58,6 +58,12 @@ describe("toReelCalls", () => {
   it("drops entries with no ticker", () => {
     expect(toReelCalls([{ ...base, ticker: null }], "t", "2026-01-15")).toEqual([]);
   });
+  it("drops a company-name slip that isn't a symbol shape", () => {
+    expect(toReelCalls([{ ...base, ticker: "SPDR S&P 500 ETF Trust" }], "t", "2026-01-15")).toEqual(
+      [],
+    );
+    expect(toReelCalls([{ ...base, ticker: "BRK.B" }], "t", "2026-01-15")).toHaveLength(1);
+  });
   it("strips a leading $ from the ticker ($TSLA -> TSLA)", () => {
     const [rc] = toReelCalls([{ ...base, ticker: "$tsla" }], "t", "2026-01-15");
     expect(rc!.ticker).toBe("TSLA");

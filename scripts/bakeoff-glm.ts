@@ -15,7 +15,9 @@ import { existsSync } from "node:fs";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { rawDir } from "../pipeline/config";
-import { fireworks } from "../pipeline/fireworks";
+// NOTE: superseded one-off harness. Fireworks is retired; the model IDs below are stale
+// Fireworks paths. Kept only to compile — safe to delete.
+import { llm as fireworks } from "../pipeline/llm";
 import { classify, toReelCalls } from "../pipeline/calls";
 import { readImage, type FrameHint } from "../pipeline/vision";
 import { tweetDate } from "../pipeline/x/extract-x";

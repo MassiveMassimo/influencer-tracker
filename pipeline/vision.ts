@@ -20,7 +20,7 @@ export function parseHint(content: string): FrameHint {
   }
 }
 
-// OpenAI-compatible POST fn (fireworks).
+// OpenAI-compatible POST fn (the shared `llm` client).
 type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
 
 // Run the vision model on a single image, returning the ticker/price hint.

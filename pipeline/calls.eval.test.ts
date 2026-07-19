@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { classify } from "./calls";
-import { fireworks, FIREWORKS_MODEL } from "./fireworks";
+import { llm, TEXT_MODEL } from "./llm";
 
 // Labeled LLM eval pinning the recap/track-record discriminator in CLASSIFY_SYS
-// (see calls.ts bake-off note). It hits Fireworks ($ + network), so it is gated on
-// FIREWORKS_API_KEY && RUN_LLM_EVAL and skipped by a plain `bun test`. Run it after
+// (see calls.ts bake-off note). It hits the live LLM ($ + network), so it is gated on
+// GEMINI_API_KEY && RUN_LLM_EVAL and skipped by a plain `bun test`. Run it after
 // any CLASSIFY_SYS edit or model swap:
 //   RUN_LLM_EVAL=1 bun test pipeline/calls.eval.test.ts
 //
@@ -103,7 +103,7 @@ const CASES: Case[] = [
 
 async function scoredTickers(text: string): Promise<Set<string>> {
   const body = `TWEET:\n${text}\n\nIMAGE HINTS:\n[]`;
-  const cs = await classify(FIREWORKS_MODEL, body, fireworks);
+  const cs = await classify(TEXT_MODEL, body, llm);
   return new Set(
     cs
       .filter((c) => c.isExplicitBuy && c.direction === "bullish" && c.ticker)
@@ -111,7 +111,8 @@ async function scoredTickers(text: string): Promise<Set<string>> {
   );
 }
 
-const RUN = !!process.env.FIREWORKS_API_KEY && !!process.env.RUN_LLM_EVAL;
+const RUN =
+  (!!process.env.GEMINI_API_KEY || !!process.env.LLM_API_KEY) && !!process.env.RUN_LLM_EVAL;
 
 describe.skipIf(!RUN)("CLASSIFY_SYS recap-guard eval", () => {
   for (const c of CASES) {
@@ -123,6 +124,6 @@ describe.skipIf(!RUN)("CLASSIFY_SYS recap-guard eval", () => {
         for (const t of c.exclude ?? []) expect(scored).not.toContain(t);
       },
       60_000,
-    ); // generous: long multi-ticker tweets + Fireworks 5xx backoff can exceed 30s
+    ); // generous: long multi-ticker tweets + LLM 5xx backoff can exceed 30s
   }
 });

@@ -21,7 +21,7 @@ import type { Direction, ReelCall } from "../src/lib/types";
 // position/add/hold wins over a historical-entry brag in the same line; (2) attributed
 // third-party ratings (analyst PTs) are not the creator's call unless endorsed; (3) the
 // forward-pick rule never overrides the watchlist/index exclusions. Regression-pinned by
-// the labeled eval in calls.eval.test.ts (gated on FIREWORKS_API_KEY && RUN_LLM_EVAL).
+// the labeled eval in calls.eval.test.ts (gated on GEMINI_API_KEY && RUN_LLM_EVAL).
 // v2 2026-06-25: a trial re-extract of thelonginvest's history surfaced the mirror failure
 // — the forward-pick rule OVER-emitted on retrospective/ambiguous lists (counterfactual
 // hindsight "you didn't buy $X at $low", past-performance recaps "gains of the year $X",
@@ -71,7 +71,26 @@ export const CLASSIFY_SYS =
   '"isExplicitBuy":boolean,"conviction":number,"quote":string,"onScreenPrice":number|null,"summary":string}]}. ' +
   "Use an empty array [] if the post names no specific stock the creator has a view on. One entry per ticker; " +
   "conviction 0..1; quote is the verbatim phrase for THAT ticker; summary is one neutral sentence (<160 chars) " +
-  "on what the post says about that stock and the thesis for it.";
+  "on what the post says about that stock and the thesis for it. " +
+  // Hardening block (migration bake-off 2026-07-19): closes gemini-3.1-flash-lite's two gaps vs
+  // deepseek — name-vs-symbol slips and over-extraction — without the recall loss a stricter
+  // terminal gate (rejected "v2") caused. See [[fireworks-to-gemini-migration]].
+  "ADDITIONAL STRICT RULES — follow exactly. " +
+  "(1) TICKER SYMBOL ONLY: `ticker` MUST be the exact stock-exchange ticker symbol — never the " +
+  "company name, a description, or a misspelling. e.g. NBIS not 'Nebius'/'Nebious'; HIMS not 'HIMSS'; " +
+  "SPY not 'SPDR S&P 500 ETF Trust'; NOW (ServiceNow) is not SNOW (Snowflake). The on-screen/image " +
+  "hints are authoritative for the exact symbol. Output it uppercase with no '$'; if unsure of the " +
+  "symbol use your best-known ticker for that company. " +
+  "(2) DO NOT OVER-EXTRACT: emit an entry ONLY for a stock the creator expresses a directional view on " +
+  "or a position in. Do NOT emit a ticker appearing only as market context, an index/benchmark, a " +
+  "peer/competitor not being recommended, or a passing/comparison mention. When in doubt, omit it. " +
+  "(3) isExplicitBuy = false (these are NOT buys, no matter how positive the tone): a quality " +
+  "ranking / tier-list / rating without a stated buy/hold/target ('A-tier', 'best of the mag 7', 'great " +
+  "company'); a price-move or momentum OBSERVATION without a buy instruction ('big pop', 'going crazy', " +
+  "'breaking out', 'making new highs'); a watchlist mention ('on watch', 'top stock on watch', 'on my " +
+  "radar'); and profit-taking / target-reached ('approaching my target', 'hit my target', 'taking " +
+  "profits'). isExplicitBuy = true still requires an explicit buy/hold instruction, a stated current " +
+  "long position, or a bullish price target / 'going higher' conviction call.";
 
 export interface Classification {
   ticker: string | null;
@@ -110,7 +129,7 @@ const ReplySchema = z.object({ calls: z.array(ClassificationSchema).catch([]) })
 // non-JSON content) so the caller's retry loop re-runs the post; returns the
 // validated per-ticker Classifications otherwise (an empty array is a genuine
 // no-stock reply, handled downstream by toReelCalls). `client` is the OpenAI-compatible
-// POST fn (fireworks). Both platforms share this prompt/parse so they never diverge.
+// POST fn (the shared `llm` client). Both platforms share this prompt/parse so they never diverge.
 type ChatClient = (path: string, init?: RequestInit) => Promise<Response>;
 
 export async function classify(
@@ -166,6 +185,13 @@ export function toReelCalls(cs: Classification[], shortcode: string, postDate: s
     // ticker or it never resolves on Yahoo. Skip if nothing's left.
     const ticker = String(c.ticker).toUpperCase().replace(/^\$+/, "");
     if (!ticker) continue;
+    // Shape guard: a real symbol is [A-Z0-9.-] with no spaces. The LLM sometimes
+    // emits a company NAME instead ("SPDR S&P 500 ETF Trust"); drop those here so
+    // they never reach the review table or the Yahoo price fetch. This only rejects
+    // non-symbols — a valid-but-wrong ticker (confusion between two equities) is not
+    // shape-detectable and still relies on the report→override loop. Single-token
+    // name slips (e.g. "NEBIUS") pass here but are dropped downstream as unpriceable.
+    if (!/^[A-Z0-9.-]+$/.test(ticker)) continue;
     if (seen.has(ticker)) continue;
     seen.add(ticker);
     out.push({
