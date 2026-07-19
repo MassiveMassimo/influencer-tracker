@@ -21,4 +21,4 @@ export function pricesDir(handle: string) {
 }
 
 export const RETTIWT_KEY = process.env.RETTIWT_API_KEY ?? "";
-export const FIREWORKS_KEY = process.env.FIREWORKS_API_KEY ?? "";
+export const LLM_KEY = process.env.LLM_API_KEY ?? process.env.GEMINI_API_KEY ?? "";

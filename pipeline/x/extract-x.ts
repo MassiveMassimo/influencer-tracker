@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { rawDir } from "../config";
-import { fireworks, FIREWORKS_MODEL, FIREWORKS_VISION_MODEL } from "../fireworks";
+import { llm, TEXT_MODEL, VISION_MODEL } from "../llm";
 import { classify, toReelCalls, type Classification } from "../calls";
 import { readImageCached, type FrameHint } from "../vision";
 import { extractPosts, type ExtractPost, type BuildPost } from "../extract-core";
@@ -50,13 +50,13 @@ export async function tweetToReelCalls(
 }
 
 export async function extractX(handle: string) {
-  // Whole X path runs on Fireworks (no Groq throttling at this scale): text via
-  // deepseek-v4-flash, image hints via minimax-m3.
+  // Whole X path runs on the shared LLM client (Gemini): text + image hints both via
+  // gemini-3.1-flash-lite.
   const deps: ExtractDeps = {
-    text: FIREWORKS_MODEL,
-    vision: FIREWORKS_VISION_MODEL,
-    classifyFn: (m, b) => classify(m, b, fireworks),
-    readImageFn: (m, p) => readImageCached(m, p, fireworks),
+    text: TEXT_MODEL,
+    vision: VISION_MODEL,
+    classifyFn: (m, b) => classify(m, b, llm),
+    readImageFn: (m, p) => readImageCached(m, p, llm),
   };
   const tweets: TweetRecord[] = JSON.parse(
     await readFile(join(rawDir(handle), "tweets.json"), "utf8"),
@@ -76,6 +76,6 @@ export async function extractX(handle: string) {
   await extractPosts(handle, shortcodes, buildPost, {
     concurrency: Number(process.env.X_EXTRACT_CONCURRENCY) || 96,
     donePath: join(rawDir(handle), "extract-done.json"),
-    classifyFn: (body) => classify(deps.text, body, fireworks),
+    classifyFn: (body) => classify(deps.text, body, llm),
   });
 }

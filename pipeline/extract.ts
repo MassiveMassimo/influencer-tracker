@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { transcriptsDir, framesDir, rawDir, creatorDir } from "./config";
-import { fireworks, FIREWORKS_MODEL } from "./fireworks";
+import { llm, TEXT_MODEL } from "./llm";
 import { classify } from "./calls";
 import { loadPostDates, savePostDates, mergePostDates } from "./post-dates";
 import { extractPosts, type ExtractPost, type BuildPost } from "./extract-core";
@@ -54,7 +54,7 @@ export async function postDateOf(
 }
 
 export async function extract(handle: string): Promise<ReelCall[]> {
-  const text = FIREWORKS_MODEL;
+  const text = TEXT_MODEL;
   const files = (await readdir(transcriptsDir(handle))).filter((f) => f.endsWith(".json"));
   const shortcodes = files.map((f) => f.replace(".json", ""));
 
@@ -88,7 +88,7 @@ export async function extract(handle: string): Promise<ReelCall[]> {
   const calls = await extractPosts(handle, shortcodes, buildPost, {
     concurrency: Number(process.env.EXTRACT_CONCURRENCY) || 24,
     donePath: join(creatorDir(handle), "extract-done.json"),
-    classifyFn: (body) => classify(text, body, fireworks),
+    classifyFn: (body) => classify(text, body, llm),
   });
 
   // Freeze any dates resolved from info.json into the durable store.
