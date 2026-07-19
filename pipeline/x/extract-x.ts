@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { rawDir } from "../config";
-import { llm, TEXT_MODEL, VISION_MODEL } from "../llm";
+import { llm, TEXT_MODEL, VISION_MODEL, assertLlmKey } from "../llm";
 import { classify, toReelCalls, type Classification } from "../calls";
 import { readImageCached, type FrameHint } from "../vision";
 import { extractPosts, type ExtractPost, type BuildPost } from "../extract-core";
@@ -50,6 +50,7 @@ export async function tweetToReelCalls(
 }
 
 export async function extractX(handle: string) {
+  assertLlmKey(); // fail loud before the heal-loop can swallow a missing-key error
   // Whole X path runs on the shared LLM client (Gemini): text + image hints both via
   // gemini-3.1-flash-lite.
   const deps: ExtractDeps = {

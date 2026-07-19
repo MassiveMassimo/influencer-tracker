@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { mkdir, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { rawDir, framesDir } from "./config";
-import { llm, VISION_MODEL } from "./llm";
+import { llm, VISION_MODEL, assertLlmKey } from "./llm";
 import { readImage, type FrameHint } from "./vision";
 
 // Real video duration in seconds, or null if it can't be determined.
@@ -38,6 +38,7 @@ function videoDuration(dir: string, video: string): number | null {
 // Vision OCR runs on the shared LLM client (Gemini; like the X path). Transcribe is
 // self-hosted Parakeet, not this client.
 export async function frames(handle: string) {
+  assertLlmKey(); // fail loud before per-frame reads silently degrade to null hints
   const vision = VISION_MODEL;
   await mkdir(framesDir(handle), { recursive: true });
   for (const d of await readdir(rawDir(handle), { withFileTypes: true })) {

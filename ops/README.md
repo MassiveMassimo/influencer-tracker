@@ -53,7 +53,7 @@ Create `/home/ubuntu/influencer-tracker/.env` with:
 Daily-path keys (static-serve, `USE_DB=0`) — the only ones the timer actually needs:
 
 ```
-FIREWORKS_API_KEY=...        # vision + classification (IG + X)
+GEMINI_API_KEY=...           # vision + classification (IG + X), via the OpenAI-compat llm client
 RETTIWT_API_KEY=...          # base64 cookie key from throwaway X account
 # Notify path — set EITHER Hermes (preferred on the VM) OR the raw Telegram bot creds:
 HERMES_BIN=/home/ubuntu/.hermes/hermes-agent/venv/bin/hermes   # reuses Hermes's own Telegram creds + home channel; no bot token needed here
@@ -130,7 +130,7 @@ The timer fires `influencer-ingest.service`, which:
 2. Discards tracked VM writes and any untracked new-symbol price files, then pulls
    fresh from `main` (see §4 for why).
 3. Runs `scripts/ingest.ts` for every handle in `INGEST_HANDLES`: forward scrape
-   (tweets since last run), extract calls via Fireworks, write `reel-calls.json` and
+   (tweets since last run), extract calls via Gemini, write `reel-calls.json` and
    `calls.review.md`, then immediately auto-invokes `scripts/resume.ts` per handle —
    no human pause.
    After all handles, `ingest.ts` commits + pushes `data/` once (Vercel auto-deploys the
@@ -210,7 +210,7 @@ untouched and only removes untracked non-ignored files.
 
 **Exception — do NOT purge `raw/<handle>/tweets.json` for X creators.** It is the
 incremental forward-scrape cursor (newest stored tweet id); losing it forces a full
-12-month re-backfill (re-scrape + full re-extract, Fireworks $). The mp4/img media in
+12-month re-backfill (re-scrape + full re-extract, LLM $). The mp4/img media in
 `raw/` is still safe to delete; `tweets.json` is not.
 
 ---

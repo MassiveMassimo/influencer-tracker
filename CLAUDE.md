@@ -65,7 +65,7 @@ if a reel was never transcribed).
   iProyal ISP-residential relay, no-auth locally). Unset on the Mac → scrapes direct.
   IG locks accounts scraped from datacenter IPs, so VM runs **must** set it. Also use a
   warmed burner IG account (never a personal one) for `cookies.txt`.
-- Then: `transcribe` (self-hosted Parakeet), `frames` (sample 3 frames → Fireworks
+- Then: `transcribe` (self-hosted Parakeet), `frames` (sample 3 frames → Gemini
   vision for on-screen ticker/price hints), `extract`.
 
 **X/Twitter** (`pipeline/x/scrape-x.ts`, text-first):
@@ -168,45 +168,39 @@ scored figure, so restating it never touches return reproducibility. One-time
 
 **LLM providers — provider matrix.** `classify(model, body, client)` and
 `readImage(model, path, client)` take the OpenAI-compatible POST fn as `client`,
-so each stage picks its provider. The rule: **self-hosted Parakeet for audio,
-Fireworks for everything else. No external LLM API depends on Groq anymore.**
+so each stage picks its provider. The rule: **self-hosted Parakeet for audio, one
+provider-neutral `llm` client (`pipeline/llm.ts`) for everything else. No external
+LLM API depends on Groq or Fireworks anymore.**
 
 | Stage                             | Pipeline | Provider                             | Model                                                                                                         |
 | --------------------------------- | -------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | transcribe (audio→text)           | IG only  | **Parakeet (self-hosted, CPU/ONNX)** | `nemo-parakeet-tdt-0.6b-v2` via `onnx-asr` (`pipeline/transcribe.ts` → `pipeline/asr/transcribe_parakeet.py`) |
-| frames / image hints (vision OCR) | IG + X   | **Fireworks**                        | `FIREWORKS_VISION_MODEL` (`minimax-m3`)                                                                       |
-| extract (classification)          | IG + X   | **Fireworks**                        | `FIREWORKS_MODEL` (`deepseek-v4-flash`)                                                                       |
+| frames / image hints (vision OCR) | IG + X   | **Gemini** (OpenAI-compat)           | `VISION_MODEL` (`gemini-3.1-flash-lite`)                                                                       |
+| extract (classification)          | IG + X   | **Gemini** (OpenAI-compat)           | `TEXT_MODEL` (`gemini-3.1-flash-lite`)                                                                         |
 
-Vision + classification (IG _and_ X) run on **Fireworks** (`pipeline/fireworks.ts`),
-which isn't throttled like Groq's free tier (Groq's TPM limits were stalling IG
-vision/extract into multi-minute 429 backoffs). Models picked by a bake-off on
-real TheProfInvestor data: deepseek-v4-flash beat gpt-oss-120b on call-detection
-(it under-flagged implicit "going higher"-style calls). Vision was **kimi-k2p5**
-until Fireworks undeployed it from serverless (404 NOT_FOUND, stalled IG ingest
-2026-07-04..06); a 2026-07-06 re-bakeoff (4 live serverless VLMs × 9 real frames)
-picked **minimax-m3** — the only candidate that reliably honors the "compact JSON,
-no prose" contract `parseHint` needs (kimi-k2p6 / kimi-k2p7-code / qwen3p7-plus leak
-chain-of-thought → parse fails → the hint silently goes null), read BTC-USD/AAOI
-exactly, and is cheapest + fast (~2s). Note: many models the catalog lists as
-`serverless` actually 404 on inference (kimi-k2p5, qwen3p6-plus, the OCR-specialist
-paddleocr/rolm/firesearch) — verify by an inference call, not the listing. All paths
-reuse the same `CLASSIFY_SYS` + parse.
+Vision + classification (IG _and_ X) run on **Gemini** via its OpenAI-compat endpoint
+(`pipeline/llm.ts`, `https://generativelanguage.googleapis.com/v1beta/openai`). Base URL
++ model ids are env-overridable (`LLM_BASE_URL` / `LLM_TEXT_MODEL` / `LLM_VISION_MODEL`),
+so a future provider swap is config-only; the `llm` client is a behavioral clone of the
+old Fireworks client (Bearer auth, retry on 429/5xx honoring `Retry-After`, capped
+backoff + jitter). Chosen by a 2026-07 migration bake-off on real data: Gemini vision
+beat the retired minimax-m3 (which hallucinated tickers — SPY for ENPH, RBLX for NVDA),
+and `gemini-3.1-flash-lite` text matched deepseek-v4-flash scored-buy precision once
+`CLASSIFY_SYS` was hardened (ticker-symbol-only, no over-extraction, ranking/momentum/
+watchlist/profit-taking are not buys — a stricter terminal gate was tried and rejected
+for causing recall loss). All paths reuse the same `CLASSIFY_SYS` + parse. **Fail-loud:**
+each stage calls `assertLlmKey()` first, so a missing key aborts before the extract
+heal-loop can swallow it into a silent no-op. (History: text was Fireworks `deepseek-v4-flash`,
+vision Fireworks `minimax-m3` — both retired 2026-07-19; see [[fireworks-to-gemini-migration]].)
 
-**Fireworks billing & cost.** Prepaid-credits, pay-as-you-go drawdown (Fireworks account
-"Meeting.ai DEV TOOLS", Tier 3, $5,000/mo hard cap; the `monthlySpendThreshold` is a $100
-_alert_, not a cap). **No balance/usage/credits endpoint** — the control-plane API
-(`/v1/accounts/...`) exposes only the spend-threshold + resource quotas; check remaining
-balance + MTD spend in the Fireworks dashboard. Inference responses carry per-call token
-`usage` (sum it for an exact run cost). Live per-1M-token prices (standard tier): **text
-`deepseek-v4-flash` $0.14 in / $0.028 cached / $0.28 out**; **vision `minimax-m3` $0.30 in /
-$1.20 out** (cached price not listed; ~half the retired kimi-k2p5 rate of $0.60/$3.00, so vision
-cost roughly halves vs the figures below). Extract is **1 text call/tweet + 1 vision call/image**,
-so cost is vision-dominated. **Measured** (onboarding @thelonginvest, 2026-06-14, on the then-current
-kimi-k2p5 vision model): 8,248 tweets / 2,226 image calls → deepseek 4.4M tok + kimi 6.1M tok →
-**~$12** off the prepaid balance (real-time, no billing lag). Budget **~$1.5/1k tweets**, vision is
-~⅔ of it (images log
-~2.7k tok each — higher-res than naive estimates). Earlier ~$0.50/1k guesses were ~3× low;
-trust the balance-ledger delta, not token×list-price math.
+**Gemini billing & cost.** The key (`GEMINI_API_KEY`, or `LLM_API_KEY`) is on the **PAID
+tier** (billing enabled → charged per token, data NOT used for training); free tier is
+billing-disabled + 15 RPM / 1500 RPD + data-used-for-training. There is no balance endpoint —
+check spend in the Google Cloud / AI Studio console. Inference responses carry per-call
+`usage` (sum for exact run cost). Steady-state daily incremental ~$0.78/mo; onboarding a
+creator ~$6 (vs Fireworks ~$12). Extract is 1 text call/post + 1 vision call/image; vision
+is ~⅔ of cost. Vision OCR is disk-cached per image (`<img>.hint.json`), so a text-only
+re-classify doesn't re-bill it.
 
 **Transcription is self-hosted Parakeet, not Groq Whisper** (replaced it). `onnx-asr`
 runs `nemo-parakeet-tdt-0.6b-v2` on CPU (no GPU / no NeMo/CUDA) — benchmarked at
@@ -533,7 +527,7 @@ read from `raw/<handle>/tweets.json` (`loadTweets`), but `raw/` is gitignored an
 "raw media is disposable, delete to free GBs" cleanup purges it. With no `tweets.json`, `--forward`
 logs `forward requested but no prior data` and silently does a **full 12-month backfill** (re-scrape
 
-- full re-extract, Fireworks $). For X, `tweets.json` is NOT disposable — it's the incremental
+- full re-extract, LLM $). For X, `tweets.json` is NOT disposable — it's the incremental
   cursor — so don't purge `raw/<handle>/tweets.json` for X creators even though the mp4/img media in
   `raw/` is safe to delete. (Hit 2026-06-22: both X handles full-backfilled after a `raw/` purge.)
 
@@ -870,10 +864,10 @@ nav + `RailStocks`) pass `scrollbarClassName="w-1.5"` for a thinner 6px bar (def
   no sequential "exit fully, then enter"), so the swap reads as a soft dissolve, not
   a hard cut. Reference: the `CreatorSwitcher` tab↔combobox layer swap (`.cs-layer*`
   in `styles.css`). Honor `prefers-reduced-motion` (kill the transition, snap).
-- Secrets in `.env` (gitignored): `GROQ_API_KEY`, `RETTIWT_API_KEY`,
-  `FIREWORKS_API_KEY` (X text classification). Groq
-  free-tier is rate-limited; `pipeline/groq.ts` backs off on 429 — expect slow
-  vision/extract stages, not failures.
+- Secrets in `.env` (gitignored): `RETTIWT_API_KEY` (X scrape), `GEMINI_API_KEY`
+  (or `LLM_API_KEY`; text classify + vision OCR via the `llm` client). `GROQ_API_KEY`
+  and `FIREWORKS_API_KEY` are retired (both providers dropped; `pipeline/groq.ts` is dead
+  code pending cleanup).
 - Charts: bklit-ui components, vendored copy-in (shadcn-style, so not in
   `package.json`) under `src/components/charts/`, built on `@visx` + `d3`,
   rendered as SVG. Synced from the `@bklit` registry via

@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { transcriptsDir, framesDir, rawDir, creatorDir } from "./config";
-import { llm, TEXT_MODEL } from "./llm";
+import { llm, TEXT_MODEL, assertLlmKey } from "./llm";
 import { classify } from "./calls";
 import { loadPostDates, savePostDates, mergePostDates } from "./post-dates";
 import { extractPosts, type ExtractPost, type BuildPost } from "./extract-core";
@@ -54,6 +54,7 @@ export async function postDateOf(
 }
 
 export async function extract(handle: string): Promise<ReelCall[]> {
+  assertLlmKey(); // fail loud before the heal-loop can swallow a missing-key error
   const text = TEXT_MODEL;
   const files = (await readdir(transcriptsDir(handle))).filter((f) => f.endsWith(".json"));
   const shortcodes = files.map((f) => f.replace(".json", ""));
