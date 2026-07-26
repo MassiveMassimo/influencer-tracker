@@ -3,7 +3,7 @@
     "handle": "roadto100kportfolio",
     "name": "@roadto100kportfolio"
   },
-  "generatedAt": "2026-07-25",
+  "generatedAt": "2026-07-26",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -14738,7 +14738,7 @@
     "funnel": [
       {
         "label": "Reels (12mo)",
-        "value": 40
+        "value": 12
       },
       {
         "label": "Named a stock",
