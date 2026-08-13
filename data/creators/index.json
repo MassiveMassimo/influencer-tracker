@@ -7,7 +7,7 @@
     "hitRate3m": 0.375,
     "hitRate3mN": 24,
     "avgExcess3m": -0.03700098587516342,
-    "generatedAt": "2026-08-12",
+    "generatedAt": "2026-08-13",
     "avatar": "/avatars/kevvonz.jpg"
   },
   {
@@ -37,10 +37,10 @@
     "name": "@roadto100kportfolio",
     "totalCalls": 241,
     "firstCalls": 77,
-    "hitRate3m": 0.5098039215686274,
-    "hitRate3mN": 51,
-    "avgExcess3m": 0.05121497072179426,
-    "generatedAt": "2026-08-12",
+    "hitRate3m": 0.5192307692307693,
+    "hitRate3mN": 52,
+    "avgExcess3m": 0.056923269772754886,
+    "generatedAt": "2026-08-13",
     "avatar": "/avatars/roadto100kportfolio.jpg"
   },
   {
@@ -51,7 +51,7 @@
     "hitRate3m": 0.47058823529411764,
     "hitRate3mN": 51,
     "avgExcess3m": 0.06321797650006009,
-    "generatedAt": "2026-08-12",
+    "generatedAt": "2026-08-13",
     "avatar": "/avatars/johnnylixf.jpg"
   }
 ]
