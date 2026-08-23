@@ -4,7 +4,9 @@ import {
   assertNoDownloadFailures,
   clearDownloadFailure,
   downloadInstagramMedia,
+  downloadedMediaFiles,
   hasInstagramSessionCookie,
+  instagramCaptionFromTitle,
   loadDownloadFailures,
   recordDownloadFailure,
 } from "./scrape";
@@ -19,6 +21,22 @@ test("Instagram login requires a live sessionid, not only a remembered account",
     ]),
   ).toBe(true);
   expect(hasInstagramSessionCookie([{ name: "sessionid", value: "" }])).toBe(false);
+});
+
+test("Instagram post helpers keep downloaded media and extract the caption", () => {
+  expect(
+    downloadedMediaFiles([
+      "media.CODE.info.json",
+      "image-01.jpg",
+      "image-02.webp",
+      "media.CODE.mp4",
+      "audio.wav",
+    ]),
+  ).toEqual(["image-01.jpg", "image-02.webp", "media.CODE.mp4"]);
+  expect(instagramCaptionFromTitle('Kevin Hu on Instagram: "A bullish caption 📈"')).toBe(
+    "A bullish caption 📈",
+  );
+  expect(instagramCaptionFromTitle("Instagram")).toBe("");
 });
 
 // A spawn-level failure (yt-dlp not on PATH) breaks EVERY post — it must throw so the run

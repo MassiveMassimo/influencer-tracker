@@ -4,6 +4,7 @@ import {
   assertNoDownloadFailures,
   clearDownloadFailure,
   downloadInstagramMedia,
+  hasDownloadedMedia,
   loadDownloadFailures,
   recordDownloadFailure,
   scrape,
@@ -46,6 +47,10 @@ for (const stage of stages.slice(start)) {
     const media = new Map([...codes, ...retries].map((item) => [item.shortcode, item]));
     for (const item of media.values()) {
       if (existsSync(join(transcriptsDir(handle), `${item.shortcode}.json`))) {
+        await clearDownloadFailure(handle, item.shortcode);
+        continue;
+      }
+      if (hasDownloadedMedia(handle, item.shortcode)) {
         await clearDownloadFailure(handle, item.shortcode);
         continue;
       }

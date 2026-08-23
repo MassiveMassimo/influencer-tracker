@@ -4,7 +4,7 @@
 import { chromium } from "playwright-extra";
 import stealth from "puppeteer-extra-plugin-stealth";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { rawDir, creatorDir } from "./config";
@@ -235,12 +235,17 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   // Capture the profile pic while the logged-in page context is still alive.
   await saveAvatar(handle, await resolveAvatarUrl(page, handle));
 
+  const recent = [...seen.values()].filter((media) => !media.takenAt || media.takenAt >= cutoff);
+  for (const media of recent) {
+    if (media.kind !== "post" || known.has(media.shortcode)) continue;
+    await downloadFeedPostImages(page, ctx.request, handle, media.shortcode);
+  }
+
   // Persist session cookies for yt-dlp before tearing down the context.
   await mkdir(creatorDir(handle), { recursive: true });
   await writeFile(cookiesPath(handle), toNetscape(await ctx.cookies()));
   await ctx.close();
 
-  const recent = [...seen.values()].filter((media) => !media.takenAt || media.takenAt >= cutoff);
   assertScrapeCoverage({
     seenCount: recent.length,
     forward: opts.forward === true,
@@ -267,6 +272,88 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   await savePostDates(handle, mergePostDates(await loadPostDates(handle), harvested));
 
   return recent;
+}
+
+export function downloadedMediaFiles(files: string[]): string[] {
+  return files.filter((file) => /\.(jpe?g|png|webp|mp4|webm|mkv)$/i.test(file));
+}
+
+export function hasDownloadedMedia(handle: string, shortcode: string): boolean {
+  try {
+    return downloadedMediaFiles(readdirSync(join(rawDir(handle), shortcode))).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+export function instagramCaptionFromTitle(title: string): string {
+  return title.match(/ on Instagram: "([\s\S]*)"$/)?.[1]?.trim() ?? "";
+}
+
+async function downloadFeedPostImages(
+  page: any,
+  request: any,
+  handle: string,
+  shortcode: string,
+): Promise<void> {
+  const dir = join(rawDir(handle), shortcode);
+  await mkdir(dir, { recursive: true });
+  await page.goto(`https://www.instagram.com/${handle}/p/${shortcode}/`, {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1000);
+
+  const urls = new Set<string>();
+  for (let step = 0; step < 12; step++) {
+    const next = page.locator('button[aria-label="Next"]').first();
+    const previous = page.locator('button[aria-label="Go back"]').first();
+    const control = (await next.count()) ? next : previous;
+    if (await control.count()) {
+      const images: string[] = await control
+        .locator("xpath=ancestor::div[1]")
+        .locator("img")
+        .evaluateAll((items: HTMLImageElement[]) =>
+          items.map((image) => image.currentSrc || image.src).filter(Boolean),
+        );
+      for (const url of images) urls.add(url);
+    } else {
+      const image = await page.locator('meta[property="og:image"]').first().getAttribute("content");
+      if (image) urls.add(image);
+    }
+
+    if (!(await next.count())) break;
+    await next.click();
+    await page.waitForTimeout(400);
+  }
+
+  if (!urls.size) return;
+  let index = 0;
+  for (const url of urls) {
+    const response = await request.get(url);
+    if (!response.ok()) throw new Error(`Instagram image download failed: ${response.status()}`);
+    const contentType = response.headers()["content-type"] ?? "";
+    const extension = contentType.includes("webp")
+      ? "webp"
+      : contentType.includes("png")
+        ? "png"
+        : "jpg";
+    index++;
+    await writeFile(
+      join(dir, `image-${String(index).padStart(2, "0")}.${extension}`),
+      await response.body(),
+    );
+  }
+
+  const title =
+    (await page.locator('meta[property="og:title"]').first().getAttribute("content")) ?? "";
+  await writeFile(
+    join(dir, `media.${shortcode}.info.json`),
+    JSON.stringify(
+      { id: shortcode, description: instagramCaptionFromTitle(title), imageCount: index },
+      null,
+      2,
+    ),
+  );
 }
 
 // Resolve the IG profile pic URL via web_profile_info. Runs in the page context
