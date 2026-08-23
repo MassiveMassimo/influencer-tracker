@@ -28,13 +28,17 @@ function cookiesPath(handle: string) {
   return join(creatorDir(handle), "cookies.txt");
 }
 
+export function hasInstagramSessionCookie(cookies: { name: string; value: string }[]): boolean {
+  return cookies.some((cookie) => cookie.name === "sessionid" && cookie.value);
+}
+
 // Block until the IG session cookie appears, so a fresh profile gets a manual
 // login instead of silently hitting the logged-out wall and harvesting nothing.
 async function waitForLogin(ctx: any, timeoutMs = 6 * 60_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const cookies = await ctx.cookies("https://www.instagram.com");
-    if (cookies.some((c: any) => c.name === "ds_user_id" && c.value)) return true;
+    if (hasInstagramSessionCookie(cookies)) return true;
     await sleep(2000);
   }
   return false;
@@ -84,12 +88,10 @@ function fromNetscape(text: string): any[] {
   return out;
 }
 
-// True if the context already carries a logged-in IG session (ds_user_id cookie).
+// True if the context already carries an authenticated Instagram session.
 async function hasSession(ctx: any): Promise<boolean> {
   const cookies = await ctx.cookies("https://www.instagram.com");
-  // Match waitForLogin: a cleared-but-not-purged cookie has the key with an empty
-  // value and is not a live session.
-  return cookies.some((c: any) => c.name === "ds_user_id" && c.value);
+  return hasInstagramSessionCookie(cookies);
 }
 
 // Seed a prior session from cookies.txt if present; returns true if cookies were loaded.
@@ -210,7 +212,7 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   let observedKnown = [...seen.keys()].some((code) => known.has(code));
   while (stagnant < 4) {
     const before = seen.size;
-    await page.mouse.wheel(0, 1200 + jitter(0, 800));
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await sleep(jitter(1500, 3500));
     await collectProfileMedia();
     observedKnown ||= [...seen.keys()].some((code) => known.has(code));

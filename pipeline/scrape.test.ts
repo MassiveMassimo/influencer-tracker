@@ -4,10 +4,22 @@ import {
   assertNoDownloadFailures,
   clearDownloadFailure,
   downloadInstagramMedia,
+  hasInstagramSessionCookie,
   loadDownloadFailures,
   recordDownloadFailure,
 } from "./scrape";
 import { creatorDir } from "./config";
+
+test("Instagram login requires a live sessionid, not only a remembered account", () => {
+  expect(hasInstagramSessionCookie([{ name: "ds_user_id", value: "123" }])).toBe(false);
+  expect(
+    hasInstagramSessionCookie([
+      { name: "ds_user_id", value: "123" },
+      { name: "sessionid", value: "live-session" },
+    ]),
+  ).toBe(true);
+  expect(hasInstagramSessionCookie([{ name: "sessionid", value: "" }])).toBe(false);
+});
 
 // A spawn-level failure (yt-dlp not on PATH) breaks EVERY post — it must throw so the run
 // BLOCKs loudly, not silently ingest nothing (the ~10-day data gap on 2026-06-27).
