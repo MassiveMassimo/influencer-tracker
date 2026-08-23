@@ -131,6 +131,11 @@ describe("classify", () => {
     expect(cs[0]!.ticker).toBe("NBIS");
   });
 
+  it("defensively accepts a bare calls array (missing envelope)", async () => {
+    const cs = await classify("model", "body", reply([item, { ...item, ticker: "OSCR" }]));
+    expect(cs.map((c) => c.ticker)).toEqual(["NBIS", "OSCR"]);
+  });
+
   it("clamps an out-of-range conviction instead of throwing", async () => {
     const cs = await classify("model", "body", reply({ calls: [{ ...item, conviction: 2 }] }));
     expect(cs[0]!.conviction).toBe(1);

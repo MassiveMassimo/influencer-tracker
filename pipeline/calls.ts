@@ -122,7 +122,7 @@ const ClassificationSchema = z.object({
 
 // The envelope: a `calls` array. Be lenient about the few shapes a model lands on under
 // json_object — accept the canonical {calls:[…]}, an empty/absent array, or (defensively)
-// a bare single object emitted at the top level, normalizing all to Classification[].
+// a bare object/array emitted at the top level, normalizing all to Classification[].
 const ReplySchema = z.object({ calls: z.array(ClassificationSchema).catch([]) });
 
 // One LLM classification call. Throws on an unreadable reply (missing envelope or
@@ -162,10 +162,11 @@ export async function classify(
   } catch {
     throw new Error("classify: reply content was not valid JSON");
   }
-  // Canonical shape is {calls:[…]}. Defensively accept a bare single object (a model
-  // occasionally drops the envelope) by wrapping it before validation.
-  const enveloped =
-    raw && typeof raw === "object" && !Array.isArray(raw) && !("calls" in raw)
+  // Canonical shape is {calls:[…]}. Models occasionally drop the envelope and
+  // emit either one object or the calls array directly.
+  const enveloped = Array.isArray(raw)
+    ? { calls: raw }
+    : raw && typeof raw === "object" && !("calls" in raw)
       ? { calls: [raw] }
       : raw;
   return ReplySchema.parse(enveloped).calls;
