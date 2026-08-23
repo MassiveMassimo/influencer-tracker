@@ -17,6 +17,7 @@ import {
   type ProfileMediaRef,
 } from "./scrape-forward";
 import { loadPostDates, savePostDates, mergePostDates, formatTakenAt } from "./post-dates";
+import { withRetry } from "./retry";
 
 (chromium as any).use(stealth());
 
@@ -189,7 +190,14 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   }
   console.log(">>> Login detected. Harvesting posts...");
 
-  await page.goto(`https://www.instagram.com/${handle}/`, { waitUntil: "domcontentloaded" });
+  await withRetry(
+    () =>
+      page.goto(`https://www.instagram.com/${handle}/`, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      }),
+    { retries: 2, label: "Instagram profile navigation" },
+  );
   const collectProfileMedia = async () => {
     const hrefs = await page
       .locator('a[href*="/reel/"], a[href*="/p/"]')
@@ -298,9 +306,14 @@ async function downloadFeedPostImages(
 ): Promise<void> {
   const dir = join(rawDir(handle), shortcode);
   await mkdir(dir, { recursive: true });
-  await page.goto(`https://www.instagram.com/${handle}/p/${shortcode}/`, {
-    waitUntil: "domcontentloaded",
-  });
+  await withRetry(
+    () =>
+      page.goto(`https://www.instagram.com/${handle}/p/${shortcode}/`, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      }),
+    { retries: 2, label: `Instagram post ${shortcode}` },
+  );
   await page.waitForTimeout(1000);
 
   const urls = new Set<string>();
