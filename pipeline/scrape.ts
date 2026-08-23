@@ -325,7 +325,7 @@ async function downloadFeedPostImages(
   // Instagram renders carousel controls after DOMContentLoaded, especially through
   // residential proxies. Wait for that client render before deciding this is a
   // single-image post from og:image alone.
-  await page.waitForTimeout(4000);
+  await page.waitForTimeout(8000);
 
   const urls = new Set<string>();
   for (let step = 0; step < 12; step++) {
