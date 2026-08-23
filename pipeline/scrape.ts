@@ -328,7 +328,7 @@ async function downloadFeedPostImages(
   await page.waitForTimeout(8000);
 
   const urls = new Set<string>();
-  for (let step = 0; step < 12; step++) {
+  for (let step = 0; step < 24; step++) {
     const next = page.locator('button[aria-label="Next"]').first();
     const previous = page.locator('button[aria-label="Go back"]').first();
     const control = (await next.count()) ? next : previous;
