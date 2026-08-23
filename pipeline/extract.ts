@@ -67,19 +67,13 @@ export async function extract(handle: string): Promise<ReelCall[]> {
     loadDatasetAnchors(handle),
   ]);
   const discovered: Record<string, string> = {};
-  // Transcribed reels with no resolvable anchor: their calls are dropped this run. Collected for
-  // a single loud summary — the sub-guard-threshold tripwire guard-no-shrink can't see (< 5%).
-  const dateless: string[] = [];
 
   const buildPost: BuildPost = async (code: string): Promise<ExtractPost | null> => {
     const tr = JSON.parse(await readFile(join(transcriptsDir(handle), `${code}.json`), "utf8"));
     const fp = join(framesDir(handle), `${code}.json`);
     const hints = existsSync(fp) ? JSON.parse(await readFile(fp, "utf8")).hints : [];
     const postDate = await postDateOf(store, datasetAnchors, handle, code);
-    if (postDate == null) {
-      dateless.push(code);
-      return null;
-    }
+    if (postDate == null) return null;
     // Resolved from info.json (absent in the store) -> freeze it.
     if (!(code in store)) discovered[code] = postDate;
     const body = `TRANSCRIPT:\n${tr.text}\n\nON-SCREEN HINTS:\n${JSON.stringify(hints)}`;
@@ -89,20 +83,13 @@ export async function extract(handle: string): Promise<ReelCall[]> {
   const calls = await extractPosts(handle, shortcodes, buildPost, {
     concurrency: Number(process.env.EXTRACT_CONCURRENCY) || 24,
     donePath: join(creatorDir(handle), "extract-done.json"),
+    failurePath: join(rawDir(handle), "extract-failures.json"),
     classifyFn: (body) => classify(text, body, llm),
   });
 
   // Freeze any dates resolved from info.json into the durable store.
   if (Object.keys(discovered).length)
     await savePostDates(handle, mergePostDates(store, discovered));
-
-  // Loud, aggregated tripwire: a dateless transcribed reel had its calls dropped from
-  // reel-calls.json with no anchor recovered (store + info.json + dataset.json all missed).
-  if (dateless.length)
-    console.warn(
-      `extract ${handle}: ${dateless.length} transcribed reel(s) with no resolvable post date — ` +
-        `their calls are NOT in reel-calls.json: ${dateless.join(", ")}`,
-    );
 
   return calls;
 }

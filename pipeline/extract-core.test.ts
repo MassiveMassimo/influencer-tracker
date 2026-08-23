@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "bun:test";
 import { existsSync } from "node:fs";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { dedupeCalls, callKey, extractPosts } from "./extract-core";
 import { creatorDir } from "./config";
@@ -99,5 +99,83 @@ describe("extractPosts seed persistence", () => {
     // on the buggy code the missing seed file makes run 2 re-seed and swallow "b".
     await extractPosts(HANDLE, ["a", "b"], buildPost, opts);
     expect(seen).toEqual(["b"]);
+  });
+});
+
+describe("extractPosts failure ledger", () => {
+  const HANDLE = "__extract_failure_test__";
+  const dir = creatorDir(HANDLE);
+  const donePath = join(dir, "extract-done.json");
+  const failurePath = join(dir, "extract-failures.json");
+  const buildPost = async (sc: string) => ({
+    shortcode: sc,
+    postDate: "2026-01-01",
+    body: sc,
+  });
+
+  afterEach(() => rm(dir, { recursive: true, force: true }));
+
+  it("fails the stage and records a retryable classifier failure", async () => {
+    await mkdir(dir, { recursive: true });
+
+    await expect(
+      extractPosts(HANDLE, ["broken"], buildPost, {
+        concurrency: 1,
+        donePath,
+        failurePath,
+        classifyFn: async () => {
+          throw new Error("invalid classifier payload");
+        },
+      }),
+    ).rejects.toThrow(/extraction incomplete: 1 post/);
+
+    const failures = JSON.parse(await readFile(failurePath, "utf8"));
+    expect(failures).toMatchObject([
+      {
+        shortcode: "broken",
+        attempts: 1,
+        lastError: "invalid classifier payload",
+      },
+    ]);
+  });
+
+  it("clears the failure after a later retry succeeds", async () => {
+    await mkdir(dir, { recursive: true });
+    const opts = {
+      concurrency: 1,
+      donePath,
+      failurePath,
+      classifyFn: async () => {
+        throw new Error("temporary failure");
+      },
+    };
+    await expect(extractPosts(HANDLE, ["retry"], buildPost, opts)).rejects.toThrow();
+
+    await extractPosts(HANDLE, ["retry"], buildPost, {
+      ...opts,
+      classifyFn: async () => [],
+    });
+
+    expect(JSON.parse(await readFile(failurePath, "utf8"))).toEqual([]);
+    expect(JSON.parse(await readFile(donePath, "utf8"))).toEqual(["retry"]);
+  });
+
+  it("keeps a post pending when its adapter cannot build extractable input", async () => {
+    await mkdir(dir, { recursive: true });
+
+    await expect(
+      extractPosts(HANDLE, ["dateless"], async () => null, {
+        concurrency: 1,
+        donePath,
+        failurePath,
+        classifyFn: async () => [],
+      }),
+    ).rejects.toThrow(/extraction incomplete/);
+
+    expect(JSON.parse(await readFile(donePath, "utf8"))).toEqual([]);
+    expect(JSON.parse(await readFile(failurePath, "utf8"))[0]).toMatchObject({
+      shortcode: "dateless",
+      lastError: "adapter returned no extractable post",
+    });
   });
 });
