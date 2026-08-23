@@ -322,7 +322,10 @@ async function downloadFeedPostImages(
       }),
     { retries: 2, label: `Instagram post ${shortcode}` },
   );
-  await page.waitForTimeout(1000);
+  // Instagram renders carousel controls after DOMContentLoaded, especially through
+  // residential proxies. Wait for that client render before deciding this is a
+  // single-image post from og:image alone.
+  await page.waitForTimeout(4000);
 
   const urls = new Set<string>();
   for (let step = 0; step < 12; step++) {
