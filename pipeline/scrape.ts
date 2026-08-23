@@ -130,10 +130,14 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   if (IG_PROXY) {
     let egress = "";
     try {
-      await page.goto("https://api.ipify.org?format=json", {
-        waitUntil: "domcontentloaded",
-        timeout: 15_000,
-      });
+      await withRetry(
+        () =>
+          page.goto("https://api.ipify.org?format=json", {
+            waitUntil: "domcontentloaded",
+            timeout: 30_000,
+          }),
+        { retries: 2, label: "Instagram proxy egress check" },
+      );
       egress = JSON.parse(await page.evaluate(() => document.body.innerText))?.ip ?? "";
     } catch {
       /* egress stays empty -> abort below */
