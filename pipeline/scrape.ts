@@ -202,6 +202,10 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
       }),
     { retries: 2, label: "Instagram profile navigation" },
   );
+  await page
+    .locator('a[href*="/reel/"], a[href*="/p/"]')
+    .first()
+    .waitFor({ state: "attached", timeout: 30_000 });
   const collectProfileMedia = async () => {
     const hrefs = await page
       .locator('a[href*="/reel/"], a[href*="/p/"]')
