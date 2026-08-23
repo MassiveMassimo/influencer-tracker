@@ -9,7 +9,12 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { rawDir, creatorDir } from "./config";
 import { saveAvatar } from "./avatar";
-import { knownShortcodes, forwardCaughtUp } from "./scrape-forward";
+import {
+  assertScrapeCoverage,
+  knownShortcodes,
+  forwardCaughtUp,
+  profileReelShortcodes,
+} from "./scrape-forward";
 import { loadPostDates, savePostDates, mergePostDates, formatTakenAt } from "./post-dates";
 
 (chromium as any).use(stealth());
@@ -138,14 +143,18 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
     console.log(`>>> IG proxy egress IP: ${egress}`);
   }
 
-  const seen = new Map<string, number>(); // shortcode -> taken_at (epoch ms)
+  // GraphQL responses can contain unrelated recommendation/feed media. Keep their
+  // dates as candidates only. A shortcode enters `seen` only when the target
+  // profile's rendered reel grid contains /<handle>/reel/<shortcode>/.
+  const candidateDates = new Map<string, number>();
+  const seen = new Map<string, number>(); // verified target shortcode -> taken_at (epoch ms)
   page.on("response", async (res: any) => {
     const url = res.url();
     if (!url.includes("/graphql") && !url.includes("/api/v1/")) return;
     try {
       const json: any = await res.json();
       for (const node of findReels(json)) {
-        if (node.code) seen.set(node.code, (node.taken_at ?? 0) * 1000);
+        if (node.code) candidateDates.set(node.code, (node.taken_at ?? 0) * 1000);
       }
     } catch {
       /* non-JSON response */
@@ -178,26 +187,33 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   console.log(">>> Login detected. Harvesting reels...");
 
   await page.goto(`https://www.instagram.com/${handle}/reels/`, { waitUntil: "domcontentloaded" });
+  const collectProfileReels = async () => {
+    const hrefs = await page
+      .locator('a[href*="/reel/"]')
+      .evaluateAll((links: HTMLAnchorElement[]) => links.map((link) => link.href));
+    for (const code of profileReelShortcodes(hrefs, handle)) {
+      seen.set(code, candidateDates.get(code) ?? seen.get(code) ?? 0);
+    }
+  };
+  await collectProfileReels();
+
   // Human-like scroll until we pass the cutoff, stop finding new reels, or (forward mode)
   // catch up to already-harvested reels. Forward mode keeps the daily scroll footprint
   // small — both a speed win and a lower bot signature at daily cadence.
   const known = opts.forward ? knownShortcodes(handle) : new Set<string>();
-  const countNew = () => {
-    let n = 0;
-    for (const c of seen.keys()) if (!known.has(c)) n++;
-    return n;
-  };
   let stagnant = 0,
     knownOnlyRounds = 0;
+  let observedKnown = [...seen.keys()].some((code) => known.has(code));
   while (stagnant < 4) {
     const before = seen.size;
-    const newBefore = opts.forward ? countNew() : 0;
     await page.mouse.wheel(0, 1200 + jitter(0, 800));
     await sleep(jitter(1500, 3500));
+    await collectProfileReels();
+    observedKnown ||= [...seen.keys()].some((code) => known.has(code));
     if (opts.forward) {
-      // A round that surfaced ≥1 not-yet-known reel resets the counter; otherwise it climbs.
-      knownOnlyRounds = countNew() > newBefore ? 0 : knownOnlyRounds + 1;
-      if (forwardCaughtUp({ knownOnlyRounds, patience: 3 })) {
+      // Only a stagnant round after a verified known reel counts toward catch-up.
+      knownOnlyRounds = seen.size > before || !observedKnown ? 0 : knownOnlyRounds + 1;
+      if (forwardCaughtUp({ knownOnlyRounds, patience: 3, observedKnown })) {
         console.log(`>>> forward scrape: caught up to known reels`);
         break;
       }
@@ -216,6 +232,11 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   await ctx.close();
 
   const recent = [...seen.entries()].filter(([, t]) => !t || t >= cutoff).map(([code]) => code);
+  assertScrapeCoverage({
+    seenCount: recent.length,
+    forward: opts.forward === true,
+    observedKnown,
+  });
   await mkdir(rawDir(handle), { recursive: true });
   await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(recent, null, 2));
 

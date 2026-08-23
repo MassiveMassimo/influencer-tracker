@@ -1,16 +1,48 @@
 import { test, expect } from "bun:test";
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { forwardCaughtUp, knownShortcodes } from "./scrape-forward";
+import {
+  assertScrapeCoverage,
+  forwardCaughtUp,
+  knownShortcodes,
+  profileReelShortcodes,
+} from "./scrape-forward";
 import { DATA } from "./config";
 
-test("forwardCaughtUp: stops after `patience` consecutive known-only rounds", () => {
+test("forwardCaughtUp: stops only after a known target reel was observed", () => {
   // Not enough known-only rounds yet -> keep scrolling (clears pinned reels, reaches new ones).
-  expect(forwardCaughtUp({ knownOnlyRounds: 2, patience: 3 })).toBe(false);
-  // patience reached -> caught up. Fires whether or not new reels were seen, so a zero-new
-  // day exits promptly instead of scrolling toward the 12-month cutoff.
-  expect(forwardCaughtUp({ knownOnlyRounds: 3, patience: 3 })).toBe(true);
-  expect(forwardCaughtUp({ knownOnlyRounds: 5, patience: 3 })).toBe(true);
+  expect(forwardCaughtUp({ knownOnlyRounds: 2, patience: 3, observedKnown: true })).toBe(false);
+  expect(forwardCaughtUp({ knownOnlyRounds: 3, patience: 3, observedKnown: true })).toBe(true);
+  // The old implementation treated three empty rounds as success.
+  expect(forwardCaughtUp({ knownOnlyRounds: 5, patience: 3, observedKnown: false })).toBe(false);
+});
+
+test("profileReelShortcodes: accepts only reel links attributed to the target profile", () => {
+  expect(
+    profileReelShortcodes(
+      [
+        "/kevvonz/reel/TARGET1/",
+        "https://www.instagram.com/kevvonz/reel/TARGET2/?utm_source=test",
+        "/someone_else/reel/FOREIGN/",
+        "/reel/GLOBAL/",
+        "/kevvonz/p/IMAGE/",
+        "/kevvonz/reel/TARGET1/",
+      ],
+      "kevvonz",
+    ),
+  ).toEqual(["TARGET1", "TARGET2"]);
+});
+
+test("assertScrapeCoverage: rejects empty and unanchored forward scrapes", () => {
+  expect(() => assertScrapeCoverage({ seenCount: 0, forward: true, observedKnown: false })).toThrow(
+    /zero target-profile reels/,
+  );
+  expect(() => assertScrapeCoverage({ seenCount: 4, forward: true, observedKnown: false })).toThrow(
+    /never reached a known target-profile reel/,
+  );
+  expect(() =>
+    assertScrapeCoverage({ seenCount: 4, forward: true, observedKnown: true }),
+  ).not.toThrow();
 });
 
 test("knownShortcodes: reads transcript basenames, empty when dir missing", () => {
