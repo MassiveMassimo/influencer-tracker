@@ -104,7 +104,7 @@ test("buildFunnel produces 5 monotonically-narrowing stages", () => {
   const f = buildFunnel({ reelsScraped: 157, reelsWithTicker: 27 }, 13, 10, 4);
   expect(f.map((s) => s.value)).toEqual([157, 27, 13, 10, 4]);
   expect(f.map((s) => s.label)).toEqual([
-    "Reels (12mo)",
+    "Instagram posts",
     "Named a stock",
     "Bullish buy call",
     "First call (unique ticker)",

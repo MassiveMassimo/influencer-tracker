@@ -23,7 +23,7 @@ export function assembleDataset(
   ohlc: Record<string, OhlcBar[]>,
   generatedAt: string,
   counts?: { reelsScraped: number; reelsWithTicker: number },
-  postNoun = "Reels",
+  postNoun = "Instagram posts",
   // Scope gate: drop calls whose canonical symbol is an index ETF / fund / index /
   // derivative (not a stock pick). Injected so this stays a pure fn — score()
   // resolves it from Yahoo quoteType (symbol-scope.ts); default keeps all (tests).
@@ -108,7 +108,7 @@ export async function score(
   handle: string,
   name: string,
   today = new Date().toISOString().slice(0, 10),
-  postNoun = "Reels",
+  postNoun = "Instagram posts",
 ) {
   const reelCalls: ReelCall[] = JSON.parse(
     await readFile(join(creatorDir(handle), "reel-calls.json"), "utf8"),
