@@ -6,6 +6,12 @@ import { rawDir, framesDir } from "./config";
 import { llm, VISION_MODEL, assertLlmKey } from "./llm";
 import { readImage, type FrameHint } from "./vision";
 
+export function sourceImageFiles(files: string[]): string[] {
+  return files.filter(
+    (file) => /\.(jpe?g|png|webp)$/i.test(file) && !/^f_\d+(?:\.\d+)?\./i.test(file),
+  );
+}
+
 // Real video duration in seconds, or null if it can't be determined.
 // Prefer the yt-dlp sidecar (<id>.info.json `duration`); else probe with ffprobe.
 function videoDuration(dir: string, video: string): number | null {
@@ -47,19 +53,26 @@ export async function frames(handle: string) {
     const out = join(framesDir(handle), `${code}.json`);
     if (existsSync(out)) continue;
     const dir = join(rawDir(handle), code);
-    const video = (await readdir(dir)).find((f) => /\.(mp4|webm|mkv)$/.test(f));
-    if (!video) continue;
-    // sample 3 frames at 25%, 50%, 75% of real duration (fail-open to 60s if unknown)
-    const duration = videoDuration(dir, video) ?? 60;
+    const files = await readdir(dir);
+    const video = files.find((f) => /\.(mp4|webm|mkv)$/i.test(f));
+    const sourceImages = sourceImageFiles(files);
+    if (!video && sourceImages.length === 0) continue;
     const hints: FrameHint[] = [];
-    for (const pct of [0.25, 0.5, 0.75]) {
-      const img = join(dir, `f_${pct}.jpg`);
-      spawnSync(
-        "ffmpeg",
-        ["-y", "-ss", String(pct * duration), "-i", join(dir, video), "-frames:v", "1", img],
-        { stdio: "ignore" },
-      );
-      if (existsSync(img)) hints.push(await readImage(vision, img, llm));
+    for (const image of sourceImages) {
+      hints.push(await readImage(vision, join(dir, image), llm));
+    }
+    if (video) {
+      // sample 3 frames at 25%, 50%, 75% of real duration (fail-open to 60s if unknown)
+      const duration = videoDuration(dir, video) ?? 60;
+      for (const pct of [0.25, 0.5, 0.75]) {
+        const img = join(dir, `f_${pct}.jpg`);
+        spawnSync(
+          "ffmpeg",
+          ["-y", "-ss", String(pct * duration), "-i", join(dir, video), "-frames:v", "1", img],
+          { stdio: "ignore" },
+        );
+        if (existsSync(img)) hints.push(await readImage(vision, img, llm));
+      }
     }
     await writeFile(out, JSON.stringify({ shortcode: code, hints }, null, 2));
     console.log(`frames ${code}:`, hints);

@@ -1,4 +1,4 @@
-// Browser-driven scrape of a creator's reels in the last `months` months.
+// Browser-driven scrape of a creator's Instagram posts in the last `months` months.
 // Stealth: real Chromium, human-like delays, harvest shortcodes+dates from
 // intercepted GraphQL, then download each video with yt-dlp.
 import { chromium } from "playwright-extra";
@@ -13,7 +13,8 @@ import {
   assertScrapeCoverage,
   knownShortcodes,
   forwardCaughtUp,
-  profileReelShortcodes,
+  profileMediaFromHrefs,
+  type ProfileMediaRef,
 } from "./scrape-forward";
 import { loadPostDates, savePostDates, mergePostDates, formatTakenAt } from "./post-dates";
 
@@ -145,15 +146,15 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
 
   // GraphQL responses can contain unrelated recommendation/feed media. Keep their
   // dates as candidates only. A shortcode enters `seen` only when the target
-  // profile's rendered reel grid contains /<handle>/reel/<shortcode>/.
+  // profile's rendered grid contains /<handle>/(reel|p)/<shortcode>/.
   const candidateDates = new Map<string, number>();
-  const seen = new Map<string, number>(); // verified target shortcode -> taken_at (epoch ms)
+  const seen = new Map<string, ProfileMediaRef & { takenAt: number }>();
   page.on("response", async (res: any) => {
     const url = res.url();
     if (!url.includes("/graphql") && !url.includes("/api/v1/")) return;
     try {
       const json: any = await res.json();
-      for (const node of findReels(json)) {
+      for (const node of findMediaNodes(json)) {
         if (node.code) candidateDates.set(node.code, (node.taken_at ?? 0) * 1000);
       }
     } catch {
@@ -184,21 +185,24 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
       throw new Error("login not detected within timeout — re-run after logging in");
     }
   }
-  console.log(">>> Login detected. Harvesting reels...");
+  console.log(">>> Login detected. Harvesting posts...");
 
-  await page.goto(`https://www.instagram.com/${handle}/reels/`, { waitUntil: "domcontentloaded" });
-  const collectProfileReels = async () => {
+  await page.goto(`https://www.instagram.com/${handle}/`, { waitUntil: "domcontentloaded" });
+  const collectProfileMedia = async () => {
     const hrefs = await page
-      .locator('a[href*="/reel/"]')
+      .locator('a[href*="/reel/"], a[href*="/p/"]')
       .evaluateAll((links: HTMLAnchorElement[]) => links.map((link) => link.href));
-    for (const code of profileReelShortcodes(hrefs, handle)) {
-      seen.set(code, candidateDates.get(code) ?? seen.get(code) ?? 0);
+    for (const media of profileMediaFromHrefs(hrefs, handle)) {
+      seen.set(media.shortcode, {
+        ...media,
+        takenAt: candidateDates.get(media.shortcode) ?? seen.get(media.shortcode)?.takenAt ?? 0,
+      });
     }
   };
-  await collectProfileReels();
+  await collectProfileMedia();
 
-  // Human-like scroll until we pass the cutoff, stop finding new reels, or (forward mode)
-  // catch up to already-harvested reels. Forward mode keeps the daily scroll footprint
+  // Human-like scroll until we pass the cutoff, stop finding new posts, or (forward mode)
+  // catch up to already-harvested posts. Forward mode keeps the daily scroll footprint
   // small — both a speed win and a lower bot signature at daily cadence.
   const known = opts.forward ? knownShortcodes(handle) : new Set<string>();
   let stagnant = 0,
@@ -208,17 +212,20 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
     const before = seen.size;
     await page.mouse.wheel(0, 1200 + jitter(0, 800));
     await sleep(jitter(1500, 3500));
-    await collectProfileReels();
+    await collectProfileMedia();
     observedKnown ||= [...seen.keys()].some((code) => known.has(code));
     if (opts.forward) {
-      // Only a stagnant round after a verified known reel counts toward catch-up.
+      // Only a stagnant round after a verified known post counts toward catch-up.
       knownOnlyRounds = seen.size > before || !observedKnown ? 0 : knownOnlyRounds + 1;
       if (forwardCaughtUp({ knownOnlyRounds, patience: 3, observedKnown })) {
-        console.log(`>>> forward scrape: caught up to known reels`);
+        console.log(`>>> forward scrape: caught up to known posts`);
         break;
       }
     }
-    const oldest = Math.min(...[...seen.values()].filter(Boolean), Date.now());
+    const oldest = Math.min(
+      ...[...seen.values()].map((media) => media.takenAt).filter(Boolean),
+      Date.now(),
+    );
     if (oldest < cutoff) break;
     stagnant = seen.size === before ? stagnant + 1 : 0;
   }
@@ -231,22 +238,29 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   await writeFile(cookiesPath(handle), toNetscape(await ctx.cookies()));
   await ctx.close();
 
-  const recent = [...seen.entries()].filter(([, t]) => !t || t >= cutoff).map(([code]) => code);
+  const recent = [...seen.values()].filter((media) => !media.takenAt || media.takenAt >= cutoff);
   assertScrapeCoverage({
     seenCount: recent.length,
     forward: opts.forward === true,
     observedKnown,
   });
   await mkdir(rawDir(handle), { recursive: true });
-  await writeFile(join(rawDir(handle), "shortcodes.json"), JSON.stringify(recent, null, 2));
+  await writeFile(
+    join(rawDir(handle), "shortcodes.json"),
+    JSON.stringify(
+      recent.map((media) => media.shortcode),
+      null,
+      2,
+    ),
+  );
 
   // Persist harvested GraphQL dates to the durable store (the source of truth for extract's
-  // anchor). Every seen reel with a positive taken_at; existing-wins so an already-committed
+  // anchor). Every seen post with a positive taken_at; existing-wins so an already-committed
   // date is frozen. This is the primary writer — info.json is only a fallback in extract.
   const harvested: Record<string, string> = {};
-  for (const [code, ms] of seen.entries()) {
-    const d = formatTakenAt(ms);
-    if (d) harvested[code] = d;
+  for (const media of seen.values()) {
+    const d = formatTakenAt(media.takenAt);
+    if (d) harvested[media.shortcode] = d;
   }
   await savePostDates(handle, mergePostDates(await loadPostDates(handle), harvested));
 
@@ -270,11 +284,11 @@ async function resolveAvatarUrl(page: any, handle: string): Promise<string | nul
   }
 }
 
-// Recursively find objects that look like reel media nodes.
-function* findReels(obj: any): Generator<any> {
+// Recursively find objects that look like Instagram media nodes.
+function* findMediaNodes(obj: any): Generator<any> {
   if (!obj || typeof obj !== "object") return;
   if (typeof obj.code === "string" && ("taken_at" in obj || "media_type" in obj)) yield obj;
-  for (const v of Object.values(obj)) yield* findReels(v);
+  for (const v of Object.values(obj)) yield* findMediaNodes(v);
 }
 
 // Spawn seam: injectable so the launch-failure-vs-download-failure split is unit-testable.
@@ -285,6 +299,7 @@ const ytDlpSpawn: SpawnFn = (cmd, args) => spawnSync(cmd, args, { stdio: "inheri
 
 export interface DownloadFailure {
   shortcode: string;
+  kind?: ProfileMediaRef["kind"];
   attempts: number;
   lastError: string;
   updatedAt: string;
@@ -305,6 +320,7 @@ export async function loadDownloadFailures(handle: string): Promise<DownloadFail
 export async function recordDownloadFailure(
   handle: string,
   shortcode: string,
+  kind: ProfileMediaRef["kind"],
   lastError: string,
 ): Promise<void> {
   const failures = await loadDownloadFailures(handle);
@@ -312,6 +328,7 @@ export async function recordDownloadFailure(
   const next = failures.filter((failure) => failure.shortcode !== shortcode);
   next.push({
     shortcode,
+    kind,
     attempts: (previous?.attempts ?? 0) + 1,
     lastError: lastError.slice(0, 500),
     updatedAt: new Date().toISOString(),
@@ -336,18 +353,19 @@ export async function clearDownloadFailure(handle: string, shortcode: string): P
 export function assertNoDownloadFailures(failures: DownloadFailure[]): void {
   if (!failures.length) return;
   throw new Error(
-    `download incomplete: ${failures.length} reel(s) remain in the retry queue: ` +
+    `download incomplete: ${failures.length} media item(s) remain in the retry queue: ` +
       failures.map((failure) => failure.shortcode).join(", "),
   );
 }
 
-export function downloadReel(
+export function downloadInstagramMedia(
   handle: string,
-  shortcode: string,
+  media: ProfileMediaRef,
   spawn: SpawnFn = ytDlpSpawn,
 ): { ok: true } | { ok: false; reason: string } {
-  const out = join(rawDir(handle), shortcode);
-  const url = `https://www.instagram.com/reel/${shortcode}/`;
+  const out = join(rawDir(handle), media.shortcode);
+  const path = media.kind === "reel" ? "reel" : "p";
+  const url = `https://www.instagram.com/${path}/${media.shortcode}/`;
   const jar = cookiesPath(handle);
   const cookieArgs = existsSync(jar) ? ["--cookies", jar] : ["--cookies-from-browser", "chrome"];
   const proxyArgs = IG_PROXY ? ["--proxy", IG_PROXY] : [];
@@ -355,13 +373,13 @@ export function downloadReel(
     ...cookieArgs,
     ...proxyArgs,
     "-o",
-    join(out, "reel.%(ext)s"),
+    join(out, "media.%(id)s.%(ext)s"),
     "--write-info-json",
     url,
   ]);
   // A spawn-level error (ENOENT = yt-dlp not on PATH, EACCES, …) is an environment fault that
-  // breaks EVERY reel — throw so the run BLOCKs loudly. Swallowing it silently ingested zero
-  // new reels for ~10 days (2026-06-27). yt-dlp running and exiting non-zero is a per-reel
+  // breaks EVERY post — throw so the run BLOCKs loudly. Swallowing it silently ingested zero
+  // new posts for ~10 days (2026-06-27). yt-dlp running and exiting non-zero is a per-post
   // miss — return a retryable result so the caller records it instead of silently skipping it.
   if (r.error)
     throw new Error(

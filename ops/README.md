@@ -236,7 +236,7 @@ incremental forward-scrape cursor (newest stored tweet id); losing it forces a f
 daily at 14:00 UTC — staggered 1h after the X ingest so the two pushes do not race.
 The service runs `scripts/ingest-ig.ts` under `xvfb-run` (headful Chrome needs a
 display) with `IG_PROXY` set (residential egress; the burner is never seen from the
-datacenter IP). It scrapes forward-incrementally (only reels newer than the durable
+datacenter IP). It scrapes forward-incrementally (only posts newer than the durable
 transcript anchor), auto-resumes past the review pause (ship-then-correct), and
 commits+pushes `data/` once.
 

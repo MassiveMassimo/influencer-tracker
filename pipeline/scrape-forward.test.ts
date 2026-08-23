@@ -5,7 +5,7 @@ import {
   assertScrapeCoverage,
   forwardCaughtUp,
   knownShortcodes,
-  profileReelShortcodes,
+  profileMediaFromHrefs,
 } from "./scrape-forward";
 import { DATA } from "./config";
 
@@ -17,28 +17,30 @@ test("forwardCaughtUp: stops only after a known target reel was observed", () =>
   expect(forwardCaughtUp({ knownOnlyRounds: 5, patience: 3, observedKnown: false })).toBe(false);
 });
 
-test("profileReelShortcodes: accepts only reel links attributed to the target profile", () => {
+test("profileMediaFromHrefs: includes target reels and feed posts with their media kind", () => {
   expect(
-    profileReelShortcodes(
+    profileMediaFromHrefs(
       [
-        "/kevvonz/reel/TARGET1/",
-        "https://www.instagram.com/kevvonz/reel/TARGET2/?utm_source=test",
-        "/someone_else/reel/FOREIGN/",
-        "/reel/GLOBAL/",
-        "/kevvonz/p/IMAGE/",
-        "/kevvonz/reel/TARGET1/",
+        "/kevvonz/reel/REEL1/",
+        "/kevvonz/p/POST1/",
+        "/someone_else/p/FOREIGN/",
+        "/p/GLOBAL/",
+        "/kevvonz/reel/REEL1/",
       ],
       "kevvonz",
     ),
-  ).toEqual(["TARGET1", "TARGET2"]);
+  ).toEqual([
+    { shortcode: "REEL1", kind: "reel" },
+    { shortcode: "POST1", kind: "post" },
+  ]);
 });
 
 test("assertScrapeCoverage: rejects empty and unanchored forward scrapes", () => {
   expect(() => assertScrapeCoverage({ seenCount: 0, forward: true, observedKnown: false })).toThrow(
-    /zero target-profile reels/,
+    /zero target-profile posts/,
   );
   expect(() => assertScrapeCoverage({ seenCount: 4, forward: true, observedKnown: false })).toThrow(
-    /never reached a known target-profile reel/,
+    /never reached a known target-profile post/,
   );
   expect(() =>
     assertScrapeCoverage({ seenCount: 4, forward: true, observedKnown: true }),
