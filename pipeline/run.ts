@@ -1,6 +1,13 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { scrape, downloadReel } from "./scrape";
+import {
+  assertNoDownloadFailures,
+  clearDownloadFailure,
+  downloadReel,
+  loadDownloadFailures,
+  recordDownloadFailure,
+  scrape,
+} from "./scrape";
 import { transcribe } from "./transcribe";
 import { frames } from "./frames";
 import { extract } from "./extract";
@@ -25,16 +32,26 @@ for (const stage of stages.slice(start)) {
   console.log(`\n=== ${stage} ===`);
   if (stage === "scrape") {
     const codes = await scrape(handle, 12, { forward: "forward" in args });
+    const retries = (await loadDownloadFailures(handle)).map((failure) => failure.shortcode);
     // Skip reels already transcribed: the transcript is the durable artifact, so
     // raw media is disposable and never re-fetched. Keeps re-runs of an existing
     // creator to new reels only.
-    for (const c of codes) {
-      if (existsSync(join(transcriptsDir(handle), `${c}.json`))) continue;
-      // downloadReel throws if yt-dlp can't launch (fatal env fault); a false return is a
-      // benign per-reel miss (image/carousel post, no video) — log it and move on.
-      if (!downloadReel(handle, c))
-        console.warn(`skip download ${c}: no video (image post?) or download failed`);
+    for (const c of new Set([...codes, ...retries])) {
+      if (existsSync(join(transcriptsDir(handle), `${c}.json`))) {
+        await clearDownloadFailure(handle, c);
+        continue;
+      }
+      // downloadReel throws if yt-dlp cannot launch (fatal environment fault).
+      // Per-reel failures remain in a durable retry queue until a download succeeds.
+      const result = downloadReel(handle, c);
+      if (!result.ok) {
+        await recordDownloadFailure(handle, c, result.reason);
+        console.warn(`download pending ${c}: ${result.reason}`);
+      } else {
+        await clearDownloadFailure(handle, c);
+      }
     }
+    assertNoDownloadFailures(await loadDownloadFailures(handle));
   } else if (stage === "transcribe") {
     await transcribe(handle);
   } else if (stage === "frames") {

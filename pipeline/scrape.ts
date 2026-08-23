@@ -283,11 +283,69 @@ type SpawnResult = { status: number | null; error?: Error & { code?: string } };
 type SpawnFn = (cmd: string, args: string[]) => SpawnResult;
 const ytDlpSpawn: SpawnFn = (cmd, args) => spawnSync(cmd, args, { stdio: "inherit" });
 
+export interface DownloadFailure {
+  shortcode: string;
+  attempts: number;
+  lastError: string;
+  updatedAt: string;
+}
+
+function downloadFailuresPath(handle: string): string {
+  return join(rawDir(handle), "download-failures.json");
+}
+
+export async function loadDownloadFailures(handle: string): Promise<DownloadFailure[]> {
+  try {
+    return JSON.parse(await readFile(downloadFailuresPath(handle), "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+export async function recordDownloadFailure(
+  handle: string,
+  shortcode: string,
+  lastError: string,
+): Promise<void> {
+  const failures = await loadDownloadFailures(handle);
+  const previous = failures.find((failure) => failure.shortcode === shortcode);
+  const next = failures.filter((failure) => failure.shortcode !== shortcode);
+  next.push({
+    shortcode,
+    attempts: (previous?.attempts ?? 0) + 1,
+    lastError: lastError.slice(0, 500),
+    updatedAt: new Date().toISOString(),
+  });
+  await mkdir(rawDir(handle), { recursive: true });
+  await writeFile(downloadFailuresPath(handle), JSON.stringify(next, null, 2));
+}
+
+export async function clearDownloadFailure(handle: string, shortcode: string): Promise<void> {
+  const failures = await loadDownloadFailures(handle);
+  if (!failures.some((failure) => failure.shortcode === shortcode)) return;
+  await writeFile(
+    downloadFailuresPath(handle),
+    JSON.stringify(
+      failures.filter((failure) => failure.shortcode !== shortcode),
+      null,
+      2,
+    ),
+  );
+}
+
+export function assertNoDownloadFailures(failures: DownloadFailure[]): void {
+  if (!failures.length) return;
+  throw new Error(
+    `download incomplete: ${failures.length} reel(s) remain in the retry queue: ` +
+      failures.map((failure) => failure.shortcode).join(", "),
+  );
+}
+
 export function downloadReel(
   handle: string,
   shortcode: string,
   spawn: SpawnFn = ytDlpSpawn,
-): boolean {
+): { ok: true } | { ok: false; reason: string } {
   const out = join(rawDir(handle), shortcode);
   const url = `https://www.instagram.com/reel/${shortcode}/`;
   const jar = cookiesPath(handle);
@@ -304,10 +362,13 @@ export function downloadReel(
   // A spawn-level error (ENOENT = yt-dlp not on PATH, EACCES, …) is an environment fault that
   // breaks EVERY reel — throw so the run BLOCKs loudly. Swallowing it silently ingested zero
   // new reels for ~10 days (2026-06-27). yt-dlp running and exiting non-zero is a per-reel
-  // miss (e.g. an image/carousel post with no video) — return false so the caller skips it.
+  // miss — return a retryable result so the caller records it instead of silently skipping it.
   if (r.error)
     throw new Error(
       `yt-dlp failed to launch (${r.error.code ?? r.error.message}) — is yt-dlp installed and on PATH?`,
     );
-  return r.status === 0;
+  if (r.status !== 0) {
+    return { ok: false, reason: `yt-dlp exited with status ${r.status}` };
+  }
+  return { ok: true };
 }
