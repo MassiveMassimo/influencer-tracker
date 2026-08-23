@@ -240,8 +240,50 @@ datacenter IP). It scrapes forward-incrementally (only reels newer than the dura
 transcript anchor), auto-resumes past the review pause (ship-then-correct), and
 commits+pushes `data/` once.
 
-**Required `.env` keys:** `INGEST_HANDLES_IG=kevvonz,roadto100kportfolio,johnnylixf`,
-`IG_PROXY=socks5://127.0.0.1:1081` (already set).
+**Required `.env` keys:** `INGEST_HANDLES_IG=kevvonz,roadto100kportfolio,johnnylixf`
+and an `IG_PROXY` value that points to a verified residential egress.
+
+### MacBook residential egress
+
+The VM currently uses the MacBook as a network-only fallback through Tailscale:
+
+- `influencer-mac-egress.service` runs the SSH client on the VM and exposes a SOCKS5
+  listener only at `127.0.0.1:1082`.
+- The repository `.env` sets `IG_PROXY=socks5://127.0.0.1:1082`. Bun loads this file
+  after process startup, so a systemd `Environment=IG_PROXY=...` override is not
+  authoritative.
+- `/etc/systemd/system/influencer-ingest-ig.service.d/mac-egress.conf` requires and
+  orders the tunnel service before the ingest service.
+- Playwright, Chromium, downloads, transcription, extraction, scoring, and publishing
+  still run on the VM. The MacBook only forwards network traffic.
+- The dedicated Mac SSH key is restricted to TCP forwarding. It cannot open a shell,
+  allocate a terminal, forward an SSH agent, or use X11.
+- The MacBook must be online, connected to Tailscale, and awake. On this Mac, AC sleep is
+  disabled; battery sleep can interrupt the tunnel.
+
+Verify the path without printing either public IP:
+
+```bash
+ssh ubuntu@imos-vm '
+  direct=$(curl -fsS https://api.ipify.org)
+  proxied=$(curl --proxy socks5h://127.0.0.1:1082 -fsS https://api.ipify.org)
+  test "$direct" != "$proxied"
+  curl --proxy socks5h://127.0.0.1:1082 -fsS -o /dev/null https://www.instagram.com/
+'
+systemctl status influencer-mac-egress.service --no-pager
+```
+
+The scraper's existing `api.ipify.org` guard remains authoritative. If the tunnel is
+down, the ingest must fail closed before Instagram sees the VM datacenter IP.
+
+Rollback to the IPRoyal relay:
+
+```bash
+sudo rm /etc/systemd/system/influencer-ingest-ig.service.d/mac-egress.conf
+sudo systemctl disable --now influencer-mac-egress.service
+sudo systemctl daemon-reload
+# Set .env to IG_PROXY=socks5://127.0.0.1:1081, then verify that proxy.
+```
 
 **Session death is manual to recover:** when IG expires/challenges the `imtiddies`
 session, the run sends a BLOCKED alert (carrying the VNC-re-auth + re-run steps) and
