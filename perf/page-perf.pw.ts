@@ -132,6 +132,7 @@ test.describe("page performance (prod build)", () => {
     expect
       .soft(m.longTasks.total, "interaction long-task total")
       .toBeLessThan(BUDGETS.longTaskTotalMs);
+    expect(m.loaf.supported, "Chromium must expose LoAF instrumentation").toBe(true);
     expect
       .soft(m.loaf.maxBlocking, "interaction LoAF max blocking")
       .toBeLessThan(BUDGETS.loafMaxBlockingMs);
