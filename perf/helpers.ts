@@ -8,6 +8,7 @@ import { join } from "node:path";
 export const ROUTES = {
   home: "/",
   creator: "/c/TheProfInvestor",
+  explore: "/explore",
   ticker: "/t/VRT/all",
 } as const;
 
@@ -159,12 +160,22 @@ export async function readPagePerf(page: Page) {
       else if (/\.css($|\?)/.test(r.name)) css += sz;
     }
     const kb = (b: number) => +(b / 1024).toFixed(1);
+    const html = nav?.encodedBodySize || nav?.transferSize || 0;
+    const htmlDecoded = nav?.decodedBodySize || 0;
     return {
       ttfb: nav ? Math.round(nav.responseStart) : 0,
       fcp: Math.round(fcp),
       domContentLoaded: nav ? Math.round(nav.domContentLoadedEventEnd) : 0,
       load: nav ? Math.round(nav.loadEventEnd) : 0,
-      transferKB: { js: kb(js), css: kb(css), total: kb(total) },
+      domNodes: document.getElementsByTagName("*").length,
+      transferKB: {
+        html: kb(html),
+        htmlDecoded: kb(htmlDecoded),
+        js: kb(js),
+        css: kb(css),
+        resources: kb(total),
+        total: kb(total + html),
+      },
       ...(window as any).__pp,
       lcp: Math.round((window as any).__pp.lcp),
     };
