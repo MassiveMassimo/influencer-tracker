@@ -31,15 +31,15 @@ export const BUDGETS = {
   cls: 0.1, // baseline: creator 0.067 (stat-tile reveal), others ~0
   longTaskTotalMs: 2000,
   loafMaxBlockingMs: 400,
-  // Fresh-server Explore maxima observed across the calibration runs were
-  // 3124 KB, 12.45 MB, 1464 nodes, 694 ms long tasks, 1097 ms LoAF total,
-  // and 198 ms LoAF blocking. These limits retain regression headroom.
+  // Fresh-server Explore maxima observed after separating forced GC from
+  // application work were 3124 KB, 12.45 MB, 1464 nodes, 0 ms long tasks,
+  // 136 ms LoAF total, and 0 ms LoAF blocking.
   exploreSettledTotalTransferKB: 3500,
   exploreSettledHeapMB: 25,
   exploreSettledDomNodes: 2000,
-  exploreSettledLongTaskTotalMs: 1000,
-  exploreSettledLoafTotalMs: 1600,
-  exploreSettledLoafMaxBlockingMs: 300,
+  exploreSettledLongTaskTotalMs: 750,
+  exploreSettledLoafTotalMs: 1000,
+  exploreSettledLoafMaxBlockingMs: 200,
   // baseline 28.7MB/28 switches — likely bounded TanStack Query timeframe cache,
   // not a leak; 40 gives GC-jitter headroom. If this climbs with more CYCLES, investigate.
   heapGrowthMB: 40,
