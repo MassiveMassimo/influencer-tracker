@@ -14,6 +14,11 @@ test("foreign listing gets its Yahoo suffix", () => {
   expect(resolveSymbol("HEIA")).toBe("HEIA.AS");
 });
 
+test("dual-listed Westward Gold calls collapse to its USD listing", () => {
+  expect(resolveSymbol("WG")).toBe("WGLIF");
+  expect(resolveSymbol("WGLIF")).toBe("WGLIF");
+});
+
 test("out-of-scope notations resolve to null", () => {
   expect(resolveSymbol("SI1!")).toBeNull(); // continuous future
   expect(resolveSymbol("SPCFD")).toBeNull(); // CFD

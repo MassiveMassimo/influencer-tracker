@@ -13,6 +13,7 @@ const CRYPTO_BASES = ["BTC", "ETH"];
 // Equities the extractor emits in the wrong notation; Yahoo needs the suffix.
 const OVERRIDES: Record<string, string> = {
   HEIA: "HEIA.AS", // Heineken, Euronext Amsterdam
+  WG: "WGLIF", // Westward Gold: CSE WG and OTCQB WGLIF are the same issuer; use USD vs SPY
 };
 
 // Out-of-scope CFD / index pseudo-symbols seen in the data.
