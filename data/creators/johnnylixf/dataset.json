@@ -3,7 +3,7 @@
     "handle": "johnnylixf",
     "name": "Johnny Li"
   },
-  "generatedAt": "2026-08-23",
+  "generatedAt": "2026-08-24",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -3963,7 +3963,7 @@
       "shortcode": "DT3YLRIEkzg",
       "postDate": "2026-01-23",
       "ticker": "MVO",
-      "company": "MV Oil Trust",
+      "company": "Nova Nordisk",
       "isFirstCall": true,
       "conviction": 0.9,
       "quote": "At number two is Nova Nordisk or Ticker MVO. It currently sits at $62 and the company sells weight loss pills. They just got released and weight loss pills are going to change the game.",
@@ -9620,26 +9620,611 @@
           "excess": 0.11652781015058822
         }
       }
+    },
+    {
+      "shortcode": "DbRQp6cSpKh",
+      "postDate": "2026-07-26",
+      "ticker": "FPS",
+      "company": "Forgent Power",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "number one is Forgent Powers or Ticker FPS",
+      "summary": "The creator identifies Forgent Powers as a top energy stock pick due to its role in connecting data centers to power grids.",
+      "onScreenPrice": 35.89,
+      "spark": [
+        36.22,
+        32.41,
+        29.25,
+        33.28,
+        33.27,
+        36.29,
+        39.4,
+        38.49,
+        37.72,
+        38.71,
+        37.6,
+        37.72,
+        38.27,
+        37.56,
+        39.66,
+        38.83,
+        36.18,
+        34.46,
+        33.36,
+        33.18
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.001932625413171074,
+          "spy": 0.02513896193909937,
+          "excess": -0.023206336525928295
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": -0.08393155198983537,
+          "spy": 0.036030717341642315,
+          "excess": -0.11996226933147769
+        }
+      }
+    },
+    {
+      "shortcode": "DbRQp6cSpKh",
+      "postDate": "2026-07-26",
+      "ticker": "GLW",
+      "company": "Corning Incorporated",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "number two is Corning or Ticker GLW",
+      "summary": "Corning is highlighted as a top energy stock pick because it is the only US manufacturer of solar wafers.",
+      "onScreenPrice": null,
+      "spark": [
+        143.4,
+        126,
+        124.1,
+        135.2,
+        138.3,
+        146.6,
+        159.9,
+        156.7,
+        157.2,
+        165.7,
+        157.8,
+        159.2,
+        167.4,
+        158.5,
+        166,
+        173.2,
+        159.9,
+        152.5,
+        151.4,
+        149.8
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.022879455673356253,
+          "spy": 0.02513896193909937,
+          "excess": -0.0022595062657431164
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.04520086286237901,
+          "spy": 0.036030717341642315,
+          "excess": 0.009170145520736694
+        }
+      }
+    },
+    {
+      "shortcode": "DbRQp6cSpKh",
+      "postDate": "2026-07-26",
+      "ticker": "EOSE",
+      "company": "Eos Energy Enterprises",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "number three is EOS or Ticker EOSC",
+      "summary": "Eos Energy Enterprises is recommended as a top energy stock pick for its production of zinc grid batteries.",
+      "onScreenPrice": 3.47,
+      "spark": [
+        3.61,
+        3.37,
+        3.14,
+        3.61,
+        3.38,
+        3.75,
+        4.35,
+        3.82,
+        3.94,
+        4.15,
+        4.05,
+        4.24,
+        4.24,
+        4.16,
+        4.02,
+        3.93,
+        3.67,
+        3.74,
+        3.46,
+        3.81
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.038781193621186594,
+          "spy": 0.02513896193909937,
+          "excess": 0.013642231682087225
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.05540167686858255,
+          "spy": 0.036030717341642315,
+          "excess": 0.019370959526940235
+        }
+      }
+    },
+    {
+      "shortcode": "DTMJzUZgQMl",
+      "postDate": "2026-01-07",
+      "ticker": "AVAV",
+      "company": "AeroVironment",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "Aero Environment or Ticker AVAP is at$297",
+      "summary": "The creator recommends buying AeroVironment due to their drones being used in recent military operations.",
+      "onScreenPrice": 297,
+      "spark": [
+        318.5,
+        392.9,
+        306.9,
+        236.9,
+        263,
+        259.6,
+        227.3,
+        222.5,
+        195.9,
+        186.9,
+        202,
+        195.7,
+        166.7,
+        165.3,
+        182.3,
+        204.4,
+        171.9,
+        142.2,
+        176.8,
+        141.2,
+        149.5,
+        159.2,
+        193.8,
+        160.2
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.19881931242886974,
+          "spy": 0.0011310772388828383,
+          "excess": 0.1976882351899869
+        },
+        "1m": {
+          "stock": -0.1924139558696748,
+          "spy": 0.0015081324887178393,
+          "excess": -0.19392208835839264
+        },
+        "3m": {
+          "stock": -0.4133069591248638,
+          "spy": -0.0440268650980401,
+          "excess": -0.3692800940268237
+        },
+        "toDate": {
+          "stock": -0.49692289721887406,
+          "spy": 0.11041496523435534,
+          "excess": -0.6073378624532294
+        }
+      }
+    },
+    {
+      "shortcode": "DTMJzUZgQMl",
+      "postDate": "2026-01-07",
+      "ticker": "LDOS",
+      "company": "Leidos",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "At number two is Lados or Ticker LDOS. It currently trades at$195.",
+      "summary": "The creator recommends buying Leidos for their specialization in cybersecurity and intelligence gathering for military operations.",
+      "onScreenPrice": 195,
+      "spark": [
+        196.6,
+        194.7,
+        187.8,
+        186.1,
+        161.5,
+        175.9,
+        179.5,
+        169,
+        157.6,
+        158.9,
+        156.5,
+        144.2,
+        137.2,
+        125.6,
+        128.1,
+        124.6,
+        114.6,
+        104.3,
+        108.7,
+        108.2,
+        112.1,
+        118.7,
+        140.4,
+        141.4
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.02944912907867603,
+          "spy": 0.0011310772388828383,
+          "excess": -0.030580206317558867
+        },
+        "1m": {
+          "stock": -0.018412059945830173,
+          "spy": 0.0015081324887178393,
+          "excess": -0.019920192434548012
+        },
+        "3m": {
+          "stock": -0.19195364109661184,
+          "spy": -0.0440268650980401,
+          "excess": -0.14792677599857174
+        },
+        "toDate": {
+          "stock": -0.28086059228563864,
+          "spy": 0.11041496523435534,
+          "excess": -0.391275557519994
+        }
+      }
+    },
+    {
+      "shortcode": "DTMJzUZgQMl",
+      "postDate": "2026-01-07",
+      "ticker": "HII",
+      "company": "Huntington Ingalls Industries",
+      "isFirstCall": true,
+      "conviction": 0.95,
+      "quote": "At number three is Huntington Ingles or Ticker HII that currently trades at$363.",
+      "summary": "The creator recommends buying Huntington Ingalls Industries as they are central to the new Golden Fleet naval expansion plan.",
+      "onScreenPrice": 363,
+      "spark": [
+        356.5,
+        425.9,
+        425.4,
+        369.4,
+        417.8,
+        443,
+        429.6,
+        422.9,
+        384.8,
+        402.3,
+        396.2,
+        358.4,
+        326.1,
+        337,
+        321,
+        294.5,
+        299.7,
+        279.6,
+        294.1,
+        277.8,
+        287.6,
+        326,
+        326.8,
+        298.2
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.16535278558827216,
+          "spy": 0.0011310772388828383,
+          "excess": 0.16422170834938932
+        },
+        "1m": {
+          "stock": 0.11592081748237226,
+          "spy": 0.0015081324887178393,
+          "excess": 0.11441268499365442
+        },
+        "3m": {
+          "stock": 0.12857339038509252,
+          "spy": -0.0440268650980401,
+          "excess": 0.17260025548313263
+        },
+        "toDate": {
+          "stock": -0.1634170234399307,
+          "spy": 0.11041496523435534,
+          "excess": -0.27383198867428604
+        }
+      }
+    },
+    {
+      "shortcode": "Db2lwbEhA4E",
+      "postDate": "2026-08-10",
+      "ticker": "AG",
+      "company": "First Majestic Silver",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "Number one is First Majestic Silver or Ticker AG",
+      "summary": "The creator identifies AG as a top pick due to its status as a major silver miner and the increasing demand for silver in AI and battery technologies.",
+      "onScreenPrice": 18.4,
+      "spark": [
+        18.85,
+        18.96,
+        19.16,
+        18.78,
+        19.26,
+        19.57,
+        18.48,
+        20.85,
+        21.19,
+        21.09
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.0381962492723491,
+          "spy": -0.00046575989686481467,
+          "excess": 0.03866200916921392
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.11883287669957654,
+          "spy": -0.009456370796357083,
+          "excess": 0.12828924749593362
+        }
+      }
+    },
+    {
+      "shortcode": "Db2lwbEhA4E",
+      "postDate": "2026-08-10",
+      "ticker": "USAR",
+      "company": "USA Rare Earth",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "Number two is Rare Earth USA or Ticker USAR",
+      "summary": "The creator recommends USAR as a top pick because the company is building a major domestic rare earth supply chain with government backing.",
+      "onScreenPrice": 19.3,
+      "spark": [
+        19.04,
+        18.91,
+        18.41,
+        18.61,
+        20,
+        19.29,
+        18.51,
+        18.09,
+        17.11,
+        19.26
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.01313025146947977,
+          "spy": -0.00046575989686481467,
+          "excess": 0.013596011366344585
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.01155458522982955,
+          "spy": -0.009456370796357083,
+          "excess": 0.021010956026186633
+        }
+      }
+    },
+    {
+      "shortcode": "Db2lwbEhA4E",
+      "postDate": "2026-08-10",
+      "ticker": "MP",
+      "company": "MP Materials",
+      "isFirstCall": true,
+      "conviction": 0.9,
+      "quote": "And number three is MP Materials or Ticker MP",
+      "summary": "The creator lists MP as a top pick, highlighting its position as the largest rare earth company in the United States.",
+      "onScreenPrice": 51,
+      "spark": [
+        54.66,
+        55.24,
+        54.11,
+        55.66,
+        58.74,
+        58.51,
+        56.67,
+        56.68,
+        55.04,
+        60.05
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.07043539123433362,
+          "spy": -0.00046575989686481467,
+          "excess": 0.07090115113119844
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.09860957564389072,
+          "spy": -0.009456370796357083,
+          "excess": 0.1080659464402478
+        }
+      }
+    },
+    {
+      "shortcode": "DbWNajUBr7S",
+      "postDate": "2026-07-28",
+      "ticker": "CRWV",
+      "company": "CoreWeave",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "instead buy Coreweave",
+      "summary": "The creator recommends buying CoreWeave as an oversold alternative to Nebius in the AI data center space.",
+      "onScreenPrice": 67.83,
+      "spark": [
+        67.3,
+        60.82,
+        73.9,
+        71.77,
+        85.76,
+        91.9,
+        89.89,
+        85.33,
+        90.67,
+        88.19,
+        90.32,
+        107.7,
+        106.3,
+        105.3,
+        106,
+        93.17,
+        90.87,
+        89.76,
+        87.85
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.3655274496080214,
+          "spy": 0.04112792206454796,
+          "excess": 0.32439952754347345
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.3053491008991349,
+          "spy": 0.03355557844005519,
+          "excess": 0.27179352245907973
+        }
+      }
+    },
+    {
+      "shortcode": "DbWNajUBr7S",
+      "postDate": "2026-07-28",
+      "ticker": "TSLA",
+      "company": "Tesla",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "instead buy Tesla",
+      "summary": "The creator recommends buying Tesla due to its integrated ecosystem and oversold status compared to Google.",
+      "onScreenPrice": 307.24,
+      "spark": [
+        307.4,
+        298.3,
+        308.9,
+        311.2,
+        322.1,
+        327.4,
+        321.5,
+        319.5,
+        328.6,
+        330.9,
+        332.8,
+        327.5,
+        340,
+        342.3,
+        339.3,
+        336.9,
+        351.1,
+        345.1,
+        362.9
+      ],
+      "returns": {
+        "1w": {
+          "stock": 0.06476061509238362,
+          "spy": 0.04112792206454796,
+          "excess": 0.02363269302783566
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": 0.1802627584896619,
+          "spy": 0.03355557844005519,
+          "excess": 0.1467071800496067
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 163,
-    "uniqueTickers": 78,
+    "totalCalls": 174,
+    "uniqueTickers": 86,
     "hitRate": {
-      "1m": 0.4230769230769231,
-      "3m": 0.47540983606557374
+      "1m": 0.41975308641975306,
+      "3m": 0.46875
     },
     "hitRateN": {
-      "1m": 78,
-      "3m": 61
+      "1m": 81,
+      "3m": 64
     },
     "avgExcess": {
-      "1w": -0.010044495066186787,
-      "1m": -0.00864837941014834,
-      "3m": 0.05885020333948134,
-      "toDate": -0.033651385354605705
+      "1w": -0.00412094568313865,
+      "1m": -0.009555594935689589,
+      "3m": 0.0507071217057203,
+      "toDate": -0.0436316213564462
     },
-    "callsPerWeek": 1.7960526315789473,
+    "callsPerWeek": 1.7810650887573964,
     "best": [
       {
         "shortcode": "DRupAA5j2e2",
@@ -9942,7 +10527,7 @@
         "shortcode": "DT3YLRIEkzg",
         "postDate": "2026-01-23",
         "ticker": "MVO",
-        "company": "MV Oil Trust",
+        "company": "Nova Nordisk",
         "isFirstCall": true,
         "conviction": 0.9,
         "quote": "At number two is Nova Nordisk or Ticker MVO. It currently sits at $62 and the company sells weight loss pills. They just got released and weight loss pills are going to change the game.",
@@ -10116,6 +10701,65 @@
         }
       },
       {
+        "shortcode": "DTMJzUZgQMl",
+        "postDate": "2026-01-07",
+        "ticker": "AVAV",
+        "company": "AeroVironment",
+        "isFirstCall": true,
+        "conviction": 0.9,
+        "quote": "Aero Environment or Ticker AVAP is at$297",
+        "summary": "The creator recommends buying AeroVironment due to their drones being used in recent military operations.",
+        "onScreenPrice": 297,
+        "spark": [
+          318.5,
+          392.9,
+          306.9,
+          236.9,
+          263,
+          259.6,
+          227.3,
+          222.5,
+          195.9,
+          186.9,
+          202,
+          195.7,
+          166.7,
+          165.3,
+          182.3,
+          204.4,
+          171.9,
+          142.2,
+          176.8,
+          141.2,
+          149.5,
+          159.2,
+          193.8,
+          160.2
+        ],
+        "returns": {
+          "1w": {
+            "stock": 0.19881931242886974,
+            "spy": 0.0011310772388828383,
+            "excess": 0.1976882351899869
+          },
+          "1m": {
+            "stock": -0.1924139558696748,
+            "spy": 0.0015081324887178393,
+            "excess": -0.19392208835839264
+          },
+          "3m": {
+            "stock": -0.4133069591248638,
+            "spy": -0.0440268650980401,
+            "excess": -0.3692800940268237
+          },
+          "toDate": {
+            "stock": -0.49692289721887406,
+            "spy": 0.11041496523435534,
+            "excess": -0.6073378624532294
+          }
+        }
+      },
+      {
         "shortcode": "DOaWAxLjiTw",
         "postDate": "2025-09-10",
         "ticker": "RDDT",
@@ -10173,87 +10817,28 @@
             "excess": -0.5822542398060079
           }
         }
-      },
-      {
-        "shortcode": "DQSp7WkEoC-",
-        "postDate": "2025-10-26",
-        "ticker": "ASST",
-        "company": "Strive",
-        "isFirstCall": true,
-        "conviction": 0.9,
-        "quote": "I personally think the stock is going to go to $5",
-        "summary": "Creator is bullish on ASST, citing a CEO tweet and price gaps, with a price target of $5 and a plan to buy at $1.30.",
-        "onScreenPrice": null,
-        "spark": [
-          32.8,
-          30.2,
-          19.66,
-          19.54,
-          16.42,
-          14.76,
-          19.4,
-          16.38,
-          10.15,
-          7.36,
-          8.7,
-          10.26,
-          10.16,
-          13.53,
-          15.28,
-          17.95,
-          18.21,
-          13.92,
-          15.44,
-          12.02,
-          12.61,
-          11.98,
-          12.44,
-          18.22
-        ],
-        "returns": {
-          "1w": {
-            "stock": -0.2256097497151479,
-            "spy": -0.0027726977496692617,
-            "excess": -0.22283705196547865
-          },
-          "1m": {
-            "stock": -0.3231706927036818,
-            "spy": -0.014914439975444838,
-            "excess": -0.308256252728237
-          },
-          "3m": {
-            "stock": -0.5207316880280026,
-            "spy": 0.010930462817579034,
-            "excess": -0.5316621508455817
-          },
-          "toDate": {
-            "stock": -0.4445122031354254,
-            "spy": 0.11744787463618866,
-            "excess": -0.561960077771614
-          }
-        }
       }
     ],
     "funnel": [
       {
-        "label": "Reels (12mo)",
-        "value": 0
+        "label": "Instagram posts",
+        "value": 248
       },
       {
         "label": "Named a stock",
-        "value": 240
+        "value": 260
       },
       {
         "label": "Bullish buy call",
-        "value": 163
+        "value": 174
       },
       {
         "label": "First call (unique ticker)",
-        "value": 78
+        "value": 86
       },
       {
         "label": "Beat SPY (to date)",
-        "value": 25
+        "value": 29
       }
     ],
     "cumExcess": [
@@ -10383,239 +10968,239 @@
       },
       {
         "t": "2026-01-07",
-        "v": 0.0126
+        "v": 0.0115
       },
       {
         "t": "2026-01-09",
-        "v": 0.0208
+        "v": 0.0256
       },
       {
         "t": "2026-01-14",
-        "v": 0.034
+        "v": 0.041
       },
       {
         "t": "2026-01-20",
-        "v": 0.0265
+        "v": 0.031
       },
       {
         "t": "2026-01-22",
-        "v": 0.0442
+        "v": 0.0449
       },
       {
         "t": "2026-01-27",
-        "v": 0.0253
+        "v": 0.0256
       },
       {
         "t": "2026-01-30",
-        "v": -0.0253
+        "v": -0.0232
       },
       {
         "t": "2026-02-03",
-        "v": -0.0289
+        "v": -0.0247
       },
       {
         "t": "2026-02-06",
-        "v": -0.0718
+        "v": -0.0687
       },
       {
         "t": "2026-02-11",
-        "v": -0.0699
+        "v": -0.0712
       },
       {
         "t": "2026-02-17",
-        "v": -0.0646
+        "v": -0.0636
       },
       {
         "t": "2026-02-19",
-        "v": -0.048
+        "v": -0.0434
       },
       {
         "t": "2026-02-24",
-        "v": -0.0624
+        "v": -0.0585
       },
       {
         "t": "2026-02-27",
-        "v": -0.0683
+        "v": -0.0647
       },
       {
         "t": "2026-03-03",
-        "v": -0.0726
+        "v": -0.0696
       },
       {
         "t": "2026-03-06",
-        "v": -0.0664
+        "v": -0.0641
       },
       {
         "t": "2026-03-11",
-        "v": -0.0407
+        "v": -0.0435
       },
       {
         "t": "2026-03-13",
-        "v": -0.0368
+        "v": -0.0383
       },
       {
         "t": "2026-03-18",
-        "v": -0.0216
+        "v": -0.0234
       },
       {
         "t": "2026-03-23",
-        "v": -0.017
+        "v": -0.0215
       },
       {
         "t": "2026-03-26",
-        "v": -0.0306
+        "v": -0.0351
       },
       {
         "t": "2026-03-30",
-        "v": -0.0624
+        "v": -0.0663
       },
       {
         "t": "2026-04-02",
-        "v": -0.0325
+        "v": -0.0378
       },
       {
         "t": "2026-04-08",
-        "v": -0.0239
+        "v": -0.0303
       },
       {
         "t": "2026-04-10",
-        "v": -0.0297
+        "v": -0.0385
       },
       {
         "t": "2026-04-15",
-        "v": -0.0028
+        "v": -0.013
       },
       {
         "t": "2026-04-20",
-        "v": 0.0199
+        "v": 0.0077
       },
       {
         "t": "2026-04-22",
-        "v": 0.0266
+        "v": 0.0128
       },
       {
         "t": "2026-04-27",
-        "v": 0.002
+        "v": -0.0126
       },
       {
         "t": "2026-04-30",
-        "v": 0.0034
+        "v": -0.0109
       },
       {
         "t": "2026-05-04",
-        "v": 0.0194
+        "v": 0.0036
       },
       {
         "t": "2026-05-07",
-        "v": 0.0127
+        "v": -0.0088
       },
       {
         "t": "2026-05-12",
-        "v": 0.0411
+        "v": 0.0186
       },
       {
         "t": "2026-05-15",
-        "v": 0.0488
+        "v": 0.0256
       },
       {
         "t": "2026-05-19",
-        "v": 0.033
+        "v": 0.0117
       },
       {
         "t": "2026-05-22",
-        "v": 0.0809
+        "v": 0.0583
       },
       {
         "t": "2026-05-28",
-        "v": 0.1373
+        "v": 0.1146
       },
       {
         "t": "2026-06-01",
-        "v": 0.1434
+        "v": 0.1197
       },
       {
         "t": "2026-06-04",
-        "v": 0.1218
+        "v": 0.0993
       },
       {
         "t": "2026-06-09",
-        "v": 0.0527
+        "v": 0.0335
       },
       {
         "t": "2026-06-11",
-        "v": 0.0828
+        "v": 0.0626
       },
       {
         "t": "2026-06-16",
-        "v": 0.06
+        "v": 0.0394
       },
       {
         "t": "2026-06-22",
-        "v": 0.0718
+        "v": 0.0499
       },
       {
         "t": "2026-06-25",
-        "v": 0.0377
+        "v": 0.0171
       },
       {
         "t": "2026-06-29",
-        "v": 0.0754
+        "v": 0.053
       },
       {
         "t": "2026-07-02",
-        "v": 0.0365
+        "v": 0.0188
       },
       {
         "t": "2026-07-08",
-        "v": 0.0116
+        "v": -0.0062
       },
       {
         "t": "2026-07-10",
-        "v": 0.0052
+        "v": -0.0133
       },
       {
         "t": "2026-07-15",
-        "v": -0.0309
+        "v": -0.0484
       },
       {
         "t": "2026-07-20",
-        "v": -0.0598
+        "v": -0.0759
       },
       {
         "t": "2026-07-22",
-        "v": -0.0386
+        "v": -0.0551
       },
       {
         "t": "2026-07-27",
-        "v": -0.062
+        "v": -0.0735
       },
       {
         "t": "2026-07-30",
-        "v": -0.0727
+        "v": -0.0847
       },
       {
         "t": "2026-08-04",
-        "v": -0.0442
+        "v": -0.0526
       },
       {
         "t": "2026-08-06",
-        "v": -0.0756
+        "v": -0.0834
       },
       {
         "t": "2026-08-11",
-        "v": -0.0461
+        "v": -0.0521
       },
       {
         "t": "2026-08-14",
-        "v": -0.0137
+        "v": -0.022
       },
       {
         "t": "2026-08-18",
-        "v": -0.0404
+        "v": -0.0497
       },
       {
         "t": "2026-08-21",
-        "v": -0.0337
+        "v": -0.0436
       }
     ]
   },

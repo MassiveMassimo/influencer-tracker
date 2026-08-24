@@ -3,7 +3,7 @@
     "handle": "thelonginvest",
     "name": "The Long Invest"
   },
-  "generatedAt": "2026-08-23",
+  "generatedAt": "2026-08-24",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -168536,10 +168536,51 @@
           "excess": null
         }
       }
+    },
+    {
+      "shortcode": "2088261148634235176",
+      "postDate": "2026-08-14",
+      "ticker": "OSCR",
+      "company": "Oscar Health",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$OSCR NOW WITHIN TOUCHING DISTANCE OF IT'S ATH AT $33",
+      "summary": "The creator highlights that Oscar Health is near its all-time high and advises against selling after a breakout.",
+      "onScreenPrice": 33,
+      "spark": [
+        32.76,
+        31.55,
+        31.28,
+        32.3,
+        31.57,
+        32.04
+      ],
+      "returns": {
+        "1w": {
+          "stock": -0.02197794392231711,
+          "spy": -0.01367964523916132,
+          "excess": -0.008298298683155791
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": -0.02197794392231711,
+          "spy": -0.01367964523916132,
+          "excess": -0.008298298683155791
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 2944,
+    "totalCalls": 2945,
     "uniqueTickers": 134,
     "hitRate": {
       "1m": 0.48031496062992124,
@@ -169152,16 +169193,16 @@
     ],
     "funnel": [
       {
-        "label": "Tweets (12mo)",
+        "label": "Tweets",
         "value": 10004
       },
       {
         "label": "Named a stock",
-        "value": 6910
+        "value": 6911
       },
       {
         "label": "Bullish buy call",
-        "value": 2944
+        "value": 2945
       },
       {
         "label": "First call (unique ticker)",

@@ -3,7 +3,7 @@
     "handle": "TheProfInvestor",
     "name": "The Prof Investor"
   },
-  "generatedAt": "2026-08-23",
+  "generatedAt": "2026-08-24",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -4494,7 +4494,7 @@
       "shortcode": "2056070295920992671",
       "postDate": "2026-05-17",
       "ticker": "XOM",
-      "company": "Exxon Mobil",
+      "company": "ExxonMobil",
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Oil stocks last week higher lows and broke out. Literally every stock. Tells a lot of about going to happen on the war front.",
@@ -8742,7 +8742,7 @@
       "shortcode": "2053214962525655208",
       "postDate": "2026-05-09",
       "ticker": "SATS",
-      "company": "EchoStar",
+      "company": "",
       "isFirstCall": false,
       "conviction": 0.7,
       "quote": "Space stocks & Bullish consolidation $SATS $PL $SATL",
@@ -17170,7 +17170,7 @@
       "shortcode": "2056066284107059598",
       "postDate": "2026-05-17",
       "ticker": "SATS",
-      "company": "EchoStar",
+      "company": "EchoStar Corporation",
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "I invested in $SATS",
@@ -25784,7 +25784,7 @@
       "shortcode": "2036818462241341784",
       "postDate": "2026-03-25",
       "ticker": "SATS",
-      "company": "EchoStar",
+      "company": "",
       "isFirstCall": false,
       "conviction": 0.9,
       "quote": "$SATS Breakout. A big one. SpaceX IPO and this prints big time for us.",
@@ -49030,7 +49030,7 @@
       "shortcode": "2007911460324950483",
       "postDate": "2026-01-04",
       "ticker": "SATS",
-      "company": "EchoStar",
+      "company": "EchoStar Corporation",
       "isFirstCall": true,
       "conviction": 0.8,
       "quote": "Space : $RKLB $ASTS $SATS $PL $LUNR",
@@ -82306,7 +82306,7 @@
       "shortcode": "1965114810951204943",
       "postDate": "2025-09-08",
       "ticker": "OCTO",
-      "company": "Eightco",
+      "company": "",
       "isFirstCall": true,
       "conviction": 0.6,
       "quote": "If drops to $49 it should be a place to test a trade. SL @ 45. Target ↗️",
@@ -118966,7 +118966,7 @@
       "shortcode": "2075642595980845103",
       "postDate": "2026-07-10",
       "ticker": "SKHYV",
-      "company": "SK hynix Inc.",
+      "company": "",
       "isFirstCall": true,
       "conviction": 0.6,
       "quote": "Prof bought the hyped up $SKHYV for a trade.",
@@ -126422,12 +126422,12 @@
     ],
     "funnel": [
       {
-        "label": "Tweets (12mo)",
+        "label": "Tweets",
         "value": 590
       },
       {
         "label": "Named a stock",
-        "value": 4675
+        "value": 4676
       },
       {
         "label": "Bullish buy call",
