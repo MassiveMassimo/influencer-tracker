@@ -1,7 +1,5 @@
-import { AnimatePresence, motion } from "motion/react";
-import { memo, type ReactNode, useEffect } from "react";
+import { memo, useEffect } from "react";
 import type { Timeframe } from "#/lib/window-series.ts";
-import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
 import { useChart } from "./chart-context.tsx";
 import { CandlestickChart } from "./candlestick-chart.tsx";
 import { Candlestick } from "./candlestick.tsx";
@@ -18,37 +16,6 @@ import { ChartMarkers, type ChartMarker } from "./markers/index.ts";
 
 type Candle = { date: Date; open: number; high: number; low: number; close: number };
 type NormPoint = { date: Date; stock: number; spy: number | null };
-
-// Crossfade between timeframes: AnimatePresence keeps the outgoing chart mounted
-// while it fades out and the incoming one fades in, stacked in the same 320px
-// box, so the two animations overlap into one smooth dissolve. Default `initial`
-// (true) so the first mount animates in on page load too — note `initial={false}`
-// here would propagate through PresenceContext and suppress the nested candle
-// entrance on first paint. The route gates `timeframe` on data readiness, so each
-// key change is a real, fully-formed swap.
-function ChartCrossfade({ timeframe, children }: { timeframe: Timeframe; children: ReactNode }) {
-  // Touch devices hard-cut between timeframes (duration 0) — no two-chart
-  // opacity dissolve to composite on a slow mobile GPU.
-  const isTouch = useTouchPrimaryEager();
-  return (
-    <div className="relative h-[320px]">
-      <AnimatePresence>
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="absolute inset-0"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          key={timeframe}
-          // Strong custom ease-out (built-in easings lack punch) for a snappy
-          // crossfade between timeframes.
-          transition={isTouch ? { duration: 0 } : { duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
-}
 
 // Reports the hovered candle's close up to the route header so the price readout
 // can track the crosshair (Robinhood-style). Lives inside the chart so it can read
@@ -77,30 +44,23 @@ export const PriceCandles = memo(function PriceCandles({
   iconFill?: boolean;
 }) {
   return (
-    <ChartCrossfade timeframe={timeframe}>
-      <CandlestickChart
-        data={candles}
-        margin={{ left: 56 }}
-        style={{ height: 320 }}
-        revealSignature={timeframe}
-      >
-        <Grid horizontal />
-        {/* Semantic up/down fills (matching the header delta's toneClass and the
+    <CandlestickChart data={candles} margin={{ left: 56 }} style={{ height: 320 }}>
+      <Grid horizontal />
+      {/* Semantic up/down fills (matching the header delta's toneClass and the
             P/L area), not the bklit monochrome default: zinc-800 down candles
             vanish against the dark card, and both emerald/rose read on white +
             dark. Overrides the candlestick-positive/negative gradient defaults. */}
-        <Candlestick
-          fadedOpacity={0.25}
-          positiveFill="var(--color-emerald-500)"
-          negativeFill="var(--color-rose-500)"
-        />
-        <ChartMarkers items={markers} replayKey={timeframe} iconFill={iconFill} />
-        <XAxis />
-        <YAxis />
-        <ChartTooltip />
-        {onHoverClose ? <HoverClose onChange={onHoverClose} /> : null}
-      </CandlestickChart>
-    </ChartCrossfade>
+      <Candlestick
+        fadedOpacity={0.25}
+        positiveFill="var(--color-emerald-500)"
+        negativeFill="var(--color-rose-500)"
+      />
+      <ChartMarkers items={markers} replayKey={timeframe} iconFill={iconFill} />
+      <XAxis />
+      <YAxis />
+      <ChartTooltip />
+      {onHoverClose ? <HoverClose onChange={onHoverClose} /> : null}
+    </CandlestickChart>
   );
 });
 
