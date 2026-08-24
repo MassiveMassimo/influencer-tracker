@@ -8,7 +8,9 @@ import {
   hasInstagramSessionCookie,
   instagramCaptionFromTitle,
   loadDownloadFailures,
+  loadUnavailableMedia,
   recordDownloadFailure,
+  recordUnavailableMedia,
 } from "./scrape";
 import { creatorDir } from "./config";
 
@@ -54,7 +56,9 @@ test("downloadInstagramMedia throws when yt-dlp cannot launch (ENOENT)", () => {
 // yt-dlp ran but exited non-zero: this post remains retryable and blocks completion.
 test("downloadInstagramMedia returns a retryable failure when yt-dlp exits non-zero", () => {
   expect(
-    downloadInstagramMedia("__t", { shortcode: "CODE", kind: "reel" }, () => ({ status: 1 })),
+    downloadInstagramMedia("__t", { shortcode: "CODE", kind: "reel" }, () => ({
+      status: 1,
+    })),
   ).toEqual({
     ok: false,
     reason: "yt-dlp exited with status 1",
@@ -63,7 +67,9 @@ test("downloadInstagramMedia returns a retryable failure when yt-dlp exits non-z
 
 test("downloadInstagramMedia returns success when yt-dlp exits zero", () => {
   expect(
-    downloadInstagramMedia("__t", { shortcode: "CODE", kind: "reel" }, () => ({ status: 0 })),
+    downloadInstagramMedia("__t", { shortcode: "CODE", kind: "reel" }, () => ({
+      status: 0,
+    })),
   ).toEqual({ ok: true });
 });
 
@@ -108,4 +114,15 @@ test("download stage fails while retryable posts remain", () => {
     ]),
   ).toThrow(/download incomplete: 1 media item/);
   expect(() => assertNoDownloadFailures([])).not.toThrow();
+});
+
+test("confirmed unavailable media stays in a durable terminal ledger", async () => {
+  await recordUnavailableMedia(FAILURE_HANDLE, "REMOVED", "reel");
+  await recordUnavailableMedia(FAILURE_HANDLE, "REMOVED", "reel");
+  expect(await loadUnavailableMedia(FAILURE_HANDLE)).toMatchObject([
+    {
+      shortcode: "REMOVED",
+      kind: "reel",
+    },
+  ]);
 });

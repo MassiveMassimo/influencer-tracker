@@ -245,19 +245,20 @@ and an `IG_PROXY` value that points to a verified residential egress.
 
 ### MacBook residential egress
 
-The VM currently uses the MacBook as a network-only fallback through Tailscale:
+The VM currently uses the MacBook as a network-only fallback:
 
-- `influencer-mac-egress.service` runs the SSH client on the VM and exposes a SOCKS5
-  listener only at `127.0.0.1:1082`.
-- The repository `.env` sets `IG_PROXY=socks5://127.0.0.1:1082`. Bun loads this file
+- The per-user macOS launch agent
+  `~/Library/LaunchAgents/com.influencer-tracker.mac-egress.plist` opens an outbound
+  SSH connection to the VM. It exposes a local SOCKS5 listener at `127.0.0.1:1080`
+  and forwards VM-only `127.0.0.1:1083` to that listener.
+- The repository `.env` sets `IG_PROXY=socks5://127.0.0.1:1083`. Bun loads this file
   after process startup, so a systemd `Environment=IG_PROXY=...` override is not
   authoritative.
-- `/etc/systemd/system/influencer-ingest-ig.service.d/mac-egress.conf` requires and
-  orders the tunnel service before the ingest service.
 - Playwright, Chromium, downloads, transcription, extraction, scoring, and publishing
   still run on the VM. The MacBook only forwards network traffic.
-- The dedicated Mac SSH key is restricted to TCP forwarding. It cannot open a shell,
-  allocate a terminal, forward an SSH agent, or use X11.
+- `launchd` restarts the outbound tunnel when it drops. The outbound direction is
+  required because the VM-to-Mac Tailscale SSH path was not stable under sustained
+  downloads.
 - The MacBook must be online, connected to Tailscale, and awake. On this Mac, AC sleep is
   disabled; battery sleep can interrupt the tunnel.
 
@@ -266,11 +267,11 @@ Verify the path without printing either public IP:
 ```bash
 ssh ubuntu@imos-vm '
   direct=$(curl -fsS https://api.ipify.org)
-  proxied=$(curl --proxy socks5h://127.0.0.1:1082 -fsS https://api.ipify.org)
+  proxied=$(curl --proxy socks5h://127.0.0.1:1083 -fsS https://api.ipify.org)
   test "$direct" != "$proxied"
-  curl --proxy socks5h://127.0.0.1:1082 -fsS -o /dev/null https://www.instagram.com/
+  curl --proxy socks5h://127.0.0.1:1083 -fsS -o /dev/null https://www.instagram.com/
 '
-systemctl status influencer-mac-egress.service --no-pager
+launchctl print gui/$(id -u)/com.influencer-tracker.mac-egress
 ```
 
 The scraper's existing `api.ipify.org` guard remains authoritative. If the tunnel is
@@ -279,9 +280,8 @@ down, the ingest must fail closed before Instagram sees the VM datacenter IP.
 Rollback to the IPRoyal relay:
 
 ```bash
-sudo rm /etc/systemd/system/influencer-ingest-ig.service.d/mac-egress.conf
-sudo systemctl disable --now influencer-mac-egress.service
-sudo systemctl daemon-reload
+launchctl bootout gui/$(id -u) \
+  ~/Library/LaunchAgents/com.influencer-tracker.mac-egress.plist
 # Set .env to IG_PROXY=socks5://127.0.0.1:1081, then verify that proxy.
 ```
 

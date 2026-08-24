@@ -178,7 +178,9 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
 
   // Gate on login before scrolling. A logged-in profile/seeded session is detected fast;
   // a fresh profile with no session waits for a manual browser login.
-  await page.goto("https://www.instagram.com/", { waitUntil: "domcontentloaded" });
+  await page.goto("https://www.instagram.com/", {
+    waitUntil: "domcontentloaded",
+  });
   if (!(await waitForLogin(ctx, loggedIn ? 15_000 : 6 * 60_000))) {
     if (loggedIn) {
       await ctx.close();
@@ -251,7 +253,25 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
   // Capture the profile pic while the logged-in page context is still alive.
   await saveAvatar(handle, await resolveAvatarUrl(page, handle));
 
-  const recent = [...seen.values()].filter((media) => !media.takenAt || media.takenAt >= cutoff);
+  let recent = [...seen.values()].filter((media) => !media.takenAt || media.takenAt >= cutoff);
+  const unavailable = new Set((await loadUnavailableMedia(handle)).map((item) => item.shortcode));
+  const failed = new Set((await loadDownloadFailures(handle)).map((item) => item.shortcode));
+  for (const media of recent) {
+    if (unavailable.has(media.shortcode) || !failed.has(media.shortcode)) continue;
+    const path = media.kind === "reel" ? "reel" : "p";
+    await page.goto(`https://www.instagram.com/${path}/${media.shortcode}/`, {
+      waitUntil: "domcontentloaded",
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(3000);
+    if ((await page.locator("body").innerText()).includes("Sorry, this page isn't available.")) {
+      console.warn(`confirmed unavailable ${media.shortcode} — excluding deleted post`);
+      await recordUnavailableMedia(handle, media.shortcode, media.kind);
+      await clearDownloadFailure(handle, media.shortcode);
+      unavailable.add(media.shortcode);
+    }
+  }
+  recent = recent.filter((media) => !unavailable.has(media.shortcode));
   for (const media of recent) {
     if (media.kind !== "post" || known.has(media.shortcode)) continue;
     await downloadFeedPostImages(page, ctx.request, handle, media.shortcode);
@@ -373,7 +393,11 @@ async function downloadFeedPostImages(
   await writeFile(
     join(dir, `media.${shortcode}.info.json`),
     JSON.stringify(
-      { id: shortcode, description: instagramCaptionFromTitle(title), imageCount: index },
+      {
+        id: shortcode,
+        description: instagramCaptionFromTitle(title),
+        imageCount: index,
+      },
       null,
       2,
     ),
@@ -418,8 +442,44 @@ export interface DownloadFailure {
   updatedAt: string;
 }
 
+export interface UnavailableMedia {
+  shortcode: string;
+  kind: ProfileMediaRef["kind"];
+  confirmedAt: string;
+}
+
 function downloadFailuresPath(handle: string): string {
   return join(rawDir(handle), "download-failures.json");
+}
+
+function unavailableMediaPath(handle: string): string {
+  return join(rawDir(handle), "unavailable-media.json");
+}
+
+export async function loadUnavailableMedia(handle: string): Promise<UnavailableMedia[]> {
+  try {
+    return JSON.parse(await readFile(unavailableMediaPath(handle), "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+export async function recordUnavailableMedia(
+  handle: string,
+  shortcode: string,
+  kind: ProfileMediaRef["kind"],
+): Promise<void> {
+  const unavailable = await loadUnavailableMedia(handle);
+  if (unavailable.some((item) => item.shortcode === shortcode)) return;
+  await mkdir(rawDir(handle), { recursive: true });
+  await writeFile(
+    unavailableMediaPath(handle),
+    JSON.stringify(
+      [...unavailable, { shortcode, kind, confirmedAt: new Date().toISOString() }],
+      null,
+      2,
+    ),
+  );
 }
 
 export async function loadDownloadFailures(handle: string): Promise<DownloadFailure[]> {
