@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCallsIndex, listCreators } from "../lib/data";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
@@ -67,11 +67,17 @@ function tone(x: number | null) {
 
 function Explore() {
   const { calls: initialCalls, totalCalls, generatedAt, creators } = Route.useLoaderData();
+  const [loadFullIndex, setLoadFullIndex] = useState(false);
   const callsQuery = useQuery({
     ...callsIndexQuery(),
+    enabled: loadFullIndex,
     placeholderData: initialCalls,
   });
   const calls = callsQuery.data ?? initialCalls;
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLoadFullIndex(true), 5_000);
+    return () => window.clearTimeout(timer);
+  }, []);
   const names = useMemo(
     () => Object.fromEntries(creators.map((c) => [c.handle, c.name])),
     [creators],
@@ -115,6 +121,7 @@ function Explore() {
     [selected, calls],
   );
   const onSort = (key: SortKey) => {
+    setLoadFullIndex(true);
     setVisibleCount(EXPLORE_VISIBLE_STEP);
     setFilter((f) => ({
       ...f,
@@ -122,6 +129,7 @@ function Explore() {
     }));
   };
   const toggleHandle = (h: string) => {
+    setLoadFullIndex(true);
     setVisibleCount(EXPLORE_VISIBLE_STEP);
     setFilter((f) => ({
       ...f,
@@ -148,7 +156,9 @@ function Explore() {
           type="search"
           aria-label="Search ticker, company, or creator"
           value={filter.search}
+          onFocus={() => setLoadFullIndex(true)}
           onChange={(e) => {
+            setLoadFullIndex(true);
             setVisibleCount(EXPLORE_VISIBLE_STEP);
             setFilter((f) => ({ ...f, search: e.target.value }));
           }}
@@ -160,6 +170,7 @@ function Explore() {
             type="checkbox"
             checked={filter.firstOnly}
             onChange={(e) => {
+              setLoadFullIndex(true);
               setVisibleCount(EXPLORE_VISIBLE_STEP);
               setFilter((f) => ({ ...f, firstOnly: e.target.checked }));
             }}
@@ -171,6 +182,7 @@ function Explore() {
             type="checkbox"
             checked={filter.beatSpyOnly}
             onChange={(e) => {
+              setLoadFullIndex(true);
               setVisibleCount(EXPLORE_VISIBLE_STEP);
               setFilter((f) => ({ ...f, beatSpyOnly: e.target.checked }));
             }}
@@ -289,6 +301,8 @@ function Explore() {
             <button
               type="button"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              onPointerEnter={() => setLoadFullIndex(true)}
+              onFocus={() => setLoadFullIndex(true)}
               onClick={() => setVisibleCount((count) => count + EXPLORE_VISIBLE_STEP)}
             >
               Show {Math.min(EXPLORE_VISIBLE_STEP, rows.length - visibleRows.length)} more ·{" "}
