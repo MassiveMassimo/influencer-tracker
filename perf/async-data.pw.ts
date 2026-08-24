@@ -70,7 +70,7 @@ test.describe("async data correctness", () => {
 
     await expect(page.getByRole("status")).toHaveText("Loading the complete call index…");
     await expect(page.getByText("No calls match.")).toHaveCount(0);
-    await expect(page.getByRole("menu", { name: "Calls" })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Calls" })).toHaveCount(0);
 
     releaseIndex();
 
@@ -90,7 +90,7 @@ test.describe("async data correctness", () => {
       timeout: 20_000,
     });
     await expect(page.getByText("No calls match.")).toHaveCount(0);
-    await expect(page.getByRole("menu", { name: "Calls" })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Calls" })).toHaveCount(0);
 
     failIndex = false;
     await alert.getByRole("button", { name: "Retry" }).click();
