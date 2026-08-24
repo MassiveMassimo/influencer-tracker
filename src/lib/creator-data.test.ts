@@ -73,12 +73,23 @@ describe("buildCreatorCallsPage", () => {
     expect(page.calls[0]?.ticker).toBe("T26");
     expect(page.calls.at(-1)?.ticker).toBe("T2");
     expect(page.totalCalls).toBe(27);
-    expect(page.pageCount).toBe(2);
     expect(page.currentPage).toBe(1);
+    expect(page.pageCount).toBe(2);
     expect(calls).toEqual(original);
   });
 
-  test("clamps the requested page and includes all same-post calls for proof siblings", () => {
+  test("clamps the requested page", () => {
+    const calls = Array.from({ length: CREATOR_CALLS_PAGE_SIZE + 2 }, (_, index) =>
+      call(`T${index}`, `2026-07-${String(index + 1).padStart(2, "0")}`, `post-${index}`),
+    );
+
+    const page = buildCreatorCallsPage(dataset(calls), 99);
+
+    expect(page.currentPage).toBe(2);
+    expect(page.calls.map((item) => item.ticker)).toEqual(["T1", "T0"]);
+  });
+
+  test("includes all same-post calls for proof siblings", () => {
     const calls = [
       call("AAPL", "2026-08-03", "shared"),
       call("MSFT", "2026-08-03", "shared"),
@@ -87,7 +98,6 @@ describe("buildCreatorCallsPage", () => {
 
     const page = buildCreatorCallsPage(dataset(calls), 99);
 
-    expect(page.currentPage).toBe(1);
     expect(page.posts.shared).toEqual([
       { ticker: "AAPL", company: "AAPL Inc." },
       { ticker: "MSFT", company: "MSFT Inc." },
@@ -108,8 +118,9 @@ describe("buildCreatorOverview", () => {
 
     const overview = buildCreatorOverview(dataset(calls));
 
-    expect(overview.ds.calls).toHaveLength(CREATOR_CALLS_PAGE_SIZE);
-    expect(overview.totalCalls).toBe(calls.length);
+    expect("calls" in overview.dataset).toBe(false);
+    expect(overview.initialPage.calls).toHaveLength(CREATOR_CALLS_PAGE_SIZE);
+    expect(overview.initialPage.totalCalls).toBe(calls.length);
     expect(overview.scoredPickCount).toBe(3);
     expect(overview.convictionRows.map((row) => [row.key, row.value])).toEqual([
       ["low", -0.1],

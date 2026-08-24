@@ -20,10 +20,8 @@ export interface CreatorCallsPage {
 }
 
 export interface CreatorOverview {
-  ds: Dataset;
-  totalCalls: number;
-  pageCount: number;
-  posts: CreatorCallsPage["posts"];
+  dataset: Omit<Dataset, "calls">;
+  initialPage: CreatorCallsPage;
   grade: Grade | null;
   traits: Trait[];
   convictionRows: CreatorConvictionRow[];
@@ -98,11 +96,10 @@ export function buildCreatorCallsPage(ds: Dataset, requestedPage: number): Creat
 
 export function buildCreatorOverview(ds: Dataset): CreatorOverview {
   const firstPage = buildCreatorCallsPage(ds, 1);
+  const { calls: _calls, ...dataset } = ds;
   return {
-    ds: { ...ds, calls: firstPage.calls },
-    totalCalls: firstPage.totalCalls,
-    pageCount: firstPage.pageCount,
-    posts: firstPage.posts,
+    dataset,
+    initialPage: firstPage,
     grade: gradeFor(ds.scorecard, ds.calls),
     traits: traitsFor(ds.calls),
     convictionRows: convictionRows(ds.calls),

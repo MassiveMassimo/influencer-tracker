@@ -163,11 +163,16 @@ export async function readPagePerf(page: Page) {
     const html = nav?.encodedBodySize || nav?.transferSize || 0;
     const htmlDecoded = nav?.decodedBodySize || 0;
     return {
+      elapsed: Math.round(performance.now()),
       ttfb: nav ? Math.round(nav.responseStart) : 0,
       fcp: Math.round(fcp),
       domContentLoaded: nav ? Math.round(nav.domContentLoadedEventEnd) : 0,
       load: nav ? Math.round(nav.loadEventEnd) : 0,
       domNodes: document.getElementsByTagName("*").length,
+      heapMB:
+        "memory" in performance
+          ? +(((performance as any).memory.usedJSHeapSize ?? 0) / 1024 / 1024).toFixed(2)
+          : 0,
       transferKB: {
         html: kb(html),
         htmlDecoded: kb(htmlDecoded),
