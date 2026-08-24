@@ -1,5 +1,6 @@
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import {
   ArrowDownRightIcon,
@@ -11,13 +12,10 @@ import {
 import { useInView } from "#/lib/use-in-view.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
-import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
-import { gradeFor } from "#/lib/grade";
 import { GradeDetail } from "#/components/grade-detail";
 import { TraitBadges } from "#/components/trait-badges";
-import { traitsFor } from "#/lib/traits";
 import { IdentityMenu } from "#/components/identity-menu";
 import { ChartBoundary } from "../components/ChartBoundary";
 import { ConvictionBars, CumulativeExcess, HorizonBars } from "../components/AnalyticsCharts";
@@ -26,7 +24,7 @@ import { NavButton } from "../components/ui/nav-button";
 import { NavRow } from "../components/ui/nav-row";
 import { Button } from "../components/ui/button";
 import { StatGrid } from "../components/ui/stat-grid";
-import type { Call, Dataset } from "../lib/types";
+import type { Call } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
 import { TextSwap, useTextSwap } from "#/components/text-swap.tsx";
 import { IconSwap } from "#/components/icon-swap.tsx";
@@ -48,21 +46,23 @@ import {
   profileUrl as profileLink,
   platformIcon as platformIconClass,
 } from "#/lib/platform.ts";
-
-const CALLS_PER_PAGE = 25;
+import { fetchCreatorOverview } from "#/lib/creator-fetch";
+import { CREATOR_CALLS_PAGE_SIZE, type CreatorCallsPage } from "#/lib/creator-data";
+import { creatorCallsPageQuery } from "#/lib/creator-query";
 
 export const Route = createFileRoute("/c/$handle/")({
   loader: async ({ params, context }) => {
-    const ds = await fetchDataset(params.handle);
+    const overview = await fetchCreatorOverview({ data: { handle: params.handle } });
     await prefetchHalal(
       context.queryClient,
-      ds.calls.map((c) => c.ticker),
+      overview.ds.calls.map((call) => call.ticker),
     );
-    return ds;
+    return overview;
   },
+  staleTime: 5 * 60 * 1000,
   head: ({ params, loaderData }) => {
-    const name = loaderData?.creator.name ?? params.handle;
-    const sc = loaderData?.scorecard;
+    const name = loaderData?.ds.creator.name ?? params.handle;
+    const sc = loaderData?.ds.scorecard;
     const rev = ogRev([sc?.avgExcess["3m"], sc?.totalCalls]);
     const img = siteUrl(`/api/og/c/${params.handle}/${rev}`);
     return {
@@ -169,7 +169,8 @@ function CreatorHeading({
 }
 
 function Overview() {
-  const ds = Route.useLoaderData();
+  const overview = Route.useLoaderData();
+  const ds = overview.ds;
   const { handle } = Route.useParams();
   const sc = ds.scorecard;
   // Avatar isn't in dataset.json (handle+name only); read it from the root
@@ -254,16 +255,11 @@ function Overview() {
 
   const [statsRef, statsInView] = useInView<HTMLElement>();
 
-  const grade = useMemo(() => gradeFor(ds.scorecard, ds.calls), [ds]);
-  const traits = useMemo(() => traitsFor(ds.calls), [ds]);
+  const grade = overview.grade;
+  const traits = overview.traits;
   // Header medallion shows at md+, the grid-cell one below md — only animate the
   // visible one (false on SSR/first paint → both idle until this resolves).
   const isDesktop = useMediaQuery("(min-width: 768px)");
-
-  const calls = useMemo(
-    () => [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate)),
-    [ds.calls],
-  );
 
   const platform = platformOf(String(ds.calls[0]?.shortcode ?? ""));
   const profileUrl = profileLink(platform, ds.creator.handle);
@@ -391,7 +387,7 @@ function Overview() {
         </div>
         <div className="mt-3">
           <ChartBoundary>
-            <CumulativeExcess ds={ds} />
+            <CumulativeExcess scorecard={ds.scorecard} nPicks={overview.scoredPickCount} />
           </ChartBoundary>
         </div>
       </section>
@@ -406,7 +402,7 @@ function Overview() {
               </span>
             </div>
             <div className="mt-3">
-              <HorizonBars ds={ds} />
+              <HorizonBars scorecard={ds.scorecard} />
             </div>
           </div>
           <div className="bg-card p-6">
@@ -417,12 +413,21 @@ function Overview() {
               </span>
             </div>
             <div className="mt-3">
-              <ConvictionBars ds={ds} />
+              <ConvictionBars rows={overview.convictionRows} />
             </div>
           </div>
         </StatGrid>
 
-        <CallsList handle={handle} calls={calls} ds={ds} />
+        <CallsList
+          handle={handle}
+          initialPage={{
+            calls: ds.calls,
+            currentPage: 1,
+            pageCount: overview.pageCount,
+            totalCalls: overview.totalCalls,
+            posts: overview.posts,
+          }}
+        />
 
         <CaveatsBanner caveats={ds.caveats} />
       </div>
@@ -486,29 +491,40 @@ function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean })
   );
 }
 
-function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: Dataset }) {
+function CallsList({ handle, initialPage }: { handle: string; initialPage: CreatorCallsPage }) {
   const [page, setPage] = useState(1);
-  const pageCount = Math.max(1, Math.ceil(calls.length / CALLS_PER_PAGE));
+  const queryClient = useQueryClient();
+  const pageCount = initialPage.pageCount;
   const current = Math.min(page, pageCount);
-  const start = (current - 1) * CALLS_PER_PAGE;
-  const visible = calls.slice(start, start + CALLS_PER_PAGE);
-  const allTickers = useMemo(() => calls.map((c) => c.ticker), [calls]);
-  const getHalal = useHalalStatus(allTickers);
+  const query = useQuery({
+    ...creatorCallsPageQuery(handle, current),
+    initialData: current === 1 ? initialPage : undefined,
+  });
+  const pageData = query.data ?? initialPage;
+  const visible = pageData.calls;
+  const start = (current - 1) * CREATOR_CALLS_PAGE_SIZE;
+  const visibleTickers = useMemo(() => visible.map((call) => call.ticker), [visible]);
+  const getHalal = useHalalStatus(visibleTickers);
+
+  useEffect(() => {
+    const next = current + 1;
+    if (next <= pageCount) {
+      void queryClient.prefetchQuery(creatorCallsPageQuery(handle, next));
+    }
+  }, [current, handle, pageCount, queryClient]);
+
   // Row-click opens proof; siblings = other tickers named in the same post.
   const [selected, setSelected] = useState<Call | null>(null);
   const siblings = useMemo(
     () =>
       selected
         ? {
-            [selected.shortcode]: calls.reduce<{ ticker: string; company: string }[]>((acc, c) => {
-              if (c.shortcode === selected.shortcode && c.ticker !== selected.ticker) {
-                acc.push({ ticker: c.ticker, company: c.company });
-              }
-              return acc;
-            }, []),
+            [selected.shortcode]: (pageData.posts[selected.shortcode] ?? []).filter(
+              (call) => call.ticker !== selected.ticker,
+            ),
           }
         : undefined,
-    [selected, calls],
+    [pageData.posts, selected],
   );
 
   return (
@@ -518,10 +534,10 @@ function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: D
           Calls
         </span>
         <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-          {calls.length} signals · newest first
+          {initialPage.totalCalls} signals · newest first
         </span>
       </div>
-      {calls.length === 0 ? (
+      {initialPage.totalCalls === 0 ? (
         <div className="px-5 py-6 text-sm text-muted-foreground">No calls yet.</div>
       ) : (
         <NavMenu activeSlug={null} radius="rounded-none" separated aria-label="Calls">
@@ -540,12 +556,12 @@ function CallsList({ handle, calls, ds }: { handle: string; calls: Call[]; ds: D
       {pageCount > 1 && (
         <div className="flex items-center justify-between gap-3 border-t border-border/40 px-3 py-3">
           <span className="hidden pl-2 font-mono text-[10px] text-muted-foreground tabular-nums sm:block">
-            {start + 1}–{start + visible.length} of {calls.length}
+            {start + 1}–{start + visible.length} of {initialPage.totalCalls}
           </span>
           <CallsPagination current={current} pageCount={pageCount} onSelect={setPage} />
         </div>
       )}
-      <span className="sr-only">{ds.creator.handle} calls list</span>
+      <span className="sr-only">{handle} calls list</span>
       <ProofViewer
         call={selected}
         handle={handle}
