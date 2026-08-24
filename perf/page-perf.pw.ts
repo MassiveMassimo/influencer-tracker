@@ -60,10 +60,17 @@ test.describe("page performance (prod build)", () => {
       timeout: 30_000,
     });
     await page.waitForTimeout(500);
+
+    // Snapshot application work before forced GC so measurement work cannot
+    // inflate the long-task and LoAF counters.
+    const m = await readPagePerf(page);
     await page.evaluate(() => (window as any).gc?.());
     await page.waitForTimeout(300);
-
-    const m = await readPagePerf(page);
+    m.heapMB = await page.evaluate(() =>
+      "memory" in performance
+        ? +(((performance as any).memory.usedJSHeapSize ?? 0) / 1024 / 1024).toFixed(2)
+        : 0,
+    );
     logTable("explore settled background index", {
       "elapsed after navigation": `${Math.round(m.elapsed)} ms`,
       "DOM nodes": m.domNodes,

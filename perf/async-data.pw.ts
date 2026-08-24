@@ -1,6 +1,8 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { ROUTES } from "./helpers";
 
+const CREATOR_HANDLE = ROUTES.creator.split("/").at(-1);
+
 function creatorPageFromRoute(route: Route): number | null {
   const serialized = new URL(route.request().url()).searchParams.get("payload");
   if (!serialized) return null;
@@ -10,9 +12,13 @@ function creatorPageFromRoute(route: Route): number | null {
     const record = value as Record<string, unknown>;
     const properties = record.p as { k?: unknown[]; v?: unknown[] } | undefined;
     const pageIndex = properties?.k?.indexOf("page");
-    if (pageIndex != null && pageIndex >= 0) {
-      const encoded = properties?.v?.[pageIndex] as { s?: unknown } | undefined;
-      return typeof encoded?.s === "number" ? encoded.s : null;
+    const handleIndex = properties?.k?.indexOf("handle");
+    if (pageIndex != null && pageIndex >= 0 && handleIndex != null && handleIndex >= 0) {
+      const encodedPage = properties?.v?.[pageIndex] as { s?: unknown } | undefined;
+      const encodedHandle = properties?.v?.[handleIndex] as { s?: unknown } | undefined;
+      return encodedHandle?.s === CREATOR_HANDLE && typeof encodedPage?.s === "number"
+        ? encodedPage.s
+        : null;
     }
     for (const child of Object.values(record)) {
       const page = visit(child);
@@ -115,12 +121,16 @@ test.describe("async data correctness", () => {
 
     await page.goto(ROUTES.creator, { waitUntil: "load" });
     const total = await creatorCallTotal(page);
-    await page.getByRole("button", { name: "Go to page 2" }).click();
+    const pageTwoButton = page.getByRole("button", { name: "Go to page 2" });
+    await pageTwoButton.hover();
+    await expect.poll(() => requestedPages).toEqual([2]);
+    await pageTwoButton.click();
 
     await expect(page.getByRole("status").filter({ hasText: "Loading page 2…" })).toHaveText(
       "Loading page 2…",
     );
     await expect(page.getByText(`1–25 of ${total}`, { exact: true })).toBeVisible();
+    await expect(page.locator('#calls nav[aria-label="Calls"] [role="button"]')).toHaveCount(25);
 
     releasePageTwo();
 
@@ -152,6 +162,7 @@ test.describe("async data correctness", () => {
     });
     await expect(retry).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(`1–25 of ${total}`, { exact: true })).toBeVisible();
+    await expect(page.locator('#calls nav[aria-label="Calls"] [role="button"]')).toHaveCount(25);
 
     failPageTwo = false;
     await retry.click();
