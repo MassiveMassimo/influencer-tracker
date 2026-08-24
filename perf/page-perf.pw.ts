@@ -60,6 +60,8 @@ test.describe("page performance (prod build)", () => {
       timeout: 30_000,
     });
     await page.waitForTimeout(500);
+    await page.evaluate(() => (window as any).gc?.());
+    await page.waitForTimeout(300);
 
     const m = await readPagePerf(page);
     logTable("explore settled background index", {
@@ -70,9 +72,34 @@ test.describe("page performance (prod build)", () => {
       "resource transfer": `${m.transferKB.resources} KB`,
       "total transfer": `${m.transferKB.total} KB`,
       longTasks: `${m.longTasks.count} (${m.longTasks.total.toFixed(0)} ms, max ${m.longTasks.max.toFixed(0)})`,
-      LoAF: `${m.loaf.count} (maxBlocking ${m.loaf.maxBlocking.toFixed(0)} ms)`,
+      LoAF: `${m.loaf.count} (${m.loaf.total.toFixed(0)} ms, maxBlocking ${m.loaf.maxBlocking.toFixed(0)} ms)`,
     });
     writeReport("page-prod__explore-settled", { path: ROUTES.explore, ...m });
+
+    expect
+      .soft(m.transferKB.total, "settled Explore total transfer")
+      .toBeLessThan(BUDGETS.exploreSettledTotalTransferKB);
+    if (m.heapMB > 0) {
+      expect.soft(m.heapMB, "settled Explore JS heap").toBeLessThan(BUDGETS.exploreSettledHeapMB);
+    } else {
+      test.info().annotations.push({
+        type: "heap",
+        description: "Precise heap instrumentation unavailable",
+      });
+    }
+    expect
+      .soft(m.domNodes, "settled Explore DOM nodes")
+      .toBeLessThan(BUDGETS.exploreSettledDomNodes);
+    expect
+      .soft(m.longTasks.total, "settled Explore long-task total")
+      .toBeLessThan(BUDGETS.exploreSettledLongTaskTotalMs);
+    expect(m.loaf.supported, "Chromium must expose LoAF instrumentation").toBe(true);
+    expect
+      .soft(m.loaf.total, "settled Explore LoAF total")
+      .toBeLessThan(BUDGETS.exploreSettledLoafTotalMs);
+    expect
+      .soft(m.loaf.maxBlocking, "settled Explore LoAF max blocking")
+      .toBeLessThan(BUDGETS.exploreSettledLoafMaxBlockingMs);
   });
 
   test("interaction jank — ticker timeframe switching", async ({ page }) => {
@@ -82,7 +109,12 @@ test.describe("page performance (prod build)", () => {
     await page.evaluate(() => {
       const s = (window as any).__pp;
       s.longTasks = { count: 0, total: 0, max: 0 };
-      s.loaf = { count: 0, total: 0, maxBlocking: 0 };
+      s.loaf = {
+        supported: s.loaf.supported,
+        count: 0,
+        total: 0,
+        maxBlocking: 0,
+      };
     });
 
     await switchTimeframes(page, ["1M", "1D", "1Y", "1W", "3M", "All", "6M", "1M"]);

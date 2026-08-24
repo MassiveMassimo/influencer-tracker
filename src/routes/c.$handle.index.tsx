@@ -638,7 +638,7 @@ function CallsPagination({
         slug={String(p)}
         aria-label={`Go to page ${p}`}
         onClick={() => onSelect(p)}
-        onPointerEnter={() => onPrefetch(p)}
+        onPointerMove={() => onPrefetch(p)}
         onFocus={() => onPrefetch(p)}
         className="h-8 min-w-8 px-2 tabular-nums"
       >
