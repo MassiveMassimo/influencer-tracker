@@ -19,6 +19,20 @@ export interface ProfileMediaRef {
   kind: "reel" | "post";
 }
 
+export function mergeProfileInventory(
+  previous: string[],
+  current: ProfileMediaRef[],
+  unavailable: Set<string>,
+): string[] {
+  return [
+    ...new Set(
+      [...current.map((media) => media.shortcode), ...previous].filter(
+        (shortcode) => !unavailable.has(shortcode),
+      ),
+    ),
+  ];
+}
+
 // Profile media links include the owning/collaborating profile in the path:
 // /<handle>/(reel|p)/<shortcode>/. Instagram also loads unrelated media in
 // GraphQL responses, so only DOM links attributed to the requested profile qualify.

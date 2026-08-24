@@ -5,6 +5,7 @@ import {
   assertScrapeCoverage,
   forwardCaughtUp,
   knownShortcodes,
+  mergeProfileInventory,
   profileMediaFromHrefs,
 } from "./scrape-forward";
 import { DATA } from "./config";
@@ -33,6 +34,19 @@ test("profileMediaFromHrefs: includes target reels and feed posts with their med
     { shortcode: "REEL1", kind: "reel" },
     { shortcode: "POST1", kind: "post" },
   ]);
+});
+
+test("mergeProfileInventory preserves verified history and removes confirmed deletions", () => {
+  expect(
+    mergeProfileInventory(
+      ["OLD", "REMOVED"],
+      [
+        { shortcode: "NEW", kind: "reel" },
+        { shortcode: "OLD", kind: "post" },
+      ],
+      new Set(["REMOVED"]),
+    ),
+  ).toEqual(["NEW", "OLD"]);
 });
 
 test("assertScrapeCoverage: rejects empty and unanchored forward scrapes", () => {

@@ -13,6 +13,7 @@ import {
   assertScrapeCoverage,
   knownShortcodes,
   forwardCaughtUp,
+  mergeProfileInventory,
   profileMediaFromHrefs,
   type ProfileMediaRef,
 } from "./scrape-forward";
@@ -287,13 +288,15 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
     observedKnown,
   });
   await mkdir(rawDir(handle), { recursive: true });
+  let previousInventory: string[] = [];
+  try {
+    previousInventory = JSON.parse(await readFile(join(rawDir(handle), "shortcodes.json"), "utf8"));
+  } catch {
+    // First verified scrape for this creator.
+  }
   await writeFile(
     join(rawDir(handle), "shortcodes.json"),
-    JSON.stringify(
-      recent.map((media) => media.shortcode),
-      null,
-      2,
-    ),
+    JSON.stringify(mergeProfileInventory(previousInventory, recent, unavailable), null, 2),
   );
 
   // Persist harvested GraphQL dates to the durable store (the source of truth for extract's
