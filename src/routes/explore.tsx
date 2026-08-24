@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchCallsIndex, listCreators } from "../lib/data";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
 import type { CallIndexEntry } from "../lib/call-index";
@@ -10,13 +11,16 @@ import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
 import { NavMenu } from "#/components/ui/nav-menu.tsx";
 import { NavRow } from "#/components/ui/nav-row.tsx";
+import { callsIndexQuery } from "#/lib/calls-index-query.ts";
+import { EXPLORE_VISIBLE_STEP, buildExploreInitialData } from "#/lib/explore-data.ts";
 
 export const Route = createFileRoute("/explore")({
   loader: async ({ context }) => {
     const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
+    const initial = buildExploreInitialData(calls);
     await prefetchHalal(
       context.queryClient,
-      calls.map((c) => c.ticker),
+      initial.calls.slice(0, EXPLORE_VISIBLE_STEP).map((call) => call.ticker),
     );
     // The calls-index artifact ships as a plain array with no generatedAt; use the freshest
     // creator's generatedAt as the cross-creator "data as of" (newest scoring run in the set).
@@ -28,11 +32,12 @@ export const Route = createFileRoute("/explore")({
     // base64 avatars and stats so they aren't dehydrated into the SSR HTML (the root
     // loader already ships the full roster — no need to duplicate the avatar payload here).
     return {
-      calls,
+      ...initial,
       generatedAt,
       creators: creators.map((c) => ({ handle: c.handle, name: c.name })),
     };
   },
+  staleTime: 5 * 60 * 1000,
   head: () => ({
     meta: [
       { title: "Explore all calls — Signal Tracker" },
@@ -61,7 +66,12 @@ function tone(x: number | null) {
 }
 
 function Explore() {
-  const { calls, generatedAt, creators } = Route.useLoaderData();
+  const { calls: initialCalls, totalCalls, generatedAt, creators } = Route.useLoaderData();
+  const callsQuery = useQuery({
+    ...callsIndexQuery(),
+    placeholderData: initialCalls,
+  });
+  const calls = callsQuery.data ?? initialCalls;
   const names = useMemo(
     () => Object.fromEntries(creators.map((c) => [c.handle, c.name])),
     [creators],
@@ -74,9 +84,15 @@ function Explore() {
     horizon: "ex3m",
     sort: { key: "postDate", dir: -1 },
   });
-  const rows = useMemo(() => applyCallFilter(calls, filter, names), [calls, filter, names]);
-  const allTickers = useMemo(() => calls.map((c) => c.ticker), [calls]);
-  const getHalal = useHalalStatus(allTickers);
+  const deferredFilter = useDeferredValue(filter);
+  const rows = useMemo(
+    () => applyCallFilter(calls, deferredFilter, names),
+    [calls, deferredFilter, names],
+  );
+  const [visibleCount, setVisibleCount] = useState(EXPLORE_VISIBLE_STEP);
+  const visibleRows = useMemo(() => rows.slice(0, visibleCount), [rows, visibleCount]);
+  const visibleTickers = useMemo(() => visibleRows.map((call) => call.ticker), [visibleRows]);
+  const getHalal = useHalalStatus(visibleTickers);
   // Selected call → proof viewer. Index rows carry no `quote` (slim asset), so the
   // viewer shows the embed + summary; siblings = other tickers in the same post.
   const [selected, setSelected] = useState<CallIndexEntry | null>(null);
@@ -98,16 +114,20 @@ function Explore() {
         : undefined,
     [selected, calls],
   );
-  const onSort = (key: SortKey) =>
+  const onSort = (key: SortKey) => {
+    setVisibleCount(EXPLORE_VISIBLE_STEP);
     setFilter((f) => ({
       ...f,
       sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 },
     }));
-  const toggleHandle = (h: string) =>
+  };
+  const toggleHandle = (h: string) => {
+    setVisibleCount(EXPLORE_VISIBLE_STEP);
     setFilter((f) => ({
       ...f,
       handles: f.handles.includes(h) ? f.handles.filter((x) => x !== h) : [...f.handles, h],
     }));
+  };
 
   return (
     <main className="mx-auto max-w-6xl space-y-5 px-4 py-8 md:px-10 md:py-10">
@@ -118,7 +138,7 @@ function Explore() {
         <h1 className="mt-1 font-heading text-2xl">Explore calls</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Every scored call across all creators. Filter, sort, and search (all client-side over one
-          cached index, {calls.length} calls).
+          cached index, {totalCalls} calls).
         </p>
         {generatedAt && <DataAsOf iso={generatedAt} className="mt-2 block" />}
       </header>
@@ -128,7 +148,10 @@ function Explore() {
           type="search"
           aria-label="Search ticker, company, or creator"
           value={filter.search}
-          onChange={(e) => setFilter((f) => ({ ...f, search: e.target.value }))}
+          onChange={(e) => {
+            setVisibleCount(EXPLORE_VISIBLE_STEP);
+            setFilter((f) => ({ ...f, search: e.target.value }));
+          }}
           placeholder="Search ticker, company, creator…"
           className="h-9 w-full max-w-xs rounded-md border border-border/60 bg-background px-3 text-sm outline-none focus:border-foreground/30 md:w-64"
         />
@@ -136,7 +159,10 @@ function Explore() {
           <input
             type="checkbox"
             checked={filter.firstOnly}
-            onChange={(e) => setFilter((f) => ({ ...f, firstOnly: e.target.checked }))}
+            onChange={(e) => {
+              setVisibleCount(EXPLORE_VISIBLE_STEP);
+              setFilter((f) => ({ ...f, firstOnly: e.target.checked }));
+            }}
           />
           First calls only
         </label>
@@ -144,7 +170,10 @@ function Explore() {
           <input
             type="checkbox"
             checked={filter.beatSpyOnly}
-            onChange={(e) => setFilter((f) => ({ ...f, beatSpyOnly: e.target.checked }))}
+            onChange={(e) => {
+              setVisibleCount(EXPLORE_VISIBLE_STEP);
+              setFilter((f) => ({ ...f, beatSpyOnly: e.target.checked }));
+            }}
           />
           Beat SPY (3m)
         </label>
@@ -204,7 +233,7 @@ function Explore() {
           <div className="px-5 py-6 text-sm text-muted-foreground">No calls match.</div>
         ) : (
           <NavMenu activeSlug={null} radius="rounded-none" separated aria-label="Calls">
-            {rows.slice(0, 500).map((r, i) => (
+            {visibleRows.map((r, i) => (
               <NavRow
                 key={`${r.handle}:${r.shortcode}:${r.ticker}`}
                 index={i}
@@ -255,9 +284,16 @@ function Explore() {
             ))}
           </NavMenu>
         )}
-        {rows.length > 500 && (
-          <div className="border-t border-border/40 px-5 py-3 text-center text-xs text-muted-foreground">
-            Showing first 500 of {rows.length}. Narrow the filter to see more.
+        {visibleRows.length < rows.length && (
+          <div className="border-t border-border/40 px-5 py-3 text-center">
+            <button
+              type="button"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => setVisibleCount((count) => count + EXPLORE_VISIBLE_STEP)}
+            >
+              Show {Math.min(EXPLORE_VISIBLE_STEP, rows.length - visibleRows.length)} more ·{" "}
+              {visibleRows.length} of {rows.length}
+            </button>
           </div>
         )}
       </section>
