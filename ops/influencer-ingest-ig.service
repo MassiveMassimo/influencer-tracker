@@ -10,7 +10,7 @@ EnvironmentFile=/home/ubuntu/influencer-tracker/.env
 # Omitting yt-dlp made its spawn fail with ENOENT and caused a data gap.
 Environment=PATH=/home/ubuntu/asr-venv/bin:/home/ubuntu/.local/bin:/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
 # IG scrape downloads + processes new posts (Parakeet CPU + image OCR) — allow generous wall time.
-RuntimeMaxSec=4h
+TimeoutStartSec=4h
 # SHARED lock with the X ingest (/tmp/influencer-ingest.lock, NOT a separate -ig lock): both
 # timers mutate the same git repo (checkout/clean/pull/commit/push), so they must serialize to
 # avoid a torn .git index or discarding an unpushed commit. The 14:00 stagger then just means IG
