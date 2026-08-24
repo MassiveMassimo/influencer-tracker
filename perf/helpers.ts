@@ -12,8 +12,8 @@ export const ROUTES = {
   ticker: "/t/VRT/all",
 } as const;
 
-// Soft budgets — generous on purpose (~1.4x current measured values) so the suite
-// flags real regressions, not normal jitter. Tighten once a baseline settles.
+// Soft budgets retain metric-specific headroom so the suite flags real
+// regressions, not normal jitter. Tighten once a baseline settles.
 // Baseline (2026-06-24, dev, this machine): ~6400 renders/switch over 12 switches,
 // ~10 commits/switch, ~650 components re-rendered PER animation frame. The high
 // render count is the per-frame morph animation + by-design marker remount/restagger;

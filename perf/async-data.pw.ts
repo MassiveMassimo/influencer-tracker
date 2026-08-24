@@ -40,6 +40,14 @@ async function failCallsIndex(page: Page, shouldFail: () => boolean) {
   await page.route("**/calls-index.json", handler);
 }
 
+async function creatorCallTotal(page: Page) {
+  const initialRange = page.locator("#calls").getByText(/^1–25 of \d+$/);
+  await expect(initialRange).toBeVisible();
+  const match = (await initialRange.textContent())?.match(/^1–25 of (\d+)$/);
+  if (!match) throw new Error("Creator call range did not expose its total");
+  return match[1];
+}
+
 test.describe("async data correctness", () => {
   test("Explore never presents partial rows as complete filter results", async ({ page }) => {
     let releaseIndex!: () => void;
@@ -106,16 +114,17 @@ test.describe("async data correctness", () => {
     });
 
     await page.goto(ROUTES.creator, { waitUntil: "load" });
+    const total = await creatorCallTotal(page);
     await page.getByRole("button", { name: "Go to page 2" }).click();
 
     await expect(page.getByRole("status").filter({ hasText: "Loading page 2…" })).toHaveText(
       "Loading page 2…",
     );
-    await expect(page.getByText("1–25 of 2035")).toBeVisible();
+    await expect(page.getByText(`1–25 of ${total}`, { exact: true })).toBeVisible();
 
     releasePageTwo();
 
-    await expect(page.getByText("26–50 of 2035")).toBeVisible();
+    await expect(page.getByText(`26–50 of ${total}`, { exact: true })).toBeVisible();
     await page.waitForTimeout(250);
     expect(requestedPages).toEqual([2]);
   });
@@ -135,18 +144,19 @@ test.describe("async data correctness", () => {
     });
 
     await page.goto(ROUTES.creator, { waitUntil: "load" });
+    const total = await creatorCallTotal(page);
     await page.getByRole("button", { name: "Go to page 2" }).click();
 
     const retry = page.getByRole("button", {
       name: "Page 2 failed. Retry",
     });
     await expect(retry).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByText("1–25 of 2035")).toBeVisible();
+    await expect(page.getByText(`1–25 of ${total}`, { exact: true })).toBeVisible();
 
     failPageTwo = false;
     await retry.click();
 
-    await expect(page.getByText("26–50 of 2035")).toBeVisible();
+    await expect(page.getByText(`26–50 of ${total}`, { exact: true })).toBeVisible();
     await expect(retry).toHaveCount(0);
   });
 });
