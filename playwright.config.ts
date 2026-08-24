@@ -35,7 +35,7 @@ export default defineConfig({
     },
     {
       name: "page-prod",
-      testMatch: /(page-perf|memory)\.pw\.ts/,
+      testMatch: /(async-data|page-perf|memory)\.pw\.ts/,
       use: {
         baseURL: `http://localhost:${PROD_PORT}`,
         ...devices["Desktop Chrome"],
@@ -50,7 +50,7 @@ export default defineConfig({
       // worktree's server instead of the app's localhost:3000 fallback.
       command: `VITE_SITE_URL=http://localhost:${DEV_PORT} bunx vite dev --port ${DEV_PORT}`,
       url: `http://localhost:${DEV_PORT}`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120_000,
       stdout: "ignore",
       stderr: "pipe",
@@ -59,7 +59,7 @@ export default defineConfig({
       // build once, then serve the nitro node output (prod SSR)
       command: `VITE_SITE_URL=http://localhost:${PROD_PORT} bunx vite build && VITE_SITE_URL=http://localhost:${PROD_PORT} PORT=${PROD_PORT} node .output/server/index.mjs`,
       url: `http://localhost:${PROD_PORT}`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 600_000,
       stdout: "ignore",
       stderr: "pipe",

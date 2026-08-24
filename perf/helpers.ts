@@ -31,6 +31,15 @@ export const BUDGETS = {
   cls: 0.1, // baseline: creator 0.067 (stat-tile reveal), others ~0
   longTaskTotalMs: 2000,
   loafMaxBlockingMs: 400,
+  // Fresh-server Explore maxima observed across the calibration runs were
+  // 3124 KB, 12.45 MB, 1464 nodes, 694 ms long tasks, 1097 ms LoAF total,
+  // and 198 ms LoAF blocking. These limits retain regression headroom.
+  exploreSettledTotalTransferKB: 3500,
+  exploreSettledHeapMB: 25,
+  exploreSettledDomNodes: 2000,
+  exploreSettledLongTaskTotalMs: 1000,
+  exploreSettledLoafTotalMs: 1600,
+  exploreSettledLoafMaxBlockingMs: 300,
   // baseline 28.7MB/28 switches — likely bounded TanStack Query timeframe cache,
   // not a leak; 40 gives GC-jitter headroom. If this climbs with more CYCLES, investigate.
   heapGrowthMB: 40,
@@ -111,7 +120,12 @@ export function pagePerfInit() {
     lcp: 0,
     cls: 0,
     longTasks: { count: 0, total: 0, max: 0 },
-    loaf: { count: 0, total: 0, maxBlocking: 0 },
+    loaf: {
+      supported: PerformanceObserver.supportedEntryTypes.includes("long-animation-frame"),
+      count: 0,
+      total: 0,
+      maxBlocking: 0,
+    },
   };
   (window as any).__pp = s;
   const obs = (type: string, cb: (e: any) => void) => {
