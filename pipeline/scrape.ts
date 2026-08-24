@@ -255,20 +255,19 @@ export async function scrape(handle: string, months = 12, opts: { forward?: bool
 
   let recent = [...seen.values()].filter((media) => !media.takenAt || media.takenAt >= cutoff);
   const unavailable = new Set((await loadUnavailableMedia(handle)).map((item) => item.shortcode));
-  const failed = new Set((await loadDownloadFailures(handle)).map((item) => item.shortcode));
-  for (const media of recent) {
-    if (unavailable.has(media.shortcode) || !failed.has(media.shortcode)) continue;
-    const path = media.kind === "reel" ? "reel" : "p";
-    await page.goto(`https://www.instagram.com/${path}/${media.shortcode}/`, {
+  for (const failure of await loadDownloadFailures(handle)) {
+    if (unavailable.has(failure.shortcode)) continue;
+    const path = failure.kind === "post" ? "p" : "reel";
+    await page.goto(`https://www.instagram.com/${path}/${failure.shortcode}/`, {
       waitUntil: "domcontentloaded",
       timeout: 30_000,
     });
     await page.waitForTimeout(3000);
     if ((await page.locator("body").innerText()).includes("Sorry, this page isn't available.")) {
-      console.warn(`confirmed unavailable ${media.shortcode} — excluding deleted post`);
-      await recordUnavailableMedia(handle, media.shortcode, media.kind);
-      await clearDownloadFailure(handle, media.shortcode);
-      unavailable.add(media.shortcode);
+      console.warn(`confirmed unavailable ${failure.shortcode} — excluding deleted post`);
+      await recordUnavailableMedia(handle, failure.shortcode, failure.kind ?? "reel");
+      await clearDownloadFailure(handle, failure.shortcode);
+      unavailable.add(failure.shortcode);
     }
   }
   recent = recent.filter((media) => !unavailable.has(media.shortcode));
