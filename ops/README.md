@@ -96,7 +96,7 @@ using the `~/asr-venv` interpreter (override with `PARAKEET_PYTHON`). One-time:
 ```bash
 sudo apt-get install -y ffmpeg python3-venv      # ffmpeg also needed by the frames stage
 python3 -m venv ~/asr-venv
-~/asr-venv/bin/pip install onnx-asr onnxruntime soundfile huggingface_hub
+~/asr-venv/bin/pip install onnx-asr onnxruntime soundfile huggingface_hub yt-dlp
 # warm the model cache (first load downloads ~600 MB from HF):
 ~/asr-venv/bin/python -c 'import onnx_asr; onnx_asr.load_model("nemo-parakeet-tdt-0.6b-v2")'
 ```

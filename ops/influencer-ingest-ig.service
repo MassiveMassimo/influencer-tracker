@@ -6,9 +6,9 @@ Type=oneshot
 User=ubuntu
 WorkingDirectory=/home/ubuntu/influencer-tracker
 EnvironmentFile=/home/ubuntu/influencer-tracker/.env
-# .local/bin is load-bearing: yt-dlp lives at ~/.local/bin/yt-dlp. Omitting it
-# made its spawn fail with ENOENT, which run.ts swallowed and caused a data gap.
-Environment=PATH=/home/ubuntu/.local/bin:/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+# asr-venv/bin is load-bearing: it contains both yt-dlp and the Parakeet runtime.
+# Omitting yt-dlp made its spawn fail with ENOENT and caused a data gap.
+Environment=PATH=/home/ubuntu/asr-venv/bin:/home/ubuntu/.local/bin:/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
 # IG scrape downloads + processes new posts (Parakeet CPU + image OCR) — allow generous wall time.
 RuntimeMaxSec=4h
 # SHARED lock with the X ingest (/tmp/influencer-ingest.lock, NOT a separate -ig lock): both
