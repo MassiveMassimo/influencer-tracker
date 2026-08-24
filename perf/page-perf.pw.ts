@@ -31,6 +31,7 @@ test.describe("page performance (prod build)", () => {
         DOMContentLoaded: `${m.domContentLoaded} ms`,
         load: `${m.load} ms`,
         "DOM nodes": m.domNodes,
+        "JS heap": `${m.heapMB} MB`,
         "HTML transfer": `${m.transferKB.html} KB`,
         "HTML decoded": `${m.transferKB.htmlDecoded} KB`,
         "JS transfer": `${m.transferKB.js} KB`,
@@ -52,6 +53,27 @@ test.describe("page performance (prod build)", () => {
         .toBeLessThan(BUDGETS.totalTransferKB);
     });
   }
+
+  test("settled background metrics — Explore complete index", async ({ page }) => {
+    await page.goto(ROUTES.explore, { waitUntil: "load" });
+    await expect(page.locator("main")).toHaveAttribute("data-index-state", "ready", {
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(500);
+
+    const m = await readPagePerf(page);
+    logTable("explore settled background index", {
+      "elapsed after navigation": `${Math.round(m.elapsed)} ms`,
+      "DOM nodes": m.domNodes,
+      "JS heap": `${m.heapMB} MB`,
+      "HTML transfer": `${m.transferKB.html} KB`,
+      "resource transfer": `${m.transferKB.resources} KB`,
+      "total transfer": `${m.transferKB.total} KB`,
+      longTasks: `${m.longTasks.count} (${m.longTasks.total.toFixed(0)} ms, max ${m.longTasks.max.toFixed(0)})`,
+      LoAF: `${m.loaf.count} (maxBlocking ${m.loaf.maxBlocking.toFixed(0)} ms)`,
+    });
+    writeReport("page-prod__explore-settled", { path: ROUTES.explore, ...m });
+  });
 
   test("interaction jank — ticker timeframe switching", async ({ page }) => {
     await page.goto(ROUTES.ticker, { waitUntil: "load" });

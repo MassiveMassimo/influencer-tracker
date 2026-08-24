@@ -1,5 +1,5 @@
 import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import {
@@ -55,14 +55,14 @@ export const Route = createFileRoute("/c/$handle/")({
     const overview = await fetchCreatorOverview({ data: { handle: params.handle } });
     await prefetchHalal(
       context.queryClient,
-      overview.ds.calls.map((call) => call.ticker),
+      overview.initialPage.calls.map((call) => call.ticker),
     );
     return overview;
   },
   staleTime: 5 * 60 * 1000,
   head: ({ params, loaderData }) => {
-    const name = loaderData?.ds.creator.name ?? params.handle;
-    const sc = loaderData?.ds.scorecard;
+    const name = loaderData?.dataset.creator.name ?? params.handle;
+    const sc = loaderData?.dataset.scorecard;
     const rev = ogRev([sc?.avgExcess["3m"], sc?.totalCalls]);
     const img = siteUrl(`/api/og/c/${params.handle}/${rev}`);
     return {
@@ -170,7 +170,7 @@ function CreatorHeading({
 
 function Overview() {
   const overview = Route.useLoaderData();
-  const ds = overview.ds;
+  const ds = overview.dataset;
   const { handle } = Route.useParams();
   const sc = ds.scorecard;
   // Avatar isn't in dataset.json (handle+name only); read it from the root
@@ -261,7 +261,7 @@ function Overview() {
   // visible one (false on SSR/first paint → both idle until this resolves).
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  const platform = platformOf(String(ds.calls[0]?.shortcode ?? ""));
+  const platform = platformOf(String(overview.initialPage.calls[0]?.shortcode ?? ""));
   const profileUrl = profileLink(platform, ds.creator.handle);
   const platformIcon = platformIconClass(platform);
 
@@ -418,16 +418,7 @@ function Overview() {
           </div>
         </StatGrid>
 
-        <CallsList
-          handle={handle}
-          initialPage={{
-            calls: ds.calls,
-            currentPage: 1,
-            pageCount: overview.pageCount,
-            totalCalls: overview.totalCalls,
-            posts: overview.posts,
-          }}
-        />
+        <CallsList handle={handle} initialPage={overview.initialPage} />
 
         <CaveatsBanner caveats={ds.caveats} />
       </div>
@@ -501,17 +492,16 @@ function CallsList({ handle, initialPage }: { handle: string; initialPage: Creat
     initialData: current === 1 ? initialPage : undefined,
   });
   const pageData = query.data ?? initialPage;
+  const displayedPage = pageData.currentPage;
   const visible = pageData.calls;
-  const start = (current - 1) * CREATOR_CALLS_PAGE_SIZE;
+  const start = (displayedPage - 1) * CREATOR_CALLS_PAGE_SIZE;
   const visibleTickers = useMemo(() => visible.map((call) => call.ticker), [visible]);
   const getHalal = useHalalStatus(visibleTickers);
 
-  useEffect(() => {
-    const next = current + 1;
-    if (next <= pageCount) {
-      void queryClient.prefetchQuery(creatorCallsPageQuery(handle, next));
-    }
-  }, [current, handle, pageCount, queryClient]);
+  const prefetchPage = (nextPage: number) => {
+    if (nextPage < 1 || nextPage > pageCount || nextPage === displayedPage) return;
+    void queryClient.prefetchQuery(creatorCallsPageQuery(handle, nextPage));
+  };
 
   // Row-click opens proof; siblings = other tickers named in the same post.
   const [selected, setSelected] = useState<Call | null>(null);
@@ -528,7 +518,11 @@ function CallsList({ handle, initialPage }: { handle: string; initialPage: Creat
   );
 
   return (
-    <section id="calls" className="overflow-hidden rounded-2xl bg-card shadow-surface-2">
+    <section
+      id="calls"
+      aria-busy={query.isPlaceholderData}
+      className="overflow-hidden rounded-2xl bg-card shadow-surface-2"
+    >
       <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
         <span className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
           Calls
@@ -555,10 +549,31 @@ function CallsList({ handle, initialPage }: { handle: string; initialPage: Creat
       )}
       {pageCount > 1 && (
         <div className="flex items-center justify-between gap-3 border-t border-border/40 px-3 py-3">
-          <span className="hidden pl-2 font-mono text-[10px] text-muted-foreground tabular-nums sm:block">
-            {start + 1}–{start + visible.length} of {initialPage.totalCalls}
-          </span>
-          <CallsPagination current={current} pageCount={pageCount} onSelect={setPage} />
+          <div className="min-w-0 pl-2 font-mono text-[10px] text-muted-foreground tabular-nums">
+            <span className="hidden sm:inline">
+              {start + 1}–{start + visible.length} of {initialPage.totalCalls}
+            </span>
+            {query.isPlaceholderData && (
+              <span role="status" className="sm:ml-2">
+                Loading page {current}…
+              </span>
+            )}
+            {query.isError && (
+              <button
+                type="button"
+                className="ml-2 text-rose-600 hover:underline dark:text-rose-400"
+                onClick={() => void query.refetch()}
+              >
+                Page {current} failed. Retry
+              </button>
+            )}
+          </div>
+          <CallsPagination
+            current={displayedPage}
+            pageCount={pageCount}
+            onSelect={setPage}
+            onPrefetch={prefetchPage}
+          />
         </div>
       )}
       <span className="sr-only">{handle} calls list</span>
@@ -591,10 +606,12 @@ function CallsPagination({
   current,
   pageCount,
   onSelect,
+  onPrefetch,
 }: {
   current: number;
   pageCount: number;
   onSelect: (page: number) => void;
+  onPrefetch: (page: number) => void;
 }) {
   // Number strip is a horizontal NavMenu (variant="tabs") so the current page
   // gets the same sliding raised-surface pill as the FF tabs; the ellipsis is an
@@ -621,6 +638,8 @@ function CallsPagination({
         slug={String(p)}
         aria-label={`Go to page ${p}`}
         onClick={() => onSelect(p)}
+        onPointerEnter={() => onPrefetch(p)}
+        onFocus={() => onPrefetch(p)}
         className="h-8 min-w-8 px-2 tabular-nums"
       >
         {p}
@@ -636,6 +655,8 @@ function CallsPagination({
         aria-label="Go to previous page"
         disabled={current === 1}
         onClick={() => onSelect(current - 1)}
+        onPointerEnter={() => onPrefetch(current - 1)}
+        onFocus={() => onPrefetch(current - 1)}
       >
         <ChevronLeftIcon />
       </Button>
@@ -653,6 +674,8 @@ function CallsPagination({
         aria-label="Go to next page"
         disabled={current === pageCount}
         onClick={() => onSelect(current + 1)}
+        onPointerEnter={() => onPrefetch(current + 1)}
+        onFocus={() => onPrefetch(current + 1)}
       >
         <ChevronRightIcon />
       </Button>
