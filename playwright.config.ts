@@ -38,7 +38,9 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `bunx vite dev --port ${DEV_PORT}`,
+      // Build-time server fetches use VITE_SITE_URL. Point them at this
+      // worktree's server instead of the app's localhost:3000 fallback.
+      command: `bun run prebuild && VITE_SITE_URL=http://localhost:${DEV_PORT} bunx vite dev --port ${DEV_PORT}`,
       url: `http://localhost:${DEV_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
@@ -47,7 +49,7 @@ export default defineConfig({
     },
     {
       // build once, then serve the nitro node output (prod SSR)
-      command: `bun run build && PORT=${PROD_PORT} node .output/server/index.mjs`,
+      command: `VITE_SITE_URL=http://localhost:${PROD_PORT} bun run build && VITE_SITE_URL=http://localhost:${PROD_PORT} PORT=${PROD_PORT} node .output/server/index.mjs`,
       url: `http://localhost:${PROD_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 600_000,
