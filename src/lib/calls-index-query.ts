@@ -4,7 +4,7 @@ import { fetchCallsIndex } from "./data";
 export function callsIndexQuery(version: string) {
   return queryOptions({
     queryKey: ["calls-index", version],
-    queryFn: fetchCallsIndex,
+    queryFn: () => fetchCallsIndex(version),
     staleTime: 60 * 60 * 1000,
   });
 }

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { DatasetSchema, PriceFileSchema } from "./schema";
-import { CallIndexSchema, type CallIndexEntry } from "./call-index";
+import { callsIndexVersion, CallIndexSchema, type CallIndexEntry } from "./call-index";
 import type { Dataset, OhlcBar } from "./types";
 import { loadIndex } from "./dataset-source";
 import { siteUrl } from "../og/site";
@@ -101,30 +101,51 @@ export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
 // Slim cross-creator calls index (Plan 2). One cached asset for the /explore and
 // /t/$symbol routes; all filter/sort/search is client-side over it. DB-first under
 // USE_DB (the artifacts table, refreshed by ingest in Plan 3); static asset otherwise.
-export async function fetchCallsIndex(): Promise<CallIndexEntry[]> {
+class CallsIndexRevisionMismatch extends Error {}
+
+async function verifyCallsIndexRevision(
+  index: CallIndexEntry[],
+  expectedVersion?: string,
+): Promise<CallIndexEntry[]> {
+  if (expectedVersion && (await callsIndexVersion(index)) !== expectedVersion) {
+    throw new CallsIndexRevisionMismatch("calls-index revision does not match the requested data");
+  }
+  return index;
+}
+
+export async function fetchCallsIndex(expectedVersion?: string): Promise<CallIndexEntry[]> {
   if (import.meta.env.SSR) {
     const r = await readFromDbOrNull("fetchCallsIndex", async () => {
       const { getDb } = await import("../../db/client");
       const { readCallsIndex } = await import("./db-read");
       return readCallsIndex(getDb());
     });
-    if (r != null) return r;
+    if (r != null) return verifyCallsIndexRevision(r, expectedVersion);
   }
   // Primary: cached API route (DB-fresh under USE_DB; cache-revalidated on CDN).
   // Fallback: deploy-frozen static asset for cold/broken API.
   try {
-    const apiPath = "/api/calls-index";
+    const apiPath = expectedVersion
+      ? `/api/calls-index?revision=${encodeURIComponent(expectedVersion)}`
+      : "/api/calls-index";
     // USE_DB=0 SSR: two hops (fn→/api→CDN); USE_DB=1 in prod reads DB directly above.
     const apiUrl = typeof window === "undefined" ? siteUrl(apiPath) : apiPath;
     const res = await fetch(apiUrl);
-    if (res.ok) return CallIndexSchema.parse(await res.json());
+    if (res.ok) {
+      const index = CallIndexSchema.parse(await res.json());
+      return verifyCallsIndexRevision(index, expectedVersion);
+    }
     throw new Error(`calls-index: ${res.status}`);
   } catch (e) {
+    // Never relabel an older CDN/static payload with a newer loader revision. React Query
+    // must keep the request failed instead of caching mismatched data under the requested key.
+    if (e instanceof CallsIndexRevisionMismatch) throw e;
     console.warn(`/api fetch failed (fetchCallsIndex) — falling back to static`, e);
     const path = "/calls-index.json";
     const url = typeof window === "undefined" ? siteUrl(path) : path;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`calls-index: ${res.status}`);
-    return CallIndexSchema.parse(await res.json());
+    const index = CallIndexSchema.parse(await res.json());
+    return verifyCallsIndexRevision(index, expectedVersion);
   }
 }
