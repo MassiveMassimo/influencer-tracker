@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { fetchCallsIndex } from "./data";
 
-export function callsIndexQuery(version = "unversioned") {
+export function callsIndexQuery(version: string) {
   return queryOptions({
     queryKey: ["calls-index", version],
     queryFn: fetchCallsIndex,

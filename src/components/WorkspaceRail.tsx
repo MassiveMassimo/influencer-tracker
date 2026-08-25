@@ -97,10 +97,12 @@ function useSectionSearch() {
 export function RailContent({
   creators,
   stocks,
+  indexVersion,
   onNavigate,
 }: {
   creators: CreatorRef[];
   stocks: RailStock[];
+  indexVersion: string;
   onNavigate?: () => void;
 }) {
   const [prefsOpen, setPrefsOpen] = useState(false);
@@ -274,6 +276,7 @@ export function RailContent({
           <div data-rail-section="stocks" className="flex min-h-0 flex-col overflow-hidden">
             <RailStocks
               stocks={stocks}
+              indexVersion={indexVersion}
               onNavigate={onNavigate}
               query={stockSearch.query}
               searchOpen={stockSearch.open}

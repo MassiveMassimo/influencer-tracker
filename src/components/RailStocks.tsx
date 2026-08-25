@@ -28,6 +28,7 @@ function pctChip(changePct: number | null) {
 // independently of the Creators list.
 export function RailStocks({
   stocks,
+  indexVersion,
   onNavigate,
   query = "",
   searchOpen = false,
@@ -36,6 +37,7 @@ export function RailStocks({
   onSelect,
 }: {
   stocks: RailStock[];
+  indexVersion: string;
   onNavigate?: () => void;
   query?: string;
   searchOpen?: boolean;
@@ -47,7 +49,7 @@ export function RailStocks({
   // reusing the CDN-cached calls-index /explore already loads. No added payload
   // on a normal page view.
   const { data: fullIndex } = useQuery({
-    ...callsIndexQuery(),
+    ...callsIndexQuery(indexVersion),
     enabled: searchOpen,
   });
   const allStocks = useMemo(
