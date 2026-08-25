@@ -75,6 +75,26 @@ test.describe("async data correctness", () => {
     await expect(page.locator("main")).toHaveAttribute("data-index-state", "ready");
   });
 
+  test("rail search and Explore share one complete-index request", async ({ page }) => {
+    const callsIndexRequests: string[] = [];
+    page.on("request", (request) => {
+      const pathname = new URL(request.url()).pathname;
+      if (pathname === "/api/calls-index" || pathname === "/calls-index.json") {
+        callsIndexRequests.push(pathname);
+      }
+    });
+
+    await page.goto(ROUTES.home, { waitUntil: "load" });
+    await page.getByRole("button", { name: "Search stocks" }).first().click();
+    await expect.poll(() => callsIndexRequests).toEqual(["/api/calls-index"]);
+
+    await page.locator('a[href="/explore"]').first().click();
+    await page.waitForURL("**/explore");
+    await page.getByRole("searchbox", { name: "Search ticker, company, or creator" }).focus();
+    await expect(page.locator("main")).toHaveAttribute("data-index-state", "ready");
+    expect(callsIndexRequests).toEqual(["/api/calls-index"]);
+  });
+
   test("Explore never presents partial rows as complete filter results", async ({ page }) => {
     let releaseIndex!: () => void;
     const indexGate = new Promise<void>((resolve) => {
