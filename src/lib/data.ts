@@ -3,7 +3,7 @@ import { DatasetSchema, PriceFileSchema } from "./schema";
 import { callsIndexVersion, CallIndexSchema, type CallIndexEntry } from "./call-index";
 import type { Dataset, OhlcBar } from "./types";
 import { loadIndex } from "./dataset-source";
-import { siteUrl } from "../og/site";
+import { fetchAppPath } from "./api-serve";
 
 // Runs the DB read only when USE_DB=1 on the server side; returns null otherwise so callers
 // fall back to the static/CDN path. The import.meta.env.SSR literal stays AT THE CALL SITE in
@@ -51,15 +51,13 @@ export async function fetchDataset(handle: string): Promise<Dataset> {
   try {
     const apiPath = `/api/dataset/${handle}`;
     // USE_DB=0 SSR: two hops (fn→/api→CDN); USE_DB=1 in prod reads DB directly above.
-    const apiUrl = typeof window === "undefined" ? siteUrl(apiPath) : apiPath;
-    const res = await fetch(apiUrl);
+    const res = await fetchAppPath(apiPath);
     if (res.ok) return DatasetSchema.parse(await res.json());
     throw new Error(`dataset ${handle}: ${res.status}`);
   } catch (e) {
     console.warn(`/api fetch failed (fetchDataset ${handle}) — falling back to static`, e);
     const path = `/datasets/${handle}.json`;
-    const url = typeof window === "undefined" ? siteUrl(path) : path;
-    const res = await fetch(url);
+    const res = await fetchAppPath(path);
     if (!res.ok) throw new Error(`dataset ${handle}: ${res.status}`);
     return DatasetSchema.parse(await res.json());
   }
@@ -84,15 +82,13 @@ export async function fetchPrices(symbol: string): Promise<OhlcBar[]> {
   try {
     const apiPath = `/api/prices/${symbol}`;
     // USE_DB=0 SSR: two hops (fn→/api→CDN); USE_DB=1 in prod reads DB directly above.
-    const apiUrl = typeof window === "undefined" ? siteUrl(apiPath) : apiPath;
-    const res = await fetch(apiUrl);
+    const res = await fetchAppPath(apiPath);
     if (res.ok) return PriceFileSchema.parse(await res.json());
     return [];
   } catch (e) {
     console.warn(`/api fetch failed (fetchPrices ${symbol}) — falling back to static`, e);
     const path = `/prices/${symbol}.json`;
-    const url = typeof window === "undefined" ? siteUrl(path) : path;
-    const res = await fetch(url);
+    const res = await fetchAppPath(path);
     if (!res.ok) return [];
     return PriceFileSchema.parse(await res.json());
   }
@@ -129,8 +125,7 @@ export async function fetchCallsIndex(expectedVersion?: string): Promise<CallInd
       ? `/api/calls-index?revision=${encodeURIComponent(expectedVersion)}`
       : "/api/calls-index";
     // USE_DB=0 SSR: two hops (fn→/api→CDN); USE_DB=1 in prod reads DB directly above.
-    const apiUrl = typeof window === "undefined" ? siteUrl(apiPath) : apiPath;
-    const res = await fetch(apiUrl);
+    const res = await fetchAppPath(apiPath);
     if (res.ok) {
       const index = CallIndexSchema.parse(await res.json());
       return verifyCallsIndexRevision(index, expectedVersion);
@@ -142,8 +137,7 @@ export async function fetchCallsIndex(expectedVersion?: string): Promise<CallInd
     if (e instanceof CallsIndexRevisionMismatch) throw e;
     console.warn(`/api fetch failed (fetchCallsIndex) — falling back to static`, e);
     const path = "/calls-index.json";
-    const url = typeof window === "undefined" ? siteUrl(path) : path;
-    const res = await fetch(url);
+    const res = await fetchAppPath(path);
     if (!res.ok) throw new Error(`calls-index: ${res.status}`);
     const index = CallIndexSchema.parse(await res.json());
     return verifyCallsIndexRevision(index, expectedVersion);

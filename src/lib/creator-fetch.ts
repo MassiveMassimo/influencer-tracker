@@ -1,10 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { isSafeAssetKey } from "./api-serve";
+import { fetchAppPath, isSafeAssetKey } from "./api-serve";
 import { buildCreatorOverview, type CreatorCallsPage, type CreatorOverview } from "./creator-data";
 import { fetchDataset, readFromDbOrNull } from "./data";
 import { DatasetSchema } from "./schema";
-import { siteUrl } from "../og/site";
 
 const HandleSchema = z.string().min(1).max(100).refine(isSafeAssetKey, "unsafe creator handle");
 
@@ -26,8 +25,7 @@ async function fetchStaticCreatorCallsPage(
   page: number,
 ): Promise<CreatorCallsPage> {
   const path = `/dataset-pages/${handle}/${page}.json`;
-  const url = typeof window === "undefined" ? siteUrl(path) : path;
-  const response = await fetch(url);
+  const response = await fetchAppPath(path);
   if (!response.ok) throw new Error(`creator page ${handle}/${page}: ${response.status}`);
   return CreatorCallsPageSchema.parse(await response.json());
 }
