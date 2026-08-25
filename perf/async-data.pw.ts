@@ -42,7 +42,7 @@ async function failCallsIndex(page: Page, shouldFail: () => boolean) {
       await route.continue();
     }
   };
-  await page.route("**/api/calls-index", handler);
+  await page.route(/\/api\/calls-index(?:\?.*)?$/, handler);
   await page.route("**/calls-index.json", handler);
 }
 
@@ -100,7 +100,7 @@ test.describe("async data correctness", () => {
     const indexGate = new Promise<void>((resolve) => {
       releaseIndex = resolve;
     });
-    await page.route("**/api/calls-index", async (route) => {
+    await page.route(/\/api\/calls-index(?:\?.*)?$/, async (route) => {
       await indexGate;
       await route.continue();
     });
