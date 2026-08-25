@@ -55,6 +55,26 @@ async function creatorCallTotal(page: Page) {
 }
 
 test.describe("async data correctness", () => {
+  test("Explore defers the complete index after in-app navigation", async ({ page }) => {
+    const callsIndexRequests: string[] = [];
+    page.on("request", (request) => {
+      const pathname = new URL(request.url()).pathname;
+      if (pathname === "/api/calls-index" || pathname === "/calls-index.json") {
+        callsIndexRequests.push(pathname);
+      }
+    });
+
+    await page.goto(ROUTES.home, { waitUntil: "load" });
+    await page.locator('a[href="/explore"]').first().click();
+    await page.waitForURL("**/explore");
+
+    expect(callsIndexRequests).toEqual([]);
+
+    await page.getByRole("searchbox", { name: "Search ticker, company, or creator" }).focus();
+    await expect.poll(() => callsIndexRequests).toEqual(["/api/calls-index"]);
+    await expect(page.locator("main")).toHaveAttribute("data-index-state", "ready");
+  });
+
   test("Explore never presents partial rows as complete filter results", async ({ page }) => {
     let releaseIndex!: () => void;
     const indexGate = new Promise<void>((resolve) => {
@@ -97,6 +117,29 @@ test.describe("async data correctness", () => {
 
     await expect(page.locator("main")).toHaveAttribute("data-index-state", "ready");
     await expect(page.getByRole("link", { name: "AAPL", exact: true }).first()).toBeVisible();
+  });
+
+  test("Explore exposes an error and retries while expanding the default view", async ({
+    page,
+  }) => {
+    let failIndex = true;
+    await failCallsIndex(page, () => failIndex);
+
+    await page.goto(ROUTES.explore, { waitUntil: "load" });
+    const showMore = page.getByRole("button", { name: /Show 50 more/ });
+    await showMore.hover();
+    await showMore.click();
+
+    const alert = page.getByRole("alert");
+    await expect(alert).toContainText("The complete call index did not load.", {
+      timeout: 20_000,
+    });
+
+    failIndex = false;
+    await alert.getByRole("button", { name: "Retry" }).click();
+
+    await expect(page.locator("main")).toHaveAttribute("data-index-state", "ready");
+    await expect(alert).toHaveCount(0);
   });
 
   test("creator paging keeps the displayed range accurate and does not cascade prefetches", async ({
