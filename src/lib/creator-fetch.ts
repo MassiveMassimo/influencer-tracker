@@ -45,8 +45,10 @@ export const fetchCreatorCallsPage = createServerFn({ method: "GET" })
       const result = await readFromDbOrNull(
         `fetchCreatorCallsPage ${data.handle} page ${data.page}`,
         async () => {
-          const { getDb } = await import("../../db/client");
-          const { readCreatorCallsPage } = await import("./db-read");
+          const [{ getDb }, { readCreatorCallsPage }] = await Promise.all([
+            import("../../db/client"),
+            import("./db-read"),
+          ]);
           return readCreatorCallsPage(getDb(), data.handle, data.page);
         },
       );
