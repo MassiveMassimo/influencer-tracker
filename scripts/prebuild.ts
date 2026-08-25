@@ -3,11 +3,12 @@
 //
 //  1. public/datasets/<handle>.json  — the large datasets as static immutable assets
 //     (fetched by fetchDataset() instead of being bundled into the server function).
-//  2. public/og.png + public/og/changelog.png — only the content-stable home +
+//  2. public/dataset-pages/<handle>/<page>.json — bounded creator call pages.
+//  3. public/og.png + public/og/changelog.png — only the content-stable home +
 //     changelog cards, pre-rendered to static PNGs (satori/resvg never run at request
 //     time for them). Data-driven creator/ticker cards render on demand via the
 //     /api/og/{c,t}/* routes instead (see emit() callers below).
-//  3. public/llms.txt                 — agent-readable site index (llmstxt.org): summary,
+//  4. public/llms.txt                 — agent-readable site index (llmstxt.org): summary,
 //     per-creator stats, and the machine-readable dataset URLs.
 //
 // OG theme is frozen to dark. The runtime day/night flip is dropped — social
@@ -19,6 +20,7 @@ import { join } from "node:path";
 import { renderOgPng, type OgCard } from "../src/og/render.tsx";
 import type { OgTheme } from "../src/og/solar.ts";
 import { buildCallsIndex } from "../src/lib/call-index";
+import { buildCreatorCallsPages } from "../src/lib/creator-data";
 import type { Dataset } from "../src/lib/types";
 
 const ROOT = join(import.meta.dir, "..");
@@ -26,6 +28,7 @@ const DATA = join(ROOT, "data", "creators");
 const PUB = join(ROOT, "public");
 const OG_DIR = join(PUB, "og");
 const DS_DIR = join(PUB, "datasets");
+const DS_PAGE_DIR = join(PUB, "dataset-pages");
 const PRICES_DST = join(PUB, "prices");
 const AVATARS_SRC = join(ROOT, "data", "avatars");
 const AVATARS_DST = join(PUB, "avatars");
@@ -101,8 +104,10 @@ async function emit(card: OgCard, outPath: string) {
 async function main() {
   rmSync(OG_DIR, { recursive: true, force: true });
   rmSync(DS_DIR, { recursive: true, force: true });
+  rmSync(DS_PAGE_DIR, { recursive: true, force: true });
   mkdirSync(OG_DIR, { recursive: true });
   mkdirSync(DS_DIR, { recursive: true });
+  mkdirSync(DS_PAGE_DIR, { recursive: true });
   rmSync(PRICES_DST, { recursive: true, force: true });
   rmSync(AVATARS_DST, { recursive: true, force: true });
 
@@ -121,6 +126,11 @@ async function main() {
     const ds = readJson(join(DATA, e.handle, "dataset.json"));
     datasets.push(ds as Dataset);
     cpSync(join(DATA, e.handle, "dataset.json"), join(DS_DIR, `${e.handle}.json`));
+    const creatorPageDir = join(DS_PAGE_DIR, e.handle);
+    mkdirSync(creatorPageDir, { recursive: true });
+    for (const page of buildCreatorCallsPages(ds as Dataset)) {
+      writeFileSync(join(creatorPageDir, `${page.currentPage}.json`), JSON.stringify(page));
+    }
   }
 
   // Prices: emit per-symbol JSON from the SQLite store for the CDN fallback.
@@ -144,7 +154,9 @@ async function main() {
   writeFileSync(join(PUB, "calls-index.json"), JSON.stringify(buildCallsIndex(datasets)));
   writeFileSync(join(PUB, "llms.txt"), buildLlmsTxt(index));
 
-  console.log(`prebuild done: ${index.length} creators, datasets + llms.txt + calls-index copied.`);
+  console.log(
+    `prebuild done: ${index.length} creators, datasets + pages + llms.txt + calls-index copied.`,
+  );
 }
 
 main();

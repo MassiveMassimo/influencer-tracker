@@ -78,8 +78,7 @@ function postsForPage(
   return posts;
 }
 
-export function buildCreatorCallsPage(ds: Dataset, requestedPage: number): CreatorCallsPage {
-  const sorted = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
+function pageFromSortedCalls(sorted: Call[], requestedPage: number): CreatorCallsPage {
   const pageCount = Math.max(1, Math.ceil(sorted.length / CREATOR_CALLS_PAGE_SIZE));
   const currentPage = Math.min(Math.max(1, Math.trunc(requestedPage)), pageCount);
   const start = (currentPage - 1) * CREATOR_CALLS_PAGE_SIZE;
@@ -92,6 +91,17 @@ export function buildCreatorCallsPage(ds: Dataset, requestedPage: number): Creat
     totalCalls: sorted.length,
     posts: postsForPage(sorted, calls),
   };
+}
+
+export function buildCreatorCallsPage(ds: Dataset, requestedPage: number): CreatorCallsPage {
+  const sorted = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
+  return pageFromSortedCalls(sorted, requestedPage);
+}
+
+export function buildCreatorCallsPages(ds: Dataset): CreatorCallsPage[] {
+  const sorted = [...ds.calls].sort((a, b) => b.postDate.localeCompare(a.postDate));
+  const pageCount = Math.max(1, Math.ceil(sorted.length / CREATOR_CALLS_PAGE_SIZE));
+  return Array.from({ length: pageCount }, (_, index) => pageFromSortedCalls(sorted, index + 1));
 }
 
 export function buildCreatorOverview(ds: Dataset): CreatorOverview {

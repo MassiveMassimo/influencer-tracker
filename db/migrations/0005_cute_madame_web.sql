@@ -1,0 +1,1 @@
+CREATE INDEX "calls_creator_page_idx" ON "calls" USING btree ("handle","post_date" DESC NULLS LAST,"ord");

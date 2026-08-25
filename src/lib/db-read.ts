@@ -1,9 +1,10 @@
-import { eq, asc } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import type { Db } from "../../db/client";
 import { creators, calls, prices, artifacts } from "../../db/schema";
 import type { Dataset, Call, OhlcBar } from "./types";
 import type { IndexEntry } from "./dataset-source";
 import { CallIndexSchema, type CallIndexEntry } from "./call-index";
+import { CREATOR_CALLS_PAGE_SIZE, type CreatorCallsPage } from "./creator-data";
 
 function rowToCall(r: typeof calls.$inferSelect): Call {
   // onScreenPrice is present on EVERY committed call (explicit `null` on some), so emit it
@@ -42,6 +43,62 @@ export async function readDataset(db: Db, handle: string): Promise<Dataset> {
     calls: callRows.map(rowToCall),
     scorecard: c.scorecard as Dataset["scorecard"],
     caveats: c.caveats as string[],
+  };
+}
+
+export async function readCreatorCallsPage(
+  db: Db,
+  handle: string,
+  requestedPage: number,
+): Promise<CreatorCallsPage> {
+  const [[creator], [totalRow]] = await Promise.all([
+    db.select({ handle: creators.handle }).from(creators).where(eq(creators.handle, handle)),
+    db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(calls)
+      .where(eq(calls.handle, handle)),
+  ]);
+  if (!creator) throw new Error(`dataset ${handle}: not found`);
+
+  const totalCalls = totalRow?.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(totalCalls / CREATOR_CALLS_PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, Math.trunc(requestedPage)), pageCount);
+  const callRows = await db
+    .select()
+    .from(calls)
+    .where(eq(calls.handle, handle))
+    .orderBy(desc(calls.postDate), asc(calls.ord))
+    .limit(CREATOR_CALLS_PAGE_SIZE)
+    .offset((currentPage - 1) * CREATOR_CALLS_PAGE_SIZE);
+
+  const shortcodes = [...new Set(callRows.map((call) => call.shortcode))];
+  const postRows =
+    shortcodes.length === 0
+      ? []
+      : await db
+          .select({
+            shortcode: calls.shortcode,
+            ticker: calls.ticker,
+            company: calls.company,
+          })
+          .from(calls)
+          .where(and(eq(calls.handle, handle), inArray(calls.shortcode, shortcodes)))
+          .orderBy(asc(calls.ord));
+
+  const posts: CreatorCallsPage["posts"] = {};
+  for (const row of postRows) {
+    (posts[row.shortcode] ??= []).push({
+      ticker: row.ticker,
+      company: row.company,
+    });
+  }
+
+  return {
+    calls: callRows.map(rowToCall),
+    currentPage,
+    pageCount,
+    totalCalls,
+    posts,
   };
 }
 
