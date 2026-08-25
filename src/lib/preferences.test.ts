@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "bun:test";
+import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { JSDOM } from "jsdom";
 
 // bun test has no DOM by default; register a jsdom env for this file.
@@ -6,6 +6,10 @@ const dom = new JSDOM("<!doctype html><html><head></head><body></body></html>", 
   url: "http://localhost/",
 });
 const g = globalThis as Record<string, unknown>;
+const globalKeys = ["window", "document", "localStorage"] as const;
+const originalGlobals = new Map(
+  globalKeys.map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]),
+);
 g.window = dom.window;
 g.document = dom.window.document;
 g.localStorage = dom.window.localStorage;
@@ -24,6 +28,18 @@ dom.window.matchMedia ??= ((query: string) => ({
 })) as typeof dom.window.matchMedia;
 
 import { applyTheme, readStoredPrefs } from "./preferences.tsx";
+
+afterAll(() => {
+  for (const key of globalKeys) {
+    const original = originalGlobals.get(key);
+    if (original) {
+      Object.defineProperty(globalThis, key, original);
+    } else {
+      delete g[key];
+    }
+  }
+  dom.window.close();
+});
 
 beforeEach(() => {
   document.documentElement.className = "";
