@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCallsIndex, listCreators } from "../lib/data";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
 import type { CallIndexEntry } from "../lib/call-index";
 import { DataAsOf } from "../components/DataAsOf";
@@ -12,30 +11,14 @@ import { ProofViewer } from "#/components/proof-viewer.tsx";
 import { NavMenu } from "#/components/ui/nav-menu.tsx";
 import { NavRow } from "#/components/ui/nav-row.tsx";
 import { callsIndexQuery } from "#/lib/calls-index-query.ts";
-import { EXPLORE_VISIBLE_STEP, buildExploreInitialData } from "#/lib/explore-data.ts";
+import { EXPLORE_VISIBLE_STEP } from "#/lib/explore-data.ts";
+import { fetchExploreOverview } from "#/lib/explore-fetch.ts";
 
 export const Route = createFileRoute("/explore")({
   loader: async ({ context }) => {
-    const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
-    const initial = buildExploreInitialData(calls);
-    await prefetchHalal(
-      context.queryClient,
-      initial.calls.slice(0, EXPLORE_VISIBLE_STEP).map((call) => call.ticker),
-    );
-    // The calls-index artifact ships as a plain array with no generatedAt; use the freshest
-    // creator's generatedAt as the cross-creator "data as of" (newest scoring run in the set).
-    const generatedAt = creators.reduce<string>(
-      (max, c) => (c.generatedAt > max ? c.generatedAt : max),
-      "",
-    );
-    // Only handle + name are used (the creator chips + the names map); drop the inlined
-    // base64 avatars and stats so they aren't dehydrated into the SSR HTML (the root
-    // loader already ships the full roster — no need to duplicate the avatar payload here).
-    return {
-      ...initial,
-      generatedAt,
-      creators: creators.map((c) => ({ handle: c.handle, name: c.name })),
-    };
+    const { initialTickers, ...overview } = await fetchExploreOverview();
+    await prefetchHalal(context.queryClient, initialTickers);
+    return overview;
   },
   staleTime: 5 * 60 * 1000,
   head: () => ({
@@ -75,10 +58,16 @@ const DEFAULT_FILTER: CallFilter = {
 };
 
 function Explore() {
-  const { calls: initialCalls, totalCalls, generatedAt, creators } = Route.useLoaderData();
+  const {
+    calls: initialCalls,
+    totalCalls,
+    generatedAt,
+    indexVersion,
+    creators,
+  } = Route.useLoaderData();
   const [loadFullIndex, setLoadFullIndex] = useState(false);
   const callsQuery = useQuery({
-    ...callsIndexQuery(),
+    ...callsIndexQuery(indexVersion),
     enabled: loadFullIndex,
     placeholderData: initialCalls,
   });
@@ -109,6 +98,8 @@ function Explore() {
   const [visibleCount, setVisibleCount] = useState(EXPLORE_VISIBLE_STEP);
   const visibleRows = useMemo(() => rows.slice(0, visibleCount), [rows, visibleCount]);
   const availableRowCount = hasCompleteIndex ? rows.length : isDefaultView ? totalCalls : 0;
+  const needsCompleteIndex =
+    !hasCompleteIndex && isDefaultView && visibleCount >= initialCalls.length;
   const indexState = hasCompleteIndex
     ? "ready"
     : callsQuery.isError
@@ -333,10 +324,25 @@ function Explore() {
             ))}
           </NavMenu>
         )}
-        {canShowRows && visibleRows.length < availableRowCount && (
+        {canShowRows && needsCompleteIndex && callsQuery.isError ? (
+          <div
+            className="border-t border-border/40 px-5 py-3 text-sm text-muted-foreground"
+            role="alert"
+          >
+            The complete call index did not load.{" "}
+            <button
+              type="button"
+              className="text-foreground underline underline-offset-2"
+              onClick={() => void callsQuery.refetch()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : canShowRows && visibleRows.length < availableRowCount ? (
           <div className="border-t border-border/40 px-5 py-3 text-center">
             <button
               type="button"
+              disabled={needsCompleteIndex && callsQuery.isFetching}
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
               onPointerEnter={() => setLoadFullIndex(true)}
               onFocus={() => setLoadFullIndex(true)}
@@ -345,12 +351,12 @@ function Explore() {
                 setVisibleCount((count) => count + EXPLORE_VISIBLE_STEP);
               }}
             >
-              {visibleCount > rows.length && !hasCompleteIndex
+              {needsCompleteIndex
                 ? "Loading all calls…"
                 : `Show ${Math.min(EXPLORE_VISIBLE_STEP, availableRowCount - visibleRows.length)} more · ${visibleRows.length} of ${availableRowCount}`}
             </button>
           </div>
-        )}
+        ) : null}
       </section>
 
       <ProofViewer
