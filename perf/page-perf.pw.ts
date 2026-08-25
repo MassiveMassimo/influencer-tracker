@@ -16,6 +16,57 @@ test.describe("page performance (prod build)", () => {
     await page.addInitScript(pagePerfInit);
   });
 
+  test("font delivery stays local and preserves the grade face", async ({ page }) => {
+    const externalFontRequests: string[] = [];
+    const fontResponses: Array<{ url: string; ok: boolean }> = [];
+    page.on("request", (request) => {
+      if (/fonts\.(googleapis|gstatic)\.com/.test(request.url())) {
+        externalFontRequests.push(request.url());
+      }
+    });
+    page.on("response", (response) => {
+      if (/\.woff2(?:\?|$)/.test(response.url())) {
+        fontResponses.push({ url: response.url(), ok: response.ok() });
+      }
+    });
+
+    await page.goto(ROUTES.home, { waitUntil: "load" });
+    const bodyFamily = await page
+      .locator("body")
+      .evaluate((body) => getComputedStyle(body).fontFamily);
+    const monoLoaded = await page.evaluate(
+      async () => (await document.fonts.load('16px "Geist Mono Variable"', "A")).length > 0,
+    );
+
+    await page.goto(ROUTES.creator, { waitUntil: "load" });
+    const grade = page.locator(".display-title").first();
+    await expect(grade).toBeVisible();
+    const gradeLoaded = await page.evaluate(
+      async () => (await document.fonts.load('900 32px "Fraunces Grade"', "A+")).length > 0,
+    );
+    const gradeFamily = await grade.evaluate((node) => getComputedStyle(node).fontFamily);
+    const frauncesResources = await page.evaluate(() =>
+      performance
+        .getEntriesByType("resource")
+        .map((entry) => entry.name)
+        .filter((url) => /fraunces-grade-.*\.woff2$/.test(url)),
+    );
+
+    expect(bodyFamily).toContain("Geist Mono Variable");
+    expect(monoLoaded).toBe(true);
+    expect(gradeFamily).toContain("Fraunces Grade");
+    expect(gradeLoaded).toBe(true);
+    expect(frauncesResources).toHaveLength(1);
+    expect(fontResponses.length).toBeGreaterThan(0);
+    expect(fontResponses.every((response) => response.ok)).toBe(true);
+    expect(
+      fontResponses.every(
+        (response) => new URL(response.url).origin === new URL(page.url()).origin,
+      ),
+    ).toBe(true);
+    expect(externalFontRequests).toEqual([]);
+  });
+
   for (const [name, path] of Object.entries(ROUTES)) {
     test(`load metrics — ${name}`, async ({ page }) => {
       await page.goto(path, { waitUntil: "load" });
