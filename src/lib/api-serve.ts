@@ -14,6 +14,23 @@ export function isSafeAssetKey(key: string): boolean {
   return /^[A-Za-z0-9.$!_-]{1,40}$/.test(key);
 }
 
+// Server-rendered pages read their own API/static routes over HTTP because Vercel does not
+// include public/ in the function filesystem. Forward only deployment-protection credentials
+// from the current request so protected branch previews can make those same-origin reads.
+export async function fetchAppPath(path: string): Promise<Response> {
+  const url = typeof window === "undefined" ? siteUrl(path) : path;
+  const headers = new Headers();
+  if (import.meta.env.SSR) {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const requestHeaders = getRequest().headers;
+    for (const name of ["cookie", "x-vercel-protection-bypass"]) {
+      const value = requestHeaders.get(name);
+      if (value) headers.set(name, value);
+    }
+  }
+  return fetch(url, { headers });
+}
+
 type MissMode = { onMiss: "empty"; emptyBody: string } | { onMiss: "error"; label: string };
 
 // Fetches the committed static CDN asset (public/... served from the edge) over HTTP — public/
@@ -21,7 +38,7 @@ type MissMode = { onMiss: "empty"; emptyBody: string } | { onMiss: "error"; labe
 // On a non-OK upstream: "empty" → 200 with emptyBody (prices); "error" → upstream status as JSON
 // so callers calling res.json() always get JSON (an unknown handle is a clean 404, not a 500).
 export async function staticFallback(path: string, opts: MissMode): Promise<Response> {
-  const res = await fetch(siteUrl(path));
+  const res = await fetchAppPath(path);
   if (!res.ok) {
     if (opts.onMiss === "empty") {
       return new Response(opts.emptyBody, {
