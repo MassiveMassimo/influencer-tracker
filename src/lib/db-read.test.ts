@@ -3,8 +3,15 @@ import { makeDb, type Db } from "../../db/client";
 import { backfillCreator, backfillPrices } from "../../db/backfill";
 import { assertSeparateTestDb } from "../../db/test-db";
 import { sql } from "drizzle-orm";
-import { readDataset, readIndex, readPrices, readCallsIndex } from "./db-read";
+import {
+  readCreatorCallsPage,
+  readDataset,
+  readIndex,
+  readPrices,
+  readCallsIndex,
+} from "./db-read";
 import { buildCallsIndex } from "./call-index";
+import { buildCreatorCallsPage } from "./creator-data";
 import { artifacts } from "../../db/schema";
 import { DatasetSchema } from "./schema";
 import { readFileSync, readdirSync } from "node:fs";
@@ -41,6 +48,17 @@ describe.skipIf(!RUN)("DB read golden master", () => {
       const fromDb = await readDataset(db, e.handle);
       // Schema-shaped deep-equal; array order IS asserted, proving `ord` reconstructs file order.
       expect(DatasetSchema.parse(fromDb)).toEqual(DatasetSchema.parse(stat));
+    }
+  });
+
+  test("readCreatorCallsPage matches bounded static pages", async () => {
+    for (const entry of index) {
+      const dataset = readJson(join(ROOT, "data", "creators", entry.handle, "dataset.json"));
+      for (const requestedPage of [1, 2, Number.MAX_SAFE_INTEGER]) {
+        expect(await readCreatorCallsPage(db, entry.handle, requestedPage)).toEqual(
+          buildCreatorCallsPage(dataset, requestedPage),
+        );
+      }
     }
   });
 

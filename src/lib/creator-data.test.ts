@@ -3,6 +3,7 @@ import type { Call, Dataset } from "./types";
 import {
   CREATOR_CALLS_PAGE_SIZE,
   buildCreatorCallsPage,
+  buildCreatorCallsPages,
   buildCreatorOverview,
 } from "./creator-data";
 
@@ -102,6 +103,19 @@ describe("buildCreatorCallsPage", () => {
       { ticker: "AAPL", company: "AAPL Inc." },
       { ticker: "MSFT", company: "MSFT Inc." },
     ]);
+  });
+
+  test("builds every bounded page from one creator dataset", () => {
+    const calls = Array.from({ length: CREATOR_CALLS_PAGE_SIZE * 2 + 1 }, (_, index) =>
+      call(`T${index}`, `2026-07-${String(index + 1).padStart(2, "0")}`, `post-${index}`),
+    );
+
+    const pages = buildCreatorCallsPages(dataset(calls));
+
+    expect(pages).toHaveLength(3);
+    expect(pages.map((page) => page.calls.length)).toEqual([25, 25, 1]);
+    expect(pages.map((page) => page.currentPage)).toEqual([1, 2, 3]);
+    expect(pages.every((page) => page.totalCalls === calls.length)).toBe(true);
   });
 });
 

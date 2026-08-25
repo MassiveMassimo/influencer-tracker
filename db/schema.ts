@@ -52,6 +52,7 @@ export const calls = pgTable(
     primaryKey({ columns: [t.handle, t.shortcode, t.ticker] }),
     index("calls_ticker_idx").on(t.ticker),
     index("calls_post_date_idx").on(t.postDate),
+    index("calls_creator_page_idx").on(t.handle, t.postDate.desc(), t.ord.asc()),
   ],
 );
 

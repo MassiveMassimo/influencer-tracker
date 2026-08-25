@@ -142,6 +142,16 @@ test.describe("async data correctness", () => {
     await expect(alert).toHaveCount(0);
   });
 
+  test("creator page artifacts contain one bounded page", async ({ request }) => {
+    const response = await request.get("/dataset-pages/TheProfInvestor/2.json");
+
+    expect(response.ok()).toBe(true);
+    const page = await response.json();
+    expect(page.currentPage).toBe(2);
+    expect(page.calls).toHaveLength(25);
+    expect((await response.body()).byteLength).toBeLessThan(100_000);
+  });
+
   test("creator paging keeps the displayed range accurate and does not cascade prefetches", async ({
     page,
   }) => {
