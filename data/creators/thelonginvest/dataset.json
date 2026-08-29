@@ -3,7 +3,7 @@
     "handle": "thelonginvest",
     "name": "The Long Invest"
   },
-  "generatedAt": "2026-08-28",
+  "generatedAt": "2026-08-29",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -137731,22 +137731,22 @@
         0.365,
         0.329,
         0.323,
-        0.233,
+        0.248,
         1.2,
-        1.3,
+        0.935,
         0.69,
-        0.591,
+        0.519,
         0.53,
-        0.517,
+        0.491,
         0.444,
-        0.42,
-        0.42,
+        0.458,
         0.412,
-        0.374,
+        0.365,
         0.375,
-        0.362,
+        0.372,
         0.357,
-        0.3665
+        0.365,
+        1.12
       ],
       "returns": {
         "1w": {
@@ -137765,9 +137765,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": -0.33963966576293136,
+          "stock": 1.0180180006024901,
           "spy": 0.031282118636811074,
-          "excess": -0.37092178439974244
+          "excess": 0.9867358819656791
         }
       }
     },
@@ -141035,22 +141035,22 @@
         0.233,
         0.248,
         1.2,
-        1.3,
+        0.935,
         0.69,
         0.591,
-        0.519,
+        0.53,
         0.517,
-        0.491,
         0.444,
-        0.458,
         0.42,
+        0.458,
         0.412,
         0.365,
-        0.375,
+        0.374,
         0.372,
         0.362,
-        0.365,
-        0.3665
+        0.357,
+        0.3665,
+        1.12
       ],
       "returns": {
         "1w": {
@@ -141069,9 +141069,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": -0.060256400851337766,
+          "stock": 1.871794989358278,
           "spy": 0.025630738409039955,
-          "excess": -0.08588713926037772
+          "excess": 1.846164250949238
         }
       }
     },
@@ -172836,10 +172836,146 @@
           "excess": 0
         }
       }
+    },
+    {
+      "shortcode": "2093386029193400646",
+      "postDate": "2026-08-28",
+      "ticker": "PYPL",
+      "company": "PayPal",
+      "isFirstCall": false,
+      "conviction": 0.7,
+      "quote": "$PYPL",
+      "summary": "The creator believes the stock is fundamentally undervalued with a price target of over $100, despite concerns regarding current board leadership.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2093325790649688408",
+      "postDate": "2026-08-28",
+      "ticker": "SOFI",
+      "company": "SoFi",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "VERY attractive position right now",
+      "summary": "The creator views the stock as an attractive buy with price targets of $45 and $61.",
+      "onScreenPrice": 18.86,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2093297393093484816",
+      "postDate": "2026-08-28",
+      "ticker": "ASTS",
+      "company": "AST SpaceMobile",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "$ASTS is one of my largest positions right now, for good reason.",
+      "summary": "The creator holds a large position in ASTS, citing a strong competitive moat and a technical setup projecting significant upside to a Wave 5 target.",
+      "onScreenPrice": 60.89,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2093338137091006862",
+      "postDate": "2026-08-28",
+      "ticker": "ADUR",
+      "company": "Aduro Clean Technologies Inc.",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ADUR has held support on the 50 Day MA at $15 since the 10th of August",
+      "summary": "The creator believes ADUR is set to move higher after consolidating at its 50-day moving average support level.",
+      "onScreenPrice": 15.02,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 3013,
+    "totalCalls": 3017,
     "uniqueTickers": 135,
     "hitRate": {
       "1m": 0.4765625,
@@ -172853,7 +172989,7 @@
       "1w": 0.004659817300297367,
       "1m": -0.004662934115241611,
       "3m": -0.010753583181661142,
-      "toDate": -0.05190469442780344
+      "toDate": -0.04177292079821073
     },
     "callsPerWeek": 2.288135593220339,
     "best": [
@@ -173453,15 +173589,15 @@
     "funnel": [
       {
         "label": "Tweets",
-        "value": 10123
+        "value": 10151
       },
       {
         "label": "Named a stock",
-        "value": 7006
+        "value": 7018
       },
       {
         "label": "Bullish buy call",
-        "value": 3013
+        "value": 3017
       },
       {
         "label": "First call (unique ticker)",
@@ -173469,7 +173605,7 @@
       },
       {
         "label": "Beat SPY (to date)",
-        "value": 55
+        "value": 56
       }
     ],
     "cumExcess": [
@@ -173831,7 +173967,7 @@
       },
       {
         "t": "2026-08-27",
-        "v": -0.0519
+        "v": -0.0418
       }
     ]
   },

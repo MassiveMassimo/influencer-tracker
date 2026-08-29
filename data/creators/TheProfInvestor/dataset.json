@@ -3,7 +3,7 @@
     "handle": "TheProfInvestor",
     "name": "The Prof Investor"
   },
-  "generatedAt": "2026-08-28",
+  "generatedAt": "2026-08-29",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -126777,10 +126777,146 @@
           "excess": 0
         }
       }
+    },
+    {
+      "shortcode": "2093423351251485135",
+      "postDate": "2026-08-28",
+      "ticker": "AMZN",
+      "company": "Amazon.com",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$AMZN",
+      "summary": "The creator identifies AMZN as having one of the best-looking setups for the upcoming week.",
+      "onScreenPrice": 265.9,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2093423351251485135",
+      "postDate": "2026-08-28",
+      "ticker": "GOOGL",
+      "company": "Alphabet Inc.",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$GOOGL",
+      "summary": "The creator identifies GOOGL as having one of the best-looking setups for the upcoming week.",
+      "onScreenPrice": 347.31,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2093423351251485135",
+      "postDate": "2026-08-28",
+      "ticker": "AAPL",
+      "company": "Apple",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$AAPL",
+      "summary": "The creator identifies AAPL as having one of the best-looking setups for the upcoming week.",
+      "onScreenPrice": 320.03,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2093423351251485135",
+      "postDate": "2026-08-28",
+      "ticker": "MSFT",
+      "company": "Microsoft",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$MSFT",
+      "summary": "The creator identifies MSFT as having one of the best-looking setups for the upcoming week.",
+      "onScreenPrice": 513.61,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 2171,
+    "totalCalls": 2175,
     "uniqueTickers": 306,
     "hitRate": {
       "1m": 0.44039735099337746,
@@ -127394,15 +127530,15 @@
     "funnel": [
       {
         "label": "Tweets",
-        "value": 626
+        "value": 637
       },
       {
         "label": "Named a stock",
-        "value": 4705
+        "value": 4711
       },
       {
         "label": "Bullish buy call",
-        "value": 2171
+        "value": 2175
       },
       {
         "label": "First call (unique ticker)",
