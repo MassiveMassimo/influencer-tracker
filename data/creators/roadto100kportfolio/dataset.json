@@ -3,7 +3,7 @@
     "handle": "roadto100kportfolio",
     "name": "@roadto100kportfolio"
   },
-  "generatedAt": "2026-08-28",
+  "generatedAt": "2026-08-29",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -7367,7 +7367,7 @@
     "funnel": [
       {
         "label": "Instagram posts",
-        "value": 118
+        "value": 120
       },
       {
         "label": "Named a stock",
