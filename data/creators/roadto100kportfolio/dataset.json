@@ -3,7 +3,7 @@
     "handle": "roadto100kportfolio",
     "name": "@roadto100kportfolio"
   },
-  "generatedAt": "2026-08-30",
+  "generatedAt": "2026-08-31",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -6432,7 +6432,8 @@
         0.2111,
         0.275,
         0.26,
-        0.2251
+        0.2251,
+        0.2071
       ],
       "returns": {
         "1w": {
@@ -6451,9 +6452,9 @@
           "excess": null
         },
         "toDate": {
-          "stock": 0.1847368345102114,
+          "stock": 0.09000003450795258,
           "spy": 0.00475596236999154,
-          "excess": 0.17998087214021985
+          "excess": 0.08524407213796104
         }
       }
     },
@@ -6767,7 +6768,7 @@
       "1w": 0.051656817269060594,
       "1m": 0.02766690441092294,
       "3m": 0.010358745492287812,
-      "toDate": 0.00925551528308399
+      "toDate": 0.0076765686163796755
     },
     "callsPerWeek": 1.6342412451361867,
     "best": [
@@ -7367,11 +7368,11 @@
     "funnel": [
       {
         "label": "Instagram posts",
-        "value": 120
+        "value": 121
       },
       {
         "label": "Named a stock",
-        "value": 187
+        "value": 189
       },
       {
         "label": "Bullish buy call",
