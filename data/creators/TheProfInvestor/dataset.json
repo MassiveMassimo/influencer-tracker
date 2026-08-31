@@ -3,7 +3,7 @@
     "handle": "TheProfInvestor",
     "name": "The Prof Investor"
   },
-  "generatedAt": "2026-08-30",
+  "generatedAt": "2026-08-31",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -126988,11 +126988,419 @@
           "excess": null
         }
       }
+    },
+    {
+      "shortcode": "2094086934310387763",
+      "postDate": "2026-08-30",
+      "ticker": "BTC-USD",
+      "company": "Bitcoin USD",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Bitcoin at 74k will be your next better bet",
+      "summary": "The creator suggests that Bitcoin at 74k is a strong investment opportunity if the price reaches that level.",
+      "onScreenPrice": 74000,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094086934310387763",
+      "postDate": "2026-08-30",
+      "ticker": "ETH-USD",
+      "company": "Ethereum USD",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Ethereum at 2200 will be your next better bet",
+      "summary": "The creator suggests that Ethereum at 2200 is a strong investment opportunity if the price reaches that level.",
+      "onScreenPrice": 2200,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094152259353690198",
+      "postDate": "2026-08-30",
+      "ticker": "SPCX",
+      "company": "Space Exploration",
+      "isFirstCall": false,
+      "conviction": 1,
+      "quote": "I own it. $SPCX",
+      "summary": "The creator expresses a strong bullish sentiment on SpaceX, citing a favorable risk-to-reward ratio and confirming they currently hold a position.",
+      "onScreenPrice": 141.5,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "MPC",
+      "company": "Marathon Petroleum",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$MPC",
+      "summary": "The creator lists MPC as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "RIG",
+      "company": "Transocean",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$RIG",
+      "summary": "The creator lists RIG as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "PBF",
+      "company": "PBF Energy",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$PBF",
+      "summary": "The creator lists PBF as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "VLO",
+      "company": "Valero Energy",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$VLO",
+      "summary": "The creator lists VLO as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "HP",
+      "company": "Helmerich & Payne",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$HP",
+      "summary": "The creator lists HP as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "VAL",
+      "company": "Valaris",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$VAL",
+      "summary": "The creator lists VAL as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "NESR",
+      "company": "National Energy Services Reunited",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$NESR",
+      "summary": "The creator lists NESR as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094198048583004554",
+      "postDate": "2026-08-30",
+      "ticker": "SLB",
+      "company": "SLB",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$SLB",
+      "summary": "The creator lists SLB as a bullish pick for the upcoming week following news of an oil deal.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094210213855494581",
+      "postDate": "2026-08-30",
+      "ticker": "CL",
+      "company": "Colgate-Palmolive Company",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$CL_F",
+      "summary": "The creator plans to go long on energy if crude oil breaks out of its current five-month consolidation pattern.",
+      "onScreenPrice": 84.81,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 2177,
-    "uniqueTickers": 306,
+    "totalCalls": 2189,
+    "uniqueTickers": 313,
     "hitRate": {
       "1m": 0.44039735099337746,
       "3m": 0.4641509433962264
@@ -127007,7 +127415,7 @@
       "3m": 0.08874056851804646,
       "toDate": 0.014572029455764786
     },
-    "callsPerWeek": 4.94688221709007,
+    "callsPerWeek": 4.901565995525727,
     "best": [
       {
         "shortcode": "1954339994841346259",
@@ -127605,19 +128013,19 @@
     "funnel": [
       {
         "label": "Tweets",
-        "value": 639
+        "value": 647
       },
       {
         "label": "Named a stock",
-        "value": 4713
+        "value": 4727
       },
       {
         "label": "Bullish buy call",
-        "value": 2177
+        "value": 2189
       },
       {
         "label": "First call (unique ticker)",
-        "value": 306
+        "value": 313
       },
       {
         "label": "Beat SPY (to date)",

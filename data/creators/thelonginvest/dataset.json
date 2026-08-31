@@ -3,7 +3,7 @@
     "handle": "thelonginvest",
     "name": "The Long Invest"
   },
-  "generatedAt": "2026-08-30",
+  "generatedAt": "2026-08-31",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -173080,11 +173080,147 @@
           "excess": null
         }
       }
+    },
+    {
+      "shortcode": "2094014759788011580",
+      "postDate": "2026-08-30",
+      "ticker": "ABNB",
+      "company": "Airbnb",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "$ABNB is in our Top 20 list",
+      "summary": "The creator maintains a bullish stance on ABNB, including it in their top 20 list based on chart analysis and fundamental strength.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094010931978051947",
+      "postDate": "2026-08-30",
+      "ticker": "GOOG",
+      "company": "Alphabet",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$GOOG",
+      "summary": "The creator advises holding cash to buy Alphabet shares once the current pullback is complete.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094013276505964607",
+      "postDate": "2026-08-30",
+      "ticker": "TSLA",
+      "company": "Tesla",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$TSLA it is hard to fault the 5 year projection for $TSLA",
+      "summary": "The creator expresses a bullish long-term outlook for Tesla, citing humanoid robotics as a key growth driver.",
+      "onScreenPrice": 353.98,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "2094104904918843668",
+      "postDate": "2026-08-30",
+      "ticker": "ETH-USD",
+      "company": "Ethereum USD",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "$ETH is setting up for its next breakout",
+      "summary": "The creator expects Ethereum to break out with a price target of $2600.",
+      "onScreenPrice": 2528.1,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 3019,
-    "uniqueTickers": 135,
+    "totalCalls": 3023,
+    "uniqueTickers": 136,
     "hitRate": {
       "1m": 0.4765625,
       "3m": 0.41025641025641024
@@ -173099,7 +173235,7 @@
       "3m": -0.010753583181661142,
       "toDate": -0.04210829142025501
     },
-    "callsPerWeek": 2.288135593220339,
+    "callsPerWeek": 2.272076372315036,
     "best": [
       {
         "shortcode": "1960269464731021785",
@@ -173697,19 +173833,19 @@
     "funnel": [
       {
         "label": "Tweets",
-        "value": 10162
+        "value": 10179
       },
       {
         "label": "Named a stock",
-        "value": 7021
+        "value": 7025
       },
       {
         "label": "Bullish buy call",
-        "value": 3019
+        "value": 3023
       },
       {
         "label": "First call (unique ticker)",
-        "value": 135
+        "value": 136
       },
       {
         "label": "Beat SPY (to date)",
