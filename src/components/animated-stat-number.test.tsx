@@ -36,6 +36,19 @@ describe("animated stat number", () => {
       { character: ".", motionIndex: 1, slotFromRight: 1 },
       { character: "9", motionIndex: 2, slotFromRight: 0 },
     ]);
+    expect(
+      getTokens(-0.05, {
+        style: "percent",
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    ).toEqual([
+      { character: "-", motionIndex: null, slotFromRight: 4 },
+      { character: "5", motionIndex: 0, slotFromRight: 3 },
+      { character: ".", motionIndex: 1, slotFromRight: 2 },
+      { character: "0", motionIndex: 2, slotFromRight: 1 },
+      { character: "%", motionIndex: null, slotFromRight: 0 },
+    ]);
   });
 
   test("keeps trailing character slots stable when the number gets shorter", () => {
