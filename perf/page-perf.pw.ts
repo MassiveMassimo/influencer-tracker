@@ -196,36 +196,54 @@ test.describe("page performance (prod build)", () => {
       .toBeLessThan(BUDGETS.loafMaxBlockingMs);
   });
 
-  test("removed statistic prefixes animate out when the value gets shorter", async ({ page }) => {
+  test("statistic width contracts while removed prefixes travel left", async ({ page }) => {
     await page.goto("/c/thelonginvest", { waitUntil: "load" });
-    await expect(page.locator(".sr-only").filter({ hasText: /^2,961$/ })).toHaveCount(1);
+    const longValue = page
+      .locator(".sr-only")
+      .filter({ hasText: /^2,961$/ })
+      .locator("..");
+    await expect(longValue).toHaveCount(1);
+    const longRect = await longValue.evaluate((element) =>
+      element.getBoundingClientRect().toJSON(),
+    );
+    const startingPrefixLeft = await longValue.locator("[data-stat-number-visual]").evaluate(
+      (element) =>
+        Array.from(element.children)
+          .find((slot) => slot.textContent === "2")
+          ?.getBoundingClientRect().left,
+    );
+    expect(startingPrefixLeft).toBeDefined();
 
     await page.evaluate(() => {
       const samples: Array<{
         character: string;
         blur: number;
+        left: number;
         opacity: number;
-        position: string;
         translateY: number;
+        wrapperWidth: number;
       }> = [];
       const startedAt = performance.now();
       const sample = () => {
         const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
           /^(2,961|116)$/.test(element.textContent ?? ""),
         );
-        const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
+        const wrapper = accessibleValue?.parentElement;
+        const visualValue = wrapper?.querySelector("[data-stat-number-visual]");
 
         for (const slot of visualValue?.children ?? []) {
           if (slot.textContent !== "2" && slot.textContent !== ",") continue;
 
+          const rect = slot.getBoundingClientRect();
           const style = getComputedStyle(slot);
           const matrix = new DOMMatrixReadOnly(style.transform);
           samples.push({
             character: slot.textContent,
             blur: Number(style.filter.match(/blur\(([\d.]+)px\)/)?.[1] ?? 0),
+            left: rect.left,
             opacity: Number(style.opacity),
-            position: style.position,
             translateY: matrix.f,
+            wrapperWidth: wrapper?.getBoundingClientRect().width ?? 0,
           });
         }
 
@@ -238,23 +256,38 @@ test.describe("page performance (prod build)", () => {
 
     await page.getByRole("link", { name: "@roadto100kportfolio", exact: true }).click();
     await expect(page).toHaveURL(/\/c\/roadto100kportfolio$/);
-    await expect(page.locator(".sr-only").filter({ hasText: /^116$/ })).toHaveCount(1);
+    const shortValue = page.locator(".sr-only").filter({ hasText: /^116$/ }).locator("..");
+    await expect(shortValue).toHaveCount(1);
     await page.waitForTimeout(850);
+    const shortRect = await shortValue.evaluate((element) =>
+      element.getBoundingClientRect().toJSON(),
+    );
 
     const samples = await page.evaluate(
       () =>
         (window as any).__statExitSamples as Array<{
           character: string;
           blur: number;
+          left: number;
           opacity: number;
-          position: string;
           translateY: number;
+          wrapperWidth: number;
         }>,
     );
 
+    expect(
+      samples.some(
+        (sample) =>
+          sample.wrapperWidth > shortRect.width + 1 && sample.wrapperWidth < longRect.width - 1,
+      ),
+      `the number wrapper must contract through intermediate widths; sampled ${[
+        ...new Set(samples.map((sample) => sample.wrapperWidth.toFixed(2))),
+      ].join(", ")}`,
+    ).toBe(true);
+
     for (const character of ["2", ","]) {
       const exitingSamples = samples.filter(
-        (sample) => sample.character === character && sample.position === "absolute",
+        (sample) => sample.character === character && sample.opacity < 0.99,
       );
       expect(
         exitingSamples.length,
@@ -271,6 +304,21 @@ test.describe("page performance (prod build)", () => {
         `${character} must fade, blur, and move upward`,
       ).toBe(true);
     }
+    expect(
+      samples.some(
+        (sample) =>
+          sample.character === "2" &&
+          sample.opacity < 0.99 &&
+          sample.left < startingPrefixLeft! - 1,
+      ),
+      `the outgoing prefix must travel left with the contracting number; sampled ${[
+        ...new Set(
+          samples
+            .filter((sample) => sample.character === "2")
+            .map((sample) => `${sample.wrapperWidth.toFixed(2)}:${sample.left.toFixed(2)}`),
+        ),
+      ].join(", ")}`,
+    ).toBe(true);
   });
 
   test("statistic values stay left aligned while transition slots pair from the right", async ({
@@ -280,7 +328,7 @@ test.describe("page performance (prod build)", () => {
     const shortValue = page.locator(".sr-only").filter({ hasText: /^71$/ }).locator("..");
     await expect(shortValue).toHaveCount(1);
     const shortRect = await shortValue
-      .locator('[aria-hidden="true"]')
+      .locator("[data-stat-number-visual]")
       .evaluate((element) => element.getBoundingClientRect().toJSON());
 
     await page.evaluate(() => {
@@ -290,7 +338,9 @@ test.describe("page performance (prod build)", () => {
         const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
           /^(71|2,159)$/.test(element.textContent ?? ""),
         );
-        const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
+        const visualValue = accessibleValue?.parentElement?.querySelector(
+          "[data-stat-number-visual]",
+        );
         samples.push(Array.from(visualValue?.children ?? [], (slot) => slot.textContent ?? ""));
 
         if (performance.now() - startedAt < 800) requestAnimationFrame(sample);
@@ -309,7 +359,7 @@ test.describe("page performance (prod build)", () => {
     await expect(longValue).toHaveCount(1);
     await page.waitForTimeout(850);
     const longRect = await longValue
-      .locator('[aria-hidden="true"]')
+      .locator("[data-stat-number-visual]")
       .evaluate((element) => element.getBoundingClientRect().toJSON());
     const samples = await page.evaluate(() => (window as any).__statSlotSamples as string[][]);
 
