@@ -5,9 +5,9 @@ newest first. Spotted something wrong? Every call has a "Report incorrect" butto
 
 ## 2026-09-01
 
-### Improved
+### New
 
-- **Softer activity feedback** — Moving across days in the call activity history now plays a subtle release sound instead of a sharp tick.
+- **Interface sounds** — Signal Tracker now plays quiet audio feedback when you navigate between creators and stocks, scrub charts and activity history, select a call marker, or submit a report. Turn sounds off any time from Preferences.
 
 ## 2026-08-31
 
