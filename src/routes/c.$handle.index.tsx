@@ -1,4 +1,4 @@
-import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
+import type { Format } from "@number-flow/react";
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
@@ -10,8 +10,8 @@ import {
   MoreHorizontalIcon,
 } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
-import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
+import { AnimatedStatNumber } from "#/components/animated-stat-number.tsx";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { GradeDetail } from "#/components/grade-detail";
@@ -49,6 +49,8 @@ import {
 import { fetchCreatorOverview } from "#/lib/creator-fetch";
 import { CREATOR_CALLS_PAGE_SIZE, type CreatorCallsPage } from "#/lib/creator-data";
 import { creatorCallsPageQuery } from "#/lib/creator-query";
+import { CallActivity } from "#/components/call-activity";
+import { buildHitRateTile, PCT_FMT } from "#/components/creator-stat-data";
 
 export const Route = createFileRoute("/c/$handle/")({
   loader: async ({ params, context }) => {
@@ -84,11 +86,6 @@ export const Route = createFileRoute("/c/$handle/")({
 
 const INT_FMT: Format = { maximumFractionDigits: 0 };
 const DEC1_FMT: Format = { minimumFractionDigits: 1, maximumFractionDigits: 1 };
-const PCT_FMT: Format = {
-  style: "percent",
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-};
 const SIGNED_PCT_FMT: Format = { ...PCT_FMT, signDisplay: "exceptZero" };
 
 type StatSegment =
@@ -177,8 +174,6 @@ function Overview() {
   // loader's creators (sourced from index.json) by handle.
   const avatar = rootApi.useLoaderData().creators.find((c) => c.handle === handle)?.avatar;
 
-  const total3m = sc.hitRateN["3m"];
-  const made3m = Math.round(sc.hitRate["3m"] * total3m);
   const tiles: StatTileData[] = [
     {
       label: "Total calls",
@@ -204,22 +199,7 @@ function Overview() {
         caveat: "An average — real posting is bursty, clustering around earnings and market moves.",
       },
     },
-    {
-      label: "Hit rate 3m",
-      tone: sc.hitRate["3m"] - 0.5,
-      segments: [
-        { kind: "num", key: "rate", value: sc.hitRate["3m"], format: PCT_FMT },
-        { kind: "text", key: "dot", text: " · " },
-        { kind: "num", key: "made", value: made3m, format: INT_FMT },
-        { kind: "text", key: "slash", text: "/" },
-        { kind: "num", key: "total", value: total3m, format: INT_FMT },
-      ],
-      help: {
-        body: "Share of calls that beat SPY over the 3 months after the call (excess return > 0), shown as rate · winners/total. 50% is the coin-flip baseline.",
-        caveat:
-          "Scored on one call per ticker (highest conviction); only calls with a full 3 months elapsed count.",
-      },
-    },
+    buildHitRateTile({ hitRate: sc.hitRate["3m"], total: sc.hitRateN["3m"] }),
     {
       label: "Avg excess 3m",
       tone: sc.avgExcess["3m"],
@@ -357,11 +337,9 @@ function Overview() {
           ref={statsRef}
           gridClassName="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
         >
-          <NumberFlowGroup>
-            {tiles.map((t) => (
-              <StatTile key={t.label} revealed={statsInView} tile={t} />
-            ))}
-          </NumberFlowGroup>
+          {tiles.map((t) => (
+            <StatTile key={t.label} revealed={statsInView} tile={t} />
+          ))}
           {/* Fills the empty 6th grid cell on mobile; md+ shows the grade in the
               header instead, so hide it there to keep the 5-col row full. */}
           {grade && (
@@ -394,6 +372,11 @@ function Overview() {
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
         <StatGrid id="analytics" gridClassName="grid-cols-1 lg:grid-cols-2">
+          <CallActivity
+            activity={overview.activity}
+            creatorHandle={ds.creator.handle}
+            generatedAt={ds.generatedAt}
+          />
           <div className="bg-card p-6">
             <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
               Avg excess vs SPY · by horizon
@@ -427,11 +410,13 @@ function Overview() {
 }
 
 function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean }) {
-  const ready = useNumberFlowReady();
-  // Touch devices render static text — no enter spin (matches the ticker page).
+  // Touch devices retain the existing static fallback.
   const isTouch = useTouchPrimary();
-  const useNumber = ready && !isTouch;
+  const animateNumber = !isTouch;
   const toneCls = tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
+  const primaryNumber = tile.segments.find(
+    (segment): segment is Extract<StatSegment, { kind: "num" }> => segment.kind === "num",
+  )!;
 
   return (
     <div className="bg-card p-4">
@@ -461,21 +446,20 @@ function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean })
         </PreviewCard>
       </div>
       <div className={`mt-1.5 font-heading text-xl tabular-nums ${toneCls}`}>
-        {tile.segments.map((seg) =>
-          seg.kind === "text" ? (
-            <span key={seg.key}>{seg.text}</span>
-          ) : useNumber ? (
-            <NumberFlow
-              format={seg.format}
-              isolate
-              locales="en-US"
-              key={seg.key}
-              value={revealed ? seg.value : 0}
-              willChange
-            />
-          ) : (
-            <span key={seg.key}>{formatNum(seg.value, seg.format)}</span>
-          ),
+        {animateNumber ? (
+          <AnimatedStatNumber
+            format={primaryNumber.format}
+            revealed={revealed}
+            value={primaryNumber.value}
+          />
+        ) : (
+          tile.segments.map((seg) =>
+            seg.kind === "text" ? (
+              <span key={seg.key}>{seg.text}</span>
+            ) : (
+              <span key={seg.key}>{formatNum(seg.value, seg.format)}</span>
+            ),
+          )
         )}
       </div>
     </div>

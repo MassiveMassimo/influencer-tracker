@@ -195,4 +195,262 @@ test.describe("page performance (prod build)", () => {
       .soft(m.loaf.maxBlocking, "interaction LoAF max blocking")
       .toBeLessThan(BUDGETS.loafMaxBlockingMs);
   });
+
+  test("creator activity remains complete and keyboard accessible while switching", async ({
+    page,
+  }) => {
+    await page.goto(ROUTES.creator, { waitUntil: "load" });
+    const grid = page.getByRole("grid", { name: /Call activity from/ });
+    await expect(grid).toBeVisible();
+
+    await page.locator("html").evaluate((root) => {
+      root.setAttribute("data-reduce-motion", "true");
+    });
+    const transitionDelayProbe = grid.getByRole("gridcell").first();
+    await transitionDelayProbe.evaluate((cell) => {
+      cell.classList.add("call-activity-cell-transition");
+    });
+    const reducedMotionDelays = await page
+      .locator(
+        ".call-activity-wave-cell, .call-activity-cell-transition, .call-activity-wave-month",
+      )
+      .evaluateAll((elements) =>
+        elements.map((element) => getComputedStyle(element).animationDelay),
+      );
+    expect(new Set(reducedMotionDelays)).toEqual(new Set(["0s"]));
+    await transitionDelayProbe.evaluate((cell) => {
+      cell.classList.remove("call-activity-cell-transition");
+    });
+    await page.locator("html").evaluate((root) => {
+      root.removeAttribute("data-reduce-motion");
+    });
+
+    const firstCell = grid.locator('[role="gridcell"][tabindex="0"]');
+    await firstCell.focus();
+    const firstColumn = Number(await firstCell.getAttribute("aria-colindex"));
+    const firstRow = await firstCell.getAttribute("aria-rowindex");
+    await page.keyboard.press("ArrowRight");
+    const nextCell = grid.locator(
+      `[role="gridcell"][aria-colindex="${firstColumn + 1}"][aria-rowindex="${firstRow}"]`,
+    );
+    await expect(nextCell).toBeFocused();
+    const activityTooltip = page.locator('[data-slot="call-activity-tooltip"]');
+    await expect(activityTooltip).toHaveAttribute("data-state", "open");
+    await expect(activityTooltip.locator('[data-slot="call-activity-tooltip-panel"]')).toHaveClass(
+      /bg-popover\/90.*shadow-lg.*backdrop-blur-md/,
+    );
+    expect(await activityTooltip.locator("number-flow-react").count()).toBeGreaterThanOrEqual(2);
+    const activityMonth = activityTooltip.locator('[data-slot="call-activity-tooltip-month"]');
+    await expect(activityMonth).toHaveCount(1);
+    expect(await activityMonth.evaluate((month) => month.scrollWidth <= month.clientWidth)).toBe(
+      true,
+    );
+
+    const numberedCell = grid
+      .getByRole("gridcell", {
+        name: / · [1-9]\d* calls?$/,
+      })
+      .first();
+    await numberedCell.hover();
+    await expect(activityTooltip.locator("number-flow-react")).toHaveCount(3);
+
+    const countLabel = activityTooltip.locator('[data-slot="call-activity-tooltip-label"]');
+    const countLabelOffset = async () =>
+      activityTooltip.evaluate((tooltip) => {
+        const panel = tooltip.querySelector(
+          '[data-slot="call-activity-tooltip-panel"]',
+        ) as HTMLElement;
+        const label = tooltip.querySelector(
+          '[data-slot="call-activity-tooltip-label"]',
+        ) as HTMLElement;
+        return label.getBoundingClientRect().left - panel.getBoundingClientRect().left;
+      });
+    await expect(countLabel).toBeVisible();
+    const oneDigitCell = grid.getByRole("gridcell", { name: / · [1-9] calls?$/ }).first();
+    const multiDigitCell = grid.getByRole("gridcell", { name: / · [1-9]\d+ calls$/ }).first();
+    await oneDigitCell.hover();
+    await page.waitForTimeout(200);
+    const oneDigitOffset = await countLabelOffset();
+    await multiDigitCell.hover();
+    const movingOffsets: number[] = [];
+    for (let frame = 0; frame < 5; frame += 1) {
+      await page.waitForTimeout(20);
+      movingOffsets.push(await countLabelOffset());
+    }
+    await page.waitForTimeout(100);
+    const multiDigitOffset = await countLabelOffset();
+    expect(multiDigitOffset).toBeGreaterThan(oneDigitOffset + 1);
+    expect(
+      movingOffsets.some(
+        (offset) => offset > oneDigitOffset + 0.25 && offset < multiDigitOffset - 0.25,
+      ),
+    ).toBe(true);
+    const readTooltipSpacing = () =>
+      activityTooltip.evaluate((tooltip) => {
+        const panel = tooltip.querySelector(
+          '[data-slot="call-activity-tooltip-panel"]',
+        ) as HTMLElement;
+        const date = panel.firstElementChild?.firstElementChild as HTMLElement;
+        const count = tooltip.querySelector(
+          '[data-slot="call-activity-tooltip-count"]',
+        ) as HTMLElement;
+        const value = tooltip.querySelector(
+          '[data-slot="call-activity-tooltip-value"]',
+        ) as HTMLElement;
+        const label = tooltip.querySelector(
+          '[data-slot="call-activity-tooltip-label"]',
+        ) as HTMLElement;
+        const panelRect = panel.getBoundingClientRect();
+        const dateRect = date.getBoundingClientRect();
+        const countRect = count.getBoundingClientRect();
+        const valueRect = value.getBoundingClientRect();
+        const labelRect = label.getBoundingClientRect();
+        return {
+          horizontalGap: labelRect.left - valueRect.right,
+          leftEdgeDelta: Math.abs(dateRect.left - countRect.left),
+          verticalGap: countRect.top - dateRect.bottom,
+          panelInset: dateRect.left - panelRect.left,
+        };
+      });
+    await expect
+      .poll(async () => {
+        const spacing = await readTooltipSpacing();
+        return (
+          spacing.horizontalGap >= 6 &&
+          spacing.leftEdgeDelta < 0.5 &&
+          spacing.verticalGap >= 3.5 &&
+          Math.abs(spacing.panelInset - 12) < 0.5
+        );
+      })
+      .toBe(true);
+    const tooltipSpacing = await readTooltipSpacing();
+    expect(tooltipSpacing.horizontalGap).toBeGreaterThanOrEqual(6);
+    expect(tooltipSpacing.leftEdgeDelta).toBeLessThan(0.5);
+    expect(tooltipSpacing.verticalGap).toBeGreaterThanOrEqual(3.5);
+    expect(tooltipSpacing.panelInset).toBeCloseTo(12, 0);
+
+    const topCell = grid.locator('[aria-colindex="52"][aria-rowindex="1"]');
+    const bottomCell = grid.locator('[aria-colindex="52"][aria-rowindex="7"]');
+    await topCell.hover();
+    await expect(activityTooltip).toHaveAttribute("data-side", "bottom");
+    await bottomCell.hover();
+    await expect(activityTooltip).toHaveAttribute("data-side", "top");
+
+    await activityTooltip.evaluate((tooltip) => {
+      const audit = {
+        closedTransitions: 0,
+        node: tooltip,
+        observer: new MutationObserver(() => {
+          if (tooltip.getAttribute("data-state") === "closed") audit.closedTransitions += 1;
+        }),
+      };
+      audit.observer.observe(tooltip, { attributeFilter: ["data-state"] });
+      (window as any).__activityTooltipAudit = audit;
+    });
+
+    const hoverTargets = [360, 361, 362, 363, 364].map((index) =>
+      grid.getByRole("gridcell").nth(index),
+    );
+    for (const target of hoverTargets) await target.hover();
+    const finalHoverLabel = await hoverTargets.at(-1)!.getAttribute("aria-label");
+    await expect(activityTooltip).toHaveAttribute("aria-label", finalHoverLabel!);
+    const tooltipAudit = await page.evaluate(() => {
+      const audit = (window as any).__activityTooltipAudit;
+      audit.observer.disconnect();
+      return {
+        closedTransitions: audit.closedTransitions,
+        sameNode: audit.node === document.querySelector('[data-slot="call-activity-tooltip"]'),
+      };
+    });
+    expect(tooltipAudit.sameNode).toBe(true);
+    expect(tooltipAudit.closedTransitions).toBe(0);
+
+    const oldLevels = await grid
+      .getByRole("gridcell")
+      .evaluateAll((cells) =>
+        Object.fromEntries(
+          cells.map((cell) => [
+            `${(cell as HTMLElement).dataset.activityWeek}:${(cell as HTMLElement).dataset.activityDay}`,
+            cell.className.match(/bg-foreground\/\[(0\.\d+)\]/)?.[1] ?? null,
+          ]),
+        ),
+      );
+
+    await page.evaluate(() => {
+      const s = (window as any).__pp;
+      s.longTasks = { count: 0, total: 0, max: 0 };
+      s.loaf = {
+        supported: s.loaf.supported,
+        count: 0,
+        total: 0,
+        maxBlocking: 0,
+      };
+    });
+
+    for (const [index, creator] of ["@thelonginvest", "@TheProfInvestor", "@kevvonz"].entries()) {
+      await page.getByRole("link", { name: creator, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`/c/${creator.slice(1)}$`, "i"));
+      if (index === 0) {
+        const transitioningCell = page.locator(".call-activity-cell-transition").first();
+        await expect(transitioningCell).toBeAttached();
+        const transitionSource = await transitioningCell.evaluate((cell) => ({
+          position: `${(cell as HTMLElement).dataset.activityWeek}:${(cell as HTMLElement).dataset.activityDay}`,
+          color: (cell as HTMLElement).style.getPropertyValue("--call-activity-from-color"),
+        }));
+        const oldOpacity = oldLevels[transitionSource.position];
+        expect(oldOpacity).toBeDefined();
+        expect(oldOpacity).not.toBeNull();
+        expect(transitionSource.color).toContain(`${Number(oldOpacity) * 100}%`);
+      }
+      await expect(page.locator(".call-activity-cell-transition")).toHaveCount(0, {
+        timeout: 5_000,
+      });
+      await expect(page.getByRole("gridcell")).toHaveCount(365);
+    }
+
+    const m = await readPagePerf(page);
+    expect
+      .soft(m.longTasks.total, "creator-switch long-task total")
+      .toBeLessThan(BUDGETS.longTaskTotalMs);
+    expect(m.loaf.supported, "Chromium must expose LoAF instrumentation").toBe(true);
+    expect
+      .soft(m.loaf.maxBlocking, "creator-switch LoAF max blocking")
+      .toBeLessThan(BUDGETS.loafMaxBlockingMs);
+  });
+
+  test("creator activity keeps the newest days visible in a narrow viewport", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(ROUTES.creator, { waitUntil: "load" });
+
+    const region = page.getByRole("region", {
+      name: "Call activity calendar. Scroll horizontally to see earlier dates.",
+    });
+    const viewport = region.locator('[data-slot="scroll-area-viewport"]');
+    const grid = page.getByRole("grid", { name: /Call activity from/ });
+    await expect(grid).toBeVisible();
+
+    await expect
+      .poll(() =>
+        viewport.evaluate(
+          (element) =>
+            element.scrollWidth > element.clientWidth &&
+            Math.abs(element.scrollLeft - (element.scrollWidth - element.clientWidth)) <= 1,
+        ),
+      )
+      .toBe(true);
+
+    const newestCell = grid.locator('[aria-colindex="53"]').last();
+    await expect(newestCell).toBeVisible();
+    const layout = await newestCell.evaluate((cell) => {
+      const element = cell.closest<HTMLElement>('[data-slot="scroll-area-viewport"]')!;
+      const newest = cell.getBoundingClientRect();
+      const viewportRect = element.getBoundingClientRect();
+      return {
+        newestInsideRightEdge: newest.right <= viewportRect.right + 0.5,
+        paddingBottom: getComputedStyle(element).paddingBottom,
+      };
+    });
+    expect(layout.newestInsideRightEdge).toBe(true);
+    expect(layout.paddingBottom).toBe("20px");
+  });
 });

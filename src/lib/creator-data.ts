@@ -1,5 +1,6 @@
 import { gradeFor, type Grade } from "./grade";
 import { traitsFor, type Trait } from "./traits";
+import { aggregateCallActivity, type CallActivityDay } from "./call-activity";
 import type { Call, Dataset } from "./types";
 
 export const CREATOR_CALLS_PAGE_SIZE = 25;
@@ -26,6 +27,7 @@ export interface CreatorOverview {
   traits: Trait[];
   convictionRows: CreatorConvictionRow[];
   scoredPickCount: number;
+  activity: CallActivityDay[];
 }
 
 const CONVICTION_BUCKETS = [
@@ -116,5 +118,6 @@ export function buildCreatorOverview(ds: Dataset): CreatorOverview {
     scoredPickCount: ds.calls.filter(
       (call) => call.isFirstCall && call.returns.toDate.excess != null,
     ).length,
+    activity: aggregateCallActivity(ds.calls),
   };
 }

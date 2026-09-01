@@ -125,6 +125,7 @@ describe("buildCreatorOverview", () => {
       call("LOW", "2026-08-01", "low", 0.6, -0.1),
       call("MED", "2026-08-02", "med", 0.8, 0.2),
       call("HIGH", "2026-08-03", "high", 0.95, 0.3),
+      call("HIGH2", "2026-08-03", "high-2", 0.95),
       ...Array.from({ length: CREATOR_CALLS_PAGE_SIZE }, (_, index) =>
         call(`N${index}`, `2026-07-${String(index + 1).padStart(2, "0")}`, `new-${index}`),
       ),
@@ -141,5 +142,6 @@ describe("buildCreatorOverview", () => {
       ["med", 0.2],
       ["high", 0.3],
     ]);
+    expect(overview.activity.at(-1)).toEqual({ date: "2026-08-03", count: 2 });
   });
 });

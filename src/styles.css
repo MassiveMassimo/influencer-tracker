@@ -547,6 +547,81 @@ a {
   }
 }
 
+@keyframes call-activity-cell-enter {
+  from {
+    background-color: transparent;
+  }
+  48% {
+    background-color: color-mix(in oklab, var(--foreground) 92%, transparent);
+  }
+  58%,
+  to {
+    background-color: var(--call-activity-to-color);
+  }
+}
+
+@keyframes call-activity-label-wave {
+  from {
+    opacity: 0;
+    color: transparent;
+  }
+  48% {
+    opacity: 1;
+    color: color-mix(in oklab, var(--foreground) 92%, transparent);
+  }
+  58%,
+  to {
+    opacity: 1;
+    color: var(--muted-foreground);
+  }
+}
+
+@keyframes call-activity-cell-transition {
+  from {
+    background-color: var(--call-activity-from-color);
+  }
+  48% {
+    background-color: color-mix(in oklab, var(--foreground) 92%, transparent);
+  }
+  58%,
+  to {
+    background-color: var(--call-activity-to-color);
+  }
+}
+
+.call-activity-wave-cell {
+  animation: call-activity-cell-enter 280ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  animation-delay: var(--call-activity-wave-delay);
+}
+
+.call-activity-cell-transition {
+  animation: call-activity-cell-transition 280ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  animation-delay: var(--call-activity-wave-delay);
+}
+
+.call-activity-wave-month {
+  animation: call-activity-label-wave 280ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  animation-delay: var(--call-activity-wave-delay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .call-activity-wave-cell,
+  .call-activity-wave-month {
+    animation: call-activity-label-wave 120ms ease-out both;
+  }
+
+  .call-activity-cell-transition {
+    animation-duration: 120ms;
+    animation-delay: 0ms;
+  }
+}
+
+html[data-reduce-motion="true"] .call-activity-wave-cell,
+html[data-reduce-motion="true"] .call-activity-cell-transition,
+html[data-reduce-motion="true"] .call-activity-wave-month {
+  animation-delay: 0ms !important;
+}
+
 /* Manual reduce-motion (Preferences toggle). Broad override gated on the
    attribute PreferencesProvider sets on <html>; the OS-media rules above stay. */
 html[data-reduce-motion="true"] *,
