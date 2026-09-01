@@ -81,7 +81,7 @@ export function getStatGlyphMotionProps(reduceMotion: boolean, motionIndex: numb
 
 interface AnimatedNumberToken {
   character: string;
-  motionIndex: number;
+  motionIndex: number | null;
   slotFromRight: number;
 }
 
@@ -90,10 +90,11 @@ export function formatAnimatedNumber(value: number, format: Intl.NumberFormatOpt
 }
 
 export function getAnimatedNumberTokensFromFormatted(formatted: string): AnimatedNumberToken[] {
+  let motionIndex = 0;
   const characters = Array.from(formatted);
   return characters.map((character, characterIndex) => ({
     character,
-    motionIndex: characterIndex,
+    motionIndex: /[\p{Number},.]/u.test(character) ? motionIndex++ : null,
     slotFromRight: characters.length - characterIndex - 1,
   }));
 }
