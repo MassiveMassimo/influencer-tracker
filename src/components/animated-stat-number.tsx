@@ -21,6 +21,12 @@ const STATIC_CHARACTER_MOTION = {
   animate: { opacity: 1 },
   exit: { opacity: 0, transition: { duration: 0.15 } },
 } as const;
+type CharacterExitTarget =
+  | ReturnType<typeof getStatDigitMotionProps>["exit"]
+  | (typeof STATIC_CHARACTER_MOTION)["exit"];
+const CHARACTER_EXIT_VARIANTS = {
+  exit: (target: CharacterExitTarget) => target,
+} as const;
 const STAT_LAYOUT_CSS_TRANSITION = {
   transitionDuration: `${STAT_LAYOUT_TRANSITION.duration}s`,
   transitionTimingFunction: `cubic-bezier(${STAT_LAYOUT_TRANSITION.ease.join(", ")})`,
@@ -192,6 +198,7 @@ export function AnimatedStatNumber({
               const characterMotion = isDigit
                 ? getStatDigitMotionProps(false, digitIndex)
                 : STATIC_CHARACTER_MOTION;
+              const { exit: characterExit, ...characterMotionProps } = characterMotion;
               const shouldShowCharacter = !isDigit || revealed || isCarryingPreviousValue;
               return (
                 <m.span
@@ -199,12 +206,14 @@ export function AnimatedStatNumber({
                   exit={STAT_REMOVED_CHARACTER_EXIT}
                   key={`slot-${slotFromRight}`}
                 >
-                  <AnimatePresence>
+                  <AnimatePresence custom={characterExit}>
                     <m.span
-                      {...characterMotion}
+                      {...characterMotionProps}
                       animate={shouldShowCharacter ? characterMotion.animate : HIDDEN_BELOW}
                       className="col-start-1 row-start-1 inline-block"
+                      exit="exit"
                       key={character}
+                      variants={CHARACTER_EXIT_VARIANTS}
                     >
                       {character}
                     </m.span>
