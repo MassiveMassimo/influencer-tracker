@@ -42,9 +42,10 @@ export const STAT_REMOVED_CHARACTER_EXIT = {
 export function getStatDigitMotionProps(
   reduceMotion: boolean,
   motionIndex: number,
-  stagger = true,
+  phase: "reveal" | "change" = "reveal",
 ) {
-  const delay = stagger ? motionIndex * DIGIT_STAGGER_SECONDS : 0;
+  const motionDelay = motionIndex * DIGIT_STAGGER_SECONDS;
+  const visibilityDelay = phase === "reveal" ? motionDelay : 0;
 
   return {
     initial: reduceMotion ? false : HIDDEN_BELOW,
@@ -53,20 +54,25 @@ export function getStatDigitMotionProps(
       transition: reduceMotion
         ? { duration: 0 }
         : {
-            y: { type: "tween", duration: DIGIT_MOTION_DURATION_SECONDS, delay, ease: Y_EASE },
+            y: {
+              type: "tween",
+              duration: DIGIT_MOTION_DURATION_SECONDS,
+              delay: motionDelay,
+              ease: Y_EASE,
+            },
             scale: {
               type: "tween",
               duration: DIGIT_MOTION_DURATION_SECONDS,
-              delay,
+              delay: motionDelay,
               ease: GLYPH_EASE,
             },
             filter: {
               type: "tween",
               duration: DIGIT_MOTION_DURATION_SECONDS,
-              delay,
+              delay: motionDelay,
               ease: GLYPH_EASE,
             },
-            opacity: { duration: 0.35, delay, ease: "easeOut" },
+            opacity: { duration: 0.35, delay: visibilityDelay, ease: "easeOut" },
           },
     },
     exit: {
@@ -75,9 +81,9 @@ export function getStatDigitMotionProps(
         ? { duration: 0 }
         : {
             duration: 0.6,
-            delay,
+            delay: motionDelay,
             ease: EXIT_EASE,
-            opacity: { duration: 0.55, delay, ease: EXIT_EASE },
+            opacity: { duration: 0.55, delay: visibilityDelay, ease: EXIT_EASE },
           },
     },
   } as const;
