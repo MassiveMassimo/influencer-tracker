@@ -423,6 +423,107 @@ test.describe("page performance (prod build)", () => {
     ).toEqual([]);
   });
 
+  test("growing statistics keep their old position and start as one group", async ({ page }) => {
+    await page.goto("/c/roadto100kportfolio", { waitUntil: "load" });
+    const totalCalls = page.locator(".sr-only").filter({ hasText: /^116$/ }).locator("..");
+    const uniqueTickers = page.locator(".sr-only").filter({ hasText: /^60$/ }).locator("..");
+    await expect(totalCalls).toHaveCount(1);
+    await expect(uniqueTickers).toHaveCount(1);
+
+    const startingLeft = {
+      totalCalls: await totalCalls
+        .locator("[data-stat-number-visual]")
+        .evaluate((element) => element.getBoundingClientRect().left),
+      uniqueTickers: await uniqueTickers
+        .locator("[data-stat-number-visual]")
+        .evaluate((element) => element.getBoundingClientRect().left),
+    };
+
+    await page.evaluate(() => {
+      const samples: Array<{
+        elapsed: number;
+        glyphs: Array<{ character: string; opacity: number }>;
+        left: number;
+        visualText: string;
+      }> = [];
+      const startedAt = performance.now();
+      const sample = () => {
+        for (const wrapper of document.querySelectorAll("[data-stat-number-width]")) {
+          const visual = wrapper.querySelector("[data-stat-number-visual]");
+          if (!visual) continue;
+          const visualText = Array.from(visual.children, (slot) => slot.textContent ?? "").join("");
+          if (!["116", "60", "16305"].includes(visualText)) continue;
+
+          samples.push({
+            elapsed: performance.now() - startedAt,
+            glyphs: Array.from(visual.children).flatMap((slot) =>
+              Array.from(slot.children, (glyph) => ({
+                character: glyph.textContent ?? "",
+                opacity: Number(getComputedStyle(glyph).opacity),
+              })),
+            ),
+            left: visual.getBoundingClientRect().left,
+            visualText,
+          });
+        }
+
+        if (performance.now() - startedAt < 800) requestAnimationFrame(sample);
+      };
+
+      (window as any).__statGroupSamples = samples;
+      requestAnimationFrame(sample);
+    });
+
+    await page.getByRole("link", { name: "@thelonginvest", exact: true }).click();
+    await expect(page).toHaveURL(/\/c\/thelonginvest$/);
+    await page.waitForTimeout(850);
+
+    const samples = await page.evaluate(
+      () =>
+        (window as any).__statGroupSamples as Array<{
+          elapsed: number;
+          glyphs: Array<{ character: string; opacity: number }>;
+          left: number;
+          visualText: string;
+        }>,
+    );
+
+    for (const [visualText, left] of [
+      ["116", startingLeft.totalCalls],
+      ["60", startingLeft.uniqueTickers],
+    ] as const) {
+      const oldValueSamples = samples.filter((sample) => sample.visualText === visualText);
+      expect(
+        oldValueSamples.length,
+        `${visualText} must be sampled before replacement`,
+      ).toBeGreaterThan(0);
+      expect(
+        Math.min(...oldValueSamples.map((sample) => sample.left)),
+        `${visualText} must not jump left before its replacement is mounted`,
+      ).toBeGreaterThanOrEqual(left - 0.5);
+    }
+
+    const uniqueTickerSamples = samples.filter((sample) => sample.visualText === "16305");
+    const firstChange = (character: string, predicate: (opacity: number) => boolean) =>
+      uniqueTickerSamples.find((sample) =>
+        sample.glyphs.some((glyph) => glyph.character === character && predicate(glyph.opacity)),
+      )?.elapsed;
+    const starts = [
+      firstChange("1", (opacity) => opacity > 0.02),
+      firstChange("6", (opacity) => opacity < 0.98),
+      firstChange("0", (opacity) => opacity < 0.98),
+    ];
+
+    expect(
+      starts.every((start) => start !== undefined),
+      `sampled starts: ${starts}`,
+    ).toBe(true);
+    expect(
+      Math.max(...(starts as number[])) - Math.min(...(starts as number[])),
+      `the added 1 and replaced 60 must start within one sampled frame; sampled starts: ${starts}`,
+    ).toBeLessThanOrEqual(50);
+  });
+
   test("creator activity remains complete and keyboard accessible while switching", async ({
     page,
   }) => {
