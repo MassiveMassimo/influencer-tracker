@@ -87,7 +87,7 @@ describe("animated stat number", () => {
     }).toEqual(STAT_LAYOUT_TRANSITION);
   });
 
-  test("staggers glyph movement but synchronizes visibility during a value transition", () => {
+  test("starts exits immediately while staggering incoming glyph movement", () => {
     const props = getStatDigitMotionProps(false, 2, "change");
 
     expect(props.animate.transition).toMatchObject({
@@ -97,7 +97,7 @@ describe("animated stat number", () => {
       y: { delay: 0.16 },
     });
     expect(props.exit.transition).toMatchObject({
-      delay: 0.16,
+      delay: 0,
       opacity: { delay: 0 },
     });
   });
