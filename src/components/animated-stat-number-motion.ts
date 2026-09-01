@@ -16,7 +16,7 @@ export const HIDDEN_BELOW = {
   filter: "blur(4px)",
 } as const;
 
-export const STAT_VISIBLE_CHARACTER = {
+const VISIBLE = {
   opacity: 1,
   y: "0em",
   scale: 1,
@@ -39,46 +39,41 @@ export const STAT_REMOVED_CHARACTER_EXIT = {
   },
 } as const;
 
-export function getStatDigitMotionProps(reduceMotion: boolean, motionIndex: number) {
-  const motionDelay = motionIndex * DIGIT_STAGGER_SECONDS;
+export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: number) {
+  const delay = digitIndex * DIGIT_STAGGER_SECONDS;
 
   return {
     initial: reduceMotion ? false : HIDDEN_BELOW,
     animate: {
-      ...STAT_VISIBLE_CHARACTER,
+      ...VISIBLE,
       transition: reduceMotion
         ? { duration: 0 }
         : {
-            y: {
-              type: "tween",
-              duration: DIGIT_MOTION_DURATION_SECONDS,
-              delay: motionDelay,
-              ease: Y_EASE,
-            },
+            y: { type: "tween", duration: DIGIT_MOTION_DURATION_SECONDS, delay, ease: Y_EASE },
             scale: {
               type: "tween",
               duration: DIGIT_MOTION_DURATION_SECONDS,
-              delay: motionDelay,
+              delay,
               ease: GLYPH_EASE,
             },
             filter: {
               type: "tween",
               duration: DIGIT_MOTION_DURATION_SECONDS,
-              delay: motionDelay,
+              delay,
               ease: GLYPH_EASE,
             },
-            opacity: { duration: 0.35, delay: motionDelay, ease: "easeOut" },
+            opacity: { duration: 0.35, delay, ease: "easeOut" },
           },
     },
     exit: {
-      ...(reduceMotion ? STAT_VISIBLE_CHARACTER : HIDDEN_ABOVE),
+      ...(reduceMotion ? VISIBLE : HIDDEN_ABOVE),
       transition: reduceMotion
         ? { duration: 0 }
         : {
             duration: 0.6,
-            delay: motionDelay,
+            delay,
             ease: EXIT_EASE,
-            opacity: { duration: 0.55, delay: motionDelay, ease: EXIT_EASE },
+            opacity: { duration: 0.55, delay, ease: EXIT_EASE },
           },
     },
   } as const;
@@ -86,7 +81,7 @@ export function getStatDigitMotionProps(reduceMotion: boolean, motionIndex: numb
 
 interface AnimatedNumberToken {
   character: string;
-  motionIndex: number | null;
+  digitIndex: number | null;
   slotFromRight: number;
 }
 
@@ -95,20 +90,11 @@ export function formatAnimatedNumber(value: number, format: Intl.NumberFormatOpt
 }
 
 export function getAnimatedNumberTokensFromFormatted(formatted: string): AnimatedNumberToken[] {
-  let motionIndex = 0;
+  let digitIndex = 0;
   const characters = Array.from(formatted);
   return characters.map((character, characterIndex) => ({
     character,
-    motionIndex: /[\p{Number},.]/u.test(character) ? motionIndex++ : null,
+    digitIndex: /\p{Number}/u.test(character) ? digitIndex++ : null,
     slotFromRight: characters.length - characterIndex - 1,
   }));
-}
-
-export function getStatTransitionMotionIndex(
-  incomingMotionIndex: number,
-  outgoingMotionIndex: number | null,
-): number {
-  return outgoingMotionIndex === null
-    ? incomingMotionIndex
-    : Math.min(incomingMotionIndex, outgoingMotionIndex);
 }

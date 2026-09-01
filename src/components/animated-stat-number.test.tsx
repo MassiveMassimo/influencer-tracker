@@ -6,7 +6,6 @@ import {
   formatAnimatedNumber,
   getAnimatedNumberTokensFromFormatted,
   getStatDigitMotionProps,
-  getStatTransitionMotionIndex,
   STAT_LAYOUT_TRANSITION,
   STAT_REMOVED_CHARACTER_EXIT,
 } from "./animated-stat-number-motion.ts";
@@ -15,28 +14,17 @@ const getTokens = (value: number, format: Intl.NumberFormatOptions) =>
   getAnimatedNumberTokensFromFormatted(formatAnimatedNumber(value, format));
 
 describe("animated stat number", () => {
-  test("animates grouping and decimal separators as numeric glyphs", () => {
+  test("keeps punctuation static while identifying each numeric glyph", () => {
     expect(
       getTokens(2159, {
         maximumFractionDigits: 0,
       }),
     ).toEqual([
-      { character: "2", motionIndex: 0, slotFromRight: 4 },
-      { character: ",", motionIndex: 1, slotFromRight: 3 },
-      { character: "1", motionIndex: 2, slotFromRight: 2 },
-      { character: "5", motionIndex: 3, slotFromRight: 1 },
-      { character: "9", motionIndex: 4, slotFromRight: 0 },
-    ]);
-    expect(
-      getTokens(46.4, {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      }),
-    ).toEqual([
-      { character: "4", motionIndex: 0, slotFromRight: 3 },
-      { character: "6", motionIndex: 1, slotFromRight: 2 },
-      { character: ".", motionIndex: 2, slotFromRight: 1 },
-      { character: "4", motionIndex: 3, slotFromRight: 0 },
+      { character: "2", digitIndex: 0, slotFromRight: 4 },
+      { character: ",", digitIndex: null, slotFromRight: 3 },
+      { character: "1", digitIndex: 1, slotFromRight: 2 },
+      { character: "5", digitIndex: 2, slotFromRight: 1 },
+      { character: "9", digitIndex: 3, slotFromRight: 0 },
     ]);
   });
 
@@ -46,12 +34,12 @@ describe("animated stat number", () => {
 
     expect(long.at(-1)).toEqual({
       character: "1",
-      motionIndex: 4,
+      digitIndex: 3,
       slotFromRight: 0,
     });
     expect(short.at(-1)).toEqual({
       character: "6",
-      motionIndex: 2,
+      digitIndex: 2,
       slotFromRight: 0,
     });
   });
@@ -86,42 +74,6 @@ describe("animated stat number", () => {
       duration: digitTransition.duration,
       ease: digitTransition.ease,
     }).toEqual(STAT_LAYOUT_TRANSITION);
-  });
-
-  test("starts each replacement pair together while staggering later columns", () => {
-    const firstPair = getStatDigitMotionProps(false, 0);
-    const laterPair = getStatDigitMotionProps(false, 2);
-
-    expect(firstPair.animate.transition).toMatchObject({
-      opacity: { delay: 0 },
-      filter: { delay: 0 },
-      scale: { delay: 0 },
-      y: { delay: 0 },
-    });
-    expect(firstPair.exit.transition).toMatchObject({
-      delay: 0,
-      opacity: { delay: 0 },
-    });
-    expect(laterPair.animate.transition).toMatchObject({
-      opacity: { delay: 0.16 },
-      filter: { delay: 0.16 },
-      scale: { delay: 0.16 },
-      y: { delay: 0.16 },
-    });
-    expect(laterPair.exit.transition).toMatchObject({
-      delay: 0.16,
-      opacity: { delay: 0.16 },
-    });
-  });
-
-  test("restarts stagger bands when right-paired values have different lengths", () => {
-    expect(getStatTransitionMotionIndex(2, 0)).toBe(0);
-    expect(getStatTransitionMotionIndex(3, 1)).toBe(1);
-    expect(getStatTransitionMotionIndex(4, 2)).toBe(2);
-    expect(getStatTransitionMotionIndex(0, 2)).toBe(0);
-    expect(getStatTransitionMotionIndex(1, 3)).toBe(1);
-    expect(getStatTransitionMotionIndex(2, 4)).toBe(2);
-    expect(getStatTransitionMotionIndex(1, null)).toBe(1);
   });
 
   test("gives removed punctuation the same graceful exit as removed digits", () => {
