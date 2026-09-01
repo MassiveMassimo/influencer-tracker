@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { mix } from "motion";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PreferencesProvider } from "#/lib/preferences.tsx";
 import { AnimatedNumber } from "./animated-number.tsx";
@@ -69,6 +70,8 @@ describe("animated number", () => {
 
   test("scales the approved blur with the surrounding text size", () => {
     const props = getAnimatedNumberGlyphMotionProps(false, 2);
+    if (props.initial === false) throw new Error("Animated glyph blur is missing");
+    const interpolateBlur = mix(props.initial.filter, props.animate.filter);
 
     expect(props.initial).toEqual({
       opacity: 0,
@@ -76,6 +79,7 @@ describe("animated number", () => {
       scale: 0.6,
       filter: "blur(0.2em)",
     });
+    expect(String(interpolateBlur(0.5))).toBe("blur(0.1em)");
     expect(props.animate.transition.y).toMatchObject({
       duration: 0.5,
       delay: 0.16,

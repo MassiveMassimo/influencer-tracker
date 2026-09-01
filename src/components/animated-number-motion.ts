@@ -20,7 +20,7 @@ const VISIBLE = {
   opacity: 1,
   y: "0em",
   scale: 1,
-  filter: "blur(0px)",
+  filter: "blur(0em)",
 } as const;
 
 const HIDDEN_ABOVE = {

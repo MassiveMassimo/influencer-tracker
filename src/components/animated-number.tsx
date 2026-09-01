@@ -80,7 +80,8 @@ export function AnimatedNumber({
               const characterMotion = isAnimatedGlyph
                 ? getAnimatedNumberGlyphMotionProps(false, motionIndex)
                 : STATIC_CHARACTER_MOTION;
-              const shouldShowCharacter = !isAnimatedGlyph || revealed || isCarryingPreviousValue;
+              const shouldShowCharacter = revealed || isCarryingPreviousValue;
+              const hiddenCharacter = isAnimatedGlyph ? HIDDEN_BELOW : { opacity: 0 };
               return (
                 <m.span
                   layout="position"
@@ -92,7 +93,7 @@ export function AnimatedNumber({
                   <AnimatePresence>
                     <m.span
                       {...characterMotion}
-                      animate={shouldShowCharacter ? characterMotion.animate : HIDDEN_BELOW}
+                      animate={shouldShowCharacter ? characterMotion.animate : hiddenCharacter}
                       className="col-start-1 row-start-1 inline-block"
                       key={character}
                     >
