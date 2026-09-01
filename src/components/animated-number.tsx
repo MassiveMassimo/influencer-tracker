@@ -24,9 +24,10 @@ const STATIC_CHARACTER_MOTION = {
 const NUMBER_CONTAINER_CLASS = "relative inline-flex whitespace-nowrap";
 const lastFormattedByTransitionKey = new Map<string, string>();
 
-interface AnimatedNumberProps {
+export interface AnimatedNumberProps {
   value: number;
   format: Intl.NumberFormatOptions;
+  /** Stable identity for one visual number slot across value changes. */
   transitionKey: string;
   revealed?: boolean;
 }
