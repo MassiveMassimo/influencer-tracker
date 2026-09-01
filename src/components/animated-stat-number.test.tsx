@@ -14,17 +14,28 @@ const getTokens = (value: number, format: Intl.NumberFormatOptions) =>
   getAnimatedNumberTokensFromFormatted(formatAnimatedNumber(value, format));
 
 describe("animated stat number", () => {
-  test("keeps punctuation static while identifying each numeric glyph", () => {
+  test("animates grouping and decimal separators as numeric glyphs", () => {
     expect(
       getTokens(2159, {
         maximumFractionDigits: 0,
       }),
     ).toEqual([
-      { character: "2", digitIndex: 0, slotFromRight: 4 },
-      { character: ",", digitIndex: null, slotFromRight: 3 },
-      { character: "1", digitIndex: 1, slotFromRight: 2 },
-      { character: "5", digitIndex: 2, slotFromRight: 1 },
-      { character: "9", digitIndex: 3, slotFromRight: 0 },
+      { character: "2", motionIndex: 0, slotFromRight: 4 },
+      { character: ",", motionIndex: 1, slotFromRight: 3 },
+      { character: "1", motionIndex: 2, slotFromRight: 2 },
+      { character: "5", motionIndex: 3, slotFromRight: 1 },
+      { character: "9", motionIndex: 4, slotFromRight: 0 },
+    ]);
+    expect(
+      getTokens(46.4, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    ).toEqual([
+      { character: "4", motionIndex: 0, slotFromRight: 3 },
+      { character: "6", motionIndex: 1, slotFromRight: 2 },
+      { character: ".", motionIndex: 2, slotFromRight: 1 },
+      { character: "4", motionIndex: 3, slotFromRight: 0 },
     ]);
   });
 
@@ -34,12 +45,12 @@ describe("animated stat number", () => {
 
     expect(long.at(-1)).toEqual({
       character: "1",
-      digitIndex: 3,
+      motionIndex: 4,
       slotFromRight: 0,
     });
     expect(short.at(-1)).toEqual({
       character: "6",
-      digitIndex: 2,
+      motionIndex: 2,
       slotFromRight: 0,
     });
   });

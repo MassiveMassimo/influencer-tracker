@@ -193,13 +193,13 @@ export function AnimatedStatNumber({
               }))
             }
           >
-            {tokens.map(({ character, digitIndex, slotFromRight }) => {
-              const isDigit = digitIndex !== null;
-              const characterMotion = isDigit
-                ? getStatDigitMotionProps(false, digitIndex)
+            {tokens.map(({ character, motionIndex, slotFromRight }) => {
+              const isAnimatedGlyph = motionIndex !== null;
+              const characterMotion = isAnimatedGlyph
+                ? getStatDigitMotionProps(false, motionIndex)
                 : STATIC_CHARACTER_MOTION;
               const { exit: characterExit, ...characterMotionProps } = characterMotion;
-              const shouldShowCharacter = !isDigit || revealed || isCarryingPreviousValue;
+              const shouldShowCharacter = !isAnimatedGlyph || revealed || isCarryingPreviousValue;
               return (
                 <m.span
                   className="relative inline-grid overflow-hidden"
