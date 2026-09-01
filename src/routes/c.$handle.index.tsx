@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
 import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
-import { AnimatedStatNumber } from "#/components/animated-stat-number.tsx";
+import { AnimatedNumber } from "#/components/animated-number.tsx";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { GradeDetail } from "#/components/grade-detail";
@@ -447,10 +447,10 @@ function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean })
       </div>
       <div className={`mt-1.5 font-heading text-xl tabular-nums ${toneCls}`}>
         {animateNumber ? (
-          <AnimatedStatNumber
+          <AnimatedNumber
             format={primaryNumber.format}
-            layoutKey={tile.label}
             revealed={revealed}
+            transitionKey={tile.label}
             value={primaryNumber.value}
           />
         ) : (

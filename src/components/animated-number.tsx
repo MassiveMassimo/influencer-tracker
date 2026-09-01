@@ -7,11 +7,11 @@ import { usePreferences } from "#/lib/preferences.tsx";
 import {
   formatAnimatedNumber,
   getAnimatedNumberTokensFromFormatted,
-  getStatGlyphMotionProps,
+  getAnimatedNumberGlyphMotionProps,
   HIDDEN_BELOW,
-  STAT_LAYOUT_TRANSITION,
-  STAT_REMOVED_CHARACTER_EXIT,
-} from "./animated-stat-number-motion.ts";
+  NUMBER_LAYOUT_TRANSITION,
+  NUMBER_REMOVED_CHARACTER_EXIT,
+} from "./animated-number-motion.ts";
 
 const subscribeToNoopStore = () => () => {};
 const getClientHydrationSnapshot = () => true;
@@ -22,19 +22,21 @@ const STATIC_CHARACTER_MOTION = {
   exit: { opacity: 0, transition: { duration: 0.15 } },
 } as const;
 const NUMBER_CONTAINER_CLASS = "relative inline-flex whitespace-nowrap";
-const lastFormattedByLayoutKey = new Map<string, string>();
+const lastFormattedByTransitionKey = new Map<string, string>();
 
-export function AnimatedStatNumber({
-  value,
-  format,
-  revealed,
-  layoutKey,
-}: {
+interface AnimatedNumberProps {
   value: number;
   format: Intl.NumberFormatOptions;
-  revealed: boolean;
-  layoutKey: string;
-}) {
+  transitionKey: string;
+  revealed?: boolean;
+}
+
+export function AnimatedNumber({
+  value,
+  format,
+  transitionKey,
+  revealed = true,
+}: AnimatedNumberProps) {
   const osReduceMotion = useReducedMotion() === true;
   const { reduceMotion } = usePreferences();
   const hydrated = useSyncExternalStore(
@@ -46,7 +48,7 @@ export function AnimatedStatNumber({
   const formatted = formatAnimatedNumber(value, format);
   const previousFormatted = useSyncExternalStore(
     subscribeToNoopStore,
-    () => lastFormattedByLayoutKey.get(layoutKey) ?? formatted,
+    () => lastFormattedByTransitionKey.get(transitionKey) ?? formatted,
     () => formatted,
   );
   const [advancedTo, setAdvancedTo] = useState<string | null>(null);
@@ -55,12 +57,12 @@ export function AnimatedStatNumber({
   const tokens = getAnimatedNumberTokensFromFormatted(visualFormatted);
 
   useEffect(() => {
-    lastFormattedByLayoutKey.set(layoutKey, formatted);
+    lastFormattedByTransitionKey.set(transitionKey, formatted);
     if (!isCarryingPreviousValue) return;
 
     const frame = requestAnimationFrame(() => setAdvancedTo(formatted));
     return () => cancelAnimationFrame(frame);
-  }, [formatted, isCarryingPreviousValue, layoutKey]);
+  }, [formatted, isCarryingPreviousValue, transitionKey]);
 
   if (!hydrated || shouldReduceMotion) {
     return <span className={NUMBER_CONTAINER_CLASS}>{formatted}</span>;
@@ -75,15 +77,15 @@ export function AnimatedStatNumber({
             {tokens.map(({ character, motionIndex, slotFromRight }) => {
               const isAnimatedGlyph = motionIndex !== null;
               const characterMotion = isAnimatedGlyph
-                ? getStatGlyphMotionProps(false, motionIndex)
+                ? getAnimatedNumberGlyphMotionProps(false, motionIndex)
                 : STATIC_CHARACTER_MOTION;
               const shouldShowCharacter = !isAnimatedGlyph || revealed || isCarryingPreviousValue;
               return (
                 <m.span
                   layout="position"
-                  transition={{ layout: STAT_LAYOUT_TRANSITION }}
+                  transition={{ layout: NUMBER_LAYOUT_TRANSITION }}
                   className="relative inline-grid overflow-hidden"
-                  exit={STAT_REMOVED_CHARACTER_EXIT}
+                  exit={NUMBER_REMOVED_CHARACTER_EXIT}
                   key={`slot-${slotFromRight}`}
                 >
                   <AnimatePresence>
