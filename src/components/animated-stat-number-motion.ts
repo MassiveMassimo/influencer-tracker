@@ -85,13 +85,6 @@ interface AnimatedNumberToken {
   slotFromRight: number;
 }
 
-export function getAnimatedNumberTokens(
-  value: number,
-  format: Intl.NumberFormatOptions,
-): AnimatedNumberToken[] {
-  return getAnimatedNumberTokensFromFormatted(formatAnimatedNumber(value, format));
-}
-
 export function formatAnimatedNumber(value: number, format: Intl.NumberFormatOptions): string {
   return new Intl.NumberFormat("en-US", format).format(value);
 }
