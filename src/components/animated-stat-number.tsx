@@ -5,7 +5,7 @@ import * as m from "motion/react-m";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePreferences } from "#/lib/preferences.tsx";
 import {
-  getAnimatedNumberTokens,
+  formatAnimatedNumber,
   getAnimatedNumberTokensFromFormatted,
   getStatDigitMotionProps,
   HIDDEN_BELOW,
@@ -13,7 +13,7 @@ import {
   STAT_REMOVED_CHARACTER_EXIT,
 } from "./animated-stat-number-motion.ts";
 
-const subscribeToHydration = () => () => {};
+const subscribeToNoopStore = () => () => {};
 const getClientHydrationSnapshot = () => true;
 const getServerHydrationSnapshot = () => false;
 const STATIC_CHARACTER_MOTION = {
@@ -36,17 +36,15 @@ export function AnimatedStatNumber({
 }) {
   const osReduceMotion = useReducedMotion() === true;
   const { reduceMotion } = usePreferences();
-  const mounted = useSyncExternalStore(
-    subscribeToHydration,
+  const hydrated = useSyncExternalStore(
+    subscribeToNoopStore,
     getClientHydrationSnapshot,
     getServerHydrationSnapshot,
   );
-  const reduce = osReduceMotion || reduceMotion;
-  const formatted = getAnimatedNumberTokens(value, format)
-    .map(({ character }) => character)
-    .join("");
+  const shouldReduceMotion = osReduceMotion || reduceMotion;
+  const formatted = formatAnimatedNumber(value, format);
   const previousFormatted = useSyncExternalStore(
-    subscribeToHydration,
+    subscribeToNoopStore,
     () => lastFormattedByLayoutKey.get(layoutKey) ?? formatted,
     () => formatted,
   );
@@ -63,7 +61,7 @@ export function AnimatedStatNumber({
     return () => cancelAnimationFrame(frame);
   }, [formatted, isCarryingPreviousValue, layoutKey]);
 
-  if (!mounted || reduce) {
+  if (!hydrated || shouldReduceMotion) {
     return <span>{formatted}</span>;
   }
 
@@ -73,31 +71,28 @@ export function AnimatedStatNumber({
         <span className="sr-only">{formatted}</span>
         <m.span aria-hidden className="inline-flex">
           <AnimatePresence mode="popLayout">
-            {tokens.map((token) => {
-              const motionProps =
-                token.digitIndex === null
-                  ? STATIC_CHARACTER_MOTION
-                  : getStatDigitMotionProps(false, token.digitIndex);
+            {tokens.map(({ character, digitIndex, slotFromRight }) => {
+              const isDigit = digitIndex !== null;
+              const characterMotion = isDigit
+                ? getStatDigitMotionProps(false, digitIndex)
+                : STATIC_CHARACTER_MOTION;
+              const shouldShowCharacter = !isDigit || revealed || isCarryingPreviousValue;
               return (
                 <m.span
                   layout="position"
                   transition={{ layout: STAT_LAYOUT_TRANSITION }}
                   className="relative inline-grid overflow-hidden"
                   exit={STAT_REMOVED_CHARACTER_EXIT}
-                  key={`slot-${token.slotFromRight}`}
+                  key={`slot-${slotFromRight}`}
                 >
                   <AnimatePresence>
                     <m.span
-                      {...motionProps}
-                      animate={
-                        token.digitIndex === null || revealed || isCarryingPreviousValue
-                          ? motionProps.animate
-                          : HIDDEN_BELOW
-                      }
+                      {...characterMotion}
+                      animate={shouldShowCharacter ? characterMotion.animate : HIDDEN_BELOW}
                       className="col-start-1 row-start-1 inline-block"
-                      key={token.character}
+                      key={character}
                     >
-                      {token.character}
+                      {character}
                     </m.span>
                   </AnimatePresence>
                 </m.span>
