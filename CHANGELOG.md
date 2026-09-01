@@ -3,6 +3,12 @@
 What's new on Signal Tracker — new features, improvements, and fixes. Entries are
 newest first. Spotted something wrong? Every call has a "Report incorrect" button.
 
+## 2026-09-01
+
+### Improved
+
+- **Softer activity feedback** — Moving across days in the call activity history now plays a subtle release sound instead of a sharp tick.
+
 ## 2026-08-31
 
 ### New
