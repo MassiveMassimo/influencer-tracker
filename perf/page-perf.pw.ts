@@ -370,6 +370,59 @@ test.describe("page performance (prod build)", () => {
     ).toBe(true);
   });
 
+  test("paired statistic glyphs enter and exit together when the number grows", async ({
+    page,
+  }) => {
+    await page.goto("/c/roadto100kportfolio", { waitUntil: "load" });
+    await expect(page.locator(".sr-only").filter({ hasText: /^116$/ })).toHaveCount(1);
+
+    await page.getByRole("link", { name: "@thelonginvest", exact: true }).click();
+    await expect(page).toHaveURL(/\/c\/thelonginvest$/);
+    const longValue = page
+      .locator(".sr-only")
+      .filter({ hasText: /^2,961$/ })
+      .locator("..");
+    await expect(longValue).toHaveCount(1);
+    const visualValue = longValue.locator("[data-stat-number-visual]");
+    const samples: Array<{ initialY: number; slot: string; translateY: number[] }> = [];
+    const samplingStartedAt = Date.now();
+
+    while (Date.now() - samplingStartedAt < 800) {
+      samples.push(
+        ...(await visualValue.evaluate((element) =>
+          Array.from(element.children).flatMap((slot) => {
+            const glyphs = Array.from(slot.children);
+            if (glyphs.length !== 2) return [];
+
+            return [
+              {
+                initialY: Number.parseFloat(getComputedStyle(glyphs[0]).fontSize) * 0.42,
+                slot: slot.textContent ?? "",
+                translateY: glyphs.map(
+                  (glyph) => new DOMMatrixReadOnly(getComputedStyle(glyph).transform).f,
+                ),
+              },
+            ];
+          }),
+        )),
+      );
+      await page.waitForTimeout(16);
+    }
+
+    const splitFrames = samples.filter(({ initialY, translateY }) => {
+      const outgoingY = Math.min(...translateY);
+      const incomingY = Math.max(...translateY);
+      return outgoingY < -0.5 && incomingY >= initialY - 0.01;
+    });
+
+    expect(samples.length, "the test must observe paired glyphs").toBeGreaterThan(0);
+    expect(new Set(samples.map(({ slot }) => slot))).toEqual(new Set(["19", "16", "61"]));
+    expect(
+      splitFrames,
+      `paired glyphs must start together; observed split frames ${JSON.stringify(splitFrames)}`,
+    ).toEqual([]);
+  });
+
   test("creator activity remains complete and keyboard accessible while switching", async ({
     page,
   }) => {
