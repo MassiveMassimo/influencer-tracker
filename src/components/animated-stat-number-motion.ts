@@ -1,7 +1,13 @@
 const DIGIT_STAGGER_SECONDS = 0.08;
+const DIGIT_MOTION_DURATION_SECONDS = 0.5;
 const Y_EASE = [0.3, 0.4, 0.1, 1.25] as const;
 const GLYPH_EASE = [0.3, 0.4, 0.4, 1] as const;
 const EXIT_EASE = [0.3, 0.4, 0.1, 1] as const;
+
+export const STAT_LAYOUT_TRANSITION = {
+  duration: DIGIT_MOTION_DURATION_SECONDS,
+  ease: GLYPH_EASE,
+} as const;
 
 export const HIDDEN_BELOW = {
   opacity: 0,
@@ -34,9 +40,19 @@ export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: numbe
       transition: reduceMotion
         ? { duration: 0 }
         : {
-            y: { type: "tween", duration: 0.5, delay, ease: Y_EASE },
-            scale: { type: "tween", duration: 0.5, delay, ease: GLYPH_EASE },
-            filter: { type: "tween", duration: 0.5, delay, ease: GLYPH_EASE },
+            y: { type: "tween", duration: DIGIT_MOTION_DURATION_SECONDS, delay, ease: Y_EASE },
+            scale: {
+              type: "tween",
+              duration: DIGIT_MOTION_DURATION_SECONDS,
+              delay,
+              ease: GLYPH_EASE,
+            },
+            filter: {
+              type: "tween",
+              duration: DIGIT_MOTION_DURATION_SECONDS,
+              delay,
+              ease: GLYPH_EASE,
+            },
             opacity: { duration: 0.35, delay, ease: "easeOut" },
           },
     },

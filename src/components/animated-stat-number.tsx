@@ -9,15 +9,12 @@ import {
   getAnimatedNumberTokensFromFormatted,
   getStatDigitMotionProps,
   HIDDEN_BELOW,
+  STAT_LAYOUT_TRANSITION,
 } from "./animated-stat-number-motion.ts";
 
 const subscribeToHydration = () => () => {};
 const getClientHydrationSnapshot = () => true;
 const getServerHydrationSnapshot = () => false;
-const LAYOUT_TRANSITION = {
-  duration: 0.25,
-  ease: [0.22, 1, 0.36, 1],
-} as const;
 const STATIC_CHARACTER_MOTION = {
   initial: false,
   animate: { opacity: 1 },
@@ -73,14 +70,14 @@ export function AnimatedStatNumber({
     <LazyMotion features={domAnimation}>
       <m.span
         layout="size"
-        transition={{ layout: LAYOUT_TRANSITION }}
+        transition={{ layout: STAT_LAYOUT_TRANSITION }}
         className="inline-flex whitespace-nowrap"
       >
         <span className="sr-only">{formatted}</span>
         <m.span
           aria-hidden
           layout
-          transition={{ layout: LAYOUT_TRANSITION }}
+          transition={{ layout: STAT_LAYOUT_TRANSITION }}
           className="inline-flex"
         >
           <AnimatePresence mode="popLayout">
@@ -92,7 +89,7 @@ export function AnimatedStatNumber({
               return (
                 <m.span
                   layout="position"
-                  transition={{ layout: LAYOUT_TRANSITION }}
+                  transition={{ layout: STAT_LAYOUT_TRANSITION }}
                   className="relative inline-grid overflow-hidden"
                   exit={motionProps.exit}
                   key={`slot-${token.slotFromRight}`}

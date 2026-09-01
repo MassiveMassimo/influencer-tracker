@@ -2,7 +2,11 @@ import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PreferencesProvider } from "#/lib/preferences.tsx";
 import { AnimatedStatNumber } from "./animated-stat-number.tsx";
-import { getAnimatedNumberTokens, getStatDigitMotionProps } from "./animated-stat-number-motion.ts";
+import {
+  getAnimatedNumberTokens,
+  getStatDigitMotionProps,
+  STAT_LAYOUT_TRANSITION,
+} from "./animated-stat-number-motion.ts";
 
 describe("animated stat number", () => {
   test("keeps punctuation static while identifying each numeric glyph", () => {
@@ -55,6 +59,16 @@ describe("animated stat number", () => {
       scale: 0.6,
       filter: "blur(4px)",
     });
+  });
+
+  test("matches width changes to the digit glyph timing", () => {
+    const digitTransition = getStatDigitMotionProps(false, 0).animate.transition.scale;
+    if (!digitTransition) throw new Error("Digit scale transition is missing");
+
+    expect({
+      duration: digitTransition.duration,
+      ease: digitTransition.ease,
+    }).toEqual(STAT_LAYOUT_TRANSITION);
   });
 
   test("removes transitions when reduced motion is active", () => {
