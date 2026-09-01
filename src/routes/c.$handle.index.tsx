@@ -449,6 +449,7 @@ function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean })
         {animateNumber ? (
           <AnimatedStatNumber
             format={primaryNumber.format}
+            layoutKey={tile.label}
             revealed={revealed}
             value={primaryNumber.value}
           />
