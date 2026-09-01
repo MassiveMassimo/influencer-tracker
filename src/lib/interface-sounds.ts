@@ -1,6 +1,6 @@
 import { bind, play, setEnabled, setVolume, type SoundName } from "cuelume";
 
-export const INTERFACE_SOUND_VOLUME = 0.25;
+export const INTERFACE_SOUND_VOLUME = 0.5;
 export const SCRUB_SOUND_INTERVAL_MS = 40;
 
 export function initializeInterfaceSounds(enabled: boolean): void {
