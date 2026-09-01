@@ -6,6 +6,7 @@ import {
   getAnimatedNumberTokens,
   getStatDigitMotionProps,
   STAT_LAYOUT_TRANSITION,
+  STAT_REMOVED_CHARACTER_EXIT,
 } from "./animated-stat-number-motion.ts";
 
 describe("animated stat number", () => {
@@ -69,6 +70,18 @@ describe("animated stat number", () => {
       duration: digitTransition.duration,
       ease: digitTransition.ease,
     }).toEqual(STAT_LAYOUT_TRANSITION);
+  });
+
+  test("gives removed punctuation the same graceful exit as removed digits", () => {
+    expect(STAT_REMOVED_CHARACTER_EXIT).toMatchObject({
+      opacity: 0,
+      y: "-0.42em",
+      scale: 0.6,
+      filter: "blur(4px)",
+      transition: {
+        duration: 0.6,
+      },
+    });
   });
 
   test("removes transitions when reduced motion is active", () => {

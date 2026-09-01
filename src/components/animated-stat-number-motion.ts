@@ -30,6 +30,15 @@ const HIDDEN_ABOVE = {
   filter: "blur(4px)",
 } as const;
 
+export const STAT_REMOVED_CHARACTER_EXIT = {
+  ...HIDDEN_ABOVE,
+  transition: {
+    duration: 0.6,
+    ease: EXIT_EASE,
+    opacity: { duration: 0.55, ease: EXIT_EASE },
+  },
+} as const;
+
 export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: number) {
   const delay = digitIndex * DIGIT_STAGGER_SECONDS;
 

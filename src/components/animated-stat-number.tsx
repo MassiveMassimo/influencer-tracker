@@ -10,6 +10,7 @@ import {
   getStatDigitMotionProps,
   HIDDEN_BELOW,
   STAT_LAYOUT_TRANSITION,
+  STAT_REMOVED_CHARACTER_EXIT,
 } from "./animated-stat-number-motion.ts";
 
 const subscribeToHydration = () => () => {};
@@ -68,18 +69,9 @@ export function AnimatedStatNumber({
 
   return (
     <LazyMotion features={domAnimation}>
-      <m.span
-        layout="size"
-        transition={{ layout: STAT_LAYOUT_TRANSITION }}
-        className="inline-flex whitespace-nowrap"
-      >
+      <span className="relative inline-flex whitespace-nowrap">
         <span className="sr-only">{formatted}</span>
-        <m.span
-          aria-hidden
-          layout
-          transition={{ layout: STAT_LAYOUT_TRANSITION }}
-          className="inline-flex"
-        >
+        <m.span aria-hidden className="inline-flex">
           <AnimatePresence mode="popLayout">
             {tokens.map((token) => {
               const motionProps =
@@ -91,7 +83,7 @@ export function AnimatedStatNumber({
                   layout="position"
                   transition={{ layout: STAT_LAYOUT_TRANSITION }}
                   className="relative inline-grid overflow-hidden"
-                  exit={motionProps.exit}
+                  exit={STAT_REMOVED_CHARACTER_EXIT}
                   key={`slot-${token.slotFromRight}`}
                 >
                   <AnimatePresence>
@@ -113,7 +105,7 @@ export function AnimatedStatNumber({
             })}
           </AnimatePresence>
         </m.span>
-      </m.span>
+      </span>
     </LazyMotion>
   );
 }
