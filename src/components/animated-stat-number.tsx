@@ -89,6 +89,10 @@ export function AnimatedStatNumber({
   const isValueTransition = previousFormatted !== formatted;
   const visualFormatted = isCarryingPreviousValue ? previousFormatted : formatted;
   const tokens = getAnimatedNumberTokensFromFormatted(visualFormatted);
+  const transitionCharacterCount = Math.max(
+    Array.from(previousFormatted).length,
+    Array.from(formatted).length,
+  );
 
   useLayoutEffect(() => {
     const previousMeasurement = previousMeasurementRef.current;
@@ -196,8 +200,13 @@ export function AnimatedStatNumber({
           >
             {tokens.map(({ character, motionIndex, slotFromRight }) => {
               const isAnimatedGlyph = motionIndex !== null;
+              const transitionMotionIndex = transitionCharacterCount - slotFromRight - 1;
               const characterMotion = isAnimatedGlyph
-                ? getStatDigitMotionProps(false, motionIndex, !isValueTransition)
+                ? getStatDigitMotionProps(
+                    false,
+                    isValueTransition ? transitionMotionIndex : motionIndex,
+                    isValueTransition ? "change" : "reveal",
+                  )
                 : STATIC_CHARACTER_MOTION;
               const { exit: characterExit, ...characterMotionProps } = characterMotion;
               const shouldShowCharacter = !isAnimatedGlyph || revealed || isCarryingPreviousValue;

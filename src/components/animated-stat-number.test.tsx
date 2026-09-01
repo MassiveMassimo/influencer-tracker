@@ -87,15 +87,17 @@ describe("animated stat number", () => {
     }).toEqual(STAT_LAYOUT_TRANSITION);
   });
 
-  test("starts every glyph together during a value transition", () => {
-    const props = getStatDigitMotionProps(false, 2, false);
+  test("staggers glyph movement but synchronizes visibility during a value transition", () => {
+    const props = getStatDigitMotionProps(false, 2, "change");
 
     expect(props.animate.transition).toMatchObject({
       opacity: { delay: 0 },
-      y: { delay: 0 },
+      filter: { delay: 0.16 },
+      scale: { delay: 0.16 },
+      y: { delay: 0.16 },
     });
     expect(props.exit.transition).toMatchObject({
-      delay: 0,
+      delay: 0.16,
       opacity: { delay: 0 },
     });
   });

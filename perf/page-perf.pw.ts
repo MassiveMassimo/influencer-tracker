@@ -442,7 +442,7 @@ test.describe("page performance (prod build)", () => {
     await page.evaluate(() => {
       const samples: Array<{
         elapsed: number;
-        glyphs: Array<{ character: string; opacity: number }>;
+        glyphs: Array<{ blur: number; character: string; opacity: number }>;
         left: number;
         visualText: string;
       }> = [];
@@ -458,6 +458,7 @@ test.describe("page performance (prod build)", () => {
             elapsed: performance.now() - startedAt,
             glyphs: Array.from(visual.children).flatMap((slot) =>
               Array.from(slot.children, (glyph) => ({
+                blur: Number(getComputedStyle(glyph).filter.match(/blur\(([\d.]+)px\)/)?.[1] ?? 0),
                 character: glyph.textContent ?? "",
                 opacity: Number(getComputedStyle(glyph).opacity),
               })),
@@ -482,7 +483,7 @@ test.describe("page performance (prod build)", () => {
       () =>
         (window as any).__statGroupSamples as Array<{
           elapsed: number;
-          glyphs: Array<{ character: string; opacity: number }>;
+          glyphs: Array<{ blur: number; character: string; opacity: number }>;
           left: number;
           visualText: string;
         }>,
@@ -522,6 +523,15 @@ test.describe("page performance (prod build)", () => {
       Math.max(...(starts as number[])) - Math.min(...(starts as number[])),
       `the added 1 and replaced 60 must start within one sampled frame; sampled starts: ${starts}`,
     ).toBeLessThanOrEqual(50);
+    expect(
+      uniqueTickerSamples.some((sample) => {
+        const incomingBlur = ["1", "3", "5"].map(
+          (character) => sample.glyphs.find((glyph) => glyph.character === character)?.blur ?? 0,
+        );
+        return Math.max(...incomingBlur) - Math.min(...incomingBlur) > 0.5;
+      }),
+      "incoming glyphs must retain a visible per-glyph blur stagger",
+    ).toBe(true);
   });
 
   test("creator activity remains complete and keyboard accessible while switching", async ({
