@@ -11,12 +11,28 @@ describe("animated stat number", () => {
         maximumFractionDigits: 0,
       }),
     ).toEqual([
-      { character: "2", digitIndex: 0 },
-      { character: ",", digitIndex: null },
-      { character: "1", digitIndex: 1 },
-      { character: "5", digitIndex: 2 },
-      { character: "9", digitIndex: 3 },
+      { character: "2", digitIndex: 0, slotFromRight: 4 },
+      { character: ",", digitIndex: null, slotFromRight: 3 },
+      { character: "1", digitIndex: 1, slotFromRight: 2 },
+      { character: "5", digitIndex: 2, slotFromRight: 1 },
+      { character: "9", digitIndex: 3, slotFromRight: 0 },
     ]);
+  });
+
+  test("keeps trailing character slots stable when the number gets shorter", () => {
+    const long = getAnimatedNumberTokens(2961, { maximumFractionDigits: 0 });
+    const short = getAnimatedNumberTokens(116, { maximumFractionDigits: 0 });
+
+    expect(long.at(-1)).toEqual({
+      character: "1",
+      digitIndex: 3,
+      slotFromRight: 0,
+    });
+    expect(short.at(-1)).toEqual({
+      character: "6",
+      digitIndex: 2,
+      slotFromRight: 0,
+    });
   });
 
   test("uses the intake digit motion with a four-pixel blur", () => {
@@ -52,7 +68,12 @@ describe("animated stat number", () => {
   test("keeps the formatted value visible before client hydration", () => {
     const html = renderToStaticMarkup(
       <PreferencesProvider>
-        <AnimatedStatNumber format={{ maximumFractionDigits: 0 }} revealed={false} value={2159} />
+        <AnimatedStatNumber
+          format={{ maximumFractionDigits: 0 }}
+          layoutKey="Total calls"
+          revealed={false}
+          value={2159}
+        />
       </PreferencesProvider>,
     );
 

@@ -57,15 +57,22 @@ export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: numbe
 interface AnimatedNumberToken {
   character: string;
   digitIndex: number | null;
+  slotFromRight: number;
 }
 
 export function getAnimatedNumberTokens(
   value: number,
   format: Intl.NumberFormatOptions,
 ): AnimatedNumberToken[] {
+  return getAnimatedNumberTokensFromFormatted(new Intl.NumberFormat("en-US", format).format(value));
+}
+
+export function getAnimatedNumberTokensFromFormatted(formatted: string): AnimatedNumberToken[] {
   let digitIndex = 0;
-  return Array.from(new Intl.NumberFormat("en-US", format).format(value)).map((character) => ({
+  const characters = Array.from(formatted);
+  return characters.map((character, characterIndex) => ({
     character,
     digitIndex: /\p{Number}/u.test(character) ? digitIndex++ : null,
+    slotFromRight: characters.length - characterIndex - 1,
   }));
 }
