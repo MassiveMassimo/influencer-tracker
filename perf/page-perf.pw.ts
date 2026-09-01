@@ -273,13 +273,32 @@ test.describe("page performance (prod build)", () => {
     }
   });
 
-  test("statistic values grow left while their right edge stays fixed", async ({ page }) => {
+  test("statistic values stay left aligned while transition slots pair from the right", async ({
+    page,
+  }) => {
     await page.goto("/c/kevvonz", { waitUntil: "load" });
     const shortValue = page.locator(".sr-only").filter({ hasText: /^71$/ }).locator("..");
     await expect(shortValue).toHaveCount(1);
     const shortRect = await shortValue
       .locator('[aria-hidden="true"]')
       .evaluate((element) => element.getBoundingClientRect().toJSON());
+
+    await page.evaluate(() => {
+      const samples: string[][] = [];
+      const startedAt = performance.now();
+      const sample = () => {
+        const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
+          /^(71|2,159)$/.test(element.textContent ?? ""),
+        );
+        const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
+        samples.push(Array.from(visualValue?.children ?? [], (slot) => slot.textContent ?? ""));
+
+        if (performance.now() - startedAt < 800) requestAnimationFrame(sample);
+      };
+
+      (window as any).__statSlotSamples = samples;
+      requestAnimationFrame(sample);
+    });
 
     await page.getByRole("link", { name: "@TheProfInvestor", exact: true }).click();
     await expect(page).toHaveURL(/\/c\/TheProfInvestor$/);
@@ -288,12 +307,17 @@ test.describe("page performance (prod build)", () => {
       .filter({ hasText: /^2,159$/ })
       .locator("..");
     await expect(longValue).toHaveCount(1);
+    await page.waitForTimeout(850);
     const longRect = await longValue
       .locator('[aria-hidden="true"]')
       .evaluate((element) => element.getBoundingClientRect().toJSON());
+    const samples = await page.evaluate(() => (window as any).__statSlotSamples as string[][]);
 
-    expect(longRect.right).toBeCloseTo(shortRect.right, 0);
-    expect(longRect.left).toBeLessThan(shortRect.left - 20);
+    expect(longRect.left).toBeCloseTo(shortRect.left, 0);
+    expect(
+      samples.some((slots) => slots.includes("75") && slots.includes("19")),
+      "7 → 5 and 1 → 9 must share right-aligned transition slots",
+    ).toBe(true);
   });
 
   test("creator activity remains complete and keyboard accessible while switching", async ({
