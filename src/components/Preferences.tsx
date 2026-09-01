@@ -12,6 +12,7 @@ import { useMediaQuery } from "#/lib/use-media-query.ts";
 import { useSurface, SurfaceProvider } from "#/lib/surface-context.tsx";
 import { surfaceClasses } from "#/lib/surface-classes.ts";
 import { cn } from "#/lib/utils.ts";
+import { playInterfaceSound } from "#/lib/interface-sounds.ts";
 
 function SwitchRow({
   label,
@@ -24,16 +25,21 @@ function SwitchRow({
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const toggle = () => {
+    onChange(!checked);
+    playInterfaceSound("toggle");
+  };
+
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="flex cursor-pointer flex-col" onClick={() => onChange(!checked)}>
+      <span className="flex cursor-pointer flex-col" onClick={toggle}>
         <span className="text-sm font-medium text-foreground">{label}</span>
         <span className="text-xs text-muted-foreground">{description}</span>
       </span>
       <Switch
         label={label}
         checked={checked}
-        onToggle={() => onChange(!checked)}
+        onToggle={toggle}
         className="[&>span:last-child]:sr-only"
       />
     </div>
@@ -44,9 +50,11 @@ function Body({ onClose, isDesktop }: { onClose: () => void; isDesktop: boolean 
   const {
     reduceMotion,
     reduceHaptics,
+    interfaceSounds,
     showHalalStatus,
     setReduceMotion,
     setReduceHaptics,
+    setInterfaceSounds,
     setShowHalalStatus,
   } = usePreferences();
   const { impact } = useHaptics();
@@ -72,6 +80,12 @@ function Body({ onClose, isDesktop }: { onClose: () => void; isDesktop: boolean 
           description="Minimize animations and transitions."
           checked={reduceMotion}
           onChange={setReduceMotion}
+        />
+        <SwitchRow
+          label="Interface sounds"
+          description="Play quiet feedback for controls and chart scrubbing."
+          checked={interfaceSounds}
+          onChange={setInterfaceSounds}
         />
         {/* Haptics are touch-only; hide on desktop where there's no vibration. */}
         {!isDesktop && (

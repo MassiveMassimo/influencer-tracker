@@ -26,6 +26,7 @@ import { ScrollArea } from "#/components/ui/scroll-area";
 import { prefersReducedMotion } from "#/lib/reduced-motion";
 import { spring } from "#/lib/springs";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready";
+import { useScrubSound } from "#/hooks/use-scrub-sound";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -571,6 +572,7 @@ export function CallActivity({
   const tooltipRef = useRef<ActivityTooltipHandle>(null);
   const focusedCellRef = useRef<HTMLElement | null>(null);
   const hoveredCellRef = useRef<HTMLElement | null>(null);
+  const scrubSound = useScrubSound();
   const range = `${formatDay(calendar.rangeStart, RANGE_FORMAT)}–${formatDay(calendar.rangeEnd, RANGE_FORMAT)}`;
   const busiest = calendar.busiest;
   const summary = busiest
@@ -582,9 +584,12 @@ export function CallActivity({
       const weekIndex = Number(cell.dataset.activityWeek);
       const dayIndex = Number(cell.dataset.activityDay);
       const day = calendar.weeks[weekIndex]?.days[dayIndex];
-      if (day) tooltipRef.current?.show(day, cell, input);
+      if (day) {
+        scrubSound.move(day.date);
+        tooltipRef.current?.show(day, cell, input);
+      }
     },
-    [calendar],
+    [calendar, scrubSound],
   );
 
   const handlePointerOver = useCallback(
@@ -602,8 +607,11 @@ export function CallActivity({
     hoveredCellRef.current = null;
     const focusedCell = focusedCellRef.current;
     if (focusedCell) showTooltipForCell(focusedCell, "keyboard");
-    else tooltipRef.current?.hide();
-  }, [showTooltipForCell]);
+    else {
+      scrubSound.reset();
+      tooltipRef.current?.hide();
+    }
+  }, [scrubSound, showTooltipForCell]);
 
   const handleFocus = useCallback(
     (event: FocusEvent<HTMLDivElement>) => {
@@ -626,16 +634,20 @@ export function CallActivity({
       focusedCellRef.current = null;
       const hoveredCell = hoveredCellRef.current;
       if (hoveredCell) showTooltipForCell(hoveredCell, "pointer");
-      else tooltipRef.current?.hide();
+      else {
+        scrubSound.reset();
+        tooltipRef.current?.hide();
+      }
     },
-    [showTooltipForCell],
+    [scrubSound, showTooltipForCell],
   );
 
   useEffect(() => {
     focusedCellRef.current = null;
     hoveredCellRef.current = null;
+    scrubSound.reset();
     tooltipRef.current?.hide();
-  }, [creatorHandle]);
+  }, [creatorHandle, scrubSound]);
 
   useIsoLayoutEffect(() => {
     if (transition.mode !== "switching" || !gridRef.current) return;

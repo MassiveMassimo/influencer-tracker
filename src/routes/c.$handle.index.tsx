@@ -622,6 +622,7 @@ function CallsPagination({
         index={idx}
         slug={String(p)}
         aria-label={`Go to page ${p}`}
+        data-cuelume-toggle="page"
         onClick={() => onSelect(p)}
         onPointerMove={() => onPrefetch(p)}
         onFocus={() => onPrefetch(p)}
@@ -638,6 +639,7 @@ function CallsPagination({
         variant="ghost"
         size="icon-sm"
         aria-label="Go to previous page"
+        data-cuelume-toggle="page"
         disabled={current === 1}
         onClick={() => onSelect(current - 1)}
         onPointerEnter={() => onPrefetch(current - 1)}
@@ -657,6 +659,7 @@ function CallsPagination({
         variant="ghost"
         size="icon-sm"
         aria-label="Go to next page"
+        data-cuelume-toggle="page"
         disabled={current === pageCount}
         onClick={() => onSelect(current + 1)}
         onPointerEnter={() => onPrefetch(current + 1)}

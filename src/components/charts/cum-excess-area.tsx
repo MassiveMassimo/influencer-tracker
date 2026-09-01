@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { CumPoint } from "#/lib/types.ts";
 import { AreaChart } from "./area-chart";
+import { ChartScrubSound } from "./chart-scrub-sound";
 import { Grid } from "./grid";
 import { ProfitLossArea } from "./profit-loss-area";
 import { ChartTooltip } from "./tooltip/chart-tooltip";
@@ -51,6 +52,7 @@ export function CumExcessArea({ pts }: { pts: CumPoint[] }) {
           return [{ color: signColor(v), label: "Excess vs SPY", value: fmtPct(v) }];
         }}
       />
+      <ChartScrubSound />
     </AreaChart>
   );
 }

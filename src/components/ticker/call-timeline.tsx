@@ -7,6 +7,7 @@ import { NavItem } from "#/components/ui/nav-item.tsx";
 import { timelineTicks, timelineXPercent } from "#/lib/call-timeline-layout.ts";
 import { signed, toneClass } from "#/lib/returns-format.ts";
 import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
+import { useScrubSound } from "#/hooks/use-scrub-sound.ts";
 
 const YEAR_FMT: Format = { useGrouping: false };
 const PAD2_FMT: Format = { minimumIntegerDigits: 2 };
@@ -86,6 +87,7 @@ export function CompareTable({
   } | null>(null);
   const ready = useNumberFlowReady();
   const reduce = useReducedMotion();
+  const scrubSound = useScrubSound();
 
   // Crosshair x (%) driven through a spring so it glides — both during scrub
   // and, more visibly, when the magnet snaps it onto a call column.
@@ -157,6 +159,7 @@ export function CompareTable({
       if ((Math.abs(best.pct - raw) / 100) * rect.width <= radiusPx) pct = best.pct;
     }
     const ms = startMs + (pct / 100) * (endMs - startMs);
+    scrubSound.move(Math.floor(ms / 86_400_000));
     pctMV.set(pct);
     // Jump (skip the glide) when first appearing or for reduced-motion users.
     if (reduce || hover === null) pctSpring.jump(pct);
@@ -178,7 +181,14 @@ export function CompareTable({
         <span className="text-right">Excess→now</span>
       </div>
 
-      <div className="relative" onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+      <div
+        className="relative"
+        onPointerMove={onMove}
+        onPointerLeave={() => {
+          scrubSound.reset();
+          setHover(null);
+        }}
+      >
         <NavMenu
           activeSlug={creatorHandle ?? null}
           radius="rounded-none"

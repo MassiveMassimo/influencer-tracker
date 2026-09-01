@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTouchPrimaryEager } from "#/hooks/use-has-primary-touch.tsx";
 import { surfaceClasses } from "#/lib/surface-classes.ts";
+import { playInterfaceSound } from "#/lib/interface-sounds.ts";
 import { chartCssVars, useChart, useChartHover } from "../chart-context";
 import { type ChartMarker, MarkerGroup } from "./marker-group";
 
@@ -105,6 +106,7 @@ export function ChartMarkers({
   // Freeze the last shown content so the card can animate out after `active`
   // clears (unmounting would kill the close transition).
   const lastActive = useRef<{ markers: ChartMarker[]; x: number } | null>(null);
+  const activeSoundKey = useRef<string | null>(null);
   if (active) lastActive.current = active;
   const shown = active ?? lastActive.current;
 
@@ -112,9 +114,15 @@ export function ChartMarkers({
   const handleMarkerHover = useCallback(
     (markers: ChartMarker[] | null) => {
       if (markers && markers[0]) {
+        const soundKey = String(markers[0].date.getTime());
+        if (soundKey !== activeSoundKey.current) {
+          activeSoundKey.current = soundKey;
+          playInterfaceSound("press");
+        }
         setTooltipData(null);
         setActive({ markers, x: xScale(markers[0].date) ?? 0 });
       } else {
+        activeSoundKey.current = null;
         setActive(null);
       }
     },

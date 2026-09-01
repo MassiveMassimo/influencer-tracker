@@ -10,6 +10,7 @@ import { XAxis } from "./x-axis.tsx";
 import { YAxis } from "./y-axis.tsx";
 import { ChartTooltip } from "./tooltip/chart-tooltip.tsx";
 import { ChartMarkers, type ChartMarker } from "./markers/index.ts";
+import { ChartScrubSound } from "./chart-scrub-sound.tsx";
 
 // Chart trees extracted from the ticker route so motion/@visx/d3 land in a
 // lazily-loaded chunk (React.lazy) instead of the route's initial bundle.
@@ -59,6 +60,7 @@ export const PriceCandles = memo(function PriceCandles({
       <XAxis />
       <YAxis />
       <ChartTooltip />
+      <ChartScrubSound />
       {onHoverClose ? <HoverClose onChange={onHoverClose} /> : null}
     </CandlestickChart>
   );
@@ -87,6 +89,7 @@ export const StockVsSpyLine = memo(function StockVsSpyLine({
       <ChartMarkers items={markers} replayKey={timeframe} iconFill={iconFill} />
       <XAxis />
       <ChartTooltip />
+      <ChartScrubSound />
     </AreaChart>
   );
 });

@@ -54,6 +54,7 @@ describe("readStoredPrefs", () => {
       theme: "auto",
       reduceMotion: false,
       reduceHaptics: false,
+      interfaceSounds: true,
       showHalalStatus: false,
       badgeStyle: "enamel",
     });
@@ -63,12 +64,14 @@ describe("readStoredPrefs", () => {
     localStorage.setItem("theme", "dark");
     localStorage.setItem("reduce-motion", "true");
     localStorage.setItem("reduce-haptics", "true");
+    localStorage.setItem("interface-sounds", "false");
     localStorage.setItem("show-halal", "true");
     localStorage.setItem("badge-style", "candy");
     expect(readStoredPrefs()).toEqual({
       theme: "dark",
       reduceMotion: true,
       reduceHaptics: true,
+      interfaceSounds: false,
       showHalalStatus: true,
       badgeStyle: "candy",
     });

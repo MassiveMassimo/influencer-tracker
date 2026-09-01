@@ -80,6 +80,7 @@ export function RailNavList<T>({
                 index={i}
                 slug={slug}
                 {...(getLinkProps(item) as any)}
+                data-cuelume-toggle="page"
                 onClick={onRowClick}
                 tabIndex={searchOpen ? -1 : undefined}
                 className={getItemClassName?.(item, isActiveRoute)}

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { initializeInterfaceSounds, setInterfaceSoundsEnabled } from "#/lib/interface-sounds.ts";
 
 export type ThemeMode = "light" | "dark" | "auto";
 export type BadgeStyle = "enamel" | "candy";
@@ -7,6 +8,7 @@ export interface Preferences {
   theme: ThemeMode;
   reduceMotion: boolean;
   reduceHaptics: boolean;
+  interfaceSounds: boolean;
   showHalalStatus: boolean;
   badgeStyle: BadgeStyle;
 }
@@ -15,6 +17,7 @@ const DEFAULTS: Preferences = {
   theme: "auto",
   reduceMotion: false,
   reduceHaptics: false,
+  interfaceSounds: true,
   showHalalStatus: false,
   badgeStyle: "enamel",
 };
@@ -35,6 +38,7 @@ export function readStoredPrefs(): Preferences {
     theme: t === "light" || t === "dark" || t === "auto" ? t : "auto",
     reduceMotion: window.localStorage.getItem("reduce-motion") === "true",
     reduceHaptics: window.localStorage.getItem("reduce-haptics") === "true",
+    interfaceSounds: window.localStorage.getItem("interface-sounds") !== "false",
     showHalalStatus: window.localStorage.getItem("show-halal") === "true",
     badgeStyle: window.localStorage.getItem("badge-style") === "candy" ? "candy" : "enamel",
   };
@@ -71,6 +75,7 @@ interface PreferencesContextValue extends Preferences {
   setTheme: (t: ThemeMode) => void;
   setReduceMotion: (v: boolean) => void;
   setReduceHaptics: (v: boolean) => void;
+  setInterfaceSounds: (v: boolean) => void;
   setShowHalalStatus: (v: boolean) => void;
   setBadgeStyle: (v: BadgeStyle) => void;
 }
@@ -90,6 +95,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
     applyTheme(stored.theme);
     applyReduceMotion(stored.reduceMotion);
     applyBadgeStyle(stored.badgeStyle);
+    initializeInterfaceSounds(stored.interfaceSounds);
   }, []);
 
   // Follow system changes while in auto.
@@ -118,6 +124,12 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
     window.localStorage.setItem("reduce-haptics", String(reduceHaptics));
   }, []);
 
+  const setInterfaceSounds = React.useCallback((interfaceSounds: boolean) => {
+    setPrefs((p) => ({ ...p, interfaceSounds }));
+    setInterfaceSoundsEnabled(interfaceSounds);
+    window.localStorage.setItem("interface-sounds", String(interfaceSounds));
+  }, []);
+
   const setShowHalalStatus = React.useCallback((showHalalStatus: boolean) => {
     setPrefs((p) => ({ ...p, showHalalStatus }));
     window.localStorage.setItem("show-halal", String(showHalalStatus));
@@ -135,10 +147,19 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
       setTheme,
       setReduceMotion,
       setReduceHaptics,
+      setInterfaceSounds,
       setShowHalalStatus,
       setBadgeStyle,
     }),
-    [prefs, setTheme, setReduceMotion, setReduceHaptics, setShowHalalStatus, setBadgeStyle],
+    [
+      prefs,
+      setTheme,
+      setReduceMotion,
+      setReduceHaptics,
+      setInterfaceSounds,
+      setShowHalalStatus,
+      setBadgeStyle,
+    ],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

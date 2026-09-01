@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { REPORT_REASONS } from "#/lib/report-reasons.ts";
+import { playInterfaceSound } from "#/lib/interface-sounds.ts";
 
 // Operator-facing reason keys mapped to user-facing labels. The keys are the closed
 // REPORT_REASONS enum (the POST contract); labels never round-trip to the server.
@@ -39,6 +40,7 @@ export function ReportButton({
 
   async function send(reason: string) {
     setState("sent");
+    playInterfaceSound("success");
     try {
       localStorage.setItem(key, "1");
     } catch {
