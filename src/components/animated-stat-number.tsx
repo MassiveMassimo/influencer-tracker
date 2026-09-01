@@ -21,7 +21,7 @@ const STATIC_CHARACTER_MOTION = {
   animate: { opacity: 1 },
   exit: { opacity: 0, transition: { duration: 0.15 } },
 } as const;
-const NUMBER_CONTAINER_CLASS = "relative inline-flex min-w-[5ch] justify-end whitespace-nowrap";
+const NUMBER_CONTAINER_CLASS = "relative inline-flex whitespace-nowrap";
 const lastFormattedByLayoutKey = new Map<string, string>();
 
 export function AnimatedStatNumber({
