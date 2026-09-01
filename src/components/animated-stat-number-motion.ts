@@ -39,8 +39,12 @@ export const STAT_REMOVED_CHARACTER_EXIT = {
   },
 } as const;
 
-export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: number) {
-  const delay = digitIndex * DIGIT_STAGGER_SECONDS;
+export function getStatDigitMotionProps(
+  reduceMotion: boolean,
+  motionIndex: number,
+  stagger = true,
+) {
+  const delay = stagger ? motionIndex * DIGIT_STAGGER_SECONDS : 0;
 
   return {
     initial: reduceMotion ? false : HIDDEN_BELOW,

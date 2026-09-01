@@ -87,6 +87,19 @@ describe("animated stat number", () => {
     }).toEqual(STAT_LAYOUT_TRANSITION);
   });
 
+  test("starts every glyph together during a value transition", () => {
+    const props = getStatDigitMotionProps(false, 2, false);
+
+    expect(props.animate.transition).toMatchObject({
+      opacity: { delay: 0 },
+      y: { delay: 0 },
+    });
+    expect(props.exit.transition).toMatchObject({
+      delay: 0,
+      opacity: { delay: 0 },
+    });
+  });
+
   test("gives removed punctuation the same graceful exit as removed digits", () => {
     expect(STAT_REMOVED_CHARACTER_EXIT).toMatchObject({
       opacity: 0,

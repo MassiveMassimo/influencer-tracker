@@ -86,6 +86,7 @@ export function AnimatedStatNumber({
   }, [formatted, previousFormattedSnapshot, transitionSource.target]);
   const [advancedTo, setAdvancedTo] = useState<string | null>(null);
   const isCarryingPreviousValue = previousFormatted !== formatted && advancedTo !== formatted;
+  const isValueTransition = previousFormatted !== formatted;
   const visualFormatted = isCarryingPreviousValue ? previousFormatted : formatted;
   const tokens = getAnimatedNumberTokensFromFormatted(visualFormatted);
 
@@ -180,7 +181,7 @@ export function AnimatedStatNumber({
           data-stat-number-visual
           style={{
             ...STAT_LAYOUT_CSS_TRANSITION,
-            transform: `translateX(${numberWidth.visualOffset}px)`,
+            transform: `translateX(${isCarryingPreviousValue ? 0 : numberWidth.visualOffset}px)`,
             transitionProperty: numberWidth.animate ? "transform" : "none",
           }}
         >
@@ -196,7 +197,7 @@ export function AnimatedStatNumber({
             {tokens.map(({ character, motionIndex, slotFromRight }) => {
               const isAnimatedGlyph = motionIndex !== null;
               const characterMotion = isAnimatedGlyph
-                ? getStatDigitMotionProps(false, motionIndex)
+                ? getStatDigitMotionProps(false, motionIndex, !isValueTransition)
                 : STATIC_CHARACTER_MOTION;
               const { exit: characterExit, ...characterMotionProps } = characterMotion;
               const shouldShowCharacter = !isAnimatedGlyph || revealed || isCarryingPreviousValue;
