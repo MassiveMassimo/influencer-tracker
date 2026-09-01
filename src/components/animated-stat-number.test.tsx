@@ -6,6 +6,7 @@ import {
   formatAnimatedNumber,
   getAnimatedNumberTokensFromFormatted,
   getStatDigitMotionProps,
+  getStatTransitionMotionIndex,
   STAT_LAYOUT_TRANSITION,
   STAT_REMOVED_CHARACTER_EXIT,
 } from "./animated-stat-number-motion.ts";
@@ -87,19 +88,40 @@ describe("animated stat number", () => {
     }).toEqual(STAT_LAYOUT_TRANSITION);
   });
 
-  test("starts exits immediately while staggering incoming glyph movement", () => {
-    const props = getStatDigitMotionProps(false, 2, "change");
+  test("starts each replacement pair together while staggering later columns", () => {
+    const firstPair = getStatDigitMotionProps(false, 0);
+    const laterPair = getStatDigitMotionProps(false, 2);
 
-    expect(props.animate.transition).toMatchObject({
+    expect(firstPair.animate.transition).toMatchObject({
       opacity: { delay: 0 },
+      filter: { delay: 0 },
+      scale: { delay: 0 },
+      y: { delay: 0 },
+    });
+    expect(firstPair.exit.transition).toMatchObject({
+      delay: 0,
+      opacity: { delay: 0 },
+    });
+    expect(laterPair.animate.transition).toMatchObject({
+      opacity: { delay: 0.16 },
       filter: { delay: 0.16 },
       scale: { delay: 0.16 },
       y: { delay: 0.16 },
     });
-    expect(props.exit.transition).toMatchObject({
-      delay: 0,
-      opacity: { delay: 0 },
+    expect(laterPair.exit.transition).toMatchObject({
+      delay: 0.16,
+      opacity: { delay: 0.16 },
     });
+  });
+
+  test("restarts stagger bands when right-paired values have different lengths", () => {
+    expect(getStatTransitionMotionIndex(2, 0)).toBe(0);
+    expect(getStatTransitionMotionIndex(3, 1)).toBe(1);
+    expect(getStatTransitionMotionIndex(4, 2)).toBe(2);
+    expect(getStatTransitionMotionIndex(0, 2)).toBe(0);
+    expect(getStatTransitionMotionIndex(1, 3)).toBe(1);
+    expect(getStatTransitionMotionIndex(2, 4)).toBe(2);
+    expect(getStatTransitionMotionIndex(1, null)).toBe(1);
   });
 
   test("gives removed punctuation the same graceful exit as removed digits", () => {

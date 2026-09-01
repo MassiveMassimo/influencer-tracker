@@ -8,9 +8,11 @@ import {
   formatAnimatedNumber,
   getAnimatedNumberTokensFromFormatted,
   getStatDigitMotionProps,
+  getStatTransitionMotionIndex,
   HIDDEN_BELOW,
   STAT_LAYOUT_TRANSITION,
   STAT_REMOVED_CHARACTER_EXIT,
+  STAT_VISIBLE_CHARACTER,
 } from "./animated-stat-number-motion.ts";
 
 const subscribeToNoopStore = () => () => {};
@@ -21,11 +23,9 @@ const STATIC_CHARACTER_MOTION = {
   animate: { opacity: 1 },
   exit: { opacity: 0, transition: { duration: 0.15 } },
 } as const;
-type CharacterExitTarget =
-  | ReturnType<typeof getStatDigitMotionProps>["exit"]
-  | (typeof STATIC_CHARACTER_MOTION)["exit"];
-const CHARACTER_EXIT_VARIANTS = {
-  exit: (target: CharacterExitTarget) => target,
+const SETTLED_CHARACTER = {
+  ...STAT_VISIBLE_CHARACTER,
+  transition: { duration: 0 },
 } as const;
 const STAT_LAYOUT_CSS_TRANSITION = {
   transitionDuration: `${STAT_LAYOUT_TRANSITION.duration}s`,
@@ -89,9 +89,16 @@ export function AnimatedStatNumber({
   const isValueTransition = previousFormatted !== formatted;
   const visualFormatted = isCarryingPreviousValue ? previousFormatted : formatted;
   const tokens = getAnimatedNumberTokensFromFormatted(visualFormatted);
-  const transitionCharacterCount = Math.max(
-    Array.from(previousFormatted).length,
-    Array.from(formatted).length,
+  const previousMotionIndexBySlot = new Map(
+    getAnimatedNumberTokensFromFormatted(previousFormatted).map(
+      ({ motionIndex, slotFromRight }) => [slotFromRight, motionIndex],
+    ),
+  );
+  const targetMotionIndexBySlot = new Map(
+    getAnimatedNumberTokensFromFormatted(formatted).map(({ motionIndex, slotFromRight }) => [
+      slotFromRight,
+      motionIndex,
+    ]),
   );
 
   useLayoutEffect(() => {
@@ -143,11 +150,7 @@ export function AnimatedStatNumber({
 
   useEffect(() => {
     lastFormattedByLayoutKey.set(layoutKey, formatted);
-    if (!isCarryingPreviousValue) return;
-
-    const frame = requestAnimationFrame(() => setAdvancedTo(formatted));
-    return () => cancelAnimationFrame(frame);
-  }, [formatted, isCarryingPreviousValue, layoutKey]);
+  }, [formatted, layoutKey]);
 
   if (!hydrated || shouldReduceMotion) {
     return <span className={NUMBER_CONTAINER_CLASS}>{formatted}</span>;
@@ -200,14 +203,22 @@ export function AnimatedStatNumber({
           >
             {tokens.map(({ character, motionIndex, slotFromRight }) => {
               const isAnimatedGlyph = motionIndex !== null;
-              const transitionMotionIndex = transitionCharacterCount - slotFromRight - 1;
-              const characterMotion = isAnimatedGlyph
-                ? getStatDigitMotionProps(
-                    false,
-                    isValueTransition ? transitionMotionIndex : motionIndex,
-                    isValueTransition ? "change" : "reveal",
-                  )
-                : STATIC_CHARACTER_MOTION;
+              const transitionMotionIndex =
+                motionIndex !== null && isValueTransition
+                  ? isCarryingPreviousValue
+                    ? getStatTransitionMotionIndex(
+                        targetMotionIndexBySlot.get(slotFromRight) ?? motionIndex,
+                        motionIndex,
+                      )
+                    : getStatTransitionMotionIndex(
+                        motionIndex,
+                        previousMotionIndexBySlot.get(slotFromRight) ?? null,
+                      )
+                  : motionIndex;
+              const characterMotion =
+                transitionMotionIndex !== null
+                  ? getStatDigitMotionProps(false, transitionMotionIndex)
+                  : STATIC_CHARACTER_MOTION;
               const { exit: characterExit, ...characterMotionProps } = characterMotion;
               const shouldShowCharacter = !isAnimatedGlyph || revealed || isCarryingPreviousValue;
               return (
@@ -216,14 +227,26 @@ export function AnimatedStatNumber({
                   exit={STAT_REMOVED_CHARACTER_EXIT}
                   key={`slot-${slotFromRight}`}
                 >
-                  <AnimatePresence custom={characterExit}>
+                  <AnimatePresence>
                     <m.span
                       {...characterMotionProps}
-                      animate={shouldShowCharacter ? characterMotion.animate : HIDDEN_BELOW}
+                      animate={
+                        isCarryingPreviousValue && isAnimatedGlyph
+                          ? SETTLED_CHARACTER
+                          : shouldShowCharacter
+                            ? characterMotion.animate
+                            : HIDDEN_BELOW
+                      }
                       className="col-start-1 row-start-1 inline-block"
-                      exit="exit"
+                      exit={characterExit}
                       key={character}
-                      variants={CHARACTER_EXIT_VARIANTS}
+                      onAnimationComplete={
+                        isCarryingPreviousValue
+                          ? () => {
+                              setAdvancedTo(formatted);
+                            }
+                          : undefined
+                      }
                     >
                       {character}
                     </m.span>

@@ -16,7 +16,7 @@ export const HIDDEN_BELOW = {
   filter: "blur(4px)",
 } as const;
 
-const VISIBLE = {
+export const STAT_VISIBLE_CHARACTER = {
   opacity: 1,
   y: "0em",
   scale: 1,
@@ -39,18 +39,13 @@ export const STAT_REMOVED_CHARACTER_EXIT = {
   },
 } as const;
 
-export function getStatDigitMotionProps(
-  reduceMotion: boolean,
-  motionIndex: number,
-  phase: "reveal" | "change" = "reveal",
-) {
+export function getStatDigitMotionProps(reduceMotion: boolean, motionIndex: number) {
   const motionDelay = motionIndex * DIGIT_STAGGER_SECONDS;
-  const visibilityDelay = phase === "reveal" ? motionDelay : 0;
 
   return {
     initial: reduceMotion ? false : HIDDEN_BELOW,
     animate: {
-      ...VISIBLE,
+      ...STAT_VISIBLE_CHARACTER,
       transition: reduceMotion
         ? { duration: 0 }
         : {
@@ -72,18 +67,18 @@ export function getStatDigitMotionProps(
               delay: motionDelay,
               ease: GLYPH_EASE,
             },
-            opacity: { duration: 0.35, delay: visibilityDelay, ease: "easeOut" },
+            opacity: { duration: 0.35, delay: motionDelay, ease: "easeOut" },
           },
     },
     exit: {
-      ...(reduceMotion ? VISIBLE : HIDDEN_ABOVE),
+      ...(reduceMotion ? STAT_VISIBLE_CHARACTER : HIDDEN_ABOVE),
       transition: reduceMotion
         ? { duration: 0 }
         : {
             duration: 0.6,
-            delay: visibilityDelay,
+            delay: motionDelay,
             ease: EXIT_EASE,
-            opacity: { duration: 0.55, delay: visibilityDelay, ease: EXIT_EASE },
+            opacity: { duration: 0.55, delay: motionDelay, ease: EXIT_EASE },
           },
     },
   } as const;
@@ -107,4 +102,13 @@ export function getAnimatedNumberTokensFromFormatted(formatted: string): Animate
     motionIndex: /[\p{Number},.]/u.test(character) ? motionIndex++ : null,
     slotFromRight: characters.length - characterIndex - 1,
   }));
+}
+
+export function getStatTransitionMotionIndex(
+  incomingMotionIndex: number,
+  outgoingMotionIndex: number | null,
+): number {
+  return outgoingMotionIndex === null
+    ? incomingMotionIndex
+    : Math.min(incomingMotionIndex, outgoingMotionIndex);
 }

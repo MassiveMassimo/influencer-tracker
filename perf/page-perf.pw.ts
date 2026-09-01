@@ -370,58 +370,172 @@ test.describe("page performance (prod build)", () => {
     ).toBe(true);
   });
 
-  test("outgoing statistic glyphs leave before staggered replacements arrive", async ({ page }) => {
+  test("replacement glyph pairs start together while their columns remain staggered", async ({
+    page,
+  }) => {
     await page.goto("/c/roadto100kportfolio", { waitUntil: "load" });
     await expect(page.locator(".sr-only").filter({ hasText: /^116$/ })).toHaveCount(1);
 
+    await page.evaluate(() => {
+      const samples: Array<{
+        elapsed: number;
+        glyphs: Array<{ character: string; opacity: number }>;
+        slot: string;
+      }> = [];
+      let transitionStartedAt: number | null = null;
+      const startedAt = performance.now();
+      const sample = () => {
+        const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find(
+          (element) => element.textContent === "2,961",
+        );
+        const visualValue = accessibleValue?.parentElement?.querySelector(
+          "[data-stat-number-visual]",
+        );
+
+        for (const slot of Array.from(visualValue?.children ?? [])) {
+          const glyphs = Array.from(slot.children);
+          if (glyphs.length !== 2) continue;
+          transitionStartedAt ??= performance.now();
+          samples.push({
+            elapsed: performance.now() - transitionStartedAt,
+            glyphs: glyphs.map((glyph) => ({
+              character: glyph.textContent ?? "",
+              opacity: Number(getComputedStyle(glyph).opacity),
+            })),
+            slot: slot.textContent ?? "",
+          });
+        }
+
+        if (performance.now() - startedAt < 1_000) requestAnimationFrame(sample);
+      };
+
+      (window as any).__statPairStartSamples = samples;
+      requestAnimationFrame(sample);
+    });
+
     await page.getByRole("link", { name: "@thelonginvest", exact: true }).click();
     await expect(page).toHaveURL(/\/c\/thelonginvest$/);
-    const longValue = page
-      .locator(".sr-only")
-      .filter({ hasText: /^2,961$/ })
-      .locator("..");
-    await expect(longValue).toHaveCount(1);
-    const visualValue = longValue.locator("[data-stat-number-visual]");
-    const samples: Array<{ initialY: number; slot: string; translateY: number[] }> = [];
-    const samplingStartedAt = Date.now();
-
-    while (Date.now() - samplingStartedAt < 800) {
-      samples.push(
-        ...(await visualValue.evaluate((element) =>
-          Array.from(element.children).flatMap((slot) => {
-            const glyphs = Array.from(slot.children);
-            if (glyphs.length !== 2) return [];
-
-            return [
-              {
-                initialY: Number.parseFloat(getComputedStyle(glyphs[0]).fontSize) * 0.42,
-                slot: slot.textContent ?? "",
-                translateY: glyphs.map(
-                  (glyph) => new DOMMatrixReadOnly(getComputedStyle(glyph).transform).f,
-                ),
-              },
-            ];
-          }),
-        )),
-      );
-      await page.waitForTimeout(16);
-    }
-
-    const splitFrames = samples.filter(({ initialY, translateY }) => {
-      const outgoingY = Math.min(...translateY);
-      const incomingY = Math.max(...translateY);
-      return outgoingY < -0.5 && incomingY >= initialY - 0.01;
-    });
+    await page.waitForTimeout(850);
+    const samples = await page.evaluate(
+      () =>
+        (window as any).__statPairStartSamples as Array<{
+          elapsed: number;
+          glyphs: Array<{ character: string; opacity: number }>;
+          slot: string;
+        }>,
+    );
 
     expect(samples.length, "the test must observe paired glyphs").toBeGreaterThan(0);
     expect(new Set(samples.map(({ slot }) => slot))).toEqual(new Set(["19", "16", "61"]));
+    const incomingCharacterBySlot = new Map([
+      ["19", "9"],
+      ["16", "6"],
+      ["61", "1"],
+    ]);
+    const pairStarts = [...new Set(samples.map(({ slot }) => slot))].map((slot) => {
+      const slotSamples = samples.filter((sample) => sample.slot === slot);
+      const incomingCharacter = incomingCharacterBySlot.get(slot);
+      const outgoingStart = slotSamples.find(({ glyphs }) =>
+        glyphs.some(({ character, opacity }) => character !== incomingCharacter && opacity < 0.999),
+      )?.elapsed;
+      const incomingStart = slotSamples.find(({ glyphs }) =>
+        glyphs.some(({ character, opacity }) => character === incomingCharacter && opacity > 0.001),
+      )?.elapsed;
+      return { incomingStart, outgoingStart, slot };
+    });
+
+    for (const { incomingStart, outgoingStart, slot } of pairStarts) {
+      expect(
+        incomingStart,
+        `${slot} incoming glyph must start; sampled ${JSON.stringify(pairStarts)}`,
+      ).toBeDefined();
+      expect(
+        outgoingStart,
+        `${slot} outgoing glyph must start; sampled ${JSON.stringify(pairStarts)}`,
+      ).toBeDefined();
+      expect(
+        Math.abs(incomingStart! - outgoingStart!),
+        `${slot} replacement glyphs must start without a blank stagger gap; sampled ${JSON.stringify(
+          pairStarts,
+        )}`,
+      ).toBeLessThanOrEqual(60);
+    }
+    const incomingStarts = pairStarts.map(({ incomingStart }) => incomingStart!);
     expect(
-      splitFrames.length,
-      "outgoing glyphs must begin moving immediately while replacements retain their stagger",
-    ).toBeGreaterThan(0);
+      Math.max(...incomingStarts) - Math.min(...incomingStarts),
+      `replacement columns must remain staggered; sampled ${pairStarts
+        .map(({ incomingStart, slot }) => `${slot}:${incomingStart!.toFixed(1)}ms`)
+        .join(", ")}`,
+    ).toBeGreaterThanOrEqual(100);
   });
 
-  test("growing statistics keep their old position and start as one group", async ({ page }) => {
+  test("the first incoming glyph starts immediately when a statistic gets shorter", async ({
+    page,
+  }) => {
+    await page.goto("/c/thelonginvest", { waitUntil: "load" });
+    await expect(page.locator(".sr-only").filter({ hasText: /^2,961$/ })).toHaveCount(1);
+
+    await page.evaluate(() => {
+      const samples: Array<{ elapsed: number; initialY: number; translateY: number }> = [];
+      let transitionStartedAt: number | null = null;
+      const startedAt = performance.now();
+      const sample = () => {
+        const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find(
+          (element) => element.textContent === "116",
+        );
+        const visualValue = accessibleValue?.parentElement?.querySelector(
+          "[data-stat-number-visual]",
+        );
+        const pairedSlot = Array.from(visualValue?.children ?? []).find(
+          (slot) => slot.textContent === "91",
+        );
+        const incomingGlyph = Array.from(pairedSlot?.children ?? []).find(
+          (glyph) => glyph.textContent === "1",
+        );
+
+        if (incomingGlyph instanceof HTMLElement) {
+          transitionStartedAt ??= performance.now();
+          const style = getComputedStyle(incomingGlyph);
+          samples.push({
+            elapsed: performance.now() - transitionStartedAt,
+            initialY: Number.parseFloat(style.fontSize) * 0.42,
+            translateY: new DOMMatrixReadOnly(style.transform).f,
+          });
+        }
+
+        if (performance.now() - startedAt < 800) requestAnimationFrame(sample);
+      };
+
+      (window as any).__statImmediateIncomingSamples = samples;
+      requestAnimationFrame(sample);
+    });
+
+    await page.getByRole("link", { name: "@roadto100kportfolio", exact: true }).click();
+    await expect(page).toHaveURL(/\/c\/roadto100kportfolio$/);
+    await page.waitForTimeout(850);
+
+    const samples = await page.evaluate(
+      () =>
+        (window as any).__statImmediateIncomingSamples as Array<{
+          elapsed: number;
+          initialY: number;
+          translateY: number;
+        }>,
+    );
+    const earlySamples = samples.filter((sample) => sample.elapsed <= 80);
+
+    expect(earlySamples.length, "the test must sample the first incoming glyph").toBeGreaterThan(1);
+    expect(
+      earlySamples.some((sample) => sample.translateY < sample.initialY - 0.5),
+      `the first incoming glyph must move immediately; sampled ${earlySamples
+        .map((sample) => `${sample.elapsed.toFixed(1)}ms:${sample.translateY.toFixed(2)}px`)
+        .join(", ")}`,
+    ).toBe(true);
+  });
+
+  test("growing statistics keep their old position and use paired stagger bands", async ({
+    page,
+  }) => {
     await page.goto("/c/roadto100kportfolio", { waitUntil: "load" });
     const totalCalls = page.locator(".sr-only").filter({ hasText: /^116$/ }).locator("..");
     const uniqueTickers = page.locator(".sr-only").filter({ hasText: /^60$/ }).locator("..");
@@ -507,20 +621,35 @@ test.describe("page performance (prod build)", () => {
       uniqueTickerSamples.find((sample) =>
         sample.glyphs.some((glyph) => glyph.character === character && predicate(glyph.opacity)),
       )?.elapsed;
-    const starts = [
-      firstChange("1", (opacity) => opacity > 0.02),
-      firstChange("6", (opacity) => opacity < 0.98),
-      firstChange("0", (opacity) => opacity < 0.98),
-    ];
+    const starts = {
+      addedOne: firstChange("1", (opacity) => opacity > 0.02),
+      incomingFive: firstChange("5", (opacity) => opacity > 0.02),
+      incomingThree: firstChange("3", (opacity) => opacity > 0.02),
+      outgoingSix: firstChange("6", (opacity) => opacity < 0.98),
+      outgoingZero: firstChange("0", (opacity) => opacity < 0.98),
+    };
 
     expect(
-      starts.every((start) => start !== undefined),
-      `sampled starts: ${starts}`,
+      Object.values(starts).every((start) => start !== undefined),
+      `sampled starts: ${JSON.stringify(starts)}`,
     ).toBe(true);
+    const firstBand = [starts.addedOne!, starts.incomingThree!, starts.outgoingSix!];
+    const secondBand = [starts.incomingFive!, starts.outgoingZero!];
     expect(
-      Math.max(...(starts as number[])) - Math.min(...(starts as number[])),
-      `the added 1 and replaced 60 must start within one sampled frame; sampled starts: ${starts}`,
-    ).toBeLessThanOrEqual(50);
+      Math.max(...firstBand) - Math.min(...firstBand),
+      `the added prefix and first replacement pair must start together; sampled ${JSON.stringify(
+        starts,
+      )}`,
+    ).toBeLessThanOrEqual(60);
+    expect(
+      Math.max(...secondBand) - Math.min(...secondBand),
+      `the second replacement pair must start together; sampled ${JSON.stringify(starts)}`,
+    ).toBeLessThanOrEqual(60);
+    expect(
+      Math.min(...secondBand) - Math.min(...firstBand),
+      `the replacement pairs must keep the 0.08 second stagger; sampled ${JSON.stringify(starts)}`,
+    ).toBeGreaterThanOrEqual(50);
+    expect(Math.min(...secondBand) - Math.min(...firstBand)).toBeLessThanOrEqual(130);
     expect(
       uniqueTickerSamples.some((sample) => {
         const incomingBlur = ["1", "3", "5"].map(
