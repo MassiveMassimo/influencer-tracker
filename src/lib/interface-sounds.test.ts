@@ -2,6 +2,19 @@ import { describe, expect, test } from "bun:test";
 import { createScrubSoundController } from "./interface-sounds.ts";
 
 describe("createScrubSoundController", () => {
+  test("plays the selected scrub sound", () => {
+    const played: string[] = [];
+    const scrub = createScrubSoundController({
+      minIntervalMs: 0,
+      sound: "release",
+      playSound: (sound) => played.push(sound),
+    });
+
+    scrub.move("2026-08-01", 0);
+
+    expect(played).toEqual(["release"]);
+  });
+
   test("plays once when the scrub key changes", () => {
     const played: string[] = [];
     const scrub = createScrubSoundController({

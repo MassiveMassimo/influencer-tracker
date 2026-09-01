@@ -1,8 +1,8 @@
-import { useRef } from "react";
+import { useState } from "react";
+import type { SoundName } from "cuelume";
 import { createScrubSoundController, type ScrubSoundController } from "#/lib/interface-sounds.ts";
 
-export function useScrubSound(): ScrubSoundController {
-  const controller = useRef<ScrubSoundController | null>(null);
-  if (!controller.current) controller.current = createScrubSoundController();
-  return controller.current;
+export function useScrubSound(sound: SoundName = "tick"): ScrubSoundController {
+  const [controller] = useState(() => createScrubSoundController({ sound }));
+  return controller;
 }

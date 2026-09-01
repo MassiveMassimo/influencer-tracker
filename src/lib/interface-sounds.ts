@@ -24,10 +24,12 @@ export interface ScrubSoundController {
 
 export function createScrubSoundController({
   minIntervalMs = SCRUB_SOUND_INTERVAL_MS,
-  playSound = () => playInterfaceSound("tick"),
+  sound = "tick",
+  playSound = playInterfaceSound,
 }: {
   minIntervalMs?: number;
-  playSound?: () => void;
+  sound?: SoundName;
+  playSound?: (sound: SoundName) => void;
 } = {}): ScrubSoundController {
   let lastKey: string | number | null = null;
   let lastPlayedAt = Number.NEGATIVE_INFINITY;
@@ -38,7 +40,7 @@ export function createScrubSoundController({
       lastKey = key;
       if (now - lastPlayedAt < minIntervalMs) return false;
       lastPlayedAt = now;
-      playSound();
+      playSound(sound);
       return true;
     },
     reset() {

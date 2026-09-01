@@ -572,7 +572,7 @@ export function CallActivity({
   const tooltipRef = useRef<ActivityTooltipHandle>(null);
   const focusedCellRef = useRef<HTMLElement | null>(null);
   const hoveredCellRef = useRef<HTMLElement | null>(null);
-  const scrubSound = useScrubSound();
+  const scrubSound = useScrubSound("release");
   const range = `${formatDay(calendar.rangeStart, RANGE_FORMAT)}–${formatDay(calendar.rangeEnd, RANGE_FORMAT)}`;
   const busiest = calendar.busiest;
   const summary = busiest
