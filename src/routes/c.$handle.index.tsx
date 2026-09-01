@@ -1,4 +1,4 @@
-import NumberFlow, { type Format, NumberFlowGroup } from "@number-flow/react";
+import type { Format } from "@number-flow/react";
 import { useMemo, useState, type ReactNode } from "react";
 import { createFileRoute, Link, getRouteApi } from "@tanstack/react-router";
 import {
@@ -9,8 +9,8 @@ import {
   MoreHorizontalIcon,
 } from "lucide-react";
 import { useInView } from "#/lib/use-in-view.ts";
-import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
 import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
+import { AnimatedStatNumber } from "#/components/animated-stat-number.tsx";
 import { fetchDataset } from "../lib/data";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
@@ -240,7 +240,7 @@ function Overview() {
   // Condensed stats that ride into the sticky bar as the overview row scrolls
   // away — derived from `tiles` (single source) so the two can't drift. Takes
   // each tile's first numeric segment; decorative/aria-hidden (the live tiles
-  // below own NumberFlow).
+  // below own the animated values).
   const statBar = tiles.map((t) => {
     const seg = t.segments.find(
       (s): s is Extract<StatSegment, { kind: "num" }> => s.kind === "num",
@@ -361,11 +361,9 @@ function Overview() {
           ref={statsRef}
           gridClassName="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
         >
-          <NumberFlowGroup>
-            {tiles.map((t) => (
-              <StatTile key={t.label} revealed={statsInView} tile={t} />
-            ))}
-          </NumberFlowGroup>
+          {tiles.map((t) => (
+            <StatTile key={t.label} revealed={statsInView} tile={t} />
+          ))}
           {/* Fills the empty 6th grid cell on mobile; md+ shows the grade in the
               header instead, so hide it there to keep the 5-col row full. */}
           {grade && (
@@ -431,11 +429,13 @@ function Overview() {
 }
 
 function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean }) {
-  const ready = useNumberFlowReady();
-  // Touch devices render static text — no enter spin (matches the ticker page).
+  // Touch devices retain the existing static fallback.
   const isTouch = useTouchPrimary();
-  const useNumber = ready && !isTouch;
+  const animateNumber = !isTouch;
   const toneCls = tile.tone !== undefined ? toneClass(tile.tone) : "text-foreground";
+  const primaryNumber = tile.segments.find(
+    (segment): segment is Extract<StatSegment, { kind: "num" }> => segment.kind === "num",
+  )!;
 
   return (
     <div className="bg-card p-4">
@@ -465,21 +465,20 @@ function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean })
         </PreviewCard>
       </div>
       <div className={`mt-1.5 font-heading text-xl tabular-nums ${toneCls}`}>
-        {tile.segments.map((seg) =>
-          seg.kind === "text" ? (
-            <span key={seg.key}>{seg.text}</span>
-          ) : useNumber ? (
-            <NumberFlow
-              format={seg.format}
-              isolate
-              locales="en-US"
-              key={seg.key}
-              value={revealed ? seg.value : 0}
-              willChange
-            />
-          ) : (
-            <span key={seg.key}>{formatNum(seg.value, seg.format)}</span>
-          ),
+        {animateNumber ? (
+          <AnimatedStatNumber
+            format={primaryNumber.format}
+            revealed={revealed}
+            value={primaryNumber.value}
+          />
+        ) : (
+          tile.segments.map((seg) =>
+            seg.kind === "text" ? (
+              <span key={seg.key}>{seg.text}</span>
+            ) : (
+              <span key={seg.key}>{formatNum(seg.value, seg.format)}</span>
+            ),
+          )
         )}
       </div>
     </div>

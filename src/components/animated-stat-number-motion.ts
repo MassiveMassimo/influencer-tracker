@@ -1,0 +1,71 @@
+const DIGIT_STAGGER_SECONDS = 0.08;
+const Y_EASE = [0.3, 0.4, 0.1, 1.25] as const;
+const GLYPH_EASE = [0.3, 0.4, 0.4, 1] as const;
+const EXIT_EASE = [0.3, 0.4, 0.1, 1] as const;
+
+export const HIDDEN_BELOW = {
+  opacity: 0,
+  y: "0.42em",
+  scale: 0.6,
+  filter: "blur(4px)",
+} as const;
+
+const VISIBLE = {
+  opacity: 1,
+  y: "0em",
+  scale: 1,
+  filter: "blur(0px)",
+} as const;
+
+const HIDDEN_ABOVE = {
+  opacity: 0,
+  y: "-0.42em",
+  scale: 0.6,
+  filter: "blur(4px)",
+} as const;
+
+export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: number) {
+  const delay = digitIndex * DIGIT_STAGGER_SECONDS;
+
+  return {
+    initial: reduceMotion ? false : HIDDEN_BELOW,
+    animate: {
+      ...VISIBLE,
+      transition: reduceMotion
+        ? { duration: 0 }
+        : {
+            y: { type: "tween", duration: 0.5, delay, ease: Y_EASE },
+            scale: { type: "tween", duration: 0.5, delay, ease: GLYPH_EASE },
+            filter: { type: "tween", duration: 0.5, delay, ease: GLYPH_EASE },
+            opacity: { duration: 0.35, delay, ease: "easeOut" },
+          },
+    },
+    exit: {
+      ...(reduceMotion ? VISIBLE : HIDDEN_ABOVE),
+      transition: reduceMotion
+        ? { duration: 0 }
+        : {
+            duration: 0.6,
+            delay,
+            ease: EXIT_EASE,
+            opacity: { duration: 0.55, delay, ease: EXIT_EASE },
+          },
+    },
+  } as const;
+}
+
+interface AnimatedNumberToken {
+  character: string;
+  digitIndex: number | null;
+}
+
+export function getAnimatedNumberTokens(
+  value: number,
+  format: Intl.NumberFormatOptions,
+): AnimatedNumberToken[] {
+  let digitIndex = 0;
+  return Array.from(new Intl.NumberFormat("en-US", format).format(value)).map((character) => ({
+    character,
+    digitIndex: /\p{Number}/u.test(character) ? digitIndex++ : null,
+  }));
+}
