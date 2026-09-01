@@ -8,11 +8,12 @@ import { join } from "node:path";
 export const ROUTES = {
   home: "/",
   creator: "/c/TheProfInvestor",
+  explore: "/explore",
   ticker: "/t/VRT/all",
 } as const;
 
-// Soft budgets — generous on purpose (~1.4x current measured values) so the suite
-// flags real regressions, not normal jitter. Tighten once a baseline settles.
+// Soft budgets retain metric-specific headroom so the suite flags real
+// regressions, not normal jitter. Tighten once a baseline settles.
 // Baseline (2026-06-24, dev, this machine): ~6400 renders/switch over 12 switches,
 // ~10 commits/switch, ~650 components re-rendered PER animation frame. The high
 // render count is the per-frame morph animation + by-design marker remount/restagger;
@@ -30,6 +31,15 @@ export const BUDGETS = {
   cls: 0.1, // baseline: creator 0.067 (stat-tile reveal), others ~0
   longTaskTotalMs: 2000,
   loafMaxBlockingMs: 400,
+  // Fresh-server Explore maxima observed after separating forced GC from
+  // application work were 3124 KB, 12.45 MB, 1464 nodes, 0 ms long tasks,
+  // 136 ms LoAF total, and 0 ms LoAF blocking.
+  exploreSettledTotalTransferKB: 3500,
+  exploreSettledHeapMB: 25,
+  exploreSettledDomNodes: 2000,
+  exploreSettledLongTaskTotalMs: 750,
+  exploreSettledLoafTotalMs: 1000,
+  exploreSettledLoafMaxBlockingMs: 200,
   // baseline 28.7MB/28 switches — likely bounded TanStack Query timeframe cache,
   // not a leak; 40 gives GC-jitter headroom. If this climbs with more CYCLES, investigate.
   heapGrowthMB: 40,
@@ -110,7 +120,12 @@ export function pagePerfInit() {
     lcp: 0,
     cls: 0,
     longTasks: { count: 0, total: 0, max: 0 },
-    loaf: { count: 0, total: 0, maxBlocking: 0 },
+    loaf: {
+      supported: PerformanceObserver.supportedEntryTypes.includes("long-animation-frame"),
+      count: 0,
+      total: 0,
+      maxBlocking: 0,
+    },
   };
   (window as any).__pp = s;
   const obs = (type: string, cb: (e: any) => void) => {
@@ -159,12 +174,27 @@ export async function readPagePerf(page: Page) {
       else if (/\.css($|\?)/.test(r.name)) css += sz;
     }
     const kb = (b: number) => +(b / 1024).toFixed(1);
+    const html = nav?.encodedBodySize || nav?.transferSize || 0;
+    const htmlDecoded = nav?.decodedBodySize || 0;
     return {
+      elapsed: Math.round(performance.now()),
       ttfb: nav ? Math.round(nav.responseStart) : 0,
       fcp: Math.round(fcp),
       domContentLoaded: nav ? Math.round(nav.domContentLoadedEventEnd) : 0,
       load: nav ? Math.round(nav.loadEventEnd) : 0,
-      transferKB: { js: kb(js), css: kb(css), total: kb(total) },
+      domNodes: document.getElementsByTagName("*").length,
+      heapMB:
+        "memory" in performance
+          ? +(((performance as any).memory.usedJSHeapSize ?? 0) / 1024 / 1024).toFixed(2)
+          : 0,
+      transferKB: {
+        html: kb(html),
+        htmlDecoded: kb(htmlDecoded),
+        js: kb(js),
+        css: kb(css),
+        resources: kb(total),
+        total: kb(total + html),
+      },
       ...(window as any).__pp,
       lcp: Math.round((window as any).__pp.lcp),
     };

@@ -3,6 +3,17 @@
 What's new on Signal Tracker — new features, improvements, and fixes. Entries are
 newest first. Spotted something wrong? Every call has a "Report incorrect" button.
 
+## 2026-08-31
+
+### New
+
+- **Call activity history** — Creator pages now show one year of daily call activity. Hover over a day, or focus the grid and use the arrow keys, to see its date and call count.
+
+### Improved
+
+- **Smoother activity waves** — The activity history and month labels now wash in from left to right with eased timing, including when you move between creators.
+- **A tooltip that follows your activity** — The call activity tooltip now uses a more opaque version of the performance chart surface, glides between days as you move across the grid, rolls its month and digits to the new values, and smoothly resizes its left-aligned count as the label follows. It also moves smoothly when it flips above or below the cursor.
+
 ## 2026-07-13
 
 ### Fixed

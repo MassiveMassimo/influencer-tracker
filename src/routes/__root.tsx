@@ -10,6 +10,7 @@ import { ScrollArea } from "#/components/ui/scroll-area.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { SidebarToggle } from "#/components/sidebar-toggle.tsx";
 import { listCreators, fetchCallsIndex } from "../lib/data";
+import { callsIndexVersion } from "../lib/call-index";
 import { topStocksByLastCall } from "../lib/rail-stocks";
 import { platformOf, type Platform } from "../lib/platform";
 import { useMobileDrawer } from "#/lib/use-mobile-drawer.ts";
@@ -32,6 +33,7 @@ const THEME_INIT_SCRIPT = `(function(){try{var root=document.documentElement;var
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async () => {
     const [creators, index] = await Promise.all([listCreators(), fetchCallsIndex()]);
+    const indexVersion = await callsIndexVersion(index);
     // Platform is a per-creator constant (a handle is scraped from one source);
     // derive it from the first indexed shortcode (numeric ⇒ X tweet id, else IG)
     // so MobileNav can show the platform icon + profile link without the dataset.
@@ -45,7 +47,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ...c,
       platform: platformByHandle.get(c.handle),
     }));
-    return { creators: creatorsWithPlatform, stocks: topStocksByLastCall(index) };
+    return {
+      creators: creatorsWithPlatform,
+      stocks: topStocksByLastCall(index),
+      indexVersion,
+    };
   },
   head: () => ({
     meta: [
@@ -92,7 +98,7 @@ const RAIL_ANIM =
   "ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none";
 
 function RootComponent() {
-  const { creators, stocks } = Route.useLoaderData();
+  const { creators, stocks, indexVersion } = Route.useLoaderData();
   // Desktop-only collapsible rail. The desktop layout is CSS-driven (md:
   // breakpoints), so it's correct on the very first SSR paint — no JS media
   // query that would render mobile-then-flip. The collapse is a data-attribute
@@ -169,7 +175,7 @@ function RootComponent() {
             inert={collapsed || undefined}
             className={`absolute top-0 left-0 z-10 hidden h-svh w-[260px] origin-left md:block ${RAIL_ANIM} data-[collapsed=true]:scale-[0.92] data-[collapsed=true]:opacity-0 data-[collapsed=true]:blur-[12px]`}
           >
-            <RailContent creators={creators} stocks={stocks} />
+            <RailContent creators={creators} stocks={stocks} indexVersion={indexVersion} />
           </aside>
 
           {/* Mobile rail — underneath, uncovered when the content panel slides
@@ -189,7 +195,12 @@ function RootComponent() {
             // re-render and clobber the hook's open-state.
             className="fixed top-0 left-0 z-10 block h-svh w-[260px] origin-left opacity-0 md:hidden"
           >
-            <RailContent creators={creators} stocks={stocks} onNavigate={closeMobile} />
+            <RailContent
+              creators={creators}
+              stocks={stocks}
+              indexVersion={indexVersion}
+              onNavigate={closeMobile}
+            />
           </aside>
 
           {/* Content column — stays UNTRANSFORMED so the sticky top bar inside it

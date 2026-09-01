@@ -16,13 +16,17 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/gif": "gif",
 };
 
+type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
 export async function saveAvatar(
   handle: string,
   url: string | null | undefined,
+  fetchFn: FetchFn = fetch,
+  timeoutMs = 15_000,
 ): Promise<string | null> {
   if (!url) return null;
   try {
-    const res = await fetch(url);
+    const res = await fetchFn(url, { signal: AbortSignal.timeout(timeoutMs) });
     if (!res.ok) return null;
     const mime = (res.headers.get("content-type") ?? "image/jpeg").split(";")[0].trim();
     const ext = EXT_BY_MIME[mime] ?? "jpg";

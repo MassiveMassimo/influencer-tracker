@@ -34,6 +34,28 @@ export const CallIndexEntrySchema = z.object({
 });
 export const CallIndexSchema = z.array(CallIndexEntrySchema);
 
+export async function callsIndexVersion(index: CallIndexEntry[]): Promise<string> {
+  const canonical = index.map((entry) => [
+    entry.handle,
+    entry.shortcode,
+    entry.ticker,
+    entry.company,
+    entry.postDate,
+    entry.isFirstCall,
+    entry.conviction,
+    entry.ex3m,
+    entry.exToDate,
+    entry.stockToDate,
+    entry.summary ?? null,
+  ]);
+  const bytes = new TextEncoder().encode(JSON.stringify(canonical));
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  const shortDigest = Array.from(digest.subarray(0, 16), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+  return `sha256-${shortDigest}`;
+}
+
 // Flatten all creators' scored calls into the slim cross-creator index. Sort is
 // deterministic (postDate desc, handle asc, shortcode asc, ticker asc) so the artifact
 // is stable across rebuilds — the ticker tiebreaker keeps multi-stock posts (which share

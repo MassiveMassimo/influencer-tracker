@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { creatorDir } from "./config";
 import { toReelCalls, writeCalls, type Classification } from "./calls";
 import type { ReelCall } from "../src/lib/types";
@@ -14,11 +14,18 @@ export interface ExtractPost {
 }
 
 // Resolve a shortcode to an ExtractPost (read transcript, resolve hints + date, build
-// body). Return null to skip (e.g. dateless reel, missing data) — the core marks it
-// done so it's not retried every run.
+// body). A null result is incomplete input, so the core keeps it pending and records
+// a retryable failure instead of silently marking the post done.
 export type BuildPost = (shortcode: string) => Promise<ExtractPost | null>;
 
 export const callKey = (c: ReelCall): string => `${c.shortcode}:${c.ticker}`;
+
+interface ExtractFailure {
+  shortcode: string;
+  attempts: number;
+  lastError: string;
+  updatedAt: string;
+}
 
 // Collapse duplicate calls by (shortcode, ticker), keeping the first occurrence.
 // Guards against a crash between checkpoint writes re-appending a call.
@@ -44,6 +51,7 @@ export async function extractPosts(
   opts: {
     concurrency: number;
     donePath: string;
+    failurePath?: string;
     classifyFn: (body: string) => Promise<Classification[]>;
   },
 ): Promise<ReelCall[]> {
@@ -80,8 +88,17 @@ export async function extractPosts(
     done = new Set(JSON.parse(await readFile(opts.donePath, "utf8")) as string[]);
   }
 
+  const failurePath = opts.failurePath ?? join(dirname(opts.donePath), "extract-failures.json");
+  await mkdir(dirname(failurePath), { recursive: true });
+  const loadedFailures: ExtractFailure[] = existsSync(failurePath)
+    ? JSON.parse(await readFile(failurePath, "utf8"))
+    : [];
+  const failures = new Map(loadedFailures.map((failure) => [failure.shortcode, failure]));
+  for (const shortcode of done) failures.delete(shortcode);
+
   const pending = shortcodes.filter((sc) => !done.has(sc));
   if (!pending.length) {
+    await writeFile(failurePath, JSON.stringify([...failures.values()], null, 2));
     console.log(`nothing to extract — all ${shortcodes.length} posts already done`);
     return out;
   }
@@ -94,6 +111,7 @@ export async function extractPosts(
     writeChain = writeChain.then(async () => {
       await writeCalls(handle, out);
       await writeFile(opts.donePath, JSON.stringify([...done]));
+      await writeFile(failurePath, JSON.stringify([...failures.values()], null, 2));
     });
     return writeChain;
   };
@@ -116,8 +134,7 @@ export async function extractPosts(
         try {
           const post = await buildPost(sc);
           if (!post) {
-            done.add(sc);
-            continue;
+            throw new Error("adapter returned no extractable post");
           }
           const cs = await opts.classifyFn(post.body);
           for (const rc of toReelCalls(cs, post.shortcode, post.postDate)) {
@@ -126,8 +143,17 @@ export async function extractPosts(
             out.push(rc);
           }
           done.add(sc);
+          failures.delete(sc);
         } catch (e) {
-          console.warn(`skip ${sc}: ${(e as Error).message}`);
+          const message = (e instanceof Error ? e.message : String(e)).slice(0, 500);
+          const previous = failures.get(sc);
+          failures.set(sc, {
+            shortcode: sc,
+            attempts: (previous?.attempts ?? 0) + 1,
+            lastError: message,
+            updatedAt: new Date().toISOString(),
+          });
+          console.warn(`skip ${sc}: ${message}`);
         }
         if (++completed % 20 === 0) {
           await persist();
@@ -144,6 +170,13 @@ export async function extractPosts(
       console.warn(`no progress on ${stillPending.length} posts; giving up`);
       break;
     }
+  }
+
+  const unresolved = shortcodes.filter((sc) => !done.has(sc));
+  if (unresolved.length) {
+    throw new Error(
+      `extraction incomplete: ${unresolved.length} post(s) remain; see ${failurePath}`,
+    );
   }
 
   console.log(`extracted ${done.size}/${shortcodes.length} posts -> ${out.length} calls`);

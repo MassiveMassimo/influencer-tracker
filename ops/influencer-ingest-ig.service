@@ -6,11 +6,11 @@ Type=oneshot
 User=ubuntu
 WorkingDirectory=/home/ubuntu/influencer-tracker
 EnvironmentFile=/home/ubuntu/influencer-tracker/.env
-# .local/bin is load-bearing: yt-dlp (reel download) lives at ~/.local/bin/yt-dlp. Omitting it
-# made downloadReel's spawn ENOENT, which run.ts swallowed → 0 new reels ingested for ~10 days.
-Environment=PATH=/home/ubuntu/.local/bin:/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
-# IG scrape downloads + transcribes new reels (Parakeet CPU) — allow generous wall time.
-RuntimeMaxSec=4h
+# asr-venv/bin is load-bearing: it contains both yt-dlp and the Parakeet runtime.
+# Omitting yt-dlp made its spawn fail with ENOENT and caused a data gap.
+Environment=PATH=/home/ubuntu/asr-venv/bin:/home/ubuntu/.local/bin:/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+# IG scrape downloads + processes new posts (Parakeet CPU + image OCR) — allow generous wall time.
+TimeoutStartSec=4h
 # SHARED lock with the X ingest (/tmp/influencer-ingest.lock, NOT a separate -ig lock): both
 # timers mutate the same git repo (checkout/clean/pull/commit/push), so they must serialize to
 # avoid a torn .git index or discarding an unpushed commit. The 14:00 stagger then just means IG

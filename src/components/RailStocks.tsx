@@ -7,7 +7,7 @@ import { Sparkline } from "./Sparkline";
 import { sparks1dQuery } from "#/lib/spark-query.ts";
 import { useHalalStatus } from "#/lib/halal-query.ts";
 import { HalalBadge } from "#/components/halal/halal-badge.tsx";
-import { fetchCallsIndex } from "#/lib/data.ts";
+import { callsIndexQuery } from "#/lib/calls-index-query.ts";
 import { topStocksByLastCall, type RailStock } from "#/lib/rail-stocks.ts";
 
 function pctChip(changePct: number | null) {
@@ -28,6 +28,7 @@ function pctChip(changePct: number | null) {
 // independently of the Creators list.
 export function RailStocks({
   stocks,
+  indexVersion,
   onNavigate,
   query = "",
   searchOpen = false,
@@ -36,6 +37,7 @@ export function RailStocks({
   onSelect,
 }: {
   stocks: RailStock[];
+  indexVersion: string;
   onNavigate?: () => void;
   query?: string;
   searchOpen?: boolean;
@@ -47,9 +49,7 @@ export function RailStocks({
   // reusing the CDN-cached calls-index /explore already loads. No added payload
   // on a normal page view.
   const { data: fullIndex } = useQuery({
-    queryKey: ["rail-calls-index"],
-    queryFn: fetchCallsIndex,
-    staleTime: 60 * 60 * 1000,
+    ...callsIndexQuery(indexVersion),
     enabled: searchOpen,
   });
   const allStocks = useMemo(

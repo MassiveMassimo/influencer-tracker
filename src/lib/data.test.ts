@@ -14,7 +14,8 @@ mock.module("@tanstack/react-start", () => ({
   },
 }));
 
-const { readFromDbOrNull, fetchDataset, fetchPrices } = await import("./data");
+const { readFromDbOrNull, fetchCallsIndex, fetchDataset, fetchPrices } = await import("./data");
+const { callsIndexVersion } = await import("./call-index");
 
 // The server-side branch requires no `window` and USE_DB=1. A DOM-providing test file in the
 // same `bun test` run can leave `window` defined, so the catch/success tests delete it for
@@ -80,6 +81,18 @@ describe("fetcher fallback asymmetry", () => {
     },
     caveats: [],
   };
+  const callIndexEntry = {
+    handle: "h",
+    shortcode: "post-1",
+    ticker: "AAA",
+    company: "A Co",
+    postDate: "2026-01-01",
+    isFirstCall: true,
+    conviction: 0.8,
+    ex3m: 0.1,
+    exToDate: 0.2,
+    stockToDate: 0.3,
+  };
 
   // fetchPrices: a non-OK /api/prices/* returns [] WITHOUT a second (static) fetch — the
   // deliberate asymmetry. (A non-OK is a true upstream error; static would also miss.)
@@ -112,5 +125,22 @@ describe("fetcher fallback asymmetry", () => {
     expect(calls.length).toBe(2);
     expect(calls[0]).toContain("/api/dataset/h");
     expect(calls[1]).toContain("/datasets/h.json");
+  });
+
+  test("fetchCallsIndex: rejects a cached payload that does not match its requested revision", async () => {
+    const calls: string[] = [];
+    global.fetch = mock(async (url: string) => {
+      calls.push(String(url));
+      return new Response(JSON.stringify([callIndexEntry]), { status: 200 });
+    }) as unknown as typeof fetch;
+    const requestedVersion = await callsIndexVersion([
+      { ...callIndexEntry, stockToDate: callIndexEntry.stockToDate + 0.01 },
+    ]);
+
+    await expect(fetchCallsIndex(requestedVersion)).rejects.toThrow(
+      "calls-index revision does not match",
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toContain(`/api/calls-index?revision=${encodeURIComponent(requestedVersion)}`);
   });
 });

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 
 // Two projects, two servers:
 //  • render-dev → vite dev (React profiling on, readable component names) for
@@ -9,6 +10,13 @@ import { defineConfig, devices } from "@playwright/test";
 
 const DEV_PORT = 3100;
 const PROD_PORT = 3200;
+
+// Both web servers read the generated public artifacts. Generate them once before
+// Playwright starts either server so two destructive prebuilds cannot overlap.
+if (process.env.INFLUENCER_PERF_PREBUILD_DONE !== "1") {
+  execFileSync("bun", ["run", "prebuild"], { stdio: "inherit" });
+  process.env.INFLUENCER_PERF_PREBUILD_DONE = "1";
+}
 
 export default defineConfig({
   testDir: "./perf",
@@ -27,7 +35,7 @@ export default defineConfig({
     },
     {
       name: "page-prod",
-      testMatch: /(page-perf|memory)\.pw\.ts/,
+      testMatch: /(async-data|page-perf|memory)\.pw\.ts/,
       use: {
         baseURL: `http://localhost:${PROD_PORT}`,
         ...devices["Desktop Chrome"],
@@ -38,18 +46,20 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `bunx vite dev --port ${DEV_PORT}`,
+      // Build-time server fetches use VITE_SITE_URL. Point them at this
+      // worktree's server instead of the app's localhost:3000 fallback.
+      command: `VITE_SITE_URL=http://localhost:${DEV_PORT} bunx vite dev --port ${DEV_PORT}`,
       url: `http://localhost:${DEV_PORT}`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120_000,
       stdout: "ignore",
       stderr: "pipe",
     },
     {
       // build once, then serve the nitro node output (prod SSR)
-      command: `bun run build && PORT=${PROD_PORT} node .output/server/index.mjs`,
+      command: `VITE_SITE_URL=http://localhost:${PROD_PORT} bunx vite build && VITE_SITE_URL=http://localhost:${PROD_PORT} PORT=${PROD_PORT} node .output/server/index.mjs`,
       url: `http://localhost:${PROD_PORT}`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 600_000,
       stdout: "ignore",
       stderr: "pipe",

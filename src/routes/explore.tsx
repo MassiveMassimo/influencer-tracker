@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { fetchCallsIndex, listCreators } from "../lib/data";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { applyCallFilter, type CallFilter, type SortKey } from "../lib/call-filter";
 import type { CallIndexEntry } from "../lib/call-index";
 import { DataAsOf } from "../components/DataAsOf";
@@ -10,29 +10,17 @@ import { HalalIndicator } from "#/components/halal/halal-badge.tsx";
 import { ProofViewer } from "#/components/proof-viewer.tsx";
 import { NavMenu } from "#/components/ui/nav-menu.tsx";
 import { NavRow } from "#/components/ui/nav-row.tsx";
+import { callsIndexQuery } from "#/lib/calls-index-query.ts";
+import { EXPLORE_VISIBLE_STEP } from "#/lib/explore-data.ts";
+import { fetchExploreOverview } from "#/lib/explore-fetch.ts";
 
 export const Route = createFileRoute("/explore")({
   loader: async ({ context }) => {
-    const [calls, creators] = await Promise.all([fetchCallsIndex(), listCreators()]);
-    await prefetchHalal(
-      context.queryClient,
-      calls.map((c) => c.ticker),
-    );
-    // The calls-index artifact ships as a plain array with no generatedAt; use the freshest
-    // creator's generatedAt as the cross-creator "data as of" (newest scoring run in the set).
-    const generatedAt = creators.reduce<string>(
-      (max, c) => (c.generatedAt > max ? c.generatedAt : max),
-      "",
-    );
-    // Only handle + name are used (the creator chips + the names map); drop the inlined
-    // base64 avatars and stats so they aren't dehydrated into the SSR HTML (the root
-    // loader already ships the full roster — no need to duplicate the avatar payload here).
-    return {
-      calls,
-      generatedAt,
-      creators: creators.map((c) => ({ handle: c.handle, name: c.name })),
-    };
+    const { initialTickers, ...overview } = await fetchExploreOverview();
+    await prefetchHalal(context.queryClient, initialTickers);
+    return overview;
   },
+  staleTime: 5 * 60 * 1000,
   head: () => ({
     meta: [
       { title: "Explore all calls — Signal Tracker" },
@@ -60,23 +48,67 @@ function tone(x: number | null) {
         : "text-muted-foreground";
 }
 
+const DEFAULT_FILTER: CallFilter = {
+  search: "",
+  handles: [],
+  firstOnly: false,
+  beatSpyOnly: false,
+  horizon: "ex3m",
+  sort: { key: "postDate", dir: -1 },
+};
+
 function Explore() {
-  const { calls, generatedAt, creators } = Route.useLoaderData();
+  const {
+    calls: initialCalls,
+    totalCalls,
+    generatedAt,
+    indexVersion,
+    creators,
+  } = Route.useLoaderData();
+  const [loadFullIndex, setLoadFullIndex] = useState(false);
+  const callsQuery = useQuery({
+    ...callsIndexQuery(indexVersion),
+    enabled: loadFullIndex,
+    placeholderData: initialCalls,
+  });
+  const hasCompleteIndex = callsQuery.data !== undefined && !callsQuery.isPlaceholderData;
+  const calls = hasCompleteIndex ? callsQuery.data : initialCalls;
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLoadFullIndex(true), 5_000);
+    return () => window.clearTimeout(timer);
+  }, []);
   const names = useMemo(
     () => Object.fromEntries(creators.map((c) => [c.handle, c.name])),
     [creators],
   );
-  const [filter, setFilter] = useState<CallFilter>({
-    search: "",
-    handles: [],
-    firstOnly: false,
-    beatSpyOnly: false,
-    horizon: "ex3m",
-    sort: { key: "postDate", dir: -1 },
-  });
-  const rows = useMemo(() => applyCallFilter(calls, filter, names), [calls, filter, names]);
-  const allTickers = useMemo(() => calls.map((c) => c.ticker), [calls]);
-  const getHalal = useHalalStatus(allTickers);
+  const [filter, setFilter] = useState<CallFilter>(DEFAULT_FILTER);
+  const isDefaultView =
+    filter.search === "" &&
+    filter.handles.length === 0 &&
+    !filter.firstOnly &&
+    !filter.beatSpyOnly &&
+    filter.sort.key === DEFAULT_FILTER.sort.key &&
+    filter.sort.dir === DEFAULT_FILTER.sort.dir;
+  const canShowRows = isDefaultView || hasCompleteIndex;
+  const deferredFilter = useDeferredValue(filter);
+  const rows = useMemo(
+    () => (canShowRows ? applyCallFilter(calls, deferredFilter, names) : []),
+    [calls, canShowRows, deferredFilter, names],
+  );
+  const [visibleCount, setVisibleCount] = useState(EXPLORE_VISIBLE_STEP);
+  const visibleRows = useMemo(() => rows.slice(0, visibleCount), [rows, visibleCount]);
+  const availableRowCount = hasCompleteIndex ? rows.length : isDefaultView ? totalCalls : 0;
+  const needsCompleteIndex =
+    !hasCompleteIndex && isDefaultView && visibleCount >= initialCalls.length;
+  const indexState = hasCompleteIndex
+    ? "ready"
+    : callsQuery.isError
+      ? "error"
+      : loadFullIndex
+        ? "loading"
+        : "partial";
+  const visibleTickers = useMemo(() => visibleRows.map((call) => call.ticker), [visibleRows]);
+  const getHalal = useHalalStatus(visibleTickers);
   // Selected call → proof viewer. Index rows carry no `quote` (slim asset), so the
   // viewer shows the embed + summary; siblings = other tickers in the same post.
   const [selected, setSelected] = useState<CallIndexEntry | null>(null);
@@ -98,27 +130,36 @@ function Explore() {
         : undefined,
     [selected, calls],
   );
-  const onSort = (key: SortKey) =>
+  const onSort = (key: SortKey) => {
+    setLoadFullIndex(true);
+    setVisibleCount(EXPLORE_VISIBLE_STEP);
     setFilter((f) => ({
       ...f,
       sort: f.sort.key === key ? { key, dir: (f.sort.dir * -1) as 1 | -1 } : { key, dir: -1 },
     }));
-  const toggleHandle = (h: string) =>
+  };
+  const toggleHandle = (h: string) => {
+    setLoadFullIndex(true);
+    setVisibleCount(EXPLORE_VISIBLE_STEP);
     setFilter((f) => ({
       ...f,
       handles: f.handles.includes(h) ? f.handles.filter((x) => x !== h) : [...f.handles, h],
     }));
+  };
 
   return (
-    <main className="mx-auto max-w-6xl space-y-5 px-4 py-8 md:px-10 md:py-10">
+    <main
+      data-index-state={indexState}
+      className="mx-auto max-w-6xl space-y-5 px-4 py-8 md:px-10 md:py-10"
+    >
       <header>
         <div className="font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
           All calls · vs SPY
         </div>
         <h1 className="mt-1 font-heading text-2xl">Explore calls</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every scored call across all creators. Filter, sort, and search (all client-side over one
-          cached index, {calls.length} calls).
+          Every scored call across all creators. The latest calls render first. The complete cached
+          index loads before any filter or sort is applied ({totalCalls} calls).
         </p>
         {generatedAt && <DataAsOf iso={generatedAt} className="mt-2 block" />}
       </header>
@@ -128,7 +169,12 @@ function Explore() {
           type="search"
           aria-label="Search ticker, company, or creator"
           value={filter.search}
-          onChange={(e) => setFilter((f) => ({ ...f, search: e.target.value }))}
+          onFocus={() => setLoadFullIndex(true)}
+          onChange={(e) => {
+            setLoadFullIndex(true);
+            setVisibleCount(EXPLORE_VISIBLE_STEP);
+            setFilter((f) => ({ ...f, search: e.target.value }));
+          }}
           placeholder="Search ticker, company, creator…"
           className="h-9 w-full max-w-xs rounded-md border border-border/60 bg-background px-3 text-sm outline-none focus:border-foreground/30 md:w-64"
         />
@@ -136,7 +182,11 @@ function Explore() {
           <input
             type="checkbox"
             checked={filter.firstOnly}
-            onChange={(e) => setFilter((f) => ({ ...f, firstOnly: e.target.checked }))}
+            onChange={(e) => {
+              setLoadFullIndex(true);
+              setVisibleCount(EXPLORE_VISIBLE_STEP);
+              setFilter((f) => ({ ...f, firstOnly: e.target.checked }));
+            }}
           />
           First calls only
         </label>
@@ -144,7 +194,11 @@ function Explore() {
           <input
             type="checkbox"
             checked={filter.beatSpyOnly}
-            onChange={(e) => setFilter((f) => ({ ...f, beatSpyOnly: e.target.checked }))}
+            onChange={(e) => {
+              setLoadFullIndex(true);
+              setVisibleCount(EXPLORE_VISIBLE_STEP);
+              setFilter((f) => ({ ...f, beatSpyOnly: e.target.checked }));
+            }}
           />
           Beat SPY (3m)
         </label>
@@ -200,11 +254,26 @@ function Explore() {
             Excess→now
           </button>
         </div>
-        {rows.length === 0 ? (
+        {!canShowRows && callsQuery.isError ? (
+          <div className="px-5 py-6 text-sm text-muted-foreground" role="alert">
+            The complete call index did not load. No partial filter results are shown.{" "}
+            <button
+              type="button"
+              className="text-foreground underline underline-offset-2"
+              onClick={() => void callsQuery.refetch()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : !canShowRows ? (
+          <div className="px-5 py-6 text-sm text-muted-foreground" role="status">
+            Loading the complete call index…
+          </div>
+        ) : rows.length === 0 ? (
           <div className="px-5 py-6 text-sm text-muted-foreground">No calls match.</div>
         ) : (
           <NavMenu activeSlug={null} radius="rounded-none" separated aria-label="Calls">
-            {rows.slice(0, 500).map((r, i) => (
+            {visibleRows.map((r, i) => (
               <NavRow
                 key={`${r.handle}:${r.shortcode}:${r.ticker}`}
                 index={i}
@@ -255,11 +324,39 @@ function Explore() {
             ))}
           </NavMenu>
         )}
-        {rows.length > 500 && (
-          <div className="border-t border-border/40 px-5 py-3 text-center text-xs text-muted-foreground">
-            Showing first 500 of {rows.length}. Narrow the filter to see more.
+        {canShowRows && needsCompleteIndex && callsQuery.isError ? (
+          <div
+            className="border-t border-border/40 px-5 py-3 text-sm text-muted-foreground"
+            role="alert"
+          >
+            The complete call index did not load.{" "}
+            <button
+              type="button"
+              className="text-foreground underline underline-offset-2"
+              onClick={() => void callsQuery.refetch()}
+            >
+              Retry
+            </button>
           </div>
-        )}
+        ) : canShowRows && visibleRows.length < availableRowCount ? (
+          <div className="border-t border-border/40 px-5 py-3 text-center">
+            <button
+              type="button"
+              disabled={needsCompleteIndex && callsQuery.isFetching}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              onPointerEnter={() => setLoadFullIndex(true)}
+              onFocus={() => setLoadFullIndex(true)}
+              onClick={() => {
+                setLoadFullIndex(true);
+                setVisibleCount((count) => count + EXPLORE_VISIBLE_STEP);
+              }}
+            >
+              {needsCompleteIndex
+                ? "Loading all calls…"
+                : `Show ${Math.min(EXPLORE_VISIBLE_STEP, availableRowCount - visibleRows.length)} more · ${visibleRows.length} of ${availableRowCount}`}
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <ProofViewer

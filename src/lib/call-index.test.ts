@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { buildCallsIndex, CallIndexSchema } from "./call-index";
+import { buildCallsIndex, callsIndexVersion, CallIndexSchema } from "./call-index";
 import type { Dataset, Call } from "./types";
 
 function call(over: Partial<Call> & { shortcode: string; ticker: string; postDate: string }): Call {
@@ -73,4 +73,14 @@ test("output validates against CallIndexSchema", () => {
     ds("alice", [call({ shortcode: "a1", ticker: "NVDA", postDate: "2026-05-01" })]),
   ]);
   expect(() => CallIndexSchema.parse(out)).not.toThrow();
+});
+
+test("content version changes for same-day index changes", async () => {
+  const original = buildCallsIndex([
+    ds("creator-a", [call({ shortcode: "a1", ticker: "AAPL", postDate: "2026-08-25" })]),
+  ]);
+  const revised = original.map((entry) => ({ ...entry, company: "Apple Inc. revised" }));
+
+  expect(await callsIndexVersion(original)).toBe(await callsIndexVersion(original));
+  expect(await callsIndexVersion(revised)).not.toBe(await callsIndexVersion(original));
 });

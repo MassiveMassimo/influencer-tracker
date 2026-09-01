@@ -96,7 +96,7 @@ using the `~/asr-venv` interpreter (override with `PARAKEET_PYTHON`). One-time:
 ```bash
 sudo apt-get install -y ffmpeg python3-venv      # ffmpeg also needed by the frames stage
 python3 -m venv ~/asr-venv
-~/asr-venv/bin/pip install onnx-asr onnxruntime soundfile huggingface_hub
+~/asr-venv/bin/pip install onnx-asr onnxruntime soundfile huggingface_hub yt-dlp
 # warm the model cache (first load downloads ~600 MB from HF):
 ~/asr-venv/bin/python -c 'import onnx_asr; onnx_asr.load_model("nemo-parakeet-tdt-0.6b-v2")'
 ```
@@ -236,12 +236,54 @@ incremental forward-scrape cursor (newest stored tweet id); losing it forces a f
 daily at 14:00 UTC — staggered 1h after the X ingest so the two pushes do not race.
 The service runs `scripts/ingest-ig.ts` under `xvfb-run` (headful Chrome needs a
 display) with `IG_PROXY` set (residential egress; the burner is never seen from the
-datacenter IP). It scrapes forward-incrementally (only reels newer than the durable
+datacenter IP). It scrapes forward-incrementally (only posts newer than the durable
 transcript anchor), auto-resumes past the review pause (ship-then-correct), and
 commits+pushes `data/` once.
 
-**Required `.env` keys:** `INGEST_HANDLES_IG=kevvonz,roadto100kportfolio,johnnylixf`,
-`IG_PROXY=socks5://127.0.0.1:1081` (already set).
+**Required `.env` keys:** `INGEST_HANDLES_IG=kevvonz,roadto100kportfolio,johnnylixf`
+and an `IG_PROXY` value that points to a verified residential egress.
+
+### MacBook residential egress
+
+The VM currently uses the MacBook as a network-only fallback:
+
+- The per-user macOS launch agent
+  `~/Library/LaunchAgents/com.influencer-tracker.mac-egress.plist` opens an outbound
+  SSH connection to the VM. It exposes a local SOCKS5 listener at `127.0.0.1:1080`
+  and forwards VM-only `127.0.0.1:1083` to that listener.
+- The repository `.env` sets `IG_PROXY=socks5://127.0.0.1:1083`. Bun loads this file
+  after process startup, so a systemd `Environment=IG_PROXY=...` override is not
+  authoritative.
+- Playwright, Chromium, downloads, transcription, extraction, scoring, and publishing
+  still run on the VM. The MacBook only forwards network traffic.
+- `launchd` restarts the outbound tunnel when it drops. The outbound direction is
+  required because the VM-to-Mac Tailscale SSH path was not stable under sustained
+  downloads.
+- The MacBook must be online, connected to Tailscale, and awake. On this Mac, AC sleep is
+  disabled; battery sleep can interrupt the tunnel.
+
+Verify the path without printing either public IP:
+
+```bash
+ssh ubuntu@imos-vm '
+  direct=$(curl -fsS https://api.ipify.org)
+  proxied=$(curl --proxy socks5h://127.0.0.1:1083 -fsS https://api.ipify.org)
+  test "$direct" != "$proxied"
+  curl --proxy socks5h://127.0.0.1:1083 -fsS -o /dev/null https://www.instagram.com/
+'
+launchctl print gui/$(id -u)/com.influencer-tracker.mac-egress
+```
+
+The scraper's existing `api.ipify.org` guard remains authoritative. If the tunnel is
+down, the ingest must fail closed before Instagram sees the VM datacenter IP.
+
+Rollback to the IPRoyal relay:
+
+```bash
+launchctl bootout gui/$(id -u) \
+  ~/Library/LaunchAgents/com.influencer-tracker.mac-egress.plist
+# Set .env to IG_PROXY=socks5://127.0.0.1:1081, then verify that proxy.
+```
 
 **Session death is manual to recover:** when IG expires/challenges the `imtiddies`
 session, the run sends a BLOCKED alert (carrying the VNC-re-auth + re-run steps) and

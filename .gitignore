@@ -44,6 +44,7 @@ perf/.report
 public/og/
 public/og.png
 public/datasets/
+public/dataset-pages/
 public/prices/
 public/avatars/
 public/llms.txt

@@ -16,12 +16,14 @@ cp .env.example .env   # then set GEMINI_API_KEY (vision + extract) and RETTIWT_
 ## Run the pipeline for a creator
 
 ```bash
-bun run pipeline   --handle <handle> --name "<Name>"   # Instagram (video-first)
+bun run pipeline   --handle <handle> --name "<Name>"   # Instagram posts
 bun run pipeline:x --handle <handle> --name "<Name>"   # X/Twitter (text-first)
 ```
 
-The Instagram pipeline scrapes → transcribes (self-hosted Parakeet ASR) → reads on-screen
-tickers (Gemini vision) → extracts explicit bullish calls (Gemini LLM), then PAUSES.
+The Instagram pipeline collects reels, feed posts, and carousels. It transcribes video
+audio with self-hosted Parakeet, reads captions and images with Gemini vision, extracts
+explicit bullish calls with Gemini, then PAUSES. Use `--months <n>` to change the
+12-month collection window.
 The X pipeline scrapes tweets → extracts (Gemini), then PAUSES.
 
 - Log into Instagram in the launched Chromium window when it opens (the scrape needs
@@ -49,7 +51,7 @@ bun run dev   # http://localhost:3000
 
 ## How accuracy is measured
 
-Forward return from each reel's **post date** at 1w / 1m / 3m / since-call, reported as
+Forward return from each post's **post date** at 1w / 1m / 3m / since-call, reported as
 **excess return vs SPY** so a rising market doesn't flatter a creator. Caveats (survivorship
 bias, repost deduping, forward-from-post-date) are shown in-product.
 
