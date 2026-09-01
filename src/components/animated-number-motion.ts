@@ -4,7 +4,7 @@ const Y_EASE = [0.3, 0.4, 0.1, 1.25] as const;
 const GLYPH_EASE = [0.3, 0.4, 0.4, 1] as const;
 const EXIT_EASE = [0.3, 0.4, 0.1, 1] as const;
 
-export const STAT_LAYOUT_TRANSITION = {
+export const NUMBER_LAYOUT_TRANSITION = {
   duration: DIGIT_MOTION_DURATION_SECONDS,
   ease: GLYPH_EASE,
 } as const;
@@ -13,7 +13,7 @@ export const HIDDEN_BELOW = {
   opacity: 0,
   y: "0.42em",
   scale: 0.6,
-  filter: "blur(4px)",
+  filter: "blur(0.2em)",
 } as const;
 
 const VISIBLE = {
@@ -27,10 +27,10 @@ const HIDDEN_ABOVE = {
   opacity: 0,
   y: "-0.42em",
   scale: 0.6,
-  filter: "blur(4px)",
+  filter: "blur(0.2em)",
 } as const;
 
-export const STAT_REMOVED_CHARACTER_EXIT = {
+export const NUMBER_REMOVED_CHARACTER_EXIT = {
   ...HIDDEN_ABOVE,
   transition: {
     duration: 0.6,
@@ -39,7 +39,7 @@ export const STAT_REMOVED_CHARACTER_EXIT = {
   },
 } as const;
 
-export function getStatGlyphMotionProps(reduceMotion: boolean, motionIndex: number) {
+export function getAnimatedNumberGlyphMotionProps(reduceMotion: boolean, motionIndex: number) {
   const delay = motionIndex * DIGIT_STAGGER_SECONDS;
 
   return {

@@ -1,19 +1,19 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PreferencesProvider } from "#/lib/preferences.tsx";
-import { AnimatedStatNumber } from "./animated-stat-number.tsx";
+import { AnimatedNumber } from "./animated-number.tsx";
 import {
   formatAnimatedNumber,
   getAnimatedNumberTokensFromFormatted,
-  getStatGlyphMotionProps,
-  STAT_LAYOUT_TRANSITION,
-  STAT_REMOVED_CHARACTER_EXIT,
-} from "./animated-stat-number-motion.ts";
+  getAnimatedNumberGlyphMotionProps,
+  NUMBER_LAYOUT_TRANSITION,
+  NUMBER_REMOVED_CHARACTER_EXIT,
+} from "./animated-number-motion.ts";
 
 const getTokens = (value: number, format: Intl.NumberFormatOptions) =>
   getAnimatedNumberTokensFromFormatted(formatAnimatedNumber(value, format));
 
-describe("animated stat number", () => {
+describe("animated number", () => {
   test("gives punctuation the same motion sequence as numeric glyphs", () => {
     expect(
       getTokens(2159, {
@@ -67,14 +67,14 @@ describe("animated stat number", () => {
     });
   });
 
-  test("uses the intake digit motion with a four-pixel blur", () => {
-    const props = getStatGlyphMotionProps(false, 2);
+  test("scales the approved blur with the surrounding text size", () => {
+    const props = getAnimatedNumberGlyphMotionProps(false, 2);
 
     expect(props.initial).toEqual({
       opacity: 0,
       y: "0.42em",
       scale: 0.6,
-      filter: "blur(4px)",
+      filter: "blur(0.2em)",
     });
     expect(props.animate.transition.y).toMatchObject({
       duration: 0.5,
@@ -85,26 +85,26 @@ describe("animated stat number", () => {
       opacity: 0,
       y: "-0.42em",
       scale: 0.6,
-      filter: "blur(4px)",
+      filter: "blur(0.2em)",
     });
   });
 
   test("matches character position changes to the digit glyph timing", () => {
-    const digitTransition = getStatGlyphMotionProps(false, 0).animate.transition.scale;
+    const digitTransition = getAnimatedNumberGlyphMotionProps(false, 0).animate.transition.scale;
     if (!digitTransition) throw new Error("Digit scale transition is missing");
 
     expect({
       duration: digitTransition.duration,
       ease: digitTransition.ease,
-    }).toEqual(STAT_LAYOUT_TRANSITION);
+    }).toEqual(NUMBER_LAYOUT_TRANSITION);
   });
 
   test("gives removed punctuation the same graceful exit as removed digits", () => {
-    expect(STAT_REMOVED_CHARACTER_EXIT).toMatchObject({
+    expect(NUMBER_REMOVED_CHARACTER_EXIT).toMatchObject({
       opacity: 0,
       y: "-0.42em",
       scale: 0.6,
-      filter: "blur(4px)",
+      filter: "blur(0.2em)",
       transition: {
         duration: 0.6,
       },
@@ -112,20 +112,19 @@ describe("animated stat number", () => {
   });
 
   test("removes transitions when reduced motion is active", () => {
-    const props = getStatGlyphMotionProps(true, 1);
+    const props = getAnimatedNumberGlyphMotionProps(true, 1);
 
     expect(props.initial).toBeFalse();
     expect(props.animate.transition).toEqual({ duration: 0 });
     expect(props.exit.transition).toEqual({ duration: 0 });
   });
 
-  test("keeps the formatted value visible before client hydration", () => {
+  test("defaults to revealed and keeps the formatted value visible before client hydration", () => {
     const html = renderToStaticMarkup(
       <PreferencesProvider>
-        <AnimatedStatNumber
+        <AnimatedNumber
           format={{ maximumFractionDigits: 0 }}
-          layoutKey="Total calls"
-          revealed={false}
+          transitionKey="Total calls"
           value={2159}
         />
       </PreferencesProvider>,
