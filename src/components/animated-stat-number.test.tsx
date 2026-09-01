@@ -3,16 +3,20 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PreferencesProvider } from "#/lib/preferences.tsx";
 import { AnimatedStatNumber } from "./animated-stat-number.tsx";
 import {
-  getAnimatedNumberTokens,
+  formatAnimatedNumber,
+  getAnimatedNumberTokensFromFormatted,
   getStatDigitMotionProps,
   STAT_LAYOUT_TRANSITION,
   STAT_REMOVED_CHARACTER_EXIT,
 } from "./animated-stat-number-motion.ts";
 
+const getTokens = (value: number, format: Intl.NumberFormatOptions) =>
+  getAnimatedNumberTokensFromFormatted(formatAnimatedNumber(value, format));
+
 describe("animated stat number", () => {
   test("keeps punctuation static while identifying each numeric glyph", () => {
     expect(
-      getAnimatedNumberTokens(2159, {
+      getTokens(2159, {
         maximumFractionDigits: 0,
       }),
     ).toEqual([
@@ -25,8 +29,8 @@ describe("animated stat number", () => {
   });
 
   test("keeps trailing character slots stable when the number gets shorter", () => {
-    const long = getAnimatedNumberTokens(2961, { maximumFractionDigits: 0 });
-    const short = getAnimatedNumberTokens(116, { maximumFractionDigits: 0 });
+    const long = getTokens(2961, { maximumFractionDigits: 0 });
+    const short = getTokens(116, { maximumFractionDigits: 0 });
 
     expect(long.at(-1)).toEqual({
       character: "1",

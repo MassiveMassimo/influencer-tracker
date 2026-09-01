@@ -196,6 +196,106 @@ test.describe("page performance (prod build)", () => {
       .toBeLessThan(BUDGETS.loafMaxBlockingMs);
   });
 
+  test("removed statistic prefixes animate out when the value gets shorter", async ({ page }) => {
+    await page.goto("/c/thelonginvest", { waitUntil: "load" });
+    await expect(page.locator(".sr-only").filter({ hasText: /^2,961$/ })).toHaveCount(1);
+
+    await page.evaluate(() => {
+      const samples: Array<{
+        character: string;
+        blur: number;
+        opacity: number;
+        position: string;
+        translateY: number;
+      }> = [];
+      const startedAt = performance.now();
+      const sample = () => {
+        const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
+          /^(2,961|116)$/.test(element.textContent ?? ""),
+        );
+        const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
+
+        for (const slot of visualValue?.children ?? []) {
+          if (slot.textContent !== "2" && slot.textContent !== ",") continue;
+
+          const style = getComputedStyle(slot);
+          const matrix = new DOMMatrixReadOnly(style.transform);
+          samples.push({
+            character: slot.textContent,
+            blur: Number(style.filter.match(/blur\(([\d.]+)px\)/)?.[1] ?? 0),
+            opacity: Number(style.opacity),
+            position: style.position,
+            translateY: matrix.f,
+          });
+        }
+
+        if (performance.now() - startedAt < 800) requestAnimationFrame(sample);
+      };
+
+      (window as any).__statExitSamples = samples;
+      requestAnimationFrame(sample);
+    });
+
+    await page.getByRole("link", { name: "@roadto100kportfolio", exact: true }).click();
+    await expect(page).toHaveURL(/\/c\/roadto100kportfolio$/);
+    await expect(page.locator(".sr-only").filter({ hasText: /^116$/ })).toHaveCount(1);
+    await page.waitForTimeout(850);
+
+    const samples = await page.evaluate(
+      () =>
+        (window as any).__statExitSamples as Array<{
+          character: string;
+          blur: number;
+          opacity: number;
+          position: string;
+          translateY: number;
+        }>,
+    );
+
+    for (const character of ["2", ","]) {
+      const exitingSamples = samples.filter(
+        (sample) => sample.character === character && sample.position === "absolute",
+      );
+      expect(
+        exitingSamples.length,
+        `${character} must remain mounted while exiting`,
+      ).toBeGreaterThan(0);
+      expect(
+        exitingSamples.some(
+          (sample) =>
+            sample.opacity > 0.05 &&
+            sample.opacity < 0.95 &&
+            sample.blur > 0 &&
+            sample.translateY < 0,
+        ),
+        `${character} must fade, blur, and move upward`,
+      ).toBe(true);
+    }
+  });
+
+  test("statistic values grow left while their right edge stays fixed", async ({ page }) => {
+    await page.goto("/c/kevvonz", { waitUntil: "load" });
+    const shortValue = page.locator(".sr-only").filter({ hasText: /^71$/ }).locator("..");
+    await expect(shortValue).toHaveCount(1);
+    const shortRect = await shortValue
+      .locator('[aria-hidden="true"]')
+      .evaluate((element) => element.getBoundingClientRect().toJSON());
+
+    await page.getByRole("link", { name: "@TheProfInvestor", exact: true }).click();
+    await expect(page).toHaveURL(/\/c\/TheProfInvestor$/);
+    const longValue = page
+      .locator(".sr-only")
+      .filter({ hasText: /^2,159$/ })
+      .locator("..");
+    await expect(longValue).toHaveCount(1);
+    const longRect = await longValue
+      .locator('[aria-hidden="true"]')
+      .evaluate((element) => element.getBoundingClientRect().toJSON());
+
+    expect(longRect.right).toBeCloseTo(shortRect.right, 0);
+    expect(longRect.left).toBeLessThan(shortRect.left - 20);
+  });
+
   test("creator activity remains complete and keyboard accessible while switching", async ({
     page,
   }) => {

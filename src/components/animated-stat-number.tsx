@@ -21,6 +21,7 @@ const STATIC_CHARACTER_MOTION = {
   animate: { opacity: 1 },
   exit: { opacity: 0, transition: { duration: 0.15 } },
 } as const;
+const NUMBER_CONTAINER_CLASS = "relative inline-flex min-w-[5ch] justify-end whitespace-nowrap";
 const lastFormattedByLayoutKey = new Map<string, string>();
 
 export function AnimatedStatNumber({
@@ -62,12 +63,12 @@ export function AnimatedStatNumber({
   }, [formatted, isCarryingPreviousValue, layoutKey]);
 
   if (!hydrated || shouldReduceMotion) {
-    return <span>{formatted}</span>;
+    return <span className={NUMBER_CONTAINER_CLASS}>{formatted}</span>;
   }
 
   return (
     <LazyMotion features={domAnimation}>
-      <span className="relative inline-flex whitespace-nowrap">
+      <span className={NUMBER_CONTAINER_CLASS}>
         <span className="sr-only">{formatted}</span>
         <m.span aria-hidden className="inline-flex">
           <AnimatePresence mode="popLayout">
