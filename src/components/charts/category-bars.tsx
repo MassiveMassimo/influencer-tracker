@@ -1,8 +1,7 @@
 "use client";
 
-import NumberFlow, { type Format } from "@number-flow/react";
 import { motion, useReducedMotion } from "motion/react";
-import { useNumberFlowReady } from "#/lib/use-number-flow-ready.ts";
+import { AnimatedNumber } from "#/components/animated-number.tsx";
 import { useInView } from "#/lib/use-in-view.ts";
 import { EASE_OUT } from "#/lib/ease.ts";
 
@@ -14,7 +13,7 @@ export type CategoryBarRow = {
   sublabel?: string;
 };
 
-const SIGNED_PCT: Format = {
+const SIGNED_PCT: Intl.NumberFormatOptions = {
   style: "percent",
   signDisplay: "exceptZero",
   minimumFractionDigits: 1,
@@ -27,23 +26,20 @@ const barCls = (v: number) => (v >= 0 ? "bg-emerald-500" : "bg-rose-500");
 
 // Shared categorical horizontal-bar chart: width ∝ |value| / max, colored by
 // sign, with a motion grow-in (left→right stagger, matching the bklit marker
-// cascade) and a NumberFlow count-up. Used by both the "by horizon" and "by
+// cascade) and the shared per-glyph number transition. Used by both the "by horizon" and "by
 // conviction" panels so they match the bklit charts' polish — motion is the same
 // animation lib the bklit charts use — without a full visx/SVG chart for a
 // handful of static bars (CSS width % is the linear scale).
 //
-// Count-up gates on useInView like StatTile, so it shares that page's documented
-// IntersectionObserver-in-automation artifact (value reads 0 in headless capture;
-// real above-fold views fire immediately). The bar grow runs on mount, so the
-// bars themselves always render.
 export function CategoryBars({
   rows,
+  transitionKey,
   format = SIGNED_PCT,
 }: {
   rows: CategoryBarRow[];
-  format?: Format;
+  transitionKey: string;
+  format?: Intl.NumberFormatOptions;
 }) {
-  const ready = useNumberFlowReady();
   const reduce = useReducedMotion();
   const [ref, inView] = useInView<HTMLDivElement>();
 
@@ -74,17 +70,12 @@ export function CategoryBars({
           <div
             className={`w-16 shrink-0 text-right tabular-nums transition-colors duration-200 motion-reduce:transition-none ${toneCls(r.value)}`}
           >
-            {ready ? (
-              <NumberFlow
-                format={format}
-                isolate
-                locales="en-US"
-                value={inView ? r.value : 0}
-                willChange
-              />
-            ) : (
-              <span>{new Intl.NumberFormat("en-US", format).format(r.value)}</span>
-            )}
+            <AnimatedNumber
+              format={format}
+              revealed={inView}
+              transitionKey={`${transitionKey}:${r.key}`}
+              value={r.value}
+            />
           </div>
         </div>
       ))}
