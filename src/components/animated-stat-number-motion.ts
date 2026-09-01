@@ -81,7 +81,7 @@ export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: numbe
 
 interface AnimatedNumberToken {
   character: string;
-  digitIndex: number | null;
+  motionIndex: number | null;
   slotFromRight: number;
 }
 
@@ -90,11 +90,11 @@ export function formatAnimatedNumber(value: number, format: Intl.NumberFormatOpt
 }
 
 export function getAnimatedNumberTokensFromFormatted(formatted: string): AnimatedNumberToken[] {
-  let digitIndex = 0;
+  let motionIndex = 0;
   const characters = Array.from(formatted);
   return characters.map((character, characterIndex) => ({
     character,
-    digitIndex: /\p{Number}/u.test(character) ? digitIndex++ : null,
+    motionIndex: /[\p{Number},.]/u.test(character) ? motionIndex++ : null,
     slotFromRight: characters.length - characterIndex - 1,
   }));
 }
