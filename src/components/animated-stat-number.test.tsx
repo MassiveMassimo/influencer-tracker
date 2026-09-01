@@ -62,7 +62,7 @@ describe("animated stat number", () => {
     });
   });
 
-  test("matches width changes to the digit glyph timing", () => {
+  test("matches character position changes to the digit glyph timing", () => {
     const digitTransition = getStatDigitMotionProps(false, 0).animate.transition.scale;
     if (!digitTransition) throw new Error("Digit scale transition is missing");
 
