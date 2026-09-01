@@ -39,8 +39,8 @@ export const STAT_REMOVED_CHARACTER_EXIT = {
   },
 } as const;
 
-export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: number) {
-  const delay = digitIndex * DIGIT_STAGGER_SECONDS;
+export function getStatGlyphMotionProps(reduceMotion: boolean, motionIndex: number) {
+  const delay = motionIndex * DIGIT_STAGGER_SECONDS;
 
   return {
     initial: reduceMotion ? false : HIDDEN_BELOW,
@@ -81,7 +81,7 @@ export function getStatDigitMotionProps(reduceMotion: boolean, digitIndex: numbe
 
 interface AnimatedNumberToken {
   character: string;
-  digitIndex: number | null;
+  motionIndex: number;
   slotFromRight: number;
 }
 
@@ -90,11 +90,10 @@ export function formatAnimatedNumber(value: number, format: Intl.NumberFormatOpt
 }
 
 export function getAnimatedNumberTokensFromFormatted(formatted: string): AnimatedNumberToken[] {
-  let digitIndex = 0;
   const characters = Array.from(formatted);
   return characters.map((character, characterIndex) => ({
     character,
-    digitIndex: /\p{Number}/u.test(character) ? digitIndex++ : null,
+    motionIndex: characterIndex,
     slotFromRight: characters.length - characterIndex - 1,
   }));
 }
