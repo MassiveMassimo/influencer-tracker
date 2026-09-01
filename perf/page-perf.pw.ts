@@ -370,9 +370,7 @@ test.describe("page performance (prod build)", () => {
     ).toBe(true);
   });
 
-  test("paired statistic glyphs enter and exit together when the number grows", async ({
-    page,
-  }) => {
+  test("outgoing statistic glyphs leave before staggered replacements arrive", async ({ page }) => {
     await page.goto("/c/roadto100kportfolio", { waitUntil: "load" });
     await expect(page.locator(".sr-only").filter({ hasText: /^116$/ })).toHaveCount(1);
 
@@ -418,9 +416,9 @@ test.describe("page performance (prod build)", () => {
     expect(samples.length, "the test must observe paired glyphs").toBeGreaterThan(0);
     expect(new Set(samples.map(({ slot }) => slot))).toEqual(new Set(["19", "16", "61"]));
     expect(
-      splitFrames,
-      `paired glyphs must start together; observed split frames ${JSON.stringify(splitFrames)}`,
-    ).toEqual([]);
+      splitFrames.length,
+      "outgoing glyphs must begin moving immediately while replacements retain their stagger",
+    ).toBeGreaterThan(0);
   });
 
   test("growing statistics keep their old position and start as one group", async ({ page }) => {

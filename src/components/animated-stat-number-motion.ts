@@ -81,7 +81,7 @@ export function getStatDigitMotionProps(
         ? { duration: 0 }
         : {
             duration: 0.6,
-            delay: motionDelay,
+            delay: visibilityDelay,
             ease: EXIT_EASE,
             opacity: { duration: 0.55, delay: visibilityDelay, ease: EXIT_EASE },
           },
