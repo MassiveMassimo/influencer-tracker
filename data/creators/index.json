@@ -7,29 +7,29 @@
     "hitRate3m": 0.3888888888888889,
     "hitRate3mN": 18,
     "avgExcess3m": -0.050346725927700016,
-    "generatedAt": "2026-08-24",
+    "generatedAt": "2026-09-01",
     "avatar": "/avatars/kevvonz.jpg"
   },
   {
     "handle": "TheProfInvestor",
     "name": "The Prof Investor",
-    "totalCalls": 2159,
-    "firstCalls": 306,
-    "hitRate3m": 0.4641509433962264,
-    "hitRate3mN": 265,
-    "avgExcess3m": 0.08874056851804646,
-    "generatedAt": "2026-08-25",
+    "totalCalls": 2193,
+    "firstCalls": 313,
+    "hitRate3m": 0.45724907063197023,
+    "hitRate3mN": 269,
+    "avgExcess3m": 0.08321405671975281,
+    "generatedAt": "2026-09-01",
     "avatar": "/avatars/TheProfInvestor.jpg"
   },
   {
     "handle": "thelonginvest",
     "name": "The Long Invest",
-    "totalCalls": 2961,
-    "firstCalls": 135,
-    "hitRate3m": 0.41379310344827586,
-    "hitRate3mN": 116,
-    "avgExcess3m": -0.0072575552923714376,
-    "generatedAt": "2026-08-25",
+    "totalCalls": 3032,
+    "firstCalls": 136,
+    "hitRate3m": 0.41025641025641024,
+    "hitRate3mN": 117,
+    "avgExcess3m": -0.010753583181661142,
+    "generatedAt": "2026-09-01",
     "avatar": "/avatars/thelonginvest.jpg"
   },
   {
@@ -37,10 +37,10 @@
     "name": "@roadto100kportfolio",
     "totalCalls": 116,
     "firstCalls": 60,
-    "hitRate3m": 0.45454545454545453,
-    "hitRate3mN": 33,
-    "avgExcess3m": 0.05794722565010018,
-    "generatedAt": "2026-08-24",
+    "hitRate3m": 0.3902439024390244,
+    "hitRate3mN": 41,
+    "avgExcess3m": 0.010358745492287812,
+    "generatedAt": "2026-09-01",
     "avatar": "/avatars/roadto100kportfolio.jpg"
   },
   {
@@ -48,10 +48,10 @@
     "name": "Johnny Li",
     "totalCalls": 174,
     "firstCalls": 86,
-    "hitRate3m": 0.46875,
-    "hitRate3mN": 64,
-    "avgExcess3m": 0.0507071217057203,
-    "generatedAt": "2026-08-24",
+    "hitRate3m": 0.47058823529411764,
+    "hitRate3mN": 68,
+    "avgExcess3m": 0.043533045647633564,
+    "generatedAt": "2026-09-01",
     "avatar": "/avatars/johnnylixf.jpg"
   }
 ]
