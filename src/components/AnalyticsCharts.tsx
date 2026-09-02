@@ -78,7 +78,7 @@ export function HorizonBars({ scorecard }: { scorecard: Scorecard }) {
   return (
     <ChartHandoff loading={!ready} skeleton={<BarsFallback rows={rows.length} />}>
       <Suspense fallback={null}>
-        <CategoryBars rows={rows} transitionKey="horizon-bars" />
+        <CategoryBars rows={rows} />
       </Suspense>
     </ChartHandoff>
   );
@@ -93,7 +93,7 @@ export function ConvictionBars({ rows }: { rows: CreatorConvictionRow[] }) {
   return (
     <ChartHandoff loading={!ready} skeleton={<BarsFallback rows={rows.length} />}>
       <Suspense fallback={null}>
-        <CategoryBars rows={rows} transitionKey="conviction-bars" />
+        <CategoryBars rows={rows} />
       </Suspense>
     </ChartHandoff>
   );

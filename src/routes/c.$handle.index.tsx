@@ -9,9 +9,8 @@ import {
   ChevronRightIcon,
   MoreHorizontalIcon,
 } from "lucide-react";
-import { useInView } from "#/lib/use-in-view.ts";
 import { useTouchPrimary } from "#/hooks/use-has-primary-touch.tsx";
-import { AnimatedNumber } from "#/components/animated-number.tsx";
+import { ScrittoNumber, ScrittoText } from "#/components/scritto-number.tsx";
 import { CaveatsBanner } from "../components/CaveatsBanner";
 import { DataAsOf } from "../components/DataAsOf";
 import { GradeDetail } from "#/components/grade-detail";
@@ -26,7 +25,6 @@ import { Button } from "../components/ui/button";
 import { StatGrid } from "../components/ui/stat-grid";
 import type { Call } from "../lib/types";
 import { Sparkline } from "#/components/Sparkline.tsx";
-import { TextSwap, useTextSwap } from "#/components/text-swap.tsx";
 import { IconSwap } from "#/components/icon-swap.tsx";
 import { siteUrl } from "#/og/site.ts";
 import { ogRev } from "#/og/og-rev.ts";
@@ -120,10 +118,8 @@ function ageDays(iso: string) {
   return Math.round((Date.now() - new Date(iso + "T00:00:00Z").getTime()) / 86400000);
 }
 
-// Owns the name swap so its swap re-render reaches the sibling IconSwap, letting
-// motion re-measure and slide the platform icon to its new x (rather than jump)
-// when the name width changes. IconSwap also cross-fades the glyph on a platform
-// change (X <-> IG).
+// Keeps the creator text and platform icon in one measured row so both transitions
+// respond to the same creator change.
 const rootApi = getRouteApi("__root__");
 
 function CreatorHeading({
@@ -137,7 +133,6 @@ function CreatorHeading({
   platformIcon: string;
   profileUrl: string;
 }) {
-  const { ref, display } = useTextSwap(name);
   return (
     <a
       href={profileUrl}
@@ -154,10 +149,12 @@ function CreatorHeading({
           className="size-[1.333em] shrink-0 rounded-full object-cover ring-1 ring-border/60"
         />
       )}
-      <span className="t-text-swap group-hover:underline group-hover:underline-offset-2" ref={ref}>
-        {display}
-      </span>
+      <ScrittoText
+        className="inline-block group-hover:underline group-hover:underline-offset-2"
+        value={name}
+      />
       <IconSwap
+        animatePosition={false}
         icon={platformIcon}
         className="text-muted-foreground transition-colors group-hover:text-foreground"
       />
@@ -233,8 +230,6 @@ function Overview() {
     };
   });
 
-  const [statsRef, statsInView] = useInView<HTMLElement>();
-
   const grade = overview.grade;
   const traits = overview.traits;
   // Header medallion shows at md+, the grid-cell one below md — only animate the
@@ -262,7 +257,8 @@ function Overview() {
               crossfade plays in the right zone. */}
           <div className="shrink-0 max-md:hidden">
             <div className="t-ticker-label font-mono text-[10px] tracking-[0.3em] text-muted-foreground uppercase">
-              Signal accuracy · <TextSwap value={`@${ds.creator.handle}`} />
+              Signal accuracy ·{" "}
+              <ScrittoText className="inline-block" value={`@${ds.creator.handle}`} />
             </div>
             <h1 className="t-ticker-title mt-1 font-heading text-2xl">
               <CreatorHeading
@@ -332,13 +328,9 @@ function Overview() {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 md:px-10">
-        <StatGrid
-          id="overview"
-          ref={statsRef}
-          gridClassName="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
-        >
+        <StatGrid id="overview" gridClassName="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {tiles.map((t) => (
-            <StatTile key={t.label} revealed={statsInView} tile={t} />
+            <StatTile key={t.label} tile={t} />
           ))}
           {/* Fills the empty 6th grid cell on mobile; md+ shows the grade in the
               header instead, so hide it there to keep the 5-col row full. */}
@@ -409,7 +401,7 @@ function Overview() {
   );
 }
 
-function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean }) {
+function StatTile({ tile }: { tile: StatTileData }) {
   // Touch devices retain the existing static fallback.
   const isTouch = useTouchPrimary();
   const animateNumber = !isTouch;
@@ -447,12 +439,7 @@ function StatTile({ tile, revealed }: { tile: StatTileData; revealed: boolean })
       </div>
       <div className={`mt-1.5 font-heading text-xl tabular-nums ${toneCls}`}>
         {animateNumber ? (
-          <AnimatedNumber
-            format={primaryNumber.format}
-            revealed={revealed}
-            transitionKey={tile.label}
-            value={primaryNumber.value}
-          />
+          <ScrittoNumber format={primaryNumber.format} value={primaryNumber.value} />
         ) : (
           tile.segments.map((seg) =>
             seg.kind === "text" ? (

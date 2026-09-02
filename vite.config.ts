@@ -13,9 +13,9 @@ const config = defineConfig({
   // src/og/render.tsx). The dev dep-optimizer can't pre-bundle a native binary, so
   // exclude it; it loads fine at runtime in the Node server.
   optimizeDeps: { exclude: ["@resvg/resvg-js"] },
-  // @visx ESM builds use extensionless internal imports that Node's SSR resolver
-  // rejects; force Vite to bundle them for SSR so its resolver handles them.
-  ssr: { noExternal: [/^@visx\//] },
+  // @visx uses extensionless ESM imports, while @scritto/react imports package CSS.
+  // Bundle both for SSR so Vite resolves those browser-oriented package entries.
+  ssr: { noExternal: [/^@(scritto|visx)\//] },
   // Split the rarely-changing vendor cores into their own chunks so a deploy that
   // only touches app code doesn't bust their cache for return visitors. Targeted
   // (react, @tanstack) — NOT a single catch-all vendor bucket, which would re-hash

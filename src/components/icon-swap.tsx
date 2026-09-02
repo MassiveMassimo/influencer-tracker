@@ -19,7 +19,21 @@ const TRANSITION = { duration: 0.25, ease: EASE_OUT } as const;
 // 150ms text swap that drives it.
 const LAYOUT_TRANSITION = { duration: 0.18, ease: EASE_OUT } as const;
 
-export function IconSwap({ icon, className }: { icon: string; className?: string }) {
+export function getIconSwapPositionProps(animatePosition: boolean) {
+  return animatePosition
+    ? ({ layout: "position", transition: LAYOUT_TRANSITION } as const)
+    : ({} as const);
+}
+
+export function IconSwap({
+  icon,
+  className,
+  animatePosition = true,
+}: {
+  icon: string;
+  className?: string;
+  animatePosition?: boolean;
+}) {
   const reduce = useReducedMotion();
   if (reduce) {
     return <span aria-hidden className={`${icon} ${className ?? ""}`} />;
@@ -27,8 +41,7 @@ export function IconSwap({ icon, className }: { icon: string; className?: string
   return (
     <motion.span
       className="inline-grid place-items-center leading-none"
-      layout="position"
-      transition={LAYOUT_TRANSITION}
+      {...getIconSwapPositionProps(animatePosition)}
     >
       <AnimatePresence initial={false} mode="popLayout">
         <motion.span

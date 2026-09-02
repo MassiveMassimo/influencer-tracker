@@ -1,8 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { AnimatedNumber } from "#/components/animated-number.tsx";
-import { useInView } from "#/lib/use-in-view.ts";
+import { ScrittoNumber } from "#/components/scritto-number.tsx";
 import { EASE_OUT } from "#/lib/ease.ts";
 
 export type CategoryBarRow = {
@@ -26,29 +25,26 @@ const barCls = (v: number) => (v >= 0 ? "bg-emerald-500" : "bg-rose-500");
 
 // Shared categorical horizontal-bar chart: width ∝ |value| / max, colored by
 // sign, with a motion grow-in (left→right stagger, matching the bklit marker
-// cascade) and the shared per-glyph number transition. Used by both the "by horizon" and "by
+// cascade) and the shared Scritto number transition. Used by both the "by horizon" and "by
 // conviction" panels so they match the bklit charts' polish — motion is the same
 // animation lib the bklit charts use — without a full visx/SVG chart for a
 // handful of static bars (CSS width % is the linear scale).
 //
 export function CategoryBars({
   rows,
-  transitionKey,
   format = SIGNED_PCT,
 }: {
   rows: CategoryBarRow[];
-  transitionKey: string;
   format?: Intl.NumberFormatOptions;
 }) {
   const reduce = useReducedMotion();
-  const [ref, inView] = useInView<HTMLDivElement>();
 
   const maxAbs = Math.max(...rows.map((r) => Math.abs(r.value)));
   const max = maxAbs > 0 ? maxAbs : 1;
   const step = Math.min(0.08, 0.6 / Math.max(1, rows.length - 1));
 
   return (
-    <div className="space-y-2.5 py-2" ref={ref}>
+    <div className="space-y-2.5 py-2">
       {rows.map((r, i) => (
         <div key={r.key} className="flex items-center gap-3 text-sm">
           <div className="w-32 shrink-0 leading-tight text-muted-foreground">
@@ -70,12 +66,7 @@ export function CategoryBars({
           <div
             className={`w-16 shrink-0 text-right tabular-nums transition-colors duration-200 motion-reduce:transition-none ${toneCls(r.value)}`}
           >
-            <AnimatedNumber
-              format={format}
-              revealed={inView}
-              transitionKey={`${transitionKey}:${r.key}`}
-              value={r.value}
-            />
+            <ScrittoNumber format={format} value={r.value} />
           </div>
         </div>
       ))}

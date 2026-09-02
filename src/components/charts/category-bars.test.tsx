@@ -1,7 +1,6 @@
-import { afterAll, afterEach, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, describe, expect, mock, test } from "bun:test";
 import { JSDOM } from "jsdom";
 import { PreferencesProvider } from "#/lib/preferences.tsx";
-import { CategoryBars } from "./category-bars.tsx";
 
 const dom = new JSDOM("<!doctype html><html><body></body></html>", {
   url: "http://localhost/",
@@ -15,6 +14,7 @@ const domGlobals = {
   HTMLElement: dom.window.HTMLElement,
   SVGElement: dom.window.SVGElement,
   Node: dom.window.Node,
+  customElements: dom.window.customElements,
   MutationObserver: dom.window.MutationObserver,
   getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
   requestAnimationFrame: (callback: FrameRequestCallback) =>
@@ -38,7 +38,16 @@ dom.window.matchMedia ??= ((query: string) => ({
   },
 })) as typeof dom.window.matchMedia;
 
+mock.module("@scritto/react", () => ({
+  default: ({ value }: { value: string | number }) => (
+    <scritto-text aria-label={String(value)} role="img">
+      {value}
+    </scritto-text>
+  ),
+}));
+
 const { cleanup, render } = await import("@testing-library/react");
+const { CategoryBars } = await import("./category-bars.tsx");
 
 afterEach(cleanup);
 afterAll(() => {
@@ -54,21 +63,15 @@ afterAll(() => {
 });
 
 describe("CategoryBars", () => {
-  test("keeps every signed percentage glyph hidden before reveal", () => {
+  test("renders each formatted value through Scritto", () => {
     const { container } = render(
       <PreferencesProvider>
-        <CategoryBars
-          rows={[{ key: "1w", label: "1w", value: 0.005 }]}
-          transitionKey="horizon-bars-unrevealed"
-        />
+        <CategoryBars rows={[{ key: "1w", label: "1w", value: 0.005 }]} />
       </PreferencesProvider>,
     );
 
-    const visualNumber = container.querySelector('[aria-hidden="true"]');
-    expect(visualNumber?.textContent).toBe("+0.5%");
-
-    const glyphs = Array.from(visualNumber?.querySelectorAll(":scope > span > span") ?? []);
-    expect(glyphs).toHaveLength(5);
-    expect(glyphs.every((glyph) => glyph.getAttribute("style")?.includes("opacity: 0"))).toBeTrue();
+    const value = container.querySelector("scritto-text");
+    expect(value?.getAttribute("role")).toBe("img");
+    expect(value?.getAttribute("aria-label")).toBe("+0.5%");
   });
 });

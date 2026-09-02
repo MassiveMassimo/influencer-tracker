@@ -196,128 +196,64 @@ test.describe("page performance (prod build)", () => {
       .toBeLessThan(BUDGETS.loafMaxBlockingMs);
   });
 
-  test("removed statistic prefixes animate out when the value gets shorter", async ({ page }) => {
+  test("statistic values update through Scritto's accessible animation contract", async ({
+    page,
+  }) => {
     await page.goto("/c/thelonginvest", { waitUntil: "load" });
-    await expect(page.locator(".sr-only").filter({ hasText: /^3,032$/ })).toHaveCount(1);
+    await expect(page.locator('scritto-text[aria-label="3,032"]')).toHaveCount(1);
 
     await page.evaluate(() => {
-      const samples: Array<{
-        character: string;
-        blur: number;
-        opacity: number;
-        position: string;
-        translateY: number;
-      }> = [];
-      const startedAt = performance.now();
-      const sample = () => {
-        const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
-          /^(3,032|116)$/.test(element.textContent ?? ""),
-        );
-        const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
-
-        for (const slot of visualValue?.children ?? []) {
-          if (slot.textContent !== "3" && slot.textContent !== ",") continue;
-
-          const style = getComputedStyle(slot);
-          const matrix = new DOMMatrixReadOnly(style.transform);
-          samples.push({
-            character: slot.textContent,
-            blur: Number(style.filter.match(/blur\(([\d.]+)px\)/)?.[1] ?? 0),
-            opacity: Number(style.opacity),
-            position: style.position,
-            translateY: matrix.f,
-          });
-        }
-
-        if (performance.now() - startedAt < 800) requestAnimationFrame(sample);
-      };
-
-      (window as any).__statExitSamples = samples;
-      requestAnimationFrame(sample);
+      (window as any).__scrittoChanges = [];
+      document.addEventListener("scrittochange", (event) => {
+        if (!(event instanceof CustomEvent)) return;
+        const target = event.target;
+        if (!(target instanceof Element) || !target.matches("scritto-text")) return;
+        (window as any).__scrittoChanges.push(event.detail);
+      });
     });
 
     await page.getByRole("link", { name: "@roadto100kportfolio", exact: true }).click();
     await expect(page).toHaveURL(/\/c\/roadto100kportfolio$/);
-    await expect(page.locator(".sr-only").filter({ hasText: /^116$/ })).toHaveCount(1);
+    await expect(page.locator('scritto-text[aria-label="116"]')).toHaveCount(1);
     await page.waitForTimeout(850);
 
-    const samples = await page.evaluate(
-      () =>
-        (window as any).__statExitSamples as Array<{
-          character: string;
-          blur: number;
-          opacity: number;
-          position: string;
-          translateY: number;
-        }>,
+    const changes = await page.evaluate(
+      () => (window as any).__scrittoChanges as Array<{ animate: boolean; phase: string }>,
     );
 
-    for (const character of ["3", ","]) {
-      const exitingSamples = samples.filter(
-        (sample) => sample.character === character && sample.position === "absolute",
-      );
-      expect(
-        exitingSamples.length,
-        `${character} must remain mounted while exiting`,
-      ).toBeGreaterThan(0);
-      expect(
-        exitingSamples.some(
-          (sample) =>
-            sample.opacity > 0.05 &&
-            sample.opacity < 0.95 &&
-            sample.blur > 0 &&
-            sample.translateY < 0,
-        ),
-        `${character} must fade, blur, and move upward`,
-      ).toBe(true);
-    }
+    expect(changes).toContainEqual({ animate: true, phase: "before" });
+    expect(changes).toContainEqual({ animate: true, phase: "after" });
   });
 
-  test("statistic values stay left aligned while transition slots pair from the right", async ({
-    page,
-  }) => {
+  test("statistic values stay left aligned while Scritto changes width", async ({ page }) => {
     await page.goto("/c/kevvonz", { waitUntil: "load" });
-    const shortValue = page.locator(".sr-only").filter({ hasText: /^71$/ }).locator("..");
+    const shortValue = page.locator('scritto-text[aria-label="71"]');
     await expect(shortValue).toHaveCount(1);
-    const shortRect = await shortValue
-      .locator('[aria-hidden="true"]')
-      .evaluate((element) => element.getBoundingClientRect().toJSON());
-
-    await page.evaluate(() => {
-      const samples: string[][] = [];
-      const startedAt = performance.now();
-      const sample = () => {
-        const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
-          /^(71|2,193)$/.test(element.textContent ?? ""),
-        );
-        const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
-        samples.push(Array.from(visualValue?.children ?? [], (slot) => slot.textContent ?? ""));
-
-        if (performance.now() - startedAt < 800) requestAnimationFrame(sample);
-      };
-
-      (window as any).__statSlotSamples = samples;
-      requestAnimationFrame(sample);
-    });
+    const shortRect = await shortValue.evaluate((element) =>
+      element.getBoundingClientRect().toJSON(),
+    );
 
     await page.getByRole("link", { name: "@TheProfInvestor", exact: true }).click();
     await expect(page).toHaveURL(/\/c\/TheProfInvestor$/);
-    const longValue = page
-      .locator(".sr-only")
-      .filter({ hasText: /^2,193$/ })
-      .locator("..");
+    const longValue = page.locator('scritto-text[aria-label="2,193"]');
     await expect(longValue).toHaveCount(1);
     await page.waitForTimeout(850);
-    const longRect = await longValue
-      .locator('[aria-hidden="true"]')
-      .evaluate((element) => element.getBoundingClientRect().toJSON());
-    const samples = await page.evaluate(() => (window as any).__statSlotSamples as string[][]);
+    const longRect = await longValue.evaluate((element) =>
+      element.getBoundingClientRect().toJSON(),
+    );
 
     expect(longRect.left).toBeCloseTo(shortRect.left, 0);
-    expect(
-      samples.some((slots) => slots.includes("79") && slots.includes("13")),
-      "7 → 9 and 1 → 3 must share right-aligned transition slots",
-    ).toBe(true);
+  });
+
+  test("creator name and handle update through Scritto", async ({ page }) => {
+    await page.goto("/c/thelonginvest", { waitUntil: "load" });
+    await expect(page.locator('scritto-text[aria-label="The Long Invest"]')).toHaveCount(1);
+    await expect(page.locator('scritto-text[aria-label="@thelonginvest"]')).toHaveCount(1);
+
+    await page.getByRole("link", { name: "@TheProfInvestor", exact: true }).click();
+    await expect(page).toHaveURL(/\/c\/TheProfInvestor$/);
+    await expect(page.locator('scritto-text[aria-label="The Prof Investor"]')).toHaveCount(1);
+    await expect(page.locator('scritto-text[aria-label="@TheProfInvestor"]')).toHaveCount(1);
   });
 
   test("creator activity remains complete and keyboard accessible while switching", async ({
