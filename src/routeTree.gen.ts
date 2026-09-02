@@ -9,33 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ExploreRouteImport } from './routes/explore'
-import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DevBadgesRouteImport } from './routes/dev.badges'
-import { Route as CHandleRouteImport } from './routes/c.$handle'
-import { Route as ApiRevalidateRouteImport } from './routes/api/revalidate'
-import { Route as ApiReportRouteImport } from './routes/api/report'
+import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiCallsIndexRouteImport } from './routes/api/calls-index'
-import { Route as TSymbolIndexRouteImport } from './routes/t.$symbol.index'
-import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
-import { Route as TSymbolCreatorRouteImport } from './routes/t.$symbol.$creator'
-import { Route as ApiPricesSymbolRouteImport } from './routes/api/prices.$symbol'
+import { Route as ApiReportRouteImport } from './routes/api/report'
+import { Route as ApiRevalidateRouteImport } from './routes/api/revalidate'
+import { Route as CHandleRouteImport } from './routes/c.$handle'
+import { Route as DevBadgesRouteImport } from './routes/dev.badges'
 import { Route as ApiDatasetHandleRouteImport } from './routes/api/dataset.$handle'
+import { Route as ApiPricesSymbolRouteImport } from './routes/api/prices.$symbol'
+import { Route as CHandleIndexRouteImport } from './routes/c.$handle.index'
+import { Route as TSymbolIndexRouteImport } from './routes/t.$symbol.index'
+import { Route as TSymbolCreatorRouteImport } from './routes/t.$symbol.$creator'
 import { Route as CHandleTickerSymbolRouteImport } from './routes/c.$handle.ticker.$symbol'
-import { Route as ApiOgTSymbolRevRouteImport } from './routes/api/og/t.$symbol.$rev'
 import { Route as ApiOgCHandleRevRouteImport } from './routes/api/og/c.$handle.$rev'
+import { Route as ApiOgTSymbolRevRouteImport } from './routes/api/og/t.$symbol.$rev'
 import { Route as ApiOgTHandleSymbolRevRouteImport } from './routes/api/og/t.$handle.$symbol.$rev'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExploreRoute = ExploreRouteImport.update({
-  id: '/explore',
-  path: '/explore',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChangelogRoute = ChangelogRouteImport.update({
@@ -43,29 +38,14 @@ const ChangelogRoute = ChangelogRouteImport.update({
   path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DevBadgesRoute = DevBadgesRouteImport.update({
-  id: '/dev/badges',
-  path: '/dev/badges',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CHandleRoute = CHandleRouteImport.update({
-  id: '/c/$handle',
-  path: '/c/$handle',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiRevalidateRoute = ApiRevalidateRouteImport.update({
-  id: '/api/revalidate',
-  path: '/api/revalidate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiReportRoute = ApiReportRouteImport.update({
-  id: '/api/report',
-  path: '/api/report',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCallsIndexRoute = ApiCallsIndexRouteImport.update({
@@ -73,24 +53,24 @@ const ApiCallsIndexRoute = ApiCallsIndexRouteImport.update({
   path: '/api/calls-index',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TSymbolIndexRoute = TSymbolIndexRouteImport.update({
-  id: '/t/$symbol/',
-  path: '/t/$symbol/',
+const ApiReportRoute = ApiReportRouteImport.update({
+  id: '/api/report',
+  path: '/api/report',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CHandleIndexRoute = CHandleIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => CHandleRoute,
-} as any)
-const TSymbolCreatorRoute = TSymbolCreatorRouteImport.update({
-  id: '/t/$symbol/$creator',
-  path: '/t/$symbol/$creator',
+const ApiRevalidateRoute = ApiRevalidateRouteImport.update({
+  id: '/api/revalidate',
+  path: '/api/revalidate',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPricesSymbolRoute = ApiPricesSymbolRouteImport.update({
-  id: '/api/prices/$symbol',
-  path: '/api/prices/$symbol',
+const CHandleRoute = CHandleRouteImport.update({
+  id: '/c/$handle',
+  path: '/c/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevBadgesRoute = DevBadgesRouteImport.update({
+  id: '/dev/badges',
+  path: '/dev/badges',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDatasetHandleRoute = ApiDatasetHandleRouteImport.update({
@@ -98,19 +78,39 @@ const ApiDatasetHandleRoute = ApiDatasetHandleRouteImport.update({
   path: '/api/dataset/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPricesSymbolRoute = ApiPricesSymbolRouteImport.update({
+  id: '/api/prices/$symbol',
+  path: '/api/prices/$symbol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CHandleIndexRoute = CHandleIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CHandleRoute,
+} as any)
+const TSymbolIndexRoute = TSymbolIndexRouteImport.update({
+  id: '/t/$symbol/',
+  path: '/t/$symbol/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TSymbolCreatorRoute = TSymbolCreatorRouteImport.update({
+  id: '/t/$symbol/$creator',
+  path: '/t/$symbol/$creator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CHandleTickerSymbolRoute = CHandleTickerSymbolRouteImport.update({
   id: '/ticker/$symbol',
   path: '/ticker/$symbol',
   getParentRoute: () => CHandleRoute,
 } as any)
-const ApiOgTSymbolRevRoute = ApiOgTSymbolRevRouteImport.update({
-  id: '/api/og/t/$symbol/$rev',
-  path: '/api/og/t/$symbol/$rev',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiOgCHandleRevRoute = ApiOgCHandleRevRouteImport.update({
   id: '/api/og/c/$handle/$rev',
   path: '/api/og/c/$handle/$rev',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOgTSymbolRevRoute = ApiOgTSymbolRevRouteImport.update({
+  id: '/api/og/t/$symbol/$rev',
+  path: '/api/og/t/$symbol/$rev',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOgTHandleSymbolRevRoute = ApiOgTHandleSymbolRevRouteImport.update({
@@ -262,18 +262,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/explore': {
-      id: '/explore'
-      path: '/explore'
-      fullPath: '/explore'
-      preLoaderRoute: typeof ExploreRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/changelog': {
@@ -283,39 +276,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dev/badges': {
-      id: '/dev/badges'
-      path: '/dev/badges'
-      fullPath: '/dev/badges'
-      preLoaderRoute: typeof DevBadgesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/c/$handle': {
-      id: '/c/$handle'
-      path: '/c/$handle'
-      fullPath: '/c/$handle'
-      preLoaderRoute: typeof CHandleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/revalidate': {
-      id: '/api/revalidate'
-      path: '/api/revalidate'
-      fullPath: '/api/revalidate'
-      preLoaderRoute: typeof ApiRevalidateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/report': {
-      id: '/api/report'
-      path: '/api/report'
-      fullPath: '/api/report'
-      preLoaderRoute: typeof ApiReportRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/calls-index': {
@@ -325,32 +297,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCallsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/t/$symbol/': {
-      id: '/t/$symbol/'
-      path: '/t/$symbol'
-      fullPath: '/t/$symbol/'
-      preLoaderRoute: typeof TSymbolIndexRouteImport
+    '/api/report': {
+      id: '/api/report'
+      path: '/api/report'
+      fullPath: '/api/report'
+      preLoaderRoute: typeof ApiReportRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/c/$handle/': {
-      id: '/c/$handle/'
-      path: '/'
-      fullPath: '/c/$handle/'
-      preLoaderRoute: typeof CHandleIndexRouteImport
-      parentRoute: typeof CHandleRoute
-    }
-    '/t/$symbol/$creator': {
-      id: '/t/$symbol/$creator'
-      path: '/t/$symbol/$creator'
-      fullPath: '/t/$symbol/$creator'
-      preLoaderRoute: typeof TSymbolCreatorRouteImport
+    '/api/revalidate': {
+      id: '/api/revalidate'
+      path: '/api/revalidate'
+      fullPath: '/api/revalidate'
+      preLoaderRoute: typeof ApiRevalidateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/prices/$symbol': {
-      id: '/api/prices/$symbol'
-      path: '/api/prices/$symbol'
-      fullPath: '/api/prices/$symbol'
-      preLoaderRoute: typeof ApiPricesSymbolRouteImport
+    '/c/$handle': {
+      id: '/c/$handle'
+      path: '/c/$handle'
+      fullPath: '/c/$handle'
+      preLoaderRoute: typeof CHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/badges': {
+      id: '/dev/badges'
+      path: '/dev/badges'
+      fullPath: '/dev/badges'
+      preLoaderRoute: typeof DevBadgesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/dataset/$handle': {
@@ -360,6 +332,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDatasetHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/prices/$symbol': {
+      id: '/api/prices/$symbol'
+      path: '/api/prices/$symbol'
+      fullPath: '/api/prices/$symbol'
+      preLoaderRoute: typeof ApiPricesSymbolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$handle/': {
+      id: '/c/$handle/'
+      path: '/'
+      fullPath: '/c/$handle/'
+      preLoaderRoute: typeof CHandleIndexRouteImport
+      parentRoute: typeof CHandleRoute
+    }
+    '/t/$symbol/': {
+      id: '/t/$symbol/'
+      path: '/t/$symbol'
+      fullPath: '/t/$symbol/'
+      preLoaderRoute: typeof TSymbolIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$symbol/$creator': {
+      id: '/t/$symbol/$creator'
+      path: '/t/$symbol/$creator'
+      fullPath: '/t/$symbol/$creator'
+      preLoaderRoute: typeof TSymbolCreatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/c/$handle/ticker/$symbol': {
       id: '/c/$handle/ticker/$symbol'
       path: '/ticker/$symbol'
@@ -367,18 +367,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CHandleTickerSymbolRouteImport
       parentRoute: typeof CHandleRoute
     }
-    '/api/og/t/$symbol/$rev': {
-      id: '/api/og/t/$symbol/$rev'
-      path: '/api/og/t/$symbol/$rev'
-      fullPath: '/api/og/t/$symbol/$rev'
-      preLoaderRoute: typeof ApiOgTSymbolRevRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/og/c/$handle/$rev': {
       id: '/api/og/c/$handle/$rev'
       path: '/api/og/c/$handle/$rev'
       fullPath: '/api/og/c/$handle/$rev'
       preLoaderRoute: typeof ApiOgCHandleRevRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/og/t/$symbol/$rev': {
+      id: '/api/og/t/$symbol/$rev'
+      path: '/api/og/t/$symbol/$rev'
+      fullPath: '/api/og/t/$symbol/$rev'
+      preLoaderRoute: typeof ApiOgTSymbolRevRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/og/t/$handle/$symbol/$rev': {
