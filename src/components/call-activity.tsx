@@ -416,7 +416,7 @@ function renderMonthRow(calendar: ActivityCalendar, animate: boolean): React.Rea
         <div key={index} className="relative h-3 w-[11px] shrink-0">
           {week.month && !calendar.weeks[index + 1]?.month && (
             <span
-              className={`absolute top-0 left-0 font-mono text-[10px] leading-none whitespace-nowrap text-muted-foreground ${animate ? "call-activity-wave-month" : ""}`}
+              className={`absolute top-0 ${index === calendar.weeks.length - 1 ? "right-0" : "left-0"} font-mono text-[10px] leading-none whitespace-nowrap text-muted-foreground ${animate ? "call-activity-wave-month" : ""}`}
               style={
                 animate ? waveStyle(callActivityWaveDelay(index, calendar.weeks.length)) : undefined
               }

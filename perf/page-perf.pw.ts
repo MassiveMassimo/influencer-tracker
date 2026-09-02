@@ -577,4 +577,22 @@ test.describe("page performance (prod build)", () => {
     expect(layout.newestInsideRightEdge).toBe(true);
     expect(layout.paddingBottom).toBe("20px");
   });
+
+  test("creator activity does not overflow when the full calendar fits", async ({ page }) => {
+    await page.setViewportSize({ width: 1311, height: 948 });
+    await page.goto(ROUTES.creator, { waitUntil: "load" });
+
+    const region = page.getByRole("region", {
+      name: "Call activity calendar. Scroll horizontally to see earlier dates.",
+    });
+    const viewport = region.locator('[data-slot="scroll-area-viewport"]');
+    await expect(page.getByRole("grid", { name: /Call activity from/ })).toBeVisible();
+
+    await expect
+      .poll(() => viewport.evaluate((element) => element.scrollWidth === element.clientWidth))
+      .toBe(true);
+
+    await region.hover();
+    await expect(region.locator('[data-slot="scroll-area-scrollbar"]')).toHaveCount(0);
+  });
 });
