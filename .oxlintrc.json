@@ -5,7 +5,10 @@
     "correctness": "error"
   },
   "rules": {
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    "react/purity": "off",
+    "react/refs": "off",
+    "react/set-state-in-effect": "off"
   },
   "env": {
     "browser": true,

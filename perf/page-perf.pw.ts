@@ -198,7 +198,7 @@ test.describe("page performance (prod build)", () => {
 
   test("removed statistic prefixes animate out when the value gets shorter", async ({ page }) => {
     await page.goto("/c/thelonginvest", { waitUntil: "load" });
-    await expect(page.locator(".sr-only").filter({ hasText: /^2,961$/ })).toHaveCount(1);
+    await expect(page.locator(".sr-only").filter({ hasText: /^3,032$/ })).toHaveCount(1);
 
     await page.evaluate(() => {
       const samples: Array<{
@@ -211,12 +211,12 @@ test.describe("page performance (prod build)", () => {
       const startedAt = performance.now();
       const sample = () => {
         const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
-          /^(2,961|116)$/.test(element.textContent ?? ""),
+          /^(3,032|116)$/.test(element.textContent ?? ""),
         );
         const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
 
         for (const slot of visualValue?.children ?? []) {
-          if (slot.textContent !== "2" && slot.textContent !== ",") continue;
+          if (slot.textContent !== "3" && slot.textContent !== ",") continue;
 
           const style = getComputedStyle(slot);
           const matrix = new DOMMatrixReadOnly(style.transform);
@@ -252,7 +252,7 @@ test.describe("page performance (prod build)", () => {
         }>,
     );
 
-    for (const character of ["2", ","]) {
+    for (const character of ["3", ","]) {
       const exitingSamples = samples.filter(
         (sample) => sample.character === character && sample.position === "absolute",
       );
@@ -288,7 +288,7 @@ test.describe("page performance (prod build)", () => {
       const startedAt = performance.now();
       const sample = () => {
         const accessibleValue = Array.from(document.querySelectorAll(".sr-only")).find((element) =>
-          /^(71|2,159)$/.test(element.textContent ?? ""),
+          /^(71|2,193)$/.test(element.textContent ?? ""),
         );
         const visualValue = accessibleValue?.parentElement?.querySelector('[aria-hidden="true"]');
         samples.push(Array.from(visualValue?.children ?? [], (slot) => slot.textContent ?? ""));
@@ -304,7 +304,7 @@ test.describe("page performance (prod build)", () => {
     await expect(page).toHaveURL(/\/c\/TheProfInvestor$/);
     const longValue = page
       .locator(".sr-only")
-      .filter({ hasText: /^2,159$/ })
+      .filter({ hasText: /^2,193$/ })
       .locator("..");
     await expect(longValue).toHaveCount(1);
     await page.waitForTimeout(850);
@@ -315,8 +315,8 @@ test.describe("page performance (prod build)", () => {
 
     expect(longRect.left).toBeCloseTo(shortRect.left, 0);
     expect(
-      samples.some((slots) => slots.includes("75") && slots.includes("19")),
-      "7 → 5 and 1 → 9 must share right-aligned transition slots",
+      samples.some((slots) => slots.includes("79") && slots.includes("13")),
+      "7 → 9 and 1 → 3 must share right-aligned transition slots",
     ).toBe(true);
   });
 
