@@ -3,7 +3,7 @@
     "handle": "roadto100kportfolio",
     "name": "@roadto100kportfolio"
   },
-  "generatedAt": "2026-09-06",
+  "generatedAt": "2026-09-07",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -6801,10 +6801,78 @@
           "excess": -0.1934775173493215
         }
       }
+    },
+    {
+      "shortcode": "Dc9ZXDJJ7q6",
+      "postDate": "2026-09-06",
+      "ticker": "AVGO",
+      "company": "Broadcom",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "First stock is Broadcom.",
+      "summary": "The creator owns Broadcom as a long-term AI infrastructure play due to its role in custom chips and networking.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "Dc9ZXDJJ7q6",
+      "postDate": "2026-09-06",
+      "ticker": "CRDO",
+      "company": "Credo Technology Group Holding",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "Second is CRDO.",
+      "summary": "The creator owns CRDO as a long-term AI connectivity play for its high-speed data movement solutions.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 116,
+    "totalCalls": 118,
     "uniqueTickers": 60,
     "hitRate": {
       "1m": 0.4909090909090909,
@@ -7418,15 +7486,15 @@
     "funnel": [
       {
         "label": "Instagram posts",
-        "value": 126
+        "value": 127
       },
       {
         "label": "Named a stock",
-        "value": 194
+        "value": 196
       },
       {
         "label": "Bullish buy call",
-        "value": 116
+        "value": 118
       },
       {
         "label": "First call (unique ticker)",
