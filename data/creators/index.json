@@ -2,12 +2,12 @@
   {
     "handle": "kevvonz",
     "name": "Kevin Hu",
-    "totalCalls": 71,
+    "totalCalls": 74,
     "firstCalls": 26,
     "hitRate3m": 0.3888888888888889,
     "hitRate3mN": 18,
     "avgExcess3m": -0.050346725927700016,
-    "generatedAt": "2026-09-10",
+    "generatedAt": "2026-09-12",
     "avatar": "/avatars/kevvonz.jpg"
   },
   {
@@ -40,7 +40,7 @@
     "hitRate3m": 0.3333333333333333,
     "hitRate3mN": 54,
     "avgExcess3m": -0.024080651315388744,
-    "generatedAt": "2026-09-11",
+    "generatedAt": "2026-09-12",
     "avatar": "/avatars/roadto100kportfolio.jpg"
   },
   {
@@ -51,7 +51,7 @@
     "hitRate3m": 0.45714285714285713,
     "hitRate3mN": 70,
     "avgExcess3m": 0.033417367546785225,
-    "generatedAt": "2026-09-11",
+    "generatedAt": "2026-09-12",
     "avatar": "/avatars/johnnylixf.jpg"
   }
 ]
