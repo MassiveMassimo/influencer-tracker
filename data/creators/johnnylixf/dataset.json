@@ -3,7 +3,7 @@
     "handle": "johnnylixf",
     "name": "Johnny Li"
   },
-  "generatedAt": "2026-09-12",
+  "generatedAt": "2026-09-13",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -10271,10 +10271,146 @@
           "excess": 0.1570292963048332
         }
       }
+    },
+    {
+      "shortcode": "DdMiwYFhMk4",
+      "postDate": "2026-09-12",
+      "ticker": "MRVL",
+      "company": "Marvell Technology",
+      "isFirstCall": false,
+      "conviction": 0.8,
+      "quote": "Marvel, right now every data center needs chip designs and nobody's talking about it.",
+      "summary": "The creator highlights Marvell as a strong play due to high demand for chip designs in data centers.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DdMiwYFhMk4",
+      "postDate": "2026-09-12",
+      "ticker": "NOW",
+      "company": "ServiceNow",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "ServiceNow, right now earnings are exploding and AI agent demand is real. It could easily double from here.",
+      "summary": "The creator is bullish on ServiceNow, citing strong earnings and AI demand, with a target of doubling.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DdMiwYFhMk4",
+      "postDate": "2026-09-12",
+      "ticker": "TSLA",
+      "company": "Tesla",
+      "isFirstCall": false,
+      "conviction": 0.6,
+      "quote": "Tesla, it's too late. Earnings are 350 times. Buy it on pullbacks.",
+      "summary": "The creator believes Tesla is currently overvalued but recommends buying on pullbacks.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DdMiwYFhMk4",
+      "postDate": "2026-09-12",
+      "ticker": "OUST",
+      "company": "Ouster",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "Alster right now is down from all-time highs while demand grew. I expect it to double from here.",
+      "summary": "The creator is bullish on Ouster, expecting the stock to double from its current levels.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 174,
+    "totalCalls": 178,
     "uniqueTickers": 86,
     "hitRate": {
       "1m": 0.4186046511627907,
@@ -10888,15 +11024,15 @@
     "funnel": [
       {
         "label": "Instagram posts",
-        "value": 252
+        "value": 253
       },
       {
         "label": "Named a stock",
-        "value": 267
+        "value": 275
       },
       {
         "label": "Bullish buy call",
-        "value": 174
+        "value": 178
       },
       {
         "label": "First call (unique ticker)",

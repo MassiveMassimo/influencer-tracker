@@ -7,7 +7,7 @@
     "hitRate3m": 0.3888888888888889,
     "hitRate3mN": 18,
     "avgExcess3m": -0.050346725927700016,
-    "generatedAt": "2026-09-12",
+    "generatedAt": "2026-09-13",
     "avatar": "/avatars/kevvonz.jpg"
   },
   {
@@ -40,18 +40,18 @@
     "hitRate3m": 0.3333333333333333,
     "hitRate3mN": 54,
     "avgExcess3m": -0.024080651315388744,
-    "generatedAt": "2026-09-12",
+    "generatedAt": "2026-09-13",
     "avatar": "/avatars/roadto100kportfolio.jpg"
   },
   {
     "handle": "johnnylixf",
     "name": "Johnny Li",
-    "totalCalls": 174,
+    "totalCalls": 178,
     "firstCalls": 86,
     "hitRate3m": 0.45714285714285713,
     "hitRate3mN": 70,
     "avgExcess3m": 0.033417367546785225,
-    "generatedAt": "2026-09-12",
+    "generatedAt": "2026-09-13",
     "avatar": "/avatars/johnnylixf.jpg"
   }
 ]
