@@ -3,7 +3,7 @@
     "handle": "johnnylixf",
     "name": "Johnny Li"
   },
-  "generatedAt": "2026-09-13",
+  "generatedAt": "2026-09-14",
   "spyAnchor": "SPY",
   "calls": [
     {
@@ -10407,11 +10407,147 @@
           "excess": null
         }
       }
+    },
+    {
+      "shortcode": "DdP_rJQBaYa",
+      "postDate": "2026-09-14",
+      "ticker": "HON",
+      "company": "Honeywell",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "Honeywell Aerospace, it's early. It just spun off from Honeywell. Get into a small position.",
+      "summary": "The creator recommends initiating a small position in Honeywell Aerospace as it is early in its post-spinoff phase.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DdP_rJQBaYa",
+      "postDate": "2026-09-14",
+      "ticker": "ASTS",
+      "company": "AST SpaceMobile",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "AST Space Mobile right now is down 55%. It could easily double from here.",
+      "summary": "The creator is bullish on AST SpaceMobile, noting it is down 55% and has the potential to double in value.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DdP_rJQBaYa",
+      "postDate": "2026-09-14",
+      "ticker": "VST",
+      "company": "Vistra Corp.",
+      "isFirstCall": true,
+      "conviction": 0.8,
+      "quote": "Vistra Corp, right now every data center needs power and insiders are buying up the stock.",
+      "summary": "The creator highlights Vistra Corp due to data center power demand and positive insider buying activity.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
+    },
+    {
+      "shortcode": "DdP_rJQBaYa",
+      "postDate": "2026-09-14",
+      "ticker": "TEM",
+      "company": "Tempus AI",
+      "isFirstCall": false,
+      "conviction": 0.9,
+      "quote": "Tempest AI right now is down 50% from all-time highs while the business and demand grew. I expect it to double from here.",
+      "summary": "The creator is bullish on Tempest Therapeutics, expecting the stock to double as it trades 50% below highs despite business growth.",
+      "onScreenPrice": null,
+      "spark": [],
+      "returns": {
+        "1w": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "1m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "3m": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        },
+        "toDate": {
+          "stock": null,
+          "spy": null,
+          "excess": null
+        }
+      }
     }
   ],
   "scorecard": {
-    "totalCalls": 178,
-    "uniqueTickers": 86,
+    "totalCalls": 182,
+    "uniqueTickers": 88,
     "hitRate": {
       "1m": 0.4186046511627907,
       "3m": 0.45714285714285713
@@ -10426,7 +10562,7 @@
       "3m": 0.033417367546785225,
       "toDate": -0.0635927823063483
     },
-    "callsPerWeek": 1.7810650887573964,
+    "callsPerWeek": 1.6514745308310992,
     "best": [
       {
         "shortcode": "DRupAA5j2e2",
@@ -11024,19 +11160,19 @@
     "funnel": [
       {
         "label": "Instagram posts",
-        "value": 253
+        "value": 254
       },
       {
         "label": "Named a stock",
-        "value": 275
+        "value": 282
       },
       {
         "label": "Bullish buy call",
-        "value": 178
+        "value": 182
       },
       {
         "label": "First call (unique ticker)",
-        "value": 86
+        "value": 88
       },
       {
         "label": "Beat SPY (to date)",
