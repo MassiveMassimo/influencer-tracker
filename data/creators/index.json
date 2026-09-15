@@ -13,23 +13,23 @@
   {
     "handle": "TheProfInvestor",
     "name": "The Prof Investor",
-    "totalCalls": 2266,
+    "totalCalls": 2273,
     "firstCalls": 316,
-    "hitRate3m": 0.4522058823529412,
-    "hitRate3mN": 272,
-    "avgExcess3m": 0.07789106728516908,
-    "generatedAt": "2026-09-14",
+    "hitRate3m": 0.44727272727272727,
+    "hitRate3mN": 275,
+    "avgExcess3m": 0.0734387951578355,
+    "generatedAt": "2026-09-15",
     "avatar": "/avatars/TheProfInvestor.jpg"
   },
   {
     "handle": "thelonginvest",
     "name": "The Long Invest",
-    "totalCalls": 3115,
-    "firstCalls": 137,
+    "totalCalls": 3123,
+    "firstCalls": 138,
     "hitRate3m": 0.4117647058823529,
     "hitRate3mN": 119,
     "avgExcess3m": -0.012862986342689458,
-    "generatedAt": "2026-09-14",
+    "generatedAt": "2026-09-15",
     "avatar": "/avatars/thelonginvest.jpg"
   },
   {
