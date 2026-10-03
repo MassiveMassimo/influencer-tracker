@@ -33,6 +33,7 @@ data/prices/
 data/prices.db-shm
 data/prices.db-wal
 .chrome-profile
+.ingest-state/
 playwright-report
 test-results
 perf/.report

@@ -1,0 +1,10 @@
+[Unit]
+Description=Report unhandled failure of %i
+[Service]
+Type=oneshot
+User=ubuntu
+EnvironmentFile=/home/ubuntu/influencer-tracker/.env
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/bin:/bin
+WorkingDirectory=/home/ubuntu/influencer-tracker
+TimeoutStartSec=1min
+ExecStart=/home/ubuntu/.bun/bin/bun run scripts/notify-failure.ts %i

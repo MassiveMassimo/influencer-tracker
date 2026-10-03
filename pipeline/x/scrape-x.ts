@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { rawDir, RETTIWT_KEY } from "../config";
 import { withRetry } from "../retry";
 import { saveAvatar } from "../avatar";
+import { xRequestError } from "./request-error";
 
 export interface TweetRecord {
   id: string;
@@ -114,7 +115,16 @@ export async function scrapeX(
   opts: { forward?: boolean } = {},
 ): Promise<TweetRecord[]> {
   if (!RETTIWT_KEY) throw new Error("RETTIWT_API_KEY not set (use a throwaway X account key)");
-  const rettiwt = new Rettiwt({ apiKey: RETTIWT_KEY, delay: REQUEST_DELAY });
+  const rettiwt = new Rettiwt({
+    apiKey: RETTIWT_KEY,
+    delay: REQUEST_DELAY,
+    timeout: 30_000,
+    errorHandler: {
+      handle(error: unknown) {
+        throw xRequestError(error);
+      },
+    },
+  });
   const user = handle.replace(/^@/, "");
   const cutoff = new Date(Date.now() - months * 30 * 86400_000);
 

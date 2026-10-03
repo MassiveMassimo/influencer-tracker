@@ -109,7 +109,7 @@ X has no audio, so this is only needed on a VM that ingests IG. Benchmark on the
 ```bash
 sudo cp ~/influencer-tracker/ops/influencer-ingest.service /etc/systemd/system/
 sudo cp ~/influencer-tracker/ops/influencer-ingest.timer   /etc/systemd/system/
-sudo cp ~/influencer-tracker/ops/notify-fail.service       /etc/systemd/system/
+sudo cp ~/influencer-tracker/ops/notify-fail@.service      /etc/systemd/system/
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now influencer-ingest.timer
@@ -135,7 +135,8 @@ The timer fires `influencer-ingest.service`, which:
    no human pause.
    After all handles, `ingest.ts` commits + pushes `data/` once (Vercel auto-deploys the
    fresh static). A handle BLOCK or a failed push makes the run exit non-zero so the
-   `notify-fail` `OnFailure` dead-man fires even if the Telegram send is down.
+   `notify-fail@` backstop checks whether that exact invocation completed and
+   already reported its failure. It sends only for an unhandled failure.
 4. Per-handle Telegram messages:
    - **Published:** handle scored; `data/` committed + pushed → Vercel redeploys static — no action needed.
    - **BLOCKED:** `guard-no-shrink` or score failed (or the push/rebase failed); the message
@@ -202,6 +203,7 @@ Before each run the service does:
 git checkout -- data/   # reset all tracked files under data/ to remote HEAD
 git clean -fd data/     # drop untracked non-ignored files (safe — .gitignore shields raw/, frames/, transcripts/, cookies.txt)
 git pull --ff-only      # pull latest main
+bun install --frozen-lockfile # keep installed dependencies aligned with main
 ```
 
 `git clean -fd data/` (no `-x`) is safe across all of `data/`: seeded per-creator state
@@ -217,16 +219,28 @@ incremental forward-scrape cursor (newest stored tweet id); losing it forces a f
 
 ## 5. Failure handling
 
-- **`notify-fail.service`** is declared in `influencer-ingest.service`'s `OnFailure=`
-  directive. If the ingest unit exits non-zero or is killed (timeout, OOM, etc.) and
-  the wrapper's own try/catch did not fire, systemd triggers `notify-fail.service`,
-  which calls `scripts/notify.ts` directly and sends a Telegram alert.
-- **`RuntimeMaxSec=4h`** is the dead-man timeout. If the ingest hangs for more than
-  four hours, systemd kills the unit and `notify-fail.service` fires. Bump to `6h` in
-  `influencer-ingest.service` if `INGEST_HANDLES` grows to 10+ handles.
+- **`notify-fail@.service`** reports the specific failed unit. It suppresses a
+  duplicate only when `.ingest-state/` records a completed invocation with all
+  notifications delivered or deduplicated. A crash, timeout, missing state, or
+  failed send still triggers the independent alert.
+- **`TimeoutStartSec=4h`** bounds both oneshot services. `RuntimeMaxSec` does not
+  bound a oneshot service's startup phase.
+- A shared proxy, session, or X transaction-parser failure stops the platform's
+  run after the first creator. The wrapper sends one platform alert. Unchanged
+  incidents get at most one reminder per 24 hours; a changed cause or recovery
+  resets suppression. Every failed attempt remains in the journal and exits nonzero.
+- Telegram sends have a 20-second timeout. Hermes failure falls back to the direct
+  Bot API when configured. Transport failure returns false and leaves the incident
+  eligible for retry. Raw credential-bearing errors are not logged.
+- Published messages are sent after a successful push or an unchanged dataset.
+  An earlier unpublished data commit is retried even when the new run has no diff.
 - To inspect a failed run: `journalctl -u influencer-ingest.service -n 100 --no-pager`
 - To trigger a manual test run: `sudo systemctl start influencer-ingest.service` — runs the
   same `ExecStart` (same `flock`); it does NOT skip the lock.
+
+When deploying these changes, install both ingest services and
+`notify-fail@.service`, then run `sudo systemctl daemon-reload`. Pulling repository
+code alone does not update units in `/etc/systemd/system/`.
 
 ---
 

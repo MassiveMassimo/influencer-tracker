@@ -1,6 +1,6 @@
 [Unit]
 Description=influencer-tracker daily ingest (Instagram, forward incremental, headful via xvfb)
-OnFailure=notify-fail.service
+OnFailure=notify-fail@%n.service
 [Service]
 Type=oneshot
 User=ubuntu
@@ -20,4 +20,4 @@ TimeoutStartSec=4h
 # transcripts/, cookies.txt). xvfb-run gives the headful Chrome a virtual display; IG_PROXY
 # (from .env) routes egress through the residential relay so the burner is never seen from the
 # datacenter IP (scrape() aborts loudly if the proxy egress check fails).
-ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/ && git pull --ff-only && xvfb-run -a bun run scripts/ingest-ig.ts'
+ExecStart=/usr/bin/flock -w 7200 /tmp/influencer-ingest.lock bash -c 'git checkout -- data/ && git clean -fd data/ && git pull --ff-only && bun install --frozen-lockfile && xvfb-run -a bun run scripts/ingest-ig.ts'
