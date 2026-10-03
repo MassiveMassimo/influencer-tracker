@@ -55,3 +55,16 @@ the MacBook online and awake. Changing that dependency requires a separate owner
 choice; this repair does not introduce a new proxy service or billing.
 
 The deployment commands and recovery procedures are in `ops/README.md`.
+
+## Production build blocker
+
+The first Vercel deployment of the repair was blocked before the build because
+the existing `@tanstack/react-start@1.168.49` is affected by
+[CVE-2026-102989](https://github.com/TanStack/router/security/advisories/GHSA-qx66-fv34-fjm8).
+Update Start to its first patched version, `1.168.60`, and align the direct React
+Router dependency to `1.170.41`, which that Start release uses. The Vercel security
+bypass was not enabled. No application architecture or framework was changed.
+
+The patched dependency installation passed typecheck, lint, formatting, the full
+suite with 404 passed and 47 skipped, and the production build. Live redeployment
+verification is in progress.
