@@ -1,6 +1,7 @@
 # Augustus ingest repair
 
-Prepared and approved for deployment on 2026-10-03. Live verification is in progress.
+Approved, deployed, and verified on 2026-10-03. X ingestion is restored.
+Instagram remains blocked by its saved session and requires manual login.
 
 ## Confirmed causes
 
@@ -42,12 +43,29 @@ commits even when a later run has no new diff.
 - The repaired systemd units passed syntax verification on the VM. Existing host
   unit warnings were unrelated to these files.
 
-## Remaining live work
+## Live verification
 
-After owner approval, commit and merge the repair, push main, update the VM
-checkout and lockfile installation, install both services plus `notify-fail@.service`,
-and reload systemd. Run X ingest and inspect its exit status, data publication,
-and notification result. A push to main triggers the existing Vercel deployment.
+- Repair commit `b7e7690` and security patch `be72c70` reached main and the VM.
+  Both services and `notify-fail@.service` are installed. systemd was reloaded.
+  Both ingest startup timeouts are four hours. Both daily timers remain active.
+- X invocation `fc629b49fb88438187d645733f31f96e` completed with exit status 0.
+  Both configured X creators completed. Refreshed data was published in `4ed9680`.
+  The invocation was recorded as completed and handled, with no active incident.
+- The scheduled Instagram invocation `5bd5f96c32664fb9a7db397d13056527`
+  waited for the shared lock, then stopped at the session rejection. It sent one
+  platform alert. The backstop logged `completed failure already reported; no
+  duplicate alert`. Its nonzero exit status remains visible to systemd.
+- A routine repair-status message through the documented Hermes CLI returned
+  `success: true`, platform `telegram`, and message ID `11441`. This confirms
+  provider acceptance; it does not assert that the owner read the message.
+- Vercel production deployment `dpl_FHyR4wCud8zPgnr4gq76arj327Hj` is Ready
+  for the published data commit. The production dashboard and a creator page
+  rendered correctly in the built-in browser, with no captured warnings or errors.
+  The dashboard showed refreshed X data at `1d ago`.
+- A locked VM sync confirmed Start `1.168.60` and Rettiwt `7.1.4` installed.
+  The pre-existing untracked VM scripts were preserved.
+
+## Remaining owner action
 
 Instagram needs a manual burner-account login through the proxy before live
 ingestion can succeed. Do not automate that login. The MacBook relay still needs
@@ -66,5 +84,13 @@ Router dependency to `1.170.41`, which that Start release uses. The Vercel secur
 bypass was not enabled. No application architecture or framework was changed.
 
 The patched dependency installation passed typecheck, lint, formatting, the full
-suite with 404 passed and 47 skipped, and the production build. Live redeployment
-verification is in progress.
+suite with 404 passed and 47 skipped, and the production build. Production
+redeployment is verified above.
+
+## Retained artifacts
+
+The VM retains the three previous unit files under
+`~/.local/state/influencer-tracker/augustus-repair-20261003/` for rollback.
+Task-created canary directories, feature-worktree dependencies, build output,
+and generated public assets were removed after verification. Source and compact
+evidence remain in the repair worktree and this record.
